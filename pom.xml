@@ -278,7 +278,7 @@
 			<artifactId>tibero-jdbc</artifactId>
 			<version>6.0</version>
 			<scope>system</scope>
-			<systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib2/tibero6-jdbc.jar</systemPath>
+			<systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/tibero6-jdbc.jar</systemPath>
 		</dependency>
 
 		<!-- mybatis log4jdbc-log4j2 라이브러리 송영일 2021.09.27 -->

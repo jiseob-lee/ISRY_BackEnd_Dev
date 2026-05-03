@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.cysns.uneartmng.instmapng.mapper.InstMapngMapper">
+
+    <select id="selectReqList" resultType="HashMap">
+    
+        <!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        <![CDATA[
+        /* selectReqList - Lee MS */       
+            A.WLFAR_CNTER_NO AS WLFAR_CNTER_NO,               /* 복지센터코드 */ 
+            A.INST_NM AS WLFAR_INST_NM,                       /* 복지센터명 */
+            C.INST_NO AS INST_NO,                             /* 기관코드 */
+            C.INST_NM AS INST_NM,                             /* 기관명 */
+            C.INST_TYPE_SE_CD AS INST_TYPE_SE_CD,             /* 기관유형구분코드 */
+            C.CTPV_CD AS CTPV_CD                              /* 시도코드 */
+        FROM ACA280 A, ACA281 B, SAA000 C
+        WHERE A.WLFAR_CNTER_NO = B.WLFAR_CNTER_NO(+)
+        AND B.INST_NO = C.INST_NO(+)
+        AND A.INST_NM(+) LIKE #{INST_NM}||'%'
+        ]]>
+        <if test = "INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ''">
+            AND C.INST_TYPE_SE_CD = #{INST_TYPE_SE_CD}
+        </if>
+        
+        <if test = "CTPV_CD != null and CTPV_CD != ''">
+            AND C.CTPV_CD = #{CTPV_CD}
+        </if>
+        
+        ORDER BY A.WLFAR_CNTER_NO     
+      <!-- 페이지 인덱서 OFFSET 조건 -->
+      <include refid="ComPagingMapper.pageOffset"/>
+   
+    </select>
+
+    <select id="selectReqById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectReqById - Lee MS */
+        
+        SELECT
+            A.WLFAR_CNTER_NO AS WLFAR_CNTER_NO,                     /* 복지센터번호 */
+            A.INST_NM AS WLFAR_INST_NM,                             /* 기관명 */
+            A.CTPV_NM AS CTPV_NM,                                   /* 시도명 */
+            A.WLFAR_CNTER_TELNO AS WLFAR_CNTER_TELNO,               /* 복지센터전화번호 */
+            A.WLFAR_CNTER_FXNO AS WLFAR_CNTER_FXNO,                 /* 복지센터팩스번호 */
+            A.INST_ADDR AS INST_ADDR,                               /* 기관주소 */
+            A.HPGE_ADDR AS HPGE_ADDR,                               /* 홈페이지주소 */
+            
+            C.INST_NO AS INST_NO,                                   /* 기관번호 */ 
+            C.INST_NM AS INST_NM,                                   /* 기관명 */
+            C.SGG_CD AS SGG_CD,                                     /* 시군구코드 */
+            C.RPRS_TELNO AS RPRS_TELNO,                             /* 대표전화번호 */
+            C.RPRS_FXNO AS RPRS_FXNO,                               /* 대표팩스번호 */
+            C.HPGE_URL_ADDR AS HPGE_URL_ADDR,                       /* 홈페이지URL주소 */
+            C.BPLC_PST_ADDR || ' ' ||  C.BPLC_DADDR AS INST_DADDR   /* 기관주소 */
+        FROM ACA280 A, ACA281 B, SAA000 C /* 복지센터정보, 복지센터정보매핑, 통합기관코드 */
+        WHERE A.WLFAR_CNTER_NO = B.WLFAR_CNTER_NO(+)
+        AND B.INST_NO = C.INST_NO(+)
+        AND A.WLFAR_CNTER_NO = #{WLFAR_CNTER_NO}      
+
+    ]]>
+    </select>
+
+    <update id="saveData" parameterType="HashMap">
+    <![CDATA[
+         /* saveData - Lee  MS */
+         
+        MERGE INTO ACA281 /* 복지센터정보매핑 */
+        USING DUAL
+           ON (WLFAR_CNTER_NO = #{WLFAR_CNTER_NO})
+         WHEN MATCHED THEN
+       UPDATE SET
+              INST_NO = #{INST_NO},             /* 기관번호 */
+              LAST_MDFR_ID = #{USER_ID},        /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE           /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+             WLFAR_CNTER_NO,                     /* 복지센터번호 */  
+             INST_NO,                            /* 기관번호 */
+             FRST_RGTR_ID,
+             FRST_REG_DT,
+             LAST_MDFR_ID,
+             LAST_MDFCN_DT
+        )
+        VALUES (
+             #{WLFAR_CNTER_NO},
+             #{INST_NO},
+             #{USER_ID},
+             SYSDATE,
+             #{USER_ID},
+             SYSDATE
+        )
+        
+    ]]>
+    </update>
+
+    <delete id="deleteData" parameterType="String">
+    <![CDATA[
+         /* deleteData - Lee  MS */
+    
+        DELETE FROM ACA281 /* 복지센터정보매핑 */
+        WHERE WLFAR_CNTER_NO = #{WLFAR_CNTER_NO}
+    
+    ]]>
+    </delete>
+
+</mapper>

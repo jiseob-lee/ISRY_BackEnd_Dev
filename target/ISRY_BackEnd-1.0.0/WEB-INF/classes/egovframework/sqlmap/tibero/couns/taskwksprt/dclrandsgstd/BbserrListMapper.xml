@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.couns.taskwksprt.dclrandsgstd.mapper.BbserrListMapper">
+
+	<select id="selectCommonCode" resultType="HashMap">
+	/* isry.couns.constt.mapper.BbserrListMapper.selectCommonCode : 게시판 검색조건 코드 조회 */
+	SELECT 
+	    CMMNS_CD_ID,    /* 공통코드 아이디 */
+	    CMMNS_CD_VALUE AS CMMNS_CD_VALUE2, /* 공통코드 값(SELECTBOX 값들) */
+	    CMMNS_CD_VALUE_NM AS CMMNS_CD_VALUE_NM2  /* 공통코드 값 이름(SELECTBOX 이름) */
+	FROM 
+	    SAC100
+	WHERE 
+	    CMMNS_CD_ID = #{codeId}    /* codeId : DTPRSN_ERR_DCLR_ERR_SE_CD */
+	    AND USE_YN = 'Y';
+	</select>
+	
+    <select id="getTotalCount" parameterType="HashMap" resultType="int">
+    /* isry.couns.constt.mapper.BbserrListMapper.getTotalCount : 조회된 전체 데이터 갯수 */
+    SELECT 
+	    COUNT(*)
+	FROM   AYE100 AA                   /* 사이버 상담게시글 */
+	WHERE 1=1
+	    AND NVL(DEL_YN, 'N') != 'Y';    /* 삭제여부 */
+	    <if test='PRGRSsTTSsEcD == "01" '>              /* 상태 : 접수 ==> 기본값*/
+            <if test='DTPRSNeRRdCLReRRsEcD == "01" '>   /* 분류 : 채팅에러  ==> 기본값 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '01'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '01'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+            </if>
+            <if test='DTPRSNeRRdCLReRRsEcD == "02" '>   /* 분류 : 그외 오류 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '01'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '02'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+            </if>  
+        </if>
+       
+        <if test='PRGRSsTTSsEcD == "02" '>              /* 상태 : 보류 */
+            <if test='DTPRSNeRRdCLReRRsEcD == "01" '>   /* 분류 : 채팅에러 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '02'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '01'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+            </if>
+            <if test='DTPRSNeRRdCLReRRsEcD == "02" '>   /* 분류 : 그외 오류 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '02'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '02'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+            </if>  
+        </if>
+       
+        <if test='PRGRSsTTSsEcD == "03" '>              /* 상태 : 완료 */
+            <if test='DTPRSNeRRdCLReRRsEcD == "01" '>   /* 분류 : 채팅에러 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '03'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '01'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+        
+            </if>
+            <if test='DTPRSNeRRdCLReRRsEcD == "02" '>   /* 분류 : 그외 오류 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '03'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '02'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+        
+            </if>  
+        </if>
+        
+        
+        <if test='selectBox == "1" and selectBox != null and selectBox != "" '>         /* 검색어 조건 : 작성자 일 때 */
+            <if test='strId != null and strId != "" '>         /* 검색어로 조회 */
+            AND CC.FLNM LIKE '%' || #{strId} || '%'
+            </if>
+        </if>
+        <if test='selectBox == "2" and selectBox != null and selectBox != "" '>         /* 검색어 조건 : 제목 일 때 */
+            <if test='strId != null and strId != "" '>         /* 검색어로 조회 */
+            AND AA.BBSCTT_TTL_NM LIKE '%' || #{strId} || '%'
+            </if>
+        </if>
+        <if test='selectBox == "3" and selectBox != null and selectBox != "" '>         /* 검색어 조건 : 번호 일 때 */
+            <if test='strId != null and strId != "" '>         /* 검색어로 조회 */
+            AND AA.BBSCTT_ESNTAL_NO LIKE '%' || #{strId} || '%'
+            </if>
+        </if>
+        <if test='selectBox == "4" and selectBox != null and selectBox != "" '>         /* 검색어 조건 : 내용 일 때 */
+            <if test='strId != null and strId != "" '>         /* 검색어로 조회 */
+            AND AA.BBSCTT_CN LIKE '%' || #{strId} || '%'
+            </if>
+        </if>
+        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+        <![CDATA[
+        AND AA.FRST_REG_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+        AND AA.FRST_REG_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+        ]]>
+        </if>
+    </select>
+	
+	
+	<select id = "selectBbserrList" parameterType="HashMap" resultType="HashMap">
+	  
+	 SELECT 
+        AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD        /* 전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03)) */
+      , (
+        SELECT 
+           A.CMMNS_CD_VALUE_NM
+   
+        FROM 
+            SAC100 A    
+        WHERE 1=1 
+            AND CMMNS_CD_ID = 'DTPRSN_ERR_DCLR_ERR_SE_CD'           /* 전산오류신고오류구분코드 */
+            AND A.CMMNS_CD_VALUE    =   AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD
+        )  AS  CL_TYPE_SE_CD    /* 전산오류신고오류구분코드(분류    ==> 채팅에러(01), 그외 오류(02)) */
+      , AA.DTPRSN_ERR_DCLR_ERR_SE_CD                 /* 전산오류신고오류구분코드(분류    ==> 채팅에러(01), 그외 오류(02))  */    
+      , DD.CMMNS_CD_VALUE_NM    AS  PRGRS_STTS_SE_CD          /* 전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03)) */   
+      , AA.BBSCTT_TTL_NM        /* 제목 */
+      , TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD') AS FRST_REG_DT          /* 작성일 */
+      , AA.RDCNT_NOCS           /* 조회 */
+      , AA.ATFINO               /* 첨부 */
+      , AA.WRTR_NM                 /* 작성자 명 */
+      , AA.WRTR_NM    || '(' ||   CC.USER_ID || ')'   AS  WRTR_ID /* 작성자 이름과 작성자 아이디 합치기. 이름(아이디) */
+      , CC.USER_ID              /* 작성자 아이디 */
+      , AA.DEL_YN               /* 삭제 여부 */
+      , AA.BBSCTT_ESNTAL_NO     /* 게시글 고유 번호 : ex) 1950 */
+      , AA.BBSCTT_CN           /* 게시글 내용 */
+      , AA.BBSCTT_TYPE_SE_CD   /* 게시글 유형 구분 코드 : 전산오류 ==> 30번 */ 
+     
+    FROM 
+         AYE100 AA  /* 사이버 상담게시글 */
+       , SCA100 BB  /* 종사자 테이블 */
+       , SAA200 CC  /* 사용자 테이블 */ 
+       , SAC100 DD /* 공통코드  */ 
+    WHERE 1=1
+        AND AA.BBSCTT_TYPE_SE_CD    = '30'
+        AND BB.FLNM             =       AA.WRTR_NM       /* 성명,작성자명 */
+        AND CC.ENFSN_NO         =       BB.ENFSN_NO      /* 종사자번호 */    
+        AND CC.USER_ID          =       #{userId}        /* 로그인한 사용자 아이디 */
+       
+        AND DD.CMMNS_CD_ID = 'DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD'         /* 전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03)) */
+        AND DD.CMMNS_CD_VALUE    =   AA.DTPRSN_ERR_DCLR_ERR_SE_CD        
+        AND NVL(AA.DEL_YN, 'N') != 'Y'    /* 삭제여부 */
+        
+        <if test='PRGRSsTTSsEcD == "01" '>              /* 상태 : 접수 ==> 기본값*/
+            <if test='DTPRSNeRRdCLReRRsEcD == "01" '>   /* 분류 : 채팅에러  ==> 기본값 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '01'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '01'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+            </if>
+            <if test='DTPRSNeRRdCLReRRsEcD == "02" '>   /* 분류 : 그외 오류 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '01'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '02'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+            </if>  
+        </if>
+	   
+	    <if test='PRGRSsTTSsEcD == "02" '>              /* 상태 : 보류 */
+            <if test='DTPRSNeRRdCLReRRsEcD == "01" '>   /* 분류 : 채팅에러 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '02'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '01'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+            </if>
+            <if test='DTPRSNeRRdCLReRRsEcD == "02" '>   /* 분류 : 그외 오류 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '02'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '02'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+            </if>  
+        </if>
+       
+        <if test='PRGRSsTTSsEcD == "03" '>              /* 상태 : 완료 */
+            <if test='DTPRSNeRRdCLReRRsEcD == "01" '>   /* 분류 : 채팅에러 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '03'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '01'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+        
+            </if>
+            <if test='DTPRSNeRRdCLReRRsEcD == "02" '>   /* 분류 : 그외 오류 */
+            AND AA.DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD = '03'     /*전산오류신고진행상태구분코드(진행상태 ==> 접수(01),보류(02),완료(03))*/
+            AND AA.DTPRSN_ERR_DCLR_ERR_SE_CD    = '02'         /* 전산오류신고오류구분코드(분류 ==> 채팅에러(01), 그외 오류(02)) */
+        
+            </if>  
+        </if>
+        
+        
+        <if test='selectBox == "1" and selectBox != null and selectBox != "" '>         /* 검색어 조건 : 작성자 일 때 */
+            <if test='strId != null and strId != "" '>         /* 검색어로 조회 */
+            AND CC.FLNM LIKE '%' || #{strId} || '%'
+            </if>
+        </if>
+        <if test='selectBox == "2" and selectBox != null and selectBox != "" '>         /* 검색어 조건 : 제목 일 때 */
+            <if test='strId != null and strId != "" '>         /* 검색어로 조회 */
+            AND AA.BBSCTT_TTL_NM LIKE '%' || #{strId} || '%'
+            </if>
+        </if>
+        <if test='selectBox == "3" and selectBox != null and selectBox != "" '>         /* 검색어 조건 : 번호 일 때 */
+            <if test='strId != null and strId != "" '>         /* 검색어로 조회 */
+            AND AA.BBSCTT_ESNTAL_NO LIKE '%' || #{strId} || '%'
+            </if>
+        </if>
+        <if test='selectBox == "4" and selectBox != null and selectBox != "" '>         /* 검색어 조건 : 내용 일 때 */
+            <if test='strId != null and strId != "" '>         /* 검색어로 조회 */
+            AND AA.BBSCTT_CN LIKE '%' || #{strId} || '%'
+            </if>
+        </if>
+        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+        <![CDATA[
+        AND AA.FRST_REG_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+        AND AA.FRST_REG_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+        ]]>
+        </if>
+     
+	     ORDER BY AA.BBSCTT_ESNTAL_NO DESC 
+	     OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY    /* 페이징 처리 */
+	</select>
+
+    <insert id="insertBbserrList" parameterType="HashMap">
+        <selectKey resultType="String" keyProperty="BBSCTT_ESNTAL_NO" order="BEFORE">
+            <![CDATA[            
+              SELECT NVL(MAX(BBSCTT_ESNTAL_NO), 0) +1 AS BBSCTT_ESNTAL_NO
+              FROM AYE100
+            ]]>
+        </selectKey>
+    
+    /* isry.couns.constt.mapper.BbserrListMapper.insertBbserrList : 전산오류 신고 등록 */
+    INSERT  INTO AYE100                         /* 사이버 상담게시글 */
+	(  
+	    BBSCTT_ESNTAL_NO                        /* 게시글고유번호 */
+     ,  BBSCTT_TYPE_SE_CD                       /* 게시글유형구분코드 */
+	 ,  DTPRSN_ERR_DCLR_PRGRS_STTS_SE_CD        /* 진행상태 */
+	 ,  DTPRSN_ERR_DCLR_ERR_SE_CD              /*  분류 */
+	 ,  FRST_RGTR_ID     /* 최초등록자아이디 */
+	 ,  CNTN_IP_ADDR     /* 아이피 */
+	 ,  EML_ADDR         /* E-mail 주소  */   
+	 ,  HPGE_URL_ADDR    /* 홈페이지 URL 주소 */
+	 ,  BBSCTT_TTL_NM    /* 게시글 제목명 */
+	 ,  BBSCTT_CN        /* 게시글 내용 */
+	 ,  ATFINO           /* 파일전송 */ 
+	 ,  WRTR_NM          /*  작성자명  */
+	 ,  RDCNT_NOCS       /* 조회 */
+	 ,  DEL_YN           /* 삭제여부 */
+	)
+	VALUES
+	(  
+	    #{BBSCTT_ESNTAL_NO}
+	,   30          
+    ,   #{dtprsnErrDclrPrgrsSttsSeCd}   /* 진행상태 */
+    ,   #{dtprsnErrDclrErrSeCd}     /* 분류 */
+    ,   #{userId}                /* 최초등록자아이디 */
+    ,   #{userIp}                 /* 아이피 */
+    ,   #{emlAddr}                /* E-mail 주소 */  
+    ,   #{hpgeUrlAddr}            /* 홈페이지 URL 주소 */  
+    ,   #{bbscttTtlNm}            /* 게시글 제목명 */
+    ,   #{bbscttCn}               /*  게시글 내용*/
+    ,   #{atfino}                 /*  파일전송 */     
+    ,   #{userName}               /* 사용자 이름 */  
+    ,   0                         /* 조회수 */
+    ,   'N'                       /* 삭제여부 */
+	)   
+   </insert>
+   
+   <update id="plusRdcntNocs" parameterType="HashMap">
+   /* isry.couns.constt.mapper.BbserrListMapper.plusRdcntNocs : 조회수 증가시키기 */
+   UPDATE   AYE100   
+   SET  RDCNT_NOCS  =   NVL(RDCNT_NOCS,0)   +   1
+   WHERE    1   =   1
+       AND BBSCTT_ESNTAL_NO    =   #{bbscttEsntalNo}          /* 게시글고유번호 */
+       AND BBSCTT_TYPE_SE_CD   =   '30'                       /* 게시글유형구분코드 */ 
+   
+   </update>
+   
+   <select id = "selectBbserrDetail" parameterType="HashMap" resultType="HashMap">
+       
+   /* isry.couns.constt.mapper.BbserrListMapper.selectBbserrDetail : 게시글 상세보기 */
+   SELECT
+        NVL(BRTH_YMD,'1998')    AS    BRTH_YMD    /* 출생년도, 출생년도가 null일 경우 1998를 출력 */   
+    ,   RDCNT_NOCS                                /* 조회수 */ 
+    ,   CASE WHEN SXDC_SE_CD = 'F' THEN '여자'    /* 성별 */
+             WHEN SXDC_SE_CD = 'M' THEN '남자'    
+             ELSE NULL END AS SXDC_SE_CD
+    ,   NTABRD_PSWD     /* 게시판 비밀번호 */
+    ,   BBSCTT_CN       /*  게시글 내용 */
+    ,   CNTN_IP_ADDR    /* 접속아이피 주소 */
+    FROM
+        AYE100          /* 사이버 상담게시글 */
+    WHERE   1   =   1
+        AND BBSCTT_ESNTAL_NO    =   #{bbscttEsntalNo}          /* 게시글고유번호 */
+        AND BBSCTT_TYPE_SE_CD   =   '30'                       /* 게시글유형구분코드 */
+   
+   </select>
+   
+   <update id ="updateBbserrDetail" parameterType="HashMap">
+   /* isry.couns.constt.mapper.BbserrListMapper.updateBbserrDetail : 게시글 상세보기 수정하기 */
+   UPDATE AYE100 SET
+   
+   <if test="BBSCTT_TTL_NM != null">    /* 게시글 제목 */
+        BBSCTT_TTL_NM   =  #{BBSCTT_TTL_NM}
+   </if>
+   <if test="BBSCTT_CN != null">    /* 게시글 내용 */
+      , BBSCTT_CN   =   #{BBSCTT_CN} 
+   </if>
+   WHERE    1   =   1
+        AND BBSCTT_ESNTAL_NO    =   #{BBSCTT_ESNTAL_NO}     /*  게시글고유번호 */
+        AND BBSCTT_TYPE_SE_CD   =   '30'                    /* 게시글유형구분코드 */
+   </update>
+   
+   <update id="deleteBbserrDetail" parameterType="HashMap" >
+   /* isry.couns.constt.mapper.BbserrListMapper.deleteBbserrDetail : 게시글 상세보기 삭제하기 */
+   UPDATE AYE100 SET
+         DEL_YN = 'Y'       /* 삭제여부  */
+   WHERE    1   =   1
+        AND BBSCTT_ESNTAL_NO    =   #{BBSCTT_ESNTAL_NO}     /*  게시글고유번호 */
+        AND BBSCTT_TYPE_SE_CD   =   '30'                    /* 게시글유형구분코드 */
+   </update>
+   
+
+</mapper>

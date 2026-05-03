@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="사이버1388, 사이버 상담, 1388, 청소년 상담, 사이버 상담, 웹 심리검사, 온라인 부모교육, 게시판 상담, 고민 상담">
+	<meta name="author" content="KYCI">
+
+	<title>사이버1388 청소년상담센터</title>
+
+	<link rel="stylesheet" href="../../css/xeicon.min.css">
+	<link rel="stylesheet" href="../../css/common.css">
+	<link rel="stylesheet" href="../../css/style.css">
+	<link rel="stylesheet" href="./css/eum.css">
+
+	<script type="text/javascript" src="../../js/jquery/jquery-3.5.1.min.js"></script>
+	<script type="text/javascript" src="../../js/common.js"></script>
+	<script type="text/javascript" src="../../js/depth.js"></script>
+
+	<script>
+		$(function(){
+			$("#l-lnb").load("../../inc/inc_lnb.html", function(){depthLnb(3,6);});
+			$("#l-title").load("../../inc/inc_title.html", function(){depthTitle(3,6,1);});
+		});
+	</script>
+<body>
+<div class="wrap">
+
+	<!-- Skip to content-->
+	<div id="skip">
+		<!-- /inc/inc_skip.html -->
+	</div>
+	<!--// Skip to content -->
+
+	<!-- header -->
+	<header id="l-header">
+		<!-- /inc/inc_header.html -->
+	</header>
+	<!--// header -->
+
+	<!-- l-container -->
+	<div id="l-container">
+		<div class="l-container--inner">
+
+			<div id="l-lnb">
+				<!-- /inc/inc_lnb.html -->
+			</div>
+			<!-- //lnb -->
+
+			<div id="l-contents">
+
+				<div id="l-title">
+					<!-- /inc/inc_title.html -->
+				</div>
+				<!-- //l-title -->
+
+				<div class="l-contents">
+
+					<div class="cont"><!-- cont -->
+						<div class="eum_classL">
+							<ul class="categoryL">
+								<li><img src="./images/step01on.gif"><br><span>1회기 자녀 이해하기</span></li>
+								<li><img src="./images/step02.gif"><br><span>2회기 자녀의 자율성 키우기</span></li>
+								<li><img src="./images/step03.gif"><br><span>3회기 자녀와 갈등 해결하기</span></li>
+								<li><img src="./images/step04.gif"><br><span>4회기 자녀의 힘을 북돋우기</span></li>
+							</ul>
+							<ul class="categoryL_mobile">
+								<li><img src="./images/step01.gif"><br><span>1회기 자녀이해하기</span></li>
+							</ul>
+						</div>
+						<div class="eum_classM"><!-- eum_classM -->
+								<ul class="categoryM">
+									<li class="on">시작<br>하기</li>
+									<li class="on">첫째, <br><span class="blue11">관심갖기</span></li>
+									<li class="on">둘째, <br><span class="blue11">경청하기</span></li>
+									<li class="on">셋째, <br><span class="blue11">감정읽기</span></li>
+									<li>넷째, <br><span class="blue11">공감하기</span></li>
+									<li>정리<br>하기</li>
+								</ul>
+								<h4>감정읽기</h4>
+								<div class="eum_intro_txt list-box list-box2">
+								아이들에게 관심을 갖고 접근한다면 우리 아이들의 모습에서도 매 순간 다양한 감정들이 포착될 것입니다. <br> (출처 : Dr. Yoon’s Feelings Chart, Illustrated by Chloe Jaeyoung Lee and Olivia Soyoung Lee)
+								</div>
+								<div class="eum_classS_paper">
+									<div style="width:100%; display:block">
+										<a id="tab1_title" class="e1p06_tab on" onclick="javascript:chg_tab(&#39;1&#39;);">최근 나의 감정상태</a>
+										<a id="tab2_title" class="e1p06_tab" onclick="javascript:chg_tab(&#39;2&#39;);">최근 자녀의 감정상태</a>
+									</div>
+									<div id="tab1" style="display: block;"><!-- tab1-->
+										<div class="eum_intro_exp quest01">
+											<span class="q_tit">나는 최근 일주일동안 어떤 감정상태였나요? 아래의 감정단어를 클릭해보세요(5개이하)</span>
+											<div class="listening">
+												<p><span>나 : </span><input name="answer6_1" class="paragraph_field ui_inputbox" id="answer6_1" value="" maxlength="200" placeholder="해당하는 그림에 체크를 해주세요" readonly=""></p>
+											</div>
+										</div>
+										<div class="face">
+											<div class="face_box" id="face_area1">
+												<ul>
+													<li>
+														<label for="face101" class="eum_checkbox">
+														<input name="face101" id="face101" type="checkbox" value="지루한" onclick="chkFace1(&#39;face101&#39;);"> 지루한</label>
+													</li>
+													<li>
+														<label for="face102" class="eum_checkbox">
+														<input name="face102" id="face102" type="checkbox" value="혼란스러운" onclick="chkFace1(&#39;face102&#39;);">혼란스러운</label>
+													</li>
+													<li>
+														<label for="face103" class="eum_checkbox">
+														<input name="face103" id="face103" type="checkbox" value="격분하는" onclick="chkFace1(&#39;face103&#39;);">격분하는</label>
+													</li>
+													<li>
+														<label for="face104" class="eum_checkbox">
+														<input name="face104" id="face104" type="checkbox" value="무서워하는" onclick="chkFace1(&#39;face104&#39;);">무서워하는</label>
+													</li>
+													<li>
+														<label for="face105" class="eum_checkbox">
+														<input name="face105" id="face105" type="checkbox" value="죄책감이 드는" onclick="chkFace1(&#39;face105&#39;);">죄책감이 드는</label>
+													</li>
+													<li>
+														<label for="face106" class="eum_checkbox">
+														<input name="face106" id="face106" type="checkbox" value="혐오하는" onclick="chkFace1(&#39;face106&#39;);">혐오하는</label>
+													</li>
+													<li>
+														<label for="face107" class="eum_checkbox">
+														<input name="face107" id="face107" type="checkbox" value="수줍어하는" onclick="chkFace1(&#39;face107&#39;);">수줍어하는</label>
+													</li>
+													<li>
+														<label for="face108" class="eum_checkbox">
+														<input name="face108" id="face108" type="checkbox" value="안쓰러운" onclick="chkFace1(&#39;face108&#39;);">안쓰러운</label>
+													</li>
+													<li>
+														<label for="face109" class="eum_checkbox">
+														<input name="face109" id="face109" type="checkbox" value="불만스러운" onclick="chkFace1(&#39;face109&#39;);">불만스러운</label>
+													</li>
+													<li>
+														<label for="face110" class="eum_checkbox">
+														<input name="face110" id="face110" type="checkbox" value="질투하는" onclick="chkFace1(&#39;face110&#39;);">질투하는</label>
+													</li>
+													<li>
+														<label for="face111" class="eum_checkbox">
+														<input name="face111" id="face111" type="checkbox" value="놀란" onclick="chkFace1(&#39;face111&#39;);">놀란</label>
+													</li>
+													<li>
+														<label for="face112" class="eum_checkbox">
+														<input name="face112" id="face112" type="checkbox" value="의심스러운" onclick="chkFace1(&#39;face112&#39;);">의심스러운</label>
+													</li>
+													<li>
+														<label for="face113" class="eum_checkbox">
+														<input name="face113" id="face113" type="checkbox" value="행복한" onclick="chkFace1(&#39;face113&#39;);">행복한</label>
+													</li>
+													<li>
+														<label for="face114" class="eum_checkbox">
+														<input name="face114" id="face114" type="checkbox" value="심술부리는" onclick="chkFace1(&#39;face114&#39;);">심술부리는</label>
+													</li>
+													<li>
+														<label for="face115" class="eum_checkbox">
+														<input name="face115" id="face115" type="checkbox" value="만족하는" onclick="chkFace1(&#39;face115&#39;);">만족하는</label>
+													</li>
+													<li>
+														<label for="face116" class="eum_checkbox">
+														<input name="face116" id="face116" type="checkbox" value="화난" onclick="chkFace1(&#39;face116&#39;);">화난</label>
+													</li>
+													<li>
+														<label for="face117" class="eum_checkbox">
+														<input name="face117" id="face117" type="checkbox" value="슬픈" onclick="chkFace1(&#39;face117&#39;);">슬픈</label>
+													</li>
+													<li>
+														<label for="face118" class="eum_checkbox">
+														<input name="face118" id="face118" type="checkbox" value="걱정하는" onclick="chkFace1(&#39;face118&#39;);">걱정하는</label>
+													</li>
+													<li>
+														<label for="face119" class="eum_checkbox">
+														<input name="face119" id="face119" type="checkbox" value="지친" onclick="chkFace1(&#39;face119&#39;);">지친</label>
+													</li>
+													<li>
+														<label for="face120" class="eum_checkbox">
+														<input name="face120" id="face120" type="checkbox" value="불안해하는" onclick="chkFace1(&#39;face120&#39;);">불안해하는</label>
+													</li>
+												</ul>
+											</div>
+											</div>
+										</div><!--// tab1-->
+										<div id="tab2" style="display: none;"><!-- tab2-->
+										<div class="eum_intro_exp quest01">
+											<span class="q_tit">자녀는 최근 일주일동안 어떤 감정상태였나요? 아래의 감정단어를 클릭해보세요(5개이하)</span>
+											<div class="listening">
+												<p><span>자녀 : </span><input name="answer6_2" class="paragraph_field ui_inputbox" id="answer6_2" value="" maxlength="200" placeholder="해당하는 그림에 체크를 해주세요" readonly=""></p>
+											</div>
+										</div>
+										<div class="face">
+											<div class="face_box" id="face_area2">
+												<ul>
+													<li>
+														<label for="face201" class="eum_checkbox">
+														<input name="face201" id="face201" type="checkbox" value="지루한" onclick="chkFace2(&#39;face201&#39;);"> 지루한</label>
+													</li>
+													<li>
+													   <label for="face202" class="eum_checkbox">
+													   <input name="face202" id="face202" type="checkbox" value="혼란스러운" onclick="chkFace2(&#39;face202&#39;);">혼란스러운</label>
+													</li>
+													<li>
+														<label for="face203" class="eum_checkbox">
+														<input name="face203" id="face203" type="checkbox" value="격분하는" onclick="chkFace2(&#39;face203&#39;);">격분하는</label>
+													</li>
+													<li>
+														<label for="face204" class="eum_checkbox">
+														<input name="face204" id="face204" type="checkbox" value="무서워하는" onclick="chkFace2(&#39;face204&#39;);">무서워하는</label>
+													</li>
+													<li>
+														<label for="face205" class="eum_checkbox">
+														<input name="face205" id="face205" type="checkbox" value="죄책감이 드는" onclick="chkFace2(&#39;face205&#39;);">죄책감이 드는</label>
+													</li>
+													<li>
+														<label for="face206" class="eum_checkbox">
+														<input name="face206" id="face206" type="checkbox" value="혐오하는" onclick="chkFace2(&#39;face206&#39;);">혐오하는</label>
+													</li>
+													<li>
+														<label for="face207" class="eum_checkbox">
+														<input name="face207" id="face207" type="checkbox" value="수줍어하는" onclick="chkFace2(&#39;face207&#39;);">수줍어하는</label>
+													</li>
+													<li>
+														<label for="face208" class="eum_checkbox">
+														<input name="face208" id="face208" type="checkbox" value="안쓰러운" onclick="chkFace2(&#39;face208&#39;);">안쓰러운</label>
+													</li>
+													<li>
+														<label for="face209" class="eum_checkbox">
+														<input name="face209" id="face209" type="checkbox" value="불만스러운" onclick="chkFace2(&#39;face209&#39;);">불만스러운</label>
+													</li>
+													<li>
+														<label for="face210" class="eum_checkbox">
+														<input name="face210" id="face210" type="checkbox" value="질투하는" onclick="chkFace2(&#39;face210&#39;);">질투하는</label>
+													</li>
+													<li>
+														<label for="face211" class="eum_checkbox">
+														<input name="face211" id="face211" type="checkbox" value="놀란" onclick="chkFace2(&#39;face211&#39;);">놀란</label>
+													</li>
+													<li>
+														<label for="face212" class="eum_checkbox">
+														<input name="face212" id="face212" type="checkbox" value="의심스러운" onclick="chkFace2(&#39;face212&#39;);">의심스러운</label>
+													</li>
+													<li>
+														<label for="face213" class="eum_checkbox">
+														<input name="face213" id="face213" type="checkbox" value="행복한" onclick="chkFace2(&#39;face213&#39;);">행복한</label>
+													</li>
+													<li>
+														<label for="face214" class="eum_checkbox">
+														<input name="face214" id="face214" type="checkbox" value="심술부리는" onclick="chkFace2(&#39;face214&#39;);">심술부리는</label>
+													</li>
+													<li>
+														<label for="face215" class="eum_checkbox">
+														<input name="face215" id="face215" type="checkbox" value="만족하는" onclick="chkFace2(&#39;face215&#39;);">만족하는</label>
+													</li>
+													<li>
+														<label for="face216" class="eum_checkbox">
+														<input name="face216" id="face216" type="checkbox" value="화난" onclick="chkFace2(&#39;face216&#39;);">화난</label>
+													</li>
+													<li>
+														<label for="face217" class="eum_checkbox">
+														<input name="face217" id="face217" type="checkbox" value="슬픈" onclick="chkFace2(&#39;face217&#39;);">슬픈</label>
+													</li>
+													<li>
+														<label for="face218" class="eum_checkbox">
+														<input name="face218" id="face218" type="checkbox" value="걱정하는" onclick="chkFace2(&#39;face218&#39;);">걱정하는</label>
+													</li>
+													<li>
+														<label for="face219" class="eum_checkbox">
+														<input name="face219" id="face219" type="checkbox" value="지친" onclick="chkFace2(&#39;face219&#39;);">지친</label>
+													</li>
+													<li>
+														<label for="face220" class="eum_checkbox">
+														<input name="face220" id="face220" type="checkbox" value="불안해하는" onclick="chkFace2(&#39;face220&#39;);">불안해하는</label>
+													</li>
+												</ul>
+											</div>
+											</div>
+										</div><!--// tab2-->
+									</div>
+
+						</div><!--// eum_classM -->
+						<div class="eum_classL"><!-- eum_classL 이전다음 -->
+							<a onclick="javascript:goPre(&#39;eum_e1_page05.asp&#39;);"><button class="btnReple btn_prev btn_comm" type="button">이전</button></a>
+							<a onclick="javascript:goNext(&#39;eum_e1_page07.asp&#39;);"><button class="btnReple btn_next btn_comm" type="button">다음</button></a>
+						</div><!--// eum_classL 이전다음 -->
+
+					</div><!--// cont -->
+
+
+				</div>
+				<!-- //l-contents -->
+
+			</div>
+			<!-- //contents -->
+
+		</div>
+		<!-- //l-container--inner -->
+	</div>
+	<!-- //l-container -->
+
+	<!-- footer -->
+	<footer id="footer">
+		<!-- /inc/inc_footer.html -->
+	</footer>
+	<!-- //footer -->
+
+</div>
+<!-- //wrap -->
+</body>
+</html>

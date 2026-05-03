@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="isry.csems.sysmng.srvymng.mapper.SrvyMngMapper">
+
+    <select id="selectSrvySndngList" parameterType="HashMap" resultType="HashMap">
+    /* selectSrvySndngList (설문발송 대상자 선택 리스트 조회) - Lee Hye Sun */
+    <![CDATA[
+        SELECT 
+	          X.INST_NO                    --기관번호
+	        , X.INST_NM                    --기관명
+	        , X.SRVC_EXCN_BIZ_NM           --서비스실행사업명
+	        , X.SRVC_EXCN_BIZ_NO           --서비스실행사업번호
+	        , X.TRPR_REL_CD                --대상자관계구분코드
+	        , X.TRPR_REL                   --대상자관계명
+	        , X.RSPDNT                     --응답자
+	        , X.RSPDNT_RCPTN               --응답자수신번호
+	        , CASE WHEN X.RSPDNT_BRDT IS NULL THEN NULL
+	            ELSE X.RSPDNT_BRDT || '(만' || TRUNC(MONTHS_BETWEEN(TRUNC(SYSDATE), TO_DATE(X.RSPDNT_BRDT, 'YYYYMMDD')) / 12) || '세)'
+	            END AS RSPDNT_BRDT         --응답자생년월일
+	        , X.TRPR_INFO_NO               --대상자정보번호
+	        , X.APLY_RCPT_SN                --신청접수일련번호
+	        , X.TRPR_NM_ENCPT              --대상자
+	        , CASE WHEN X.TRPR_BRTH_YMD IS NULL THEN NULL
+	            ELSE X.TRPR_BRTH_YMD || '(만' || TRUNC(MONTHS_BETWEEN(TRUNC(SYSDATE), TO_DATE(X.TRPR_BRTH_YMD, 'YYYYMMDD')) / 12) || '세)'
+	            END AS TRPR_BRTH_YMD       --대상자생년월일(만나이)
+	        , X.SXDC_SE_CD_NM                 --대상자성별
+	        , X.SXDC_SE_CD                 --대상자성별코드
+	        , X.ACBG_SE_CD                 --대상자학력
+	        , X.BIZ_YR
+	        , X.CASE_MNG_NO 
+	        , X.CASE_MNG_ODRNO
+	     FROM
+	    (
+	        --대상자
+	        SELECT 
+	              D.INST_NO                                    --기관번호
+	            , D.INST_NM                                    --기관명
+	            , B.SRVC_EXCN_BIZ_NM                           --서비스실행사업명
+	            , B.SRVC_EXCN_BIZ_NO                           --서비스실행사업번호
+	            , CASE WHEN F.TRPR_REL_SE_CD = '11' THEN '11'
+	                    ELSE '11' END AS TRPR_REL_CD
+	            , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	                WHERE CMMNS_CD_ID = 'TRPR_REL_SE_CD'
+	                AND CMMNS_CD_VALUE = '11'
+	                ) AS TRPR_REL                              --대상자관계명
+	            , DEC_B64(F.TRPR_NM_ENCPT) AS RSPDNT           --응답자
+	            , DEC_B64(F.MBL_TELNO_ENCPT) AS RSPDNT_RCPTN   --응답자수신번호
+	            , F.TRPR_BRTH_YMD AS RSPDNT_BRDT               --응답자생년월일
+	            , F.TRPR_INFO_NO
+	            , W.APLY_RCPT_SN                               --신청접수일련번호
+	            , DEC_B64(F.TRPR_NM_ENCPT) AS TRPR_NM_ENCPT    --대상자
+	            , F.TRPR_BRTH_YMD                              --대상자생년월일(만나이)
+	            , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	               WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+	               AND CMMNS_CD_VALUE = F.SXDC_SE_CD
+	               ) AS SXDC_SE_CD_NM                          --대상자성별
+	            , (SELECT CMMNS_CD_VALUE FROM SAC100
+                   WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+                   AND CMMNS_CD_VALUE = F.SXDC_SE_CD
+                   ) AS SXDC_SE_CD                             --대상자성별코드
+	            , C.ACBG AS ACBG_SE_CD                         --대상자학력
+	            , S.BIZ_YR                                     --사업연도
+	            , E.CASE_MNG_NO
+	            , E.CASE_MNG_ODRNO
+	        FROM SEB120 A /*서비스사업대상자*/
+	        LEFT JOIN SDA420 B /*서비스실행사업*/ ON A.SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO
+	        LEFT JOIN SDA400 S /*서비스사업*/ ON B.SRVC_BIZ_NO = S.SRVC_BIZ_NO
+	        LEFT JOIN SAA000 D /*통합기관*/ ON D.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	        LEFT JOIN SEB100 E /*사례기본*/ ON A.CASE_MNG_NO = E.CASE_MNG_NO
+	                                       AND A.CASE_MNG_ODRNO = E.CASE_MNG_ODRNO
+	        LEFT JOIN SEA200 F /*대상자정보*/ ON E.TRPR_INFO_NO = F.TRPR_INFO_NO
+	        LEFT JOIN AFA100 W /*신청접수*/ ON F.TRPR_INFO_NO = W.TRPR_INFO_NO
+	        LEFT JOIN (
+                SELECT
+                      TRPR_INFO_NO
+                    , ACBG
+                FROM (
+                    SELECT
+                        Q1.*
+                        , ROW_NUMBER() OVER(PARTITION BY Q1.TRPR_INFO_NO ORDER BY Q2.SRTNG_SQNCE DESC, Q3.SRTNG_SQNCE DESC) ROW_NO
+                        , NVL(Q2.CMMNS_CD_VALUE_NM, ' ') || NVL(Q4.CMMNS_CD_VALUE_NM, ' ') || NVL(Q3.CMMNS_CD_VALUE_NM, ' ')  AS ACBG   --대상자학력
+                    FROM SEA230 Q1
+                        LEFT JOIN SAC100 Q2 /* 최종학력구분코드 */ ON Q2.CMMNS_CD_ID = 'ACBG_SE_CD'                                           
+                                                               AND Q2.CMMNS_CD_VALUE = Q1.ACBG_SE_CD
+                    LEFT JOIN SAC100 Q3 /* 졸업상태 구분코드 */ ON Q3.CMMNS_CD_ID = 'GRDTN_STTS_SE_CD'                                           
+                                                                AND Q3.CMMNS_CD_VALUE = Q1.GRDTN_STTS_SE_CD
+                    LEFT JOIN SAC100 Q4 /* 학년 구분코드 */ ON Q4.CMMNS_CD_ID = 'GRADE_SE_CD'                                           
+                                                        AND Q4.CMMNS_CD_VALUE = Q1.GRADE_SE_CD
+                   WHERE Q1.DEL_YN = 'N'
+                ) 
+                WHERE ROW_NO = 1
+            ) C
+            ON C.TRPR_INFO_NO = F.TRPR_INFO_NO
+	        
+	        UNION
+	        --보호자
+	        SELECT 
+	              D.INST_NO                                    --기관번호
+	            , D.INST_NM                                    --기관명
+	            , B.SRVC_EXCN_BIZ_NM                           --서비스실행사업명
+	            , B.SRVC_EXCN_BIZ_NO                           --서비스실행사업번호
+	            , CASE WHEN F.TRPR_REL_SE_CD = '12' THEN '12'
+	                    ELSE '12' END AS TRPR_REL_CD
+	            , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	                WHERE CMMNS_CD_ID = 'TRPR_REL_SE_CD'
+	                AND CMMNS_CD_VALUE = '12'
+	                ) AS TRPR_REL                              --대상자관계명
+	            , DEC_B64(F.PRTCR_NM_ENCPT) AS RSPDNT                   --응답자
+	            , DEC_B64(F.PRTCR_MBL_TELNO_ENCPT) AS RSPDNT_RCPTN      --응답자수신번호
+	            , F.PRTCR_BRTH_YMD AS RSPDNT_BRDT              --응답자생년월일
+	            , F.TRPR_INFO_NO
+	            , W.APLY_RCPT_SN                               --신청접수일련번호
+	            , DEC_B64(F.TRPR_NM_ENCPT) AS TRPR_NM_ENCPT    --대상자
+	            , F.TRPR_BRTH_YMD                              --대상자생년월일(만나이)
+	            , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	               WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+	               AND CMMNS_CD_VALUE = F.SXDC_SE_CD
+	               ) AS SXDC_SE_CD_NM                          --대상자성별
+	            , (SELECT CMMNS_CD_VALUE FROM SAC100
+                   WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+                   AND CMMNS_CD_VALUE = F.SXDC_SE_CD
+                   ) AS SXDC_SE_CD                             --대상자성별코드
+	            , C.ACBG AS ACBG_SE_CD                         --대상자학력
+	            , S.BIZ_YR                                     --사업연도
+	            , E.CASE_MNG_NO
+	            , E.CASE_MNG_ODRNO
+	        FROM SEB120 A /*서비스사업대상자*/
+	        LEFT JOIN SDA420 B /*서비스실행사업*/ ON A.SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO
+	        LEFT JOIN SDA400 S /*서비스사업*/ ON B.SRVC_BIZ_NO = S.SRVC_BIZ_NO
+	        LEFT JOIN SAA000 D /*통합기관*/ ON D.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	        LEFT JOIN SEB100 E /*사례기본*/ ON A.CASE_MNG_NO = E.CASE_MNG_NO
+	                                       AND A.CASE_MNG_ODRNO = E.CASE_MNG_ODRNO
+	        LEFT JOIN SEA200 F /*대상자정보*/ ON E.TRPR_INFO_NO = F.TRPR_INFO_NO
+	        LEFT JOIN AFA100 W /*신청접수*/ ON F.TRPR_INFO_NO = W.TRPR_INFO_NO
+	        LEFT JOIN (
+                SELECT
+                      TRPR_INFO_NO
+                    , ACBG
+                FROM (
+                    SELECT
+                        Q1.*
+                        , ROW_NUMBER() OVER(PARTITION BY Q1.TRPR_INFO_NO ORDER BY Q2.SRTNG_SQNCE DESC, Q3.SRTNG_SQNCE DESC) ROW_NO
+                        , NVL(Q2.CMMNS_CD_VALUE_NM, ' ') || NVL(Q4.CMMNS_CD_VALUE_NM, ' ') || NVL(Q3.CMMNS_CD_VALUE_NM, ' ')  AS ACBG   --대상자학력
+                    FROM SEA230 Q1
+                        LEFT JOIN SAC100 Q2 /* 최종학력구분코드 */ ON Q2.CMMNS_CD_ID = 'ACBG_SE_CD'                                           
+                                                               AND Q2.CMMNS_CD_VALUE = Q1.ACBG_SE_CD
+                    LEFT JOIN SAC100 Q3 /* 졸업상태 구분코드 */ ON Q3.CMMNS_CD_ID = 'GRDTN_STTS_SE_CD'                                           
+                                                                AND Q3.CMMNS_CD_VALUE = Q1.GRDTN_STTS_SE_CD
+                    LEFT JOIN SAC100 Q4 /* 학년 구분코드 */ ON Q4.CMMNS_CD_ID = 'GRADE_SE_CD'                                           
+                                                        AND Q4.CMMNS_CD_VALUE = Q1.GRADE_SE_CD
+                   WHERE Q1.DEL_YN = 'N'
+                ) 
+                WHERE ROW_NO = 1
+            ) C
+            ON C.TRPR_INFO_NO = F.TRPR_INFO_NO
+	    ) X
+	    WHERE 1=1
+	    AND X.BIZ_YR LIKE #{BIZ_YR} || '%'
+	    AND X.INST_NO LIKE #{INST_NO} || '%'
+	    AND X.SRVC_EXCN_BIZ_NO LIKE #{SRVC_EXCN_BIZ_NO} || '%'
+	    AND X.TRPR_REL_CD LIKE #{TRPR_REL_CD} || '%'
+	    AND X.RSPDNT LIKE '%' || #{RSPDNT} || '%'
+        AND X.TRPR_NM_ENCPT LIKE '%' || #{TRPR_NM_ENCPT} || '%'
+        AND X.RSPDNT_RCPTN LIKE #{RSPDNT_RCPTN} || '%'
+	    
+	    ORDER BY X.TRPR_INFO_NO, X.TRPR_NM_ENCPT
+    ]]>
+    </select>
+</mapper>

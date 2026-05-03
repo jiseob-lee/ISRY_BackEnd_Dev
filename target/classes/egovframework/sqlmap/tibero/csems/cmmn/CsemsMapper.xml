@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.csems.cmmn.mapper.CsemsMapper">
+
+    <select id="selectLgsltn" resultType="HashMap">
+    /* selectLgsltn (법률문제 목록 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0103')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+    
+    <select id="selectDscsn" resultType="HashMap">
+    /* selectDscsn (상담경험 목록 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0104')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+    
+    <select id="selectDiss" resultType="HashMap">
+    /* selectDiss (질병상태 목록 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0201')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+    
+    <select id="selectPrtcr" resultType="HashMap">
+    /* selectPrtcr (보호자참석여부 목록 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0202')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+    
+    <select id="selectProbmRelm" resultType="HashMap">
+    /* selectProbmRelm (문제영역결과구분코드 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'PROBM_RELM_RESULT_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+
+    <select id="selectSmkng" resultType="HashMap">
+    /* selectSmkng (흡연여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'SMKNG_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+
+    <select id="selectDrnkg" resultType="HashMap">
+    /* selectDrnkg (음주여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'DRNKG_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+ 
+    <select id="selectTeachr" resultType="HashMap">
+    /* selectTeachr (교사관계 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'TEACHR_REL_SE_CD'
+    </select>
+
+    <select id="selectFrid" resultType="HashMap">
+    /* selectFrid (친구와의관계 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'FRID_REL_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+   
+    <select id="selectSocty" resultType="HashMap">
+    /* selectSocty (어른들과의관계 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'SOCTY_REL_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+    
+    <select id="selectFridCnt" resultType="HashMap">
+    /* selectFridCnt (친구수 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'FRID_CNT_SE_CD'
+    </select>
+
+    <select id="selectDevlpa" resultType="HashMap">
+    /* selectDevlpa (발달장애여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'DEVLPA_TROBL_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+
+    <select id="selectViolnc" resultType="HashMap">
+    /* selectViolnc (폭력성향여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'VIOLNC_INCLN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+
+    <select id="selectSlfijr" resultType="HashMap">
+    /* selectSlfijr (자해시도여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'SLFIJR_CTPV_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+
+    <select id="selectSucde" resultType="HashMap">
+    /* selectSucde (자살시도여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'SUCDE_CTPV_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+    
+    <select id="selectNowTakng" resultType="HashMap">
+    /* selectNowTakng (현재약물복용여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'NOW_TAKNG_DRFSTF_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+
+    <select id="selectTrl" resultType="HashMap">
+    /* selectTrl (심리평가여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'TRL_EVL_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+
+    <select id="selectRprsMaap" resultType="HashMap">
+    /* selectRprsMaap (주호소 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'RPRS_MAAP_PROBM_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U08'
+    </select>
+</mapper>

@@ -1,0 +1,84 @@
+<html>
+<head>
+<title>Time Left</title>
+
+<script type="text/javascript">
+
+var timeInterval = 1000; // 1-second interval calls
+var timer;
+var timerArr = new Array();
+
+function init() {
+    
+    showRemaining();
+    
+    timer = setInterval(showRemaining, timeInterval); // 1-second interval calls
+    
+    timerArr.push(timer);
+}
+
+function showRemaining() {
+    
+    var timeRemaining = Number(getCookie("sessionDurationTime")) - new Date().getTime();
+    
+    //console.log("sessionDurationTime", getCookie("sessionDurationTime"));
+    //console.log("unix time", new Date().getTime());
+    //console.log("timeRemaining", timeRemaining);
+    
+    if (timeRemaining < timeInterval) {
+        
+        for (var i = 0; i < timerArr.length; i++) {
+            clearInterval(timerArr[i]);
+        }
+        
+		timerArr = new Array();
+        
+        setTimeout(function() {
+            alert("Session expired.");
+        }, 1000);
+        
+        return;
+    }
+    
+    var timeHour = Math.floor(timeRemaining / 1000 / 60 / 60);
+    var timeMin = Math.floor((timeRemaining / 1000 / 60) % 60);
+    var timeSec = Math.floor((timeRemaining / 1000) % 60);
+    
+    const formattedHours = String(timeHour).padStart(2, '0');
+    const formattedMinutes = String(timeMin).padStart(2, '0');
+    const formattedSeconds = String(timeSec).padStart(2, '0');
+
+    document.getElementById("timeRemaining").innerHTML 
+        = formattedHours + ":" + formattedMinutes + ":" + formattedSeconds;
+	
+	//document.getElementById("timeRemaining").innerHTML = timeHour + ":" + timeMin + ":" + timeSec;
+}
+
+function getCookie(psName) {
+    var vsCookie = document.cookie + ";";
+
+    var vaItems = vsCookie.split(";");
+    var vnItemLen = vaItems.length;
+    var item = null;
+    var voItemInfo = null;
+    for (var i = 0; i < vnItemLen; i++) {
+        item = vaItems[i];
+        voItemInfo = item.split("=");
+        if (psName == voItemInfo[0].trim()) {
+            return unescape(voItemInfo[1]);
+        }
+    }
+    return "";
+}
+
+</script>
+
+</head>
+
+<body onload="init();">
+
+Time remaining : <span id="timeRemaining"></span>
+
+</body>
+
+</html>

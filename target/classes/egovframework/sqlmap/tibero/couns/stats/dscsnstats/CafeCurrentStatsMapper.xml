@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.stats.dscsnstats.mapper.CafeCurrentStatsMapper">
+
+    <select id="selectcafeCurrentStats" parameterType="HashMap" resultType="HashMap">        
+
+            SELECT  /*SQL-ID :isry.couns.stats.dscsnstats.mapper.CafeCurrentStatsMapper."selectcafeCurrentStats" : 위기청소년카페통계현황*/
+                    A.CMMNS_CD_VALUE_NM                                AS  VALUENM               /*홍보영역*/
+                  , COUNT(1)                                           AS  COUNT                 /*전체건수*/
+                  , CASE  WHEN   A.ETC_YN   =  'Y'    THEN COUNT(1)   
+                                                      ELSE 0 
+                    END                                                AS  YCOUNT                /*Y건수*/
+                  , CASE  WHEN   A.ETC_YN   =  'N'    THEN COUNT(1)   
+                                                      ELSE 0
+                    END                                                AS  NCOUNT                /*N건수*/
+                  , ROUND( COUNT(A.BBSCTT_ESNTAL_NO) * 100 
+                          / DECODE((SUM(COUNT(A.BBSCTT_ESNTAL_NO))  OVER()),0,1,(SUM(COUNT(A.BBSCTT_ESNTAL_NO))  OVER())),2
+                          )                            AS  PERCENT               /*점유율*/
+            FROM
+                    (
+                    SELECT
+                            C.CMMNS_CD_VALUE
+                        ,   C.CMMNS_CD_VALUE_NM
+                        ,   A.ETC_YN
+                        ,   A.BBSCTT_ESNTAL_NO
+                        ,   COUNT(*) OVER()     CCNT
+                    FROM    SAC100  C                                                   /*공통코드*/
+                            LEFT   OUTER  JOIN  AYE100   A                              /*사이버상담게시글*/
+                                          ON    C.CMMNS_CD_VALUE   =   A.CRISIS_CAFE_CYBER_OUTRC_SE_CD
+                                           AND   A.FRST_REG_DT   BETWEEN   TO_DATE(#{startDate}, 'YYYYMMDD')  
+                                                                 AND       TO_DATE(#{endDate},   'YYYYMMDD') + 0.99999  
+                                          AND   A.ETC_YN           IS NOT NULL  
+                                          AND   A.DEL_YN = 'N'          
+                    WHERE   C.CMMNS_CD_ID  = 'CRISIS_CAFE_CYBER_OUTRC_SE_CD'             /*위기카페사이버아웃리치구분*/
+                    AND     C.USE_YN       = 'Y'
+                    )   A
+            GROUP   BY  A.CMMNS_CD_VALUE
+                      , A.CMMNS_CD_VALUE_NM
+                      , A.ETC_YN
+            ORDER   BY  A.CMMNS_CD_VALUE 
+             
+   </select>
+ 
+    <select id="selectcafeCurrentStatsBBBBB" parameterType="HashMap" resultType="HashMap">        
+
+            SELECT  /*SQL-ID :isry.couns.stats.dscsnstats.mapper.CafeCurrentStatsMapper."selectcafeCurrentStats" : 위기청소년카페통계현황*/
+                    C.CMMNS_CD_VALUE_NM                                AS  VALUENM               /*홍보영역*/
+                  , COUNT(1)                                           AS  COUNT                 /*전체건수*/
+                  , CASE  WHEN   A.ETC_YN   =  'Y'    THEN COUNT(1)   
+                                                      ELSE 0 
+                    END                                                AS  YCOUNT                /*Y건수*/
+                  , CASE  WHEN   A.ETC_YN   =  'N'    THEN COUNT(1)   
+                                                      ELSE 0
+                    END                                                AS  NCOUNT                /*N건수*/
+                  , ROUND( COUNT(A.BBSCTT_ESNTAL_NO) * 100 
+                          / DECODE((SUM(COUNT(A.BBSCTT_ESNTAL_NO))  OVER()),0,1,(SUM(COUNT(A.BBSCTT_ESNTAL_NO))  OVER())),2
+                          )                            AS  PERCENT               /*점유율*/
+            FROM    SAC100  C                                                   /*공통코드*/
+                    LEFT   OUTER  JOIN  AYE100   A                              /*사이버상담게시글*/
+                                  ON    C.CMMNS_CD_VALUE   =   A.CRISIS_CAFE_CYBER_OUTRC_SE_CD
+                                   AND   A.FRST_REG_DT   BETWEEN   TO_DATE(#{startDate}, 'YYYYMMDD')  
+                                                         AND       TO_DATE(#{endDate},   'YYYYMMDD') + 0.99999  
+                                  AND   A.ETC_YN           IS NOT NULL            
+            WHERE   C.CMMNS_CD_ID  = 'CRISIS_CAFE_CYBER_OUTRC_SE_CD'             /*위기카페사이버아웃리치구분*/
+            AND     C.USE_YN       = 'Y'
+            GROUP   BY  C.CMMNS_CD_VALUE
+                      , C.CMMNS_CD_VALUE_NM
+                      , A.ETC_YN
+            ORDER   BY  C.CMMNS_CD_VALUE 
+             
+   </select>
+ 
+    
+
+</mapper>

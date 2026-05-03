@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubmt.casemng.slfrlaftfct.mapper.SlfrlAftfctMapper">
+
+    <insert id="saveCaseInfoData" parameterType="HashMap">
+    <![CDATA[
+         /* saveCaseInfoData - Lee  MS */
+
+       INSERT INTO AEB120 (  /* 자립지원사례기본 */
+              CASE_MNG_NO,              /* 사례관리번호 */
+              CASE_MNG_ODRNO,           /* 사례관리차수 */
+
+              SLFRL_SPRT_TRPR_SE_CD,  /* 자립지원대상자코드 */
+              RQST_CS_CN,             /* 의뢰사유내용 */
+              RQST_CS_ETC_CN,         /* 의뢰사유기타내용 */
+              ATFINO,                 /* 첨부파일번호 */
+             
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+       )
+       SELECT 
+              CASE_MNG_NO,                /* 사례관리번호 */
+              #{NEW_CASE_MNG_ODRNO},      /* 사례관리차수 */
+
+              SLFRL_SPRT_TRPR_SE_CD,  /* 자립지원대상자코드 */
+              RQST_CS_CN,             /* 의뢰사유내용 */
+              RQST_CS_ETC_CN,         /* 의뢰사유기타내용 */
+              ATFINO,                 /* 첨부파일번호 */
+
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+         FROM AEB120
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}   
+        
+    ]]>
+    </insert>
+
+</mapper>

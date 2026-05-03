@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : RenuNoMapper.xml
+* @Description : 채번 SQL Mapper
+*
+* @author  : Lee.Jun.Yeong
+* @since   : 2022. 05. 11.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 05. 11.  Lee.Jun.Yeong    최초작성
+* </pre>
+-->
+<mapper namespace="isry.itgcm.bizcmmns.cmmns.mapper.RenuNoMapper">
+
+    <!-- 채번 -->
+    <select id="selectCaseMngNoRenu" parameterType="HashMap" resultType="HashMap">
+      <![CDATA[
+        SELECT /* selectCaseMngNoRenu - Lee JunYeong */
+               ISRY_APP.SA_FN_GET_RENU_NO(#{RENU_NO_SE_CD}, #{USER_ID}, #{RENU_YMD}) AS RENU_NO
+          FROM DUAL
+        
+      ]]>
+    </select>
+            
+</mapper>

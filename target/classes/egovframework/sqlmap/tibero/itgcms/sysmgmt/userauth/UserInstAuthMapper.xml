@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper">
+
+    <select id="selectUserInstAuthList" parameterType="java.lang.String" resultType="resultMap">
+    <![CDATA[
+        SELECT  /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper.selectUserInstAuthList : 사용자별 기관 권한 목록 조회 */
+            A.INST_NO                   /* 기관번호 */
+            , B.INST_NM                 /* 기관명 */
+            , A.GROUP_AUTHRT_SE_CD      /* 그룹권한구분코드 */
+            , A.AUTHRT_SE_CD            /* 권한구분코드 */
+            , B.UNT_TASKWK_SE_CD        /* 단위업무구분코드 */
+            , B.INST_TYPE_SE_CD         /* 기관유형구분코드 */
+            , A.SYS_MNGR_YN             /* 시스템관리자여부 */
+            , A.MAIST_YN                /* 주기관여부 */
+        FROM SAB230 A       /** 사용자별 기관 권한 */
+            , SAA000 B      /** 통합기관 */
+        WHERE 1=1
+        AND A.INST_NO = B.INST_NO   /* SAB230: 기관번호 */
+        AND A.USER_ID = #{userId}   /* SAB230: 사용자아이디 */
+        ORDER BY A.MAIST_YN DESC, A.FRST_REG_DT
+    ]]>
+    </select>
+    
+    <select id="selectUpInstDetails" parameterType="java.lang.String" resultType="resultMap">
+    <![CDATA[
+        SELECT  /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper.selectUpInstDetails : 상위기관 상세 조회 */
+            I.INST_NO                   /* 기관번호 */
+            , I.INST_NM                 /* 기관명 */
+            , I.UNT_TASKWK_SE_CD        /* 단위업무구분코드 */
+            , I.UP_INST_NO              /* 상위기관번호 */
+            , I.UP_APRV_INST_NO         /* 상위승인기관번호 */
+            , I.INST_TYPE_SE_CD         /* 기관유형구분코드 */
+            , I.MAIN_ENFC_INST_SE_CD    /* 주요시행기관구분코드 */
+            , I.RGN_CD                  /* 지역코드 */
+            , I.CTPV_CD                 /* 시도코드 */
+            , I.SGG_CD                  /* 시군구코드 */
+            , I.RSFR_INST_YN            /* 자원제공기관여부 */
+        FROM SAA000 I   /** 통합기관 */
+        WHERE 1=1
+        AND I.INST_NO = (
+            SELECT UP_INST_NO   /* 상위기관번호 */
+            FROM SAA000 WHERE INST_NO = #{srchInstNo}   /* 검색할 기관번호 */
+        )
+        AND I.DEL_YN = 'N'      /* 삭제여부 (N) */
+        AND I.APRV_YN = 'Y'     /* 승인여부 (Y) */
+    ]]>
+    </select>
+    
+    <select id="searchLwprtInstList" parameterType="paramMap" resultType="Integer">
+    <![CDATA[
+        SELECT  /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper.searchLwprtInstList : 하위기관 목록 조회 */
+            T.INST_NO AS INST_NO
+        FROM (
+            SELECT
+                INST_NO             /* 기관번호 */
+                , INST_NM           /* 기관명 */
+                , UP_INST_NO        /* 상위기관번호 */
+                , UNT_TASKWK_SE_CD  /* 단위업무구분코드 */
+                , INST_TYPE_SE_CD   /* 기관유형구분코드 */
+                , LEVEL AS LEV      /* 레벨 */
+            FROM SAA000     /** 통합기관 */
+            START WITH INST_NO = #{srchUpInstNo}      /* 검색할 상위기관번호 */
+            CONNECT BY PRIOR INST_NO = UP_INST_NO
+    ]]>
+    <if test='srchUntTaskwkSeCd != null and srchUntTaskwkSeCd != ""'>
+    <![CDATA[ AND (UNT_TASKWK_SE_CD = 'U01' OR UNT_TASKWK_SE_CD = #{srchUntTaskwkSeCd}) ]]>
+    </if>
+        ) T
+        WHERE T.UNT_TASKWK_SE_CD = #{srchUntTaskwkSeCd}
+        UNION 
+        SELECT TO_NUMBER(#{srchUpInstNo}) AS INST_NO FROM DUAL
+    </select>
+    
+    <insert id="insertUserInstAuth" parameterType="paramMap">
+    <![CDATA[
+        /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper.insertUserInstAuth : 사용자별 기관 권한 등록 */
+        INSERT INTO SAB230 (
+            USER_ID                 /* 사용자아이디 */
+            , INST_NO               /* 기관번호 */
+            , GROUP_AUTHRT_SE_CD    /* 그룹권한구분코드 */
+            , AUTHRT_SE_CD          /* 권한구분코드 */
+            , SYS_MNGR_YN           /* 시스템관리자여부 */
+            , MAIST_YN              /* 주기관여부 */
+            , FRST_RGTR_ID          /* 최초등록자아이디 */
+            , FRST_REG_DT           /* 최초등록일시 */
+            , LAST_MDFR_ID          /* 최종수정자아이디 */
+            , LAST_MDFCN_DT         /* 최종수정일시 */
+        ) VALUES (
+            #{USER_ID}              /* 사용자아이디 */
+            , #{INST_NO}            /* 기관번호 */
+            , #{GROUP_AUTHRT_SE_CD} /* 그룹권한구분코드 */
+            , #{AUTHRT_SE_CD}       /* 권한구분코드 */
+            , #{SYS_MNGR_YN}        /* 시스템관리자여부 */
+            , NVL(#{MAIST_YN}, 'N') /* 주기관여부 */
+            , #{RGTR_ID}            /* 최초등록자아이디 */
+            , SYSDATE               /* 최초등록일시 */
+            , #{RGTR_ID}            /* 최종수정자아이디 */
+            , SYSDATE               /* 최종수정일시 */
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateUserInstAuth" parameterType="paramMap">
+    <![CDATA[
+        /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper.updateUserInstAuth : 사용자별 기관 권한 수정 */
+        UPDATE SAB230   /** 사용자별 기관 권한 */    
+    ]]>
+    <set>
+        <if test='GROUP_AUTHRT_SE_CD != null and GROUP_AUTHRT_SE_CD != ""'>
+            GROUP_AUTHRT_SE_CD = #{GROUP_AUTHRT_SE_CD},     /* 그룹권한구분코드 */
+        </if>
+        <if test='AUTHRT_SE_CD != null and AUTHRT_SE_CD != ""'>
+            AUTHRT_SE_CD = #{AUTHRT_SE_CD},                 /* 권한구분코드 */
+        </if>
+        <if test='SYS_MNGR_YN != null and SYS_MNGR_YN != ""'>
+            SYS_MNGR_YN = #{SYS_MNGR_YN},                   /* 시스템관리자여부 */
+        </if>
+        LAST_MDFR_ID = #{LAST_MDFR_ID},                 /* 최종수정자아이디 */
+        LAST_MDFCN_DT = SYSDATE                         /* 최종수정일시 */
+    </set> 
+    <![CDATA[
+        WHERE 1=1
+        AND USER_ID = #{USER_ID}      /* 수정할 사용자아이디 */
+        AND INST_NO = #{INST_NO}      /* 수정할 기관번호 */
+    ]]>
+    </update>
+    
+    <delete id="deleteUserInstAuth" parameterType="paramMap">
+    <![CDATA[
+        /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper.deleteUserInstAuth : 사용자별 기관 권한 삭제 */
+        DELETE FROM SAB230  /** 사용자별 기관 권한 */
+        WHERE 1=1
+        AND USER_ID = #{USER_ID}      /* 삭제할 사용자아이디 */
+        AND INST_NO = #{INST_NO}      /* 삭제할 기관번호 */
+    ]]>
+    </delete>
+    
+    <delete id="deleteUserInstAuthByReset" parameterType="paramMap">
+    <![CDATA[
+        /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper.deleteUserInstAuthByReset : 사용자별 기관 권한 삭제 (주기관 제외) */
+        DELETE FROM SAB230  /** 사용자별 기관 권한 */
+        WHERE 1=1
+        AND MAIST_YN = 'N'          /* 주기관이 아닌것만 삭제 */
+        AND USER_ID = #{userId}     /* 삭제할 사용자아이디 */
+    ]]>
+    </delete>
+    
+    <update id="updateUserInstAuthByReset" parameterType="paramMap">
+    <![CDATA[
+        /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.UserInstAuthMapper.updateUserInstAuthByReset : 사용자별 기관 권한 초기화 */
+        UPDATE SAB230   /** 사용자별 기관 권한 */    
+    ]]>
+    <set>
+        SYS_MNGR_YN = 'N'   /* 시스템관리자여부 */
+        , AUTHRT_SE_CD = SUBSTR(GROUP_AUTHRT_SE_CD,1,1)||'40'||SUBSTR(AUTHRT_SE_CD,4,2)||'00'     /* 권한구분코드 */
+        , GROUP_AUTHRT_SE_CD = SUBSTR(GROUP_AUTHRT_SE_CD,1,1)||'40'      /* 그룹권한구분코드 */
+        , LAST_MDFR_ID = #{mdfrId}      /* 최종수정자아이디 */
+        , LAST_MDFCN_DT = SYSDATE       /* 최종수정일시 */
+    </set>          
+    <![CDATA[ WHERE USER_ID = #{userId} ]]>
+    </update>
+    
+</mapper>

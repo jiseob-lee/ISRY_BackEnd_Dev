@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.userauth.mapper.MgmtAuthGrpMapper">
+
+    <!-- 메뉴권한 변경이력 ResultMap -->
+    <resultMap id="menuAuthrtChgHistoryMap" type="resultMap">
+       <result property="LAST_MDFCN_DT" column="LAST_MDFCN_DT" javaType="java.sql.Timestamp" />
+       <result property="REC_DIFF_TM" column="REC_DIFF_TM" javaType="java.lang.Long" />
+    </resultMap>
+    
+    <delete id="deleteAllAuthGrp">
+    <![CDATA[
+    
+        DELETE FROM SAB400 /* 권한 */
+    
+    ]]>
+    </delete>
+    
+    
+    <insert id="saveAuthGrp" parameterType="HashMap">
+    <![CDATA[
+        /* saveAuthGrp - Lee JiSeob */
+        
+        INSERT INTO SAB400 /* 권한 */
+        (
+	        AUTHRT_ID,
+	        AUTHRT_NM,
+	        INST_TYPE_SE_CD,
+	        INST_NO,
+	        ENFSN_ROLE_SE_CD,
+	        DEL_YN,
+	        RM_CN,
+	        SRTNG_SQNCE,
+	        FRST_RGTR_ID,
+			FRST_REG_DT,
+			LAST_MDFR_ID,
+			LAST_MDFCN_DT
+        )
+        VALUES
+        (
+	        #{AUTHRT_ID},
+	        #{AUTHRT_NM},
+	        #{INST_TYPE_SE_CD},
+	        #{INST_NO},
+	        #{ENFSN_ROLE_SE_CD},
+	        #{DEL_YN},
+	        #{RM_CN},
+	        #{SRTNG_SQNCE},
+	        #{USER_ID},
+	        SYSDATE,
+	        #{USER_ID},
+	        SYSDATE
+        )
+    ]]>
+    </insert>
+
+    
+    <insert id="saveAuthGrpHistory" parameterType="HashMap">
+    <![CDATA[
+        /* saveAuthGrpHistory - Lee JiSeob */
+
+        INSERT INTO SAB401 /* 권한 이력 */
+        (
+            AUTHRT_ID, 
+            MDFCN_DT, 
+            DATAA_CHG_SE_CD, 
+            AUTHRT_NM, 
+            DEL_YN, 
+            RM_CN, 
+            INST_TYPE_SE_CD,
+			INST_NO,
+			ENFSN_ROLE_SE_CD,
+			SRTNG_SQNCE,
+            FRST_RGTR_ID, 
+            FRST_REG_DT, 
+            LAST_MDFR_ID, 
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{AUTHRT_ID}, 
+            SYSDATE, 
+            #{DATAA_CHG_SE_CD}, 
+            #{AUTHRT_NM}, 
+            #{DEL_YN}, 
+            #{RM_CN}, 
+            #{INST_TYPE_SE_CD},
+            #{INST_NO},
+            #{ENFSN_ROLE_SE_CD},
+            #{SRTNG_SQNCE}, 
+            #{USER_ID}, 
+            SYSDATE, 
+            #{USER_ID}, 
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <insert id="saveUserMenuAuth" parameterType="paramMap">
+        /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.MgmtAuthGrpMapper.saveUserMenuAuth : 사용자별 메뉴권한 저장 */
+        MERGE INTO SAB250 A     /** 사용자별 메뉴권한 */
+		USING (
+		  <include refid="withUserMenuAuthTemplate" />
+		) B
+    <![CDATA[
+		ON (
+		    A.USER_ID = B.USER_ID         /* 사용자아이디 */
+            AND A.MENU_NO = B.MENU_NO     /* 메뉴번호 */
+		)
+		WHEN MATCHED THEN
+		    UPDATE SET
+		        A.INQ_BUTTON_USE_YN = B.INQ_BUTTON_USE_YN,
+		        A.INITL_BUTTON_USE_YN = B.INITL_BUTTON_USE_YN,
+		        A.REG_BUTTON_USE_YN = B.REG_BUTTON_USE_YN,
+		        A.MDFCN_BUTTON_USE_YN = B.MDFCN_BUTTON_USE_YN,
+		        A.DEL_BUTTON_USE_YN = B.DEL_BUTTON_USE_YN,
+		        A.MNG_BUTTON_USE_YN = B.MNG_BUTTON_USE_YN,
+		        A.DTL_INQ_BUTTON_USE_YN = B.DTL_INQ_BUTTON_USE_YN,
+		        A.LAST_MDFR_ID = #{RGTR_ID},
+		        A.LAST_MDFCN_DT = SYSDATE
+		WHEN NOT MATCHED THEN
+		    INSERT (
+		        A.USER_ID
+		        , A.MENU_NO
+		        , A.INQ_BUTTON_USE_YN
+		        , A.INITL_BUTTON_USE_YN
+		        , A.REG_BUTTON_USE_YN
+		        , A.MDFCN_BUTTON_USE_YN
+		        , A.DEL_BUTTON_USE_YN
+		        , A.MNG_BUTTON_USE_YN
+		        , A.DTL_INQ_BUTTON_USE_YN
+		        , A.FRST_RGTR_ID
+		        , A.FRST_REG_DT
+		        , A.LAST_MDFR_ID
+		        , A.LAST_MDFCN_DT
+		    ) VALUES (
+		        B.USER_ID
+		        , B.MENU_NO
+		        , B.INQ_BUTTON_USE_YN
+		        , B.INITL_BUTTON_USE_YN
+		        , B.REG_BUTTON_USE_YN
+		        , B.MDFCN_BUTTON_USE_YN
+		        , B.DEL_BUTTON_USE_YN
+		        , B.MNG_BUTTON_USE_YN
+		        , B.DTL_INQ_BUTTON_USE_YN
+		        , #{RGTR_ID}
+		        , SYSDATE
+		        , #{RGTR_ID}
+		        , SYSDATE
+		    )
+    ]]>
+    </insert>
+    
+    <select id="selectUserMenuAuthChgHistoryInfos" parameterType="paramMap" resultMap="menuAuthrtChgHistoryMap">
+    <![CDATA[
+	    WITH TMP AS (
+		    SELECT
+		        A.*
+		       , CASE WHEN (A.MENU_NO = 0 AND A.LAST_MDFCN_DT IS NULL) THEN 'Y'
+                    ELSE 'N'    END AS DEL_YN                   /* 삭제여부 */
+		    FROM (
+		        SELECT
+		            A.USER_ID                           /* 사용자아이디 */
+		            , A.MENU_NO                         /* 메뉴번호 */
+                    , MAX(B.MDFCN_DT) AS LAST_MDFCN_DT  /* 최종수정일시 */
+		        FROM SAB250 A   /** 사용자별 메뉴권한 */
+		            , (
+		                SELECT
+		                    USER_ID             /* 사용자아이디 */
+		                    , MENU_NO           /* 메뉴번호 */
+		                    , MDFCN_DT          /* 수정일시 */
+		                    , DATAA_CHG_SE_CD   /* 데이터변경구분코드 */
+		                    , LAST_MDFR_ID      /* 최종수정자아이디 */
+		                    , LAST_MDFCN_DT     /* 최종수정일시 */
+		                FROM SAB251     /** 사용자별 메뉴권한 이력 */
+		                WHERE 1=1
+		                AND USER_ID = #{USER_ID}
+		                ORDER BY USER_ID, MENU_NO ASC, MDFCN_DT DESC
+		            ) B
+		        WHERE 1=1
+		        AND A.MENU_NO = B.MENU_NO(+)
+                AND A.USER_ID = B.USER_ID(+)
+		        AND A.USER_ID = #{USER_ID}
+	]]>
+	<if test="AUTHRT_IDS != null and AUTHRT_IDS.size > 0">
+	   AND A.MENU_NO IN (
+           SELECT
+               MENU_NO     /* 메뉴번호 */
+           FROM (
+               SELECT
+                   AM.MENU_NO      /* 메뉴번호 */
+                   , ROW_NUMBER() OVER(PARTITION BY AM.MENU_NO ORDER BY AM.MENU_NO ASC) AS ROW_NUM
+               FROM SAB300 AM      /** 권한별 메뉴 */
+               WHERE 1=1
+	           AND AM.AUTHRT_ID IN    /* 권한아이디 (복수) */
+    <foreach collection="AUTHRT_IDS" item="authrtId" separator="," open="(" close=")">
+	<![CDATA[ #{authrtId} ]]>
+    </foreach>
+	<![CDATA[
+             ORDER BY AM.MENU_NO ASC
+          ) T
+          WHERE ROW_NUM = 1       /* 메뉴번호 중복제거 */
+    )]]>
+	</if>     
+	<![CDATA[
+		  GROUP BY A.USER_ID, A.MENU_NO
+		    ) A
+		)
+		SELECT    /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.MgmtAuthGrpMapper.selectUserMenuAuthChgHistoryInfos : 사용자별 메뉴권한 이력 변경데이터 조회 */
+		    USER_ID               /* 사용자아이디 */
+            , MENU_NO             /* 메뉴번호 */
+            , LAST_MDFCN_DT       /* 최종수정일시 */
+            , REC_DIFF_TM         /* 이력시간차이 */
+		    , CASE WHEN (LAST_MDFCN_DT IS NULL AND DEL_YN = 'N') THEN 'I' 
+		        WHEN (LAST_MDFCN_DT IS NULL AND DEL_YN = 'Y') THEN 'D'
+		        ELSE 'U' END AS DATAA_CHG_SE_CD  /* 데이터변경구분코드 */
+		    , CASE WHEN REC_DIFF_TM > 0 THEN 'Y'
+                ELSE 'N' END AS DATAA_CHG_YN    /* 데이터변경여부 */
+		    , INQ_BUTTON_USE_YN     /* 조회버튼사용여부 */
+		    , INITL_BUTTON_USE_YN   /* 초기화버튼사용여부 */
+		    , REG_BUTTON_USE_YN     /* 등록버튼사용여부 */
+		    , MDFCN_BUTTON_USE_YN   /* 수정버튼사용여부 */
+		    , DEL_BUTTON_USE_YN     /* 삭제버튼사용여부 */
+		    , MNG_BUTTON_USE_YN     /* 관리버튼사용여부 */
+		    , DTL_INQ_BUTTON_USE_YN /* 상세조회버튼사용여부 */
+		FROM (
+		    SELECT
+		        A.USER_ID
+		        , A.MENU_NO
+		        , A.INQ_BUTTON_USE_YN
+		        , A.INITL_BUTTON_USE_YN
+		        , A.REG_BUTTON_USE_YN
+		        , A.MDFCN_BUTTON_USE_YN
+		        , A.DEL_BUTTON_USE_YN
+		        , A.MNG_BUTTON_USE_YN
+		        , A.DTL_INQ_BUTTON_USE_YN
+		        , B.LAST_MDFCN_DT
+		        , C##RG.SA_FN_DATEDIFF('SS', B.LAST_MDFCN_DT, A.LAST_MDFCN_DT) AS REC_DIFF_TM
+		        , B.DEL_YN
+		        , ROW_NUMBER() OVER(PARTITION BY A.MENU_NO ORDER BY A.MENU_NO ASC) AS ROW_NUM
+		    FROM SAB250 A     /** 사용자별 메뉴권한 */
+		        , TMP B       /** 사용자별 메뉴권한 - 변경이력 가상테이블 */
+		    WHERE 1=1
+		    AND A.USER_ID = B.USER_ID
+            AND A.MENU_NO = B.MENU_NO
+		) T
+		WHERE ROW_NUM = 1     /* 메뉴번호 중복제거 */
+    ]]>
+    </select>
+    
+    <select id="selectMenuNoListByAuthrtIds" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+        SELECT      /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.MgmtAuthGrpMapper.selectMenuNoListByAuthrtIds : 권한아이디로 부터 메뉴 번호 목록 조회 */
+		    MENU_NO   /* 메뉴번호 */
+		FROM (
+		    SELECT
+		        AM.MENU_NO              /* 메뉴번호 */
+		        , ROW_NUMBER() OVER(PARTITION BY AM.MENU_NO ORDER BY AM.MENU_NO ASC) AS ROW_NUM
+		    FROM SAB300 AM      /** 권한별 메뉴 */
+                , SAB400 AU     /** 권한 */
+		    WHERE 1=1
+    ]]>
+            AND AM.AUTHRT_ID IN    /* 권한아이디 (복수) */
+            <if test="AUTHRT_IDS != null and AUTHRT_IDS.size > 0">
+                <foreach collection="AUTHRT_IDS" item="authrtId" separator="," open="(" close=")">
+            <![CDATA[ #{authrtId} ]]>
+                </foreach>
+            </if>
+	<![CDATA[
+	        AND AU.AUTHRT_ID = AM.AUTHRT_ID
+            AND AU.DEL_YN = 'N'
+		    ORDER BY AM.MENU_NO ASC
+		) T
+		WHERE ROW_NUM = 1       /* 메뉴번호 중복제거 */
+    ]]>
+    </select>
+    
+    <select id="selectUserMenuAuthHistoryInfos" parameterType="paramMap" resultMap="menuAuthrtChgHistoryMap">
+    <![CDATA[
+        WITH TMP AS (
+            SELECT
+                USER_ID             /* 사용자아이디 */
+                , MENU_NO           /* 메뉴번호 */
+                , MAX(MDFCN_DT) AS LAST_MDFCN_DT    /* 최종수정일시 */
+            FROM SAB251     /** 사용자별 메뉴권한 이력 */
+            WHERE 1=1
+            AND USER_ID = #{USER_ID}
+            AND MENU_NO IN (
+                SELECT
+                    MENU_NO     /* 메뉴번호 */
+                FROM (
+                    SELECT
+                        AM.MENU_NO      /* 메뉴번호 */
+                        , ROW_NUMBER() OVER(PARTITION BY AM.MENU_NO ORDER BY AM.MENU_NO ASC) AS ROW_NUM
+                    FROM SAB300 AM      /** 권한별 메뉴 */
+                    WHERE 1=1
+                    AND AM.AUTHRT_ID IN       /* 권한아이디 (복수) */
+    ]]>
+    <if test="AUTHRT_IDS != null and AUTHRT_IDS.size > 0">
+           <foreach collection="AUTHRT_IDS" item="authrtId" separator="," open="(" close=")">
+           <![CDATA[ #{authrtId} ]]>
+           </foreach>
+    </if>
+    <![CDATA[
+                    ORDER BY AM.MENU_NO ASC
+                ) T
+                WHERE ROW_NUM = 1       /* 메뉴번호 중복제거 */
+            )
+            GROUP BY USER_ID, MENU_NO
+            ORDER BY MENU_NO ASC
+        )
+        SELECT  /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.MgmtAuthGrpMapper.selectUserMenuAuthHistoryInfos : 사용자별 메뉴권한 이력 데이터 조회 */
+            USER_ID               /* 사용자아이디 */
+            , MENU_NO             /* 메뉴번호 */
+            , LAST_MDFCN_DT       /* 최종수정일시 */
+            , DATAA_CHG_SE_CD     /* 데이터변경구분코드 */
+            , C##RG.SA_FN_DATEDIFF('SS', LAST_MDFCN_DT, SYSDATE) AS REC_DIFF_TM  /* 이력시간차이 */
+            , INQ_BUTTON_USE_YN     /* 조회버튼사용여부 */
+            , INITL_BUTTON_USE_YN   /* 초기화버튼사용여부 */
+            , REG_BUTTON_USE_YN     /* 등록버튼사용여부 */
+            , MDFCN_BUTTON_USE_YN   /* 수정버튼사용여부 */
+            , DEL_BUTTON_USE_YN     /* 삭제버튼사용여부 */
+            , MNG_BUTTON_USE_YN     /* 관리버튼사용여부 */
+            , DTL_INQ_BUTTON_USE_YN /* 상세조회버튼사용여부 */
+        FROM (
+            SELECT
+                A.USER_ID
+                , A.MENU_NO
+                , A.DATAA_CHG_SE_CD
+                , A.INQ_BUTTON_USE_YN
+                , A.INITL_BUTTON_USE_YN
+                , A.REG_BUTTON_USE_YN
+                , A.MDFCN_BUTTON_USE_YN
+                , A.DEL_BUTTON_USE_YN
+                , A.MNG_BUTTON_USE_YN
+                , A.DTL_INQ_BUTTON_USE_YN
+                , B.LAST_MDFCN_DT AS LAST_MDFCN_DT
+                , ROW_NUMBER() OVER(PARTITION BY A.MENU_NO ORDER BY A.MENU_NO ASC) AS ROW_NUM
+            FROM SAB251 A       /** 사용자별 메뉴권한 이력 */
+                , TMP B         /** 사용자별 메뉴권한 - 변경이력 가상테이블 */
+            WHERE 1=1
+            AND A.USER_ID = B.USER_ID
+            AND A.MENU_NO = B.MENU_NO
+        ) T
+        WHERE ROW_NUM = 1       /* 메뉴번호 중복제거 */
+    ]]>
+    </select>
+    
+    <insert id="insertUserMenuAuthHistory" parameterType="paramMap" useGeneratedKeys="false">
+    <![CDATA[
+        /* SQL-ID : isry.itgcms.sysmgmt.userauth.mapper.MgmtAuthGrpMapper.insertUserMenuAuthHistory : 사용자별 메뉴권한 이력 저장 */
+        INSERT INTO SAB251      /** 사용자별 메뉴권한 이력 */
+		(
+		    USER_ID                 /* 사용자아이디 */
+		    , MENU_NO               /* 메뉴번호 */
+		    , MDFCN_DT              /* 수정일시 */
+		    , DATAA_CHG_SE_CD       /* 데이터변경구분코드 */
+		    , INQ_BUTTON_USE_YN     /* 조회버튼사용여부 */
+		    , INITL_BUTTON_USE_YN   /* 초기화버튼사용여부 */
+		    , REG_BUTTON_USE_YN     /* 등록버튼사용여부 */
+		    , MDFCN_BUTTON_USE_YN   /* 수정버튼사용여부 */
+		    , DEL_BUTTON_USE_YN     /* 삭제버튼사용여부 */
+		    , MNG_BUTTON_USE_YN     /* 관리버튼사용여부 */
+		    , DTL_INQ_BUTTON_USE_YN /* 상세조회버튼사용여부 */
+		    , FRST_RGTR_ID          /* 최초등록자아이디 */
+		    , FRST_REG_DT           /* 최초등록일시 */
+		    , LAST_MDFR_ID          /* 최종수정자아이디 */
+		    , LAST_MDFCN_DT         /* 최종수정일시 */
+		)
+		VALUES 
+		(
+		    #{USER_ID}                  /* 사용자아이디 */
+		    , #{MENU_NO}                /* 메뉴번호 */
+		    , SYSDATE                   /* 수정일시 */
+		    , #{DATAA_CHG_SE_CD}        /* 데이터변경구분코드 */
+		    , #{INQ_BUTTON_USE_YN}      /* 조회버튼사용여부 */
+		    , #{INITL_BUTTON_USE_YN}    /* 초기화버튼사용여부 */
+		    , #{REG_BUTTON_USE_YN}      /* 등록버튼사용여부 */
+		    , #{MDFCN_BUTTON_USE_YN}    /* 수정버튼사용여부 */
+		    , #{DEL_BUTTON_USE_YN}      /* 삭제버튼사용여부 */
+		    , #{MNG_BUTTON_USE_YN}      /* 관리버튼사용여부 */
+		    , #{DTL_INQ_BUTTON_USE_YN}  /* 상세조회버튼사용여부 */
+		    , #{RGTR_ID}                /* 최초등록자아이디 */
+		    , SYSDATE                   /* 최초등록일시 */
+		    , #{RGTR_ID}                /* 최종수정자아이디 */
+		    , SYSDATE                   /* 최종수정일시 */
+		)
+    ]]>
+    </insert>
+    
+    <!-- 사용자 메뉴권한 템블릿 용도 가상테이블 -->
+    <sql id="withUserMenuAuthTemplate">
+    <![CDATA[
+	    SELECT
+	        T.*
+	    FROM (
+	       SELECT
+	            #{USER_ID} AS USER_ID   /* 사용자아이디 */
+	            , AM.AUTHRT_ID          /* 권한아이디 */
+	            , M.MENU_NO             /* 메뉴번호 */
+	            , NVL(AM.INQ_BUTTON_USE_YN, 'N') AS INQ_BUTTON_USE_YN       /* 조회버튼사용여부 */
+	            , NVL(AM.INITL_BUTTON_USE_YN, 'N') AS INITL_BUTTON_USE_YN   /* 초기화버튼사용여부 */
+	            , NVL(AM.REG_BUTTON_USE_YN, 'N') AS REG_BUTTON_USE_YN       /* 등록버튼사용여부 */
+	            , NVL(AM.MDFCN_BUTTON_USE_YN, 'N') AS MDFCN_BUTTON_USE_YN   /* 수정버튼사용여부 */
+	            , NVL(AM.DEL_BUTTON_USE_YN, 'N') AS DEL_BUTTON_USE_YN       /* 삭제버튼사용여부 */
+	            , NVL(AM.MNG_BUTTON_USE_YN, 'N') AS MNG_BUTTON_USE_YN       /* 관리버튼사용여부 */
+	            , NVL(AM.DTL_INQ_BUTTON_USE_YN, 'N') AS DTL_INQ_BUTTON_USE_YN   /* 상세조회버튼사용여부 */
+	            , ROW_NUMBER() OVER(PARTITION BY AM.MENU_NO ORDER BY AM.MENU_NO ASC) AS ROW_NUM
+	       FROM SAB200 M       /** 메뉴 */
+	           , SAB300 AM     /** 권한별 메뉴 */
+	           , SAB400 AU     /** 권한 */
+	       WHERE 1=1
+	]]>
+	       AND AM.AUTHRT_ID IN    /* 권한아이디 (복수) */
+	       <if test="AUTHRT_IDS != null and AUTHRT_IDS.size > 0">
+	           <foreach collection="AUTHRT_IDS" item="authrtId" separator="," open="(" close=")">
+		   <![CDATA[ #{authrtId} ]]>
+		       </foreach>
+           </if>
+	<![CDATA[
+	       AND M.MENU_NO = AM.MENU_NO              /* 메뉴번호 */
+	       AND AU.AUTHRT_ID = AM.AUTHRT_ID         /* 권한아이디 (권한구분코드 - AUTHRT_SE_CD 와 맵핑) */
+           AND AU.DEL_YN = 'N'                     /* 권한 삭제여부 */
+	       ORDER BY AM.AUTHRT_ID, M.MENU_NO ASC
+        ) T
+	    WHERE ROW_NUM = 1       /* 메뉴번호 중복제거 */
+	]]>
+	</sql>
+</mapper>

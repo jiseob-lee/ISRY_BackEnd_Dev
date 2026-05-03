@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.cyberdscsnmnla.mapper.LaborMnlaMapper">
+
+    <select id="subOnLoad" parameterType="HashMap" resultType="HashMap">
+			SELECT 
+						MNLA_NO
+						,MNLA_NM
+						,USE_YN
+						,FRST_RGTR_ID
+						,to_char(FRST_REG_DT,'YYYY-MM-DD') AS FRST_REG_DT
+						,LAST_MDFR_ID
+						,LAST_MDFCN_DT
+			FROM         AYA100
+			WHERE        1=1  
+				AND     USE_YN = 'N'   
+    </select>
+
+
+    <insert id="insertLaborMnlaReg" parameterType="HashMap">
+			INSERT INTO AYA100 (
+								MNLA_NO
+								,MNLA_CN
+								,USE_YN
+								,FRST_RGTR_ID
+								,FRST_REG_DT
+								,LAST_MDFR_ID
+								,LAST_MDFCN_DT
+								)
+			VALUES((
+					SELECT MAX(MNLA_NO)+1 
+					FROM AYA100
+					)
+					, #{MNLA_CN}
+					, 'N'
+					, #{FRST_RGTR_ID}
+					, SYSDATE
+					, #{LAST_MDFR_ID}
+					, SYSDATE
+			       )
+    </insert>
+   
+</mapper>

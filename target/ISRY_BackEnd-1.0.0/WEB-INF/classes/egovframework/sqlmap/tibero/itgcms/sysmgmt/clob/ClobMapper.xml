@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.clob.mapper.ClobMapper">
+
+	<resultMap type="HashMap" id="clobMap01">
+		<result property="MNLA_CN" column="MNLA_CN" jdbcType="CLOB" javaType="java.lang.String" />
+	</resultMap>
+	
+	<!-- Clob Select -->
+	<select id="selectClob" parameterType="HashMap" resultType="HashMap" resultMap="clobMap01">
+    <![CDATA[
+    	/* selectClob - Lee JiSeob */
+    
+    	SELECT 
+    		MNLA_NO, 
+    		MNLA_NM, 
+    		MNLA_CN, 
+    		ATFINO, 
+    		USE_YN, 
+    		CYBER_DSCSN_MNLA_LCLAS_SE_CD, 
+    		CYBER_DSCSN_MNLA_MLSFC_SE_CD, 
+    		CYBER_DSCSN_MNLA_SCLAS_SE_CD, 
+    		FRST_RGTR_ID, 
+    		FRST_REG_DT, 
+    		LAST_MDFR_ID, 
+    		LAST_MDFCN_DT
+		
+		FROM 
+			AYA100
+    
+	]]>
+	</select>
+
+    
+</mapper>

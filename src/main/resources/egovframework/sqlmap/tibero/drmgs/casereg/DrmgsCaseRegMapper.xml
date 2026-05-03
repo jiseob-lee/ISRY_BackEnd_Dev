@@ -1,0 +1,2796 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.drmgs.casereg.mapper.DrmgsCaseRegMapper">
+
+    <select id="outcomeDetail" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.outcomeDetail - 응용2팀 강화영  */
+        
+        select a.CASE_MNG_NO,                                    /*사례관리번호*/
+			   a.CASE_MNG_ODRNO,                                 /*사례관리차수*/
+			   a.OUTC_YMD,                                       /*성과일자*/
+			   a.OUTC_CN,                                        /*성과내용*/
+			   a.ATFINO,                                         /*첨부파일번호*/
+			   a.REPA_YN,                                        /*재참여여부*/
+			   a.STG1_PTCPTN_STTS_SE_CD,                         /*1단계참여상태구분코드*/
+			   a.STG2_ENTRY_WAIT_YMD,                            /*2단계진입대기일자*/
+			   a.STG2_DUTR_YMD,                                  /*2단계훈련중일자*/
+			   a.STG2_FNSH_YMD,                                  /*2단계수료일자*/
+			   a.STG2_MDSTRM_FAILR_YMD,                          /*2단계중도탈락일자*/
+			   a.STG3_ENTRY_WAIT_YMD,                            /*3단계진입대기일자*/
+			   a.STG3_DUTR_YMD,                                  /*3단계훈련중일자*/
+			   a.STG3_FNSH_YMD,                                  /*3단계수료일자*/
+			   a.STG3_MDSTRM_FAILR_YMD,                          /*3단계중도탈락일자*/
+			   a.STG4_ENTRY_WAIT_YMD,                            /*4단계진입대기일자*/
+			   a.STG4_DUTR_YMD,                                  /*4단계훈련중일자*/
+			   a.STG4_FNSH_YMD,                                  /*4단계수료일자*/
+			   a.STG4_MDSTRM_FAILR_YMD,                          /*4단계중도탈락일자*/
+			   a.OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD, /*직업역량강화중도탈락사유대분류구분코드*/
+			   a.OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD, /*직업역량강화중도탈락사유소분류구분코드*/
+			   a.OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_ETC_CN,      /*직업역량강화중도탈락사유기타내용*/
+			   a.BEFFAT_QUSTNB_TMPT_MNG_NO,                      /*사전설문지템플릿관리번호*/
+			   a.BEFFAT_QUSTNB_MNG_NO,                           /*사전설문지관리번호*/
+			   a.BEFFAT_SRVY_RSPNS_MNG_NO,                       /*사전설문응답관리번호*/
+			   (select sum(b.GRDNG_SCORE)  
+			      from SBB510 b 
+			     where b.QUSTNB_MNG_NO      = a.BEFFAT_QUSTNB_MNG_NO
+			       and b.SRVY_RSPNS_MNG_NO  = a.BEFFAT_SRVY_RSPNS_MNG_NO
+			       and b.QUSTNB_TMPT_MNG_NO = a.BEFFAT_QUSTNB_TMPT_MNG_NO
+			   ) BEFFAT_GRDNG_SCORE,                             /*사전채점점수*/
+			   a.AFTFCT_QUSTNB_TMPT_MNG_NO,                      /*사후설문지템플릿관리번호*/
+			   a.AFTFCT_QUSTNB_MNG_NO,                           /*사후설문지관리번호*/
+			   a.AFTFCT_SRVY_RSPNS_MNG_NO,                       /*사후설문응답관리번호*/
+			   (select sum(b.GRDNG_SCORE) 
+	              from SBB510 b 
+	             where b.QUSTNB_MNG_NO      = a.AFTFCT_QUSTNB_MNG_NO
+	               and b.SRVY_RSPNS_MNG_NO  = a.AFTFCT_SRVY_RSPNS_MNG_NO
+	               and b.QUSTNB_TMPT_MNG_NO = a.AFTFCT_QUSTNB_TMPT_MNG_NO
+	           ) AFTFCT_GRDNG_SCORE,                             /*사후채점점수*/
+			   a.AFTFCT_MNG_YN,                                  /*사후관리여부*/
+			   a.RESULT_END_YMD,
+			   a.SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD,
+			   a.SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD,
+			   a.SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN
+		  from AKA100 a
+		 where a.CASE_MNG_NO    = #{CASE_MNG_NO, jdbcType=VARCHAR}
+		   and a.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}    
+		]]>
+    </select>
+
+    <select id="outcomeList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.outcomeList - 응용2팀 강화영  */
+
+        select a.CASE_MNG_NO                                        /*사례관리번호*/
+	         , a.CASE_MNG_ODRNO                                     /*사례관리차수*/
+	         , a.UNT_TASKWK_SE_CD                                   /*단위업무구분코드*/
+	         , a.OUTC_SN                                            /*성과일련번호*/
+	         , a.OUTC_CN_LCLAS_SE_CD                                /*성과내용대분류구분코드*/
+	         , a.OUTC_CN_MLSFC_SE_CD                                /*성과내용중분류구분코드*/
+	         , a.OUTC_CN_SCLAS_SE_CD                                /*성과내용소분류구분코드*/         
+	         , (SELECT CMMNS_CD_VALUE_NM FROM SAC100  /* 공통코드 */
+	             WHERE CMMNS_CD_ID LIKE 'OUTC_CN_LCLAS_SE_CD'
+	               AND CMMNS_CD_VALUE = a.OUTC_CN_LCLAS_SE_CD) || '-' ||
+	           (SELECT CMMNS_CD_VALUE_NM FROM SAC100  /* 공통코드 */
+	             WHERE CMMNS_CD_ID LIKE 'OUTC_CN_MLSFC_SE_CD'
+	               AND CMMNS_CD_VALUE = a.OUTC_CN_MLSFC_SE_CD) ||
+	           nvl2(  
+	           (SELECT CMMNS_CD_VALUE_NM FROM SAC100  /* 공통코드 */
+	             WHERE CMMNS_CD_ID LIKE 'OUTC_CN_SCLAS_SE_CD'
+	               AND CMMNS_CD_VALUE = a.OUTC_CN_SCLAS_SE_CD),
+	                '-' ||(SELECT CMMNS_CD_VALUE_NM FROM SAC100  /* 공통코드 */
+	                        WHERE CMMNS_CD_ID LIKE 'OUTC_CN_SCLAS_SE_CD'
+	                          AND CMMNS_CD_VALUE = a.OUTC_CN_SCLAS_SE_CD),
+	                 ''
+	           ) OUTC_CN_SCLAS_SE_NM
+	         , a.IDNTY_RESULT_SE_CD                                 /*확인결과구분코드*/
+	         , a.OUTC_YMD                                           /*성과일자*/
+	         , a.GRADE_NM                                           /*학년명*/
+	         , a.SCHL_NM                                            /*학교명*/
+	         , a.CERTIF_NO                                          /*합격증번호*/
+	         , a.MAIN_ENFC_INST_NM                                  /*주요시행기관명*/
+	         , a.UNIV_NM                                            /*대학교명*/
+	         , a.SUBJCT_NM                                          /*학과명*/
+	         , a.MAJOR_NM                                           /*전공명*/
+	         , a.CO_NM                                              /*회사명*/
+	         , a.PRD_BGNG_YMD                                       /*기간시작일자*/
+	         , a.PRD_END_YMD                                        /*기간종료일자*/
+	         , a.INST_NM                                            /*기관명*/
+	         , a.EDU_TRAING_NM                                      /*교육훈련명*/
+	         , a.CERTI_NM                                           /*자격증명*/
+	         , a.CERTI_GRAD_NM                                      /*자격증등급명*/
+	         , a.IDNTY_YMD                                          /*확인일자*/
+	         , a.PTCPTN_YMD                                         /*참여일자*/
+	         , a.FNSH_YMD                                           /*수료일자*/
+	         , a.OPER_HR                                            /*운영시간*/
+	         , a.ATEND_HR                                           /*출석시간*/
+	         , a.ATEND_RATE                                         /*출석비율*/
+	         , a.PROGRM_NM                                          /*프로그램명*/
+	         , a.PTCPTN_HR                                          /*참여시간*/
+	         , a.ARPR_NM                                            /*수상명*/
+	         , a.DTY_SE_CD                                          /*직무구분코드*/
+	         , a.OCCP_CL_SE_CD                                      /*직업분류구분코드*/
+	         , a.EMPYMN_INST_NM                                     /*취업기관명*/
+			 , a.EMPYMN_YMD                                         /*취업일자*/
+			 , a.RTRM_YMD                                           /*퇴직일자*/
+			 , a.RTRM_CS_ETC_CN                                     /*퇴직사유기타내용*/
+			 , a.SPRT_CN                                            /*지원내용*/
+			 , a.CERTI_SE_CD                                        /*자격증구분코드*/
+			 , a.QLFC_GRAD_SE_CD                                    /*자격등급구분코드*/
+			 , a.CERTI_LIST_SE_CD                                   /*자격증목록구분코드*/
+			 , a.EMPYMN_PRPARE_HISTB_CN                             /*취업준비내역내용*/
+			 , a.ENTRNC_FCLTY_NM                                    /*입소시설명*/
+			 , a.HOUSE_SPRT_ETC_CN                                  /*주택지원기타내용*/
+			 , a.HOUSE_KND_SE_CD                                    /*주택종류구분코드*/
+			 , a.HOUSE_KND_ETC_CN                                   /*주택종류기타내용*/
+			 , a.HOUSE_NM                                           /*주택명*/
+			 , a.RESIDE_CST_SPRT_ETC_CN                             /*주거비용지원기타내용*/
+			 , a.RESIDE_CST_SPRT_CYCL_SE_CD                         /*주거비용지원주기구분코드*/
+			 , a.SPRT_AMT                                           /*지원금액*/
+			 , a.RESIDE_CST_SPRT_SBSIDY_BGT_AMT                     /*주거비용지원보조금예산금액*/
+			 , a.RESIDE_CST_SPRT_LCGOV_NM                           /*주거비용지원지자체명*/
+			 , a.RESIDE_CST_SPRT_LCGOV_SPRT_AMT                     /*주거비용지원지자체지원금액*/
+			 , a.RESIDE_CST_SPRT_PRVATE_INST_NM                     /*주거비용지원민간기관명*/
+			 , a.RESIDE_CST_SPRT_PRVATE_SPRT_AMT                    /*주거비용지원민간지원금액*/
+			 , a.LRNR_REG_YMD                                       /*학습자등록일자*/
+             , a.CRDTS_SCORE                                        /*이수학점점수*/
+             , a.LRN_EXPRN_CRSE_SE_CD                               /*학습체험과정구분코드*/
+			 , a.USE_YN                                             /*사용여부*/
+	         , TO_CHAR(a.FRST_REG_DT, 'YYYYMMDD') AS FRST_REG_DT    /*최초등록일*/
+	         , ( SELECT TRPR_INFO_NO
+	               FROM SEB100
+	              WHERE CASE_MNG_NO    = a.CASE_MNG_NO
+	                AND CASE_MNG_ODRNO = a.CASE_MNG_ODRNO
+	           )                                  AS TRPR_INFO_NO   /*대상자정보번호*/
+	         , ( SELECT INDV_IDNTFC_NO
+	               FROM SEA200
+	              WHERE TRPR_INFO_NO = ( SELECT TRPR_INFO_NO
+						                   FROM SEB100
+						                  WHERE CASE_MNG_NO    = a.CASE_MNG_NO
+						                    AND CASE_MNG_ODRNO = a.CASE_MNG_ODRNO
+	                                   )
+	           )                                  AS INDV_IDNTFC_NO /*개인식별번호*/
+          from AKA130 a
+         where a.CASE_MNG_NO      = #{CASE_MNG_NO, jdbcType=VARCHAR}
+           and a.CASE_MNG_ODRNO   = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}
+           and a.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD, jdbcType=VARCHAR}  
+           and a.USE_YN           = 'Y'
+        ]]>
+    </select>
+
+    <select id="dsOccpOutList" parameterType="HashMap" resultType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsOccpOutList - 응용2팀 강화영  */
+        <![CDATA[
+        select a.CASE_MNG_NO
+		, a.CASE_MNG_ODRNO
+		, a.OUTC_SN
+		, a.OUTC_CN
+		, a.OUTC_YMD
+		, a.USE_YN
+		, TO_CHAR(a.FRST_REG_DT, 'YYYY-MM-DD') AS FRST_REG_DT
+		from AKA120 a
+		where a.CASE_MNG_NO = #{CASE_MNG_NO, jdbcType=VARCHAR}
+        and a.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}   
+        and a.USE_YN = 'Y'
+        ]]>     
+    </select>
+    
+    <select id="dsProgrmList" parameterType="HashMap" resultType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsProgrmList - 응용2팀 강화영  */
+        <![CDATA[
+        select a.CASE_MNG_NO
+        , a.CASE_MNG_ODRNO
+        , a.OUTC_SN
+        , a.OUTC_SN
+        , a.PROGRM_CN
+        , a.PROGRM_BGNG_YMD
+        , a.PROGRM_END_YMD
+        , a.USE_YN
+        from AKA110 a
+        where a.CASE_MNG_NO = #{CASE_MNG_NO, jdbcType=VARCHAR}
+        and a.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}    
+        and a.USE_YN = 'Y'
+        ]]>
+    </select>
+    
+    <insert id="dsProgrmInsert" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsProgrmInsert - 응용2팀 강화영  */
+    	<![CDATA[
+        insert into AKA110
+        (
+        CASE_MNG_NO
+        , CASE_MNG_ODRNO
+        , OUTC_SN
+        , PROGRM_CN
+        , PROGRM_BGNG_YMD
+        , PROGRM_END_YMD
+        , USE_YN
+        , FRST_RGTR_ID
+        ) values (
+        #{CASE_MNG_NO}
+        , #{CASE_MNG_ODRNO}
+        , AKA110_SQ01.NEXTVAL
+        , #{PROGRM_CN, jdbcType=VARCHAR}
+        , #{PROGRM_BGNG_YMD, jdbcType=VARCHAR}
+        , #{PROGRM_END_YMD, jdbcType=VARCHAR}
+        , 'Y'
+        , #{FRST_RGTR_ID}   /*최초등록자아이디*/
+        )
+        ]]>
+    </insert>
+    
+    <update id="dsProgrmUpdate" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsProgrmUpdate - 응용2팀 강화영  */
+        <![CDATA[
+        update AKA110 set
+        PROGRM_CN = #{PROGRM_CN, jdbcType=VARCHAR}
+        , PROGRM_BGNG_YMD = #{PROGRM_BGNG_YMD, jdbcType=VARCHAR}
+        , PROGRM_END_YMD = #{PROGRM_END_YMD, jdbcType=VARCHAR}
+        , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        , LAST_MDFCN_DT = SYSDATE
+        where CASE_MNG_NO = #{CASE_MNG_NO}
+        and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+        and OUTC_SN = #{OUTC_SN}
+        ]]>
+    </update>
+    
+    <update id="dsProgrmDelete" parameterType="HashMap">
+        update AKA110 set
+        USE_YN = 'N'
+        , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        , LAST_MDFCN_DT = SYSDATE
+        where CASE_MNG_NO = #{CASE_MNG_NO}
+        and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+        and OUTC_SN = #{OUTC_SN}
+    </update>
+    
+    <sql id="insertOutcomeDetail1_1_SQL">
+        <![CDATA[
+            /*성과일괄등록_시작*/
+            , OUTC_YMD  /*성과일자*/
+            , OUTC_CN   /*성과내용*/
+            , ATFINO    /*첨부파일번호*/
+            /*성과일괄등록_종료*/
+        ]]>
+    </sql>
+    <sql id="insertOutcomeDetail1_2_SQL">
+		<![CDATA[
+		  /*성과일괄등록_시작*/
+		  , #{OUTC_YMD, jdbcType=VARCHAR}   /*성과일자*/
+		  , #{OUTC_CN, jdbcType=VARCHAR}    /*성과내용*/
+		  , #{ATFINO, jdbcType=VARCHAR} /*첨부파일번호*/
+		  /*성과일괄등록_종료*/
+		]]>
+    </sql>
+    <sql id="insertOutcomeDetail2_1_SQL">
+        <![CDATA[
+        /*직업역량강화_시작*/
+         , REPA_YN   /*재참여여부*/
+         , STG1_PTCPTN_STTS_SE_CD    /*1단계참여상태구분코드*/
+         , STG2_ENTRY_WAIT_YMD   /*2단계진입대기일자*/
+         , STG2_DUTR_YMD /*2단계훈련중일자*/
+         , STG2_FNSH_YMD /*2단계수료일자*/
+         , STG2_MDSTRM_FAILR_YMD /*2단계중도탈락일자*/
+         , STG3_ENTRY_WAIT_YMD   /*3단계진입대기일자*/
+         , STG3_DUTR_YMD /*3단계훈련중일자*/
+         , STG3_FNSH_YMD /*3단계수료일자*/
+         , STG3_MDSTRM_FAILR_YMD /*3단계중도탈락일자*/
+         , STG4_ENTRY_WAIT_YMD   /*4단계진입대기일자*/
+         , STG4_DUTR_YMD /*4단계훈련중일자*/
+         , STG4_FNSH_YMD /*4단계수료일자*/
+         , STG4_MDSTRM_FAILR_YMD /*4단계중도탈락일자*/
+         , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD /*직업역량강화중도탈락사유대분류구분코드*/
+         , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD /*직업역량강화중도탈락사유소분류구분코드*/
+         , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_ETC_CN /*직업역량강화중도탈락사유기타내용*/
+         , BEFFAT_QUSTNB_TMPT_MNG_NO /*사전설문지템플릿관리번호*/
+         , BEFFAT_QUSTNB_MNG_NO  /*사전설문지관리번호*/
+         , BEFFAT_SRVY_RSPNS_MNG_NO  /*사전설문응답관리번호*/
+         , AFTFCT_QUSTNB_TMPT_MNG_NO /*사후설문지템플릿관리번호*/
+         , AFTFCT_QUSTNB_MNG_NO  /*사후설문지관리번호*/
+         , AFTFCT_SRVY_RSPNS_MNG_NO  /*사후설문응답관리번호*/
+         , AFTFCT_MNG_YN /*사후관리여부*/
+         /*직업역량강화_종료*/
+         ]]>
+    </sql>
+    <sql id="insertOutcomeDetail2_2_SQL">
+        <![CDATA[
+        /*직업역량강화_시작*/
+         , nvl(#{REPA_YN, jdbcType=VARCHAR}, 'N')    /*재참여여부*/
+         , #{STG1_PTCPTN_STTS_SE_CD, jdbcType=VARCHAR} /*1단계참여상태구분코드*/
+         , #{STG2_ENTRY_WAIT_YMD, jdbcType=VARCHAR}    /*2단계진입대기일자*/
+         , #{STG2_DUTR_YMD, jdbcType=VARCHAR}  /*2단계훈련중일자*/
+         , #{STG2_FNSH_YMD, jdbcType=VARCHAR}  /*2단계수료일자*/
+         , #{STG2_MDSTRM_FAILR_YMD, jdbcType=VARCHAR}  /*2단계중도탈락일자*/
+         , #{STG3_ENTRY_WAIT_YMD, jdbcType=VARCHAR}    /*3단계진입대기일자*/
+         , #{STG3_DUTR_YMD, jdbcType=VARCHAR}  /*3단계훈련중일자*/
+         , #{STG3_FNSH_YMD, jdbcType=VARCHAR}  /*3단계수료일자*/
+         , #{STG3_MDSTRM_FAILR_YMD, jdbcType=VARCHAR}  /*3단계중도탈락일자*/
+         , #{STG4_ENTRY_WAIT_YMD, jdbcType=VARCHAR}    /*4단계진입대기일자*/
+         , #{STG4_DUTR_YMD, jdbcType=VARCHAR}  /*4단계훈련중일자*/
+         , #{STG4_FNSH_YMD, jdbcType=VARCHAR}  /*4단계수료일자*/
+         , #{STG4_MDSTRM_FAILR_YMD, jdbcType=VARCHAR}  /*4단계중도탈락일자*/
+         , #{OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD, jdbcType=VARCHAR}   /*직업역량강화중도탈락사유대분류구분코드*/
+         , #{OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD, jdbcType=VARCHAR}   /*직업역량강화중도탈락사유소분류구분코드*/
+         , #{OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_ETC_CN, jdbcType=VARCHAR}   /*직업역량강화중도탈락사유기타내용*/
+         , 'TM2022071600001'  /*사전설문지템플릿관리번호*/
+         , #{BEFFAT_QUSTNB_MNG_NO, jdbcType=VARCHAR}   /*사전설문지관리번호*/
+         , #{BEFFAT_SRVY_RSPNS_MNG_NO, jdbcType=VARCHAR}   /*사전설문응답관리번호*/
+         , 'TM2022071600001'  /*사후설문지템플릿관리번호*/
+         , #{AFTFCT_QUSTNB_MNG_NO jdbcType=VARCHAR}   /*사후설문지관리번호*/
+         , #{AFTFCT_SRVY_RSPNS_MNG_NO, jdbcType=VARCHAR}   /*사후설문응답관리번호*/
+         , nvl(#{AFTFCT_MNG_YN, jdbcType=VARCHAR}, 'N')  /*사후관리여부*/
+         /*직업역량강화_종료*/
+         ]]>
+    </sql>
+    
+    <insert id="insertOutcomeDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertOutcomeDetail - 응용2팀 강화영  */
+        
+        insert into AKA100 (
+            <![CDATA[
+			CASE_MNG_NO /*사례관리번호*/
+			, CASE_MNG_ODRNO    /*사례관리차수*/
+			]]>
+			<include refid="insertOutcomeDetail1_1_SQL"></include>
+			<include refid="insertOutcomeDetail2_1_SQL"></include>
+			, FRST_RGTR_ID  /*최초등록자아이디*/
+		) values (
+			<![CDATA[
+			#{CASE_MNG_NO}  /*사례관리번호*/
+			, #{CASE_MNG_ODRNO} /*사례관리차수*/
+			]]>
+			<include refid="insertOutcomeDetail1_2_SQL"></include>
+			<include refid="insertOutcomeDetail2_2_SQL"></include>
+			, #{FRST_RGTR_ID}   /*최초등록자아이디*/
+		)
+    </insert>
+    <insert id="insertOutcomeAllDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertOutcomeAllDetail - 응용2팀 강화영  */
+    
+        insert into AKA100 (
+            <![CDATA[
+            CASE_MNG_NO /*사례관리번호*/
+            , CASE_MNG_ODRNO    /*사례관리차수*/
+            ]]>
+            <include refid="insertOutcomeDetail1_1_SQL"></include>
+            , FRST_RGTR_ID  /*최초등록자아이디*/
+        ) values (
+            <![CDATA[
+            #{CASE_MNG_NO}  /*사례관리번호*/
+            , #{CASE_MNG_ODRNO} /*사례관리차수*/
+            ]]>
+            <include refid="insertOutcomeDetail1_2_SQL"></include>
+            , #{FRST_RGTR_ID}   /*최초등록자아이디*/
+        )
+    </insert>
+     <insert id="insertOccpDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertOccpDetail - 응용2팀 강화영  */
+        
+        insert into AKA100 (
+            <![CDATA[
+            CASE_MNG_NO /*사례관리번호*/
+            , CASE_MNG_ODRNO    /*사례관리차수*/
+            ]]>
+            <include refid="insertOutcomeDetail2_1_SQL"></include>
+            , FRST_RGTR_ID  /*최초등록자아이디*/
+        ) values (
+            <![CDATA[
+            #{CASE_MNG_NO}  /*사례관리번호*/
+            , #{CASE_MNG_ODRNO} /*사례관리차수*/
+            ]]>
+            <include refid="insertOutcomeDetail2_2_SQL"></include>
+            , #{FRST_RGTR_ID}   /*최초등록자아이디*/
+        )
+    </insert>
+    <sql id="updateOutcomeDetail1_1_SQL">
+        <![CDATA[
+        /*성과일괄등록_시작*/
+        , OUTC_YMD = #{OUTC_YMD, jdbcType=VARCHAR}
+        , OUTC_CN = #{OUTC_CN, jdbcType=VARCHAR}
+        , ATFINO = #{ATFINO, jdbcType=VARCHAR}
+        /*성과일괄등록_종료*/
+        ]]>
+    </sql>
+    <sql id="updateOutcomeDetail2_1_SQL">
+        <![CDATA[
+        /*직업역량강화_시작*/
+         , REPA_YN = nvl(#{REPA_YN, jdbcType=VARCHAR}, 'N')
+         , STG1_PTCPTN_STTS_SE_CD = #{STG1_PTCPTN_STTS_SE_CD, jdbcType=VARCHAR}
+         , STG2_ENTRY_WAIT_YMD = #{STG2_ENTRY_WAIT_YMD, jdbcType=VARCHAR}
+         , STG2_DUTR_YMD = #{STG2_DUTR_YMD, jdbcType=VARCHAR}
+         , STG2_FNSH_YMD = #{STG2_FNSH_YMD, jdbcType=VARCHAR}
+         , STG2_MDSTRM_FAILR_YMD = #{STG2_MDSTRM_FAILR_YMD, jdbcType=VARCHAR}
+         , STG3_ENTRY_WAIT_YMD = #{STG3_ENTRY_WAIT_YMD, jdbcType=VARCHAR}
+         , STG3_DUTR_YMD = #{STG3_DUTR_YMD, jdbcType=VARCHAR}
+         , STG3_FNSH_YMD = #{STG3_FNSH_YMD, jdbcType=VARCHAR}
+         , STG3_MDSTRM_FAILR_YMD = #{STG3_MDSTRM_FAILR_YMD, jdbcType=VARCHAR}
+         , STG4_ENTRY_WAIT_YMD = #{STG4_ENTRY_WAIT_YMD, jdbcType=VARCHAR}
+         , STG4_DUTR_YMD = #{STG4_DUTR_YMD, jdbcType=VARCHAR}
+         , STG4_FNSH_YMD = #{STG4_FNSH_YMD, jdbcType=VARCHAR}
+         , STG4_MDSTRM_FAILR_YMD = #{STG4_MDSTRM_FAILR_YMD, jdbcType=VARCHAR}
+         , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD = #{OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD, jdbcType=VARCHAR}
+         , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD = #{OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD, jdbcType=VARCHAR}
+         , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_ETC_CN = #{OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_ETC_CN, jdbcType=VARCHAR}
+         , BEFFAT_QUSTNB_TMPT_MNG_NO = nvl(#{BEFFAT_QUSTNB_TMPT_MNG_NO, jdbcType=VARCHAR }, 'TM2022071600001')
+         , BEFFAT_QUSTNB_MNG_NO = #{BEFFAT_QUSTNB_MNG_NO, jdbcType=VARCHAR}
+         , BEFFAT_SRVY_RSPNS_MNG_NO = #{BEFFAT_SRVY_RSPNS_MNG_NO, jdbcType=VARCHAR}  
+         , AFTFCT_QUSTNB_TMPT_MNG_NO = nvl(#{AFTFCT_QUSTNB_TMPT_MNG_NO, jdbcType=VARCHAR }, 'TM2022071600001')
+         , AFTFCT_QUSTNB_MNG_NO = #{AFTFCT_QUSTNB_MNG_NO, jdbcType=VARCHAR}
+         , AFTFCT_SRVY_RSPNS_MNG_NO = #{AFTFCT_SRVY_RSPNS_MNG_NO, jdbcType=VARCHAR}         
+         , AFTFCT_MNG_YN = nvl(#{AFTFCT_MNG_YN, jdbcType=VARCHAR}, 'N')
+         /*직업역량강화_종료*/
+         ]]>
+    </sql>
+    <update id="updateOutcomeDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateOutcomeDetail - 응용2팀 강화영  */
+        
+        update AKA100 set
+        	LAST_MDFR_ID =#{LAST_MDFR_ID}
+        	, LAST_MDFCN_DT = SYSDATE
+        	<include refid="updateOutcomeDetail1_1_SQL"></include>
+			<include refid="updateOutcomeDetail2_1_SQL"></include>
+        where CASE_MNG_NO = #{CASE_MNG_NO}
+        and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </update>
+    <update id="updateOutcomeAllDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateOutcomeAllDetail - 응용2팀 강화영  */
+        
+        update AKA100 set
+            LAST_MDFR_ID =#{LAST_MDFR_ID}
+            , LAST_MDFCN_DT = SYSDATE
+            <include refid="updateOutcomeDetail1_1_SQL"></include>
+        where CASE_MNG_NO = #{CASE_MNG_NO}
+        and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </update>
+    <update id="updateOccpDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateOccpDetail - 응용2팀 강화영  */
+        
+        update AKA100 set
+            LAST_MDFR_ID =#{LAST_MDFR_ID}
+            , LAST_MDFCN_DT = SYSDATE
+            <include refid="updateOutcomeDetail2_1_SQL"></include>
+        where CASE_MNG_NO = #{CASE_MNG_NO}
+        and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </update>
+    
+    <select id="outcomeCnDetail" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.outcomeCnDetail - 응용2팀 강화영  */  
+              
+        select a.CASE_MNG_NO                      /*사례관리번호*/
+			 , a.CASE_MNG_ODRNO                   /*사례관리차수*/
+			 , a.UNT_TASKWK_SE_CDv                /*단위업무구분코드*/
+			 , a.OUTC_SN                          /*성과일련번호*/
+			 , a.OUTC_CN_LCLAS_SE_CD              /*성과내용대분류구분코드*/
+			 , a.OUTC_CN_MLSFC_SE_CD              /*성과내용중분류구분코드*/
+			 , a.OUTC_CN_SCLAS_SE_CD              /*성과내용소분류구분코드*/
+			 , a.IDNTY_RESULT_SE_CD               /*확인결과구분코드*/
+			 , a.OUTC_YMD                         /*성과일자*/
+			 , a.GRADE_NM                         /*학년명*/
+			 , a.SCHL_NM                          /*학교명*/
+			 , a.CERTIF_NO                        /*합격증번호*/
+			 , a.MAIN_ENFC_INST_NM                /*주요시행기관명*/
+			 , a.UNIV_NM                          /*대학교명*/
+			 , a.SUBJCT_NM                        /*학과명*/
+			 , a.MAJOR_NM                         /*전공명*/
+			 , a.CO_NM                            /*회사명*/
+			 , a.PRD_BGNG_YMD                     /*기간시작일자*/
+			 , a.PRD_END_YMD                      /*기간종료일자*/
+			 , a.INST_NM                          /*기관명*/
+			 , a.EDU_TRAING_NM                    /*교육훈련명*/
+			 , a.CERTI_NM                         /*자격증명*/
+			 , a.CERTI_GRAD_NM                    /*자격증등급명*/
+			 , a.IDNTY_YMD                        /*확인일자*/
+			 , a.PTCPTN_YMD                       /*참여일자*/
+			 , a.FNSH_YMD                         /*수료일자*/
+			 , a.OPER_HR                          /*운영시간*/
+			 , a.ATEND_HR                         /*출석시간*/
+			 , a.ATEND_RATE                       /*출석비율*/
+			 , a.PROGRM_NM                        /*프로그램명*/
+			 , a.PTCPTN_HR                        /*참여시간*/
+			 , a.ARPR_NM                          /*수상명*/
+			 , a.DTY_SE_CD                        /*직무구분코드*/
+			 , a.OCCP_CL_SE_CD                    /*직업분류구분코드*/
+			 , a.EMPYMN_INST_NM                   /*취업기관명*/
+			 , a.EMPYMN_YMD                       /*취업일자*/
+			 , a.RTRM_YMD                         /*퇴직일자*/
+			 , a.RTRM_CS_ETC_CN                   /*퇴직사유기타내용*/
+			 , a.SPRT_CN                          /*지원내용*/
+			 , a.CERTI_SE_CD                      /*자격증구분코드*/
+			 , a.QLFC_GRAD_SE_CD                  /*자격등급구분코드*/
+			 , a.CERTI_LIST_SE_CD                 /*자격증목록구분코드*/
+			 , a.EMPYMN_PRPARE_HISTB_CN           /*취업준비내역내용*/
+			 , a.ENTRNC_FCLTY_NM                  /*입소시설명*/
+			 , a.HOUSE_SPRT_ETC_CN                /*주택지원기타내용*/
+			 , a.HOUSE_KND_SE_CD                  /*주택종류구분코드*/
+			 , a.HOUSE_KND_ETC_CN                 /*주택종류기타내용*/
+			 , a.HOUSE_NM                         /*주택명*/
+			 , a.RESIDE_CST_SPRT_ETC_CN           /*주거비용지원기타내용*/
+			 , a.RESIDE_CST_SPRT_CYCL_SE_CD       /*주거비용지원주기구분코드*/
+			 , a.SPRT_AMT                         /*지원금액*/
+			 , a.RESIDE_CST_SPRT_SBSIDY_BGT_AMT   /*주거비용지원보조금예산금액*/
+			 , a.RESIDE_CST_SPRT_LCGOV_NM         /*주거비용지원지자체명*/
+			 , a.RESIDE_CST_SPRT_LCGOV_SPRT_AMT   /*주거비용지원지자체지원금액*/
+			 , a.RESIDE_CST_SPRT_PRVATE_INST_NM   /*주거비용지원민간기관명*/
+			 , a.RESIDE_CST_SPRT_PRVATE_SPRT_AMT  /*주거비용지원민간지원금액*/
+			 , a.LRNR_REG_YMD                     /*학습자등록일자*/
+             , a.CRDTS_SCORE                      /*이수학점점수*/
+             , a.LRN_EXPRN_CRSE_SE_CD             /*학습체험과정구분코드*/
+			 , a.USE_YN                           /*사용여부*/
+			 , a.FRST_RGTR_ID                     /*최초등록자아이디*/
+			 , a.FRST_REG_DT                      /*최초등록일시*/
+			 , a.LAST_MDFR_ID                     /*최종수정자아이디*/
+			 , a.LAST_MDFCN_DT                    /*최종수정일시*/
+          from AKA130 a
+         where a.CASE_MNG_NO      = #{CASE_MNG_NO, jdbcType=VARCHAR}
+           and a.CASE_MNG_ODRNO   = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}
+           and a.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD, jdbcType=VARCHAR}
+           and a.OUTC_SN          = #{OUTC_SN, jdbcType=VARCHAR}
+           and a.USE_YN           = 'Y'
+    ]]>
+    </select>
+
+    <delete id="deleteOutcomeCnDetailAll" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.deleteOutcomeCnDetailAll - 응용2팀 강화영  */
+
+        delete from AKA130
+         where CASE_MNG_NO      = #{CASE_MNG_NO, jdbcType=VARCHAR}
+           and CASE_MNG_ODRNO   = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}
+           and UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD, jdbcType=VARCHAR}
+    </delete>
+
+    <update id="deleteOutcomeCnDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.deleteOutcomeCnDetail - 응용2팀 강화영  */
+
+        update AKA130
+           set USE_YN        = 'N'
+	         , LAST_MDFR_ID  = #{LAST_MDFR_ID, jdbcType=VARCHAR} /*최종수정자아이디*/
+	         , LAST_MDFCN_DT = SYSDATE
+         where CASE_MNG_NO      = #{CASE_MNG_NO, jdbcType=VARCHAR}
+           and CASE_MNG_ODRNO   = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}
+           and UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD, jdbcType=VARCHAR}
+           and OUTC_SN          = #{OUTC_SN, jdbcType=VARCHAR}
+    </update>
+
+    <insert id="insertOutcomeCnDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertOutcomeCnDetail - 응용2팀 강화영  */
+        
+        insert into AKA130 (
+              CASE_MNG_NO                        /*사례관리번호*/
+			, CASE_MNG_ODRNO                     /*사례관리차수*/
+			, UNT_TASKWK_SE_CD                   /*단위업무구분코드*/
+			, OUTC_SN                            /*성과일련번호*/
+			, OUTC_CN_LCLAS_SE_CD                /*성과내용대분류구분코드*/
+			, OUTC_CN_MLSFC_SE_CD                /*성과내용중분류구분코드*/
+			, OUTC_CN_SCLAS_SE_CD                /*성과내용소분류구분코드*/
+			, IDNTY_RESULT_SE_CD                 /*확인결과구분코드*/
+			, OUTC_YMD                           /*성과일자*/
+			, GRADE_NM                           /*학년명*/
+			, SCHL_NM                            /*학교명*/
+			, CERTIF_NO                          /*합격증번호*/
+			, MAIN_ENFC_INST_NM                  /*주요시행기관명*/
+			, UNIV_NM                            /*대학교명*/
+			, SUBJCT_NM                          /*학과명*/
+			, MAJOR_NM                           /*전공명*/
+			, CO_NM                              /*회사명*/
+			, PRD_BGNG_YMD                       /*기간시작일자*/
+			, PRD_END_YMD                        /*기간종료일자*/
+			, INST_NM                            /*기관명*/
+			, EDU_TRAING_NM                      /*교육훈련명*/
+			, CERTI_NM                           /*자격증명*/
+			, CERTI_GRAD_NM                      /*자격증등급명*/
+			, IDNTY_YMD                          /*확인일자*/
+			, PTCPTN_YMD                         /*참여일자*/
+			, FNSH_YMD                           /*수료일자*/
+			, OPER_HR                            /*운영시간*/
+			, ATEND_HR                           /*출석시간*/
+			, ATEND_RATE                         /*출석비율*/
+			, PROGRM_NM                          /*프로그램명*/
+			, PTCPTN_HR                          /*참여시간*/
+			, ARPR_NM                            /*수상명*/
+			, DTY_SE_CD                          /*직무구분코드*/
+			, OCCP_CL_SE_CD                      /*직업분류구분코드*/
+			, EMPYMN_INST_NM                     /*취업기관명*/
+			, EMPYMN_YMD                         /*취업일자*/
+			, RTRM_YMD                           /*퇴직일자*/
+			, RTRM_CS_ETC_CN                     /*퇴직사유기타내용*/
+			, SPRT_CN                            /*지원내용*/
+			, CERTI_SE_CD                        /*자격증구분코드*/
+			, QLFC_GRAD_SE_CD                    /*자격등급구분코드*/
+			, CERTI_LIST_SE_CD                   /*자격증목록구분코드*/
+			, EMPYMN_PRPARE_HISTB_CN             /*취업준비내역내용*/
+			, ENTRNC_FCLTY_NM                    /*입소시설명*/
+			, HOUSE_SPRT_ETC_CN                  /*주택지원기타내용*/
+			, HOUSE_KND_SE_CD                    /*주택종류구분코드*/
+			, HOUSE_KND_ETC_CN                   /*주택종류기타내용*/
+			, HOUSE_NM                           /*주택명*/
+			, RESIDE_CST_SPRT_ETC_CN             /*주거비용지원기타내용*/
+			, RESIDE_CST_SPRT_CYCL_SE_CD         /*주거비용지원주기구분코드*/
+			, SPRT_AMT                           /*지원금액*/
+			, RESIDE_CST_SPRT_SBSIDY_BGT_AMT     /*주거비용지원보조금예산금액*/
+			, RESIDE_CST_SPRT_LCGOV_NM           /*주거비용지원지자체명*/
+			, RESIDE_CST_SPRT_LCGOV_SPRT_AMT     /*주거비용지원지자체지원금액*/
+			, RESIDE_CST_SPRT_PRVATE_INST_NM     /*주거비용지원민간기관명*/
+			, RESIDE_CST_SPRT_PRVATE_SPRT_AMT    /*주거비용지원민간지원금액*/
+			, LRNR_REG_YMD                       /*학습등록일자*/
+            , CRDTS_SCORE                        /*이수학점점수*/
+            , LRN_EXPRN_CRSE_SE_CD               /*학습체험과정구분코드*/
+			, USE_YN                             /*사용여부*/
+			, FRST_RGTR_ID                       /*최초등록자아이디*/
+			, FRST_REG_DT                        /*최초등록일시*/
+			, LAST_MDFR_ID                       /*최종수정자아이디*/
+			, LAST_MDFCN_DT                      /*최종수정일시*/
+        ) values (
+              #{CASE_MNG_NO, jdbcType=VARCHAR}                            /*사례관리번호*/
+			, #{CASE_MNG_ODRNO, jdbcType=VARCHAR}                         /*사례관리차수*/
+			, #{UNT_TASKWK_SE_CD, jdbcType=VARCHAR}                       /*단위업무구분코드*/
+			, AKA130_SQ01.NEXTVAL
+			, replace(#{OUTC_CN_LCLAS_SE_CD, jdbcType=VARCHAR},'none','') /*성과내용대분류구분코드*/
+			, replace(#{OUTC_CN_MLSFC_SE_CD, jdbcType=VARCHAR},'none','') /*성과내용중분류구분코드*/
+			, replace(#{OUTC_CN_SCLAS_SE_CD, jdbcType=VARCHAR},'none','') /*성과내용소분류구분코드*/
+			, #{IDNTY_RESULT_SE_CD, jdbcType=VARCHAR}                     /*확인결과구분코드*/
+			, #{OUTC_YMD, jdbcType=VARCHAR}                               /*성과일자*/
+			, #{GRADE_NM, jdbcType=VARCHAR}                               /*학년명*/
+			, #{SCHL_NM, jdbcType=VARCHAR}                                /*학교명*/
+			, #{CERTIF_NO, jdbcType=VARCHAR}                              /*합격증번호*/
+			, #{MAIN_ENFC_INST_NM, jdbcType=VARCHAR}                      /*주요시행기관명*/
+			, #{UNIV_NM, jdbcType=VARCHAR}                                /*대학교명*/
+			, #{SUBJCT_NM, jdbcType=VARCHAR}                              /*학과명*/
+			, #{MAJOR_NM, jdbcType=VARCHAR}                               /*전공명*/
+			, #{CO_NM, jdbcType=VARCHAR}                                  /*회사명*/
+			, #{PRD_BGNG_YMD, jdbcType=VARCHAR}                           /*기간시작일자*/
+			, #{PRD_END_YMD, jdbcType=VARCHAR}                            /*기간종료일자*/
+			, #{INST_NM, jdbcType=VARCHAR}                                /*기관명*/
+			, #{EDU_TRAING_NM, jdbcType=VARCHAR}                          /*교육훈련명*/
+			, #{CERTI_NM, jdbcType=VARCHAR}                               /*자격증명*/
+			, #{CERTI_GRAD_NM, jdbcType=VARCHAR}                          /*자격증등급명*/
+			, #{IDNTY_YMD, jdbcType=VARCHAR}                              /*확인일자*/
+			, #{PTCPTN_YMD, jdbcType=VARCHAR}                             /*참여일자*/
+			, #{FNSH_YMD, jdbcType=VARCHAR}                               /*수료일자*/
+			, #{OPER_HR, jdbcType=VARCHAR}                                /*운영시간*/
+			, #{ATEND_HR, jdbcType=VARCHAR}                               /*출석시간*/
+			, #{ATEND_RATE, jdbcType=VARCHAR}                             /*출석비율*/
+			, #{PROGRM_NM, jdbcType=VARCHAR}                              /*프로그램명*/
+			, #{PTCPTN_HR, jdbcType=VARCHAR}                              /*참여시간*/
+			, #{ARPR_NM, jdbcType=VARCHAR}                                /*수상명*/
+			, replace(#{DTY_SE_CD, jdbcType=VARCHAR},'none','')           /*직무구분코드*/
+			, replace(#{OCCP_CL_SE_CD, jdbcType=VARCHAR},'none','')       /*직업분류구분코드*/
+			, #{EMPYMN_INST_NM, jdbcType=VARCHAR}                         /*취업기관명*/
+			, #{EMPYMN_YMD, jdbcType=VARCHAR}                             /*취업일자*/
+			, #{RTRM_YMD, jdbcType=VARCHAR}                               /*퇴직일자*/
+			, #{RTRM_CS_ETC_CN, jdbcType=VARCHAR}                         /*퇴직사유기타내용*/
+			, #{SPRT_CN, jdbcType=VARCHAR}                                /*지원내용*/
+			, #{CERTI_SE_CD, jdbcType=VARCHAR}                            /*자격증구분코드*/
+			, #{QLFC_GRAD_SE_CD, jdbcType=VARCHAR}                        /*자격등급구분코드*/
+			, #{CERTI_LIST_SE_CD, jdbcType=VARCHAR}                       /*자격증목록구분코드*/
+			, #{EMPYMN_PRPARE_HISTB_CN, jdbcType=VARCHAR}                 /*취업준비내역내용*/
+			, #{ENTRNC_FCLTY_NM, jdbcType=VARCHAR}                        /*입소시설명*/
+			, #{HOUSE_SPRT_ETC_CN, jdbcType=VARCHAR}                      /*주택지원기타내용*/
+			, #{HOUSE_KND_SE_CD, jdbcType=VARCHAR}                        /*주택종류구분코드*/
+			, #{HOUSE_KND_ETC_CN, jdbcType=VARCHAR}                       /*주택종류기타내용*/
+			, #{HOUSE_NM, jdbcType=VARCHAR}                               /*주택명*/
+			, #{RESIDE_CST_SPRT_ETC_CN, jdbcType=VARCHAR}                 /*주거비용지원기타내용*/
+			, #{RESIDE_CST_SPRT_CYCL_SE_CD, jdbcType=VARCHAR}             /*주거비용지원주기구분코드*/
+			, #{SPRT_AMT, jdbcType=NUMERIC}                               /*지원금액*/
+			, #{RESIDE_CST_SPRT_SBSIDY_BGT_AMT, jdbcType=NUMERIC}         /*주거비용지원보조금예산금액*/
+			, #{RESIDE_CST_SPRT_LCGOV_NM, jdbcType=VARCHAR}               /*주거비용지원지자체명*/
+			, #{RESIDE_CST_SPRT_LCGOV_SPRT_AMT, jdbcType=NUMERIC}         /*주거비용지원지자체지원금액*/
+			, #{RESIDE_CST_SPRT_PRVATE_INST_NM, jdbcType=VARCHAR}         /*주거비용지원민간기관명*/
+			, #{RESIDE_CST_SPRT_PRVATE_SPRT_AMT, jdbcType=NUMERIC}        /*주거비용지원민간지원금액*/
+            , #{LRNR_REG_YMD, jdbcType=VARCHAR}                           /*학습등록일자*/
+            , #{CRDTS_SCORE, jdbcType=NUMERIC}                            /*이수학점점수*/
+            , #{LRN_EXPRN_CRSE_SE_CD, jdbcType=VARCHAR}                   /*학습체험과정구분코드*/
+			, NVL(#{USE_YN, jdbcType=VARCHAR},'Y')                        /*사용여부*/
+			, #{FRST_RGTR_ID, jdbcType=VARCHAR}                           /*최초등록자아이디*/
+			, SYSDATE
+			, #{LAST_MDFR_ID, jdbcType=VARCHAR}                           /*최종수정자아이디*/
+			, SYSDATE
+        )        
+    </insert>
+    
+    <update id="updateOutcomeCnDetail" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateOutcomeCnDetail - 응용2팀 강화영  */
+        
+        update AKA130 set
+			   OUTC_CN_LCLAS_SE_CD             = replace(#{OUTC_CN_LCLAS_SE_CD, jdbcType=VARCHAR},'none','') /*성과내용대분류구분코드*/
+			 , OUTC_CN_MLSFC_SE_CD             = replace(#{OUTC_CN_MLSFC_SE_CD, jdbcType=VARCHAR},'none','') /*성과내용중분류구분코드*/
+			 , OUTC_CN_SCLAS_SE_CD             = replace(#{OUTC_CN_SCLAS_SE_CD, jdbcType=VARCHAR},'none','') /*성과내용소분류구분코드*/
+			 , IDNTY_RESULT_SE_CD              = #{IDNTY_RESULT_SE_CD, jdbcType=VARCHAR}                     /*확인결과구분코드*/
+			 , OUTC_YMD                        = #{OUTC_YMD, jdbcType=VARCHAR}                               /*성과일자*/
+			 , GRADE_NM                        = #{GRADE_NM, jdbcType=VARCHAR}                               /*학년명*/
+			 , SCHL_NM                         = #{SCHL_NM, jdbcType=VARCHAR}                                /*학교명*/
+			 , CERTIF_NO                       = #{CERTIF_NO, jdbcType=VARCHAR}                              /*합격증번호*/
+			 , MAIN_ENFC_INST_NM               = #{MAIN_ENFC_INST_NM, jdbcType=VARCHAR}                      /*주요시행기관명*/
+			 , UNIV_NM                         = #{UNIV_NM, jdbcType=VARCHAR}                                /*대학교명*/
+			 , SUBJCT_NM                       = #{SUBJCT_NM, jdbcType=VARCHAR}                              /*학과명*/
+			 , MAJOR_NM                        = #{MAJOR_NM, jdbcType=VARCHAR}                               /*전공명*/
+			 , CO_NM                           = #{CO_NM, jdbcType=VARCHAR}                                  /*회사명*/
+			 , PRD_BGNG_YMD                    = #{PRD_BGNG_YMD, jdbcType=VARCHAR}                           /*기간시작일자*/
+			 , PRD_END_YMD                     = #{PRD_END_YMD, jdbcType=VARCHAR}                            /*기간종료일자*/
+			 , INST_NM                         = #{INST_NM, jdbcType=VARCHAR}                                /*기관명*/
+			 , EDU_TRAING_NM                   = #{EDU_TRAING_NM, jdbcType=VARCHAR}                          /*교육훈련명*/
+			 , CERTI_NM                        = #{CERTI_NM, jdbcType=VARCHAR}                               /*자격증명*/
+			 , CERTI_GRAD_NM                   = #{CERTI_GRAD_NM, jdbcType=VARCHAR}                          /*자격증등급명*/
+			 , IDNTY_YMD                       = #{IDNTY_YMD, jdbcType=VARCHAR}                              /*확인일자*/
+			 , PTCPTN_YMD                      = #{PTCPTN_YMD, jdbcType=VARCHAR}                             /*참여일자*/
+			 , FNSH_YMD                        = #{FNSH_YMD, jdbcType=VARCHAR}                               /*수료일자*/
+			 , OPER_HR                         = #{OPER_HR, jdbcType=VARCHAR}                                /*운영시간*/
+			 , ATEND_HR                        = #{ATEND_HR, jdbcType=VARCHAR}                               /*출석시간*/
+			 , ATEND_RATE                      = #{ATEND_RATE, jdbcType=VARCHAR}                             /*출석비율*/
+			 , PROGRM_NM                       = #{PROGRM_NM, jdbcType=VARCHAR}                              /*프로그램명*/
+			 , PTCPTN_HR                       = #{PTCPTN_HR, jdbcType=VARCHAR}                              /*참여시간*/
+			 , ARPR_NM                         = #{ARPR_NM, jdbcType=VARCHAR}                                /*수상명*/
+			 , DTY_SE_CD                       = replace(#{DTY_SE_CD, jdbcType=VARCHAR},'none','')           /*직무구분코드*/
+			 , OCCP_CL_SE_CD                   = replace(#{OCCP_CL_SE_CD, jdbcType=VARCHAR},'none','')       /*직업분류구분코드*/
+			 , EMPYMN_INST_NM                  = #{EMPYMN_INST_NM, jdbcType=VARCHAR}                         /*취업기관명*/
+			 , EMPYMN_YMD                      = #{EMPYMN_YMD, jdbcType=VARCHAR}                             /*취업일자*/
+			 , RTRM_YMD                        = #{RTRM_YMD, jdbcType=VARCHAR}                               /*퇴직일자*/
+			 , RTRM_CS_ETC_CN                  = #{RTRM_CS_ETC_CN, jdbcType=VARCHAR}                         /*퇴직사유기타내용*/
+			 , SPRT_CN                         = #{SPRT_CN, jdbcType=VARCHAR}                                /*지원내용*/
+			 , CERTI_SE_CD                     = #{CERTI_SE_CD, jdbcType=VARCHAR}                            /*자격증구분코드*/
+			 , QLFC_GRAD_SE_CD                 = #{QLFC_GRAD_SE_CD, jdbcType=VARCHAR}                        /*자격등급구분코드*/
+			 , CERTI_LIST_SE_CD                = #{CERTI_LIST_SE_CD, jdbcType=VARCHAR}                       /*자격증목록구분코드*/
+			 , EMPYMN_PRPARE_HISTB_CN          = #{EMPYMN_PRPARE_HISTB_CN, jdbcType=VARCHAR}                 /*취업준비내역내용v*/
+			 , ENTRNC_FCLTY_NM                 = #{ENTRNC_FCLTY_NM, jdbcType=VARCHAR}                        /*입소시설명*/
+			 , HOUSE_SPRT_ETC_CN               = #{HOUSE_SPRT_ETC_CN, jdbcType=VARCHAR}                      /*주택지원기타내용*/
+			 , HOUSE_KND_SE_CD                 = #{HOUSE_KND_SE_CD, jdbcType=VARCHAR}                        /*주택종류구분코드*/
+			 , HOUSE_KND_ETC_CN                = #{HOUSE_KND_ETC_CN, jdbcType=VARCHAR}                       /*주택종류기타내용v*/
+			 , HOUSE_NM                        = #{HOUSE_NM, jdbcType=VARCHAR}                               /*주택명*/
+			 , RESIDE_CST_SPRT_ETC_CN          = #{RESIDE_CST_SPRT_ETC_CN, jdbcType=VARCHAR}                 /*주거비용지원기타내용*/
+			 , RESIDE_CST_SPRT_CYCL_SE_CD      = #{RESIDE_CST_SPRT_CYCL_SE_CD, jdbcType=VARCHAR}             /*주거비용지원주기구분코드*/
+			 , SPRT_AMT                        = #{SPRT_AMT, jdbcType=NUMERIC}                               /*지원금액*/
+			 , RESIDE_CST_SPRT_SBSIDY_BGT_AMT  = #{RESIDE_CST_SPRT_SBSIDY_BGT_AMT, jdbcType=NUMERIC}         /*주거비용지원보조금예산금액*/
+			 , RESIDE_CST_SPRT_LCGOV_NM        = #{RESIDE_CST_SPRT_LCGOV_NM, jdbcType=VARCHAR}               /*주거비용지원지자체명*/
+			 , RESIDE_CST_SPRT_LCGOV_SPRT_AMT  = #{RESIDE_CST_SPRT_LCGOV_SPRT_AMT, jdbcType=NUMERIC}         /*주거비용지원지자체지원금액*/
+			 , RESIDE_CST_SPRT_PRVATE_INST_NM  = #{RESIDE_CST_SPRT_PRVATE_INST_NM, jdbcType=VARCHAR}         /*주거비용지원민간기관명v*/
+			 , RESIDE_CST_SPRT_PRVATE_SPRT_AMT = #{RESIDE_CST_SPRT_PRVATE_SPRT_AMT, jdbcType=NUMERIC}        /*주거비용지원민간지원금액*/
+			 , LRNR_REG_YMD                    = #{LRNR_REG_YMD, jdbcType=VARCHAR}                           /*학습자등록일자*/
+             , CRDTS_SCORE                     = #{CRDTS_SCORE, jdbcType=NUMERIC}                            /*이수학점점수*/
+             , LRN_EXPRN_CRSE_SE_CD            = #{LRN_EXPRN_CRSE_SE_CD, jdbcType=VARCHAR}                   /*학습체험과정구분코드*/
+			 , LAST_MDFR_ID                    = #{LAST_MDFR_ID, jdbcType=VARCHAR}                           /*최종수정자아이디*/
+			 , LAST_MDFCN_DT                   = SYSDATE                                                     /*최종수정일시*/
+         where CASE_MNG_NO      = #{CASE_MNG_NO}
+           and CASE_MNG_ODRNO   = #{CASE_MNG_ODRNO}
+           and UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+           and OUTC_SN          = #{OUTC_SN}
+    </update>
+
+    <insert id="dsOccpOutInsert" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsOccpOutInsert - 응용2팀 강화영  */
+        
+    	insert into AKA120 (
+    		  CASE_MNG_NO     /*사례관리번호*/
+			, CASE_MNG_ODRNO  /*사례관리차수*/
+			, OUTC_SN	      /*성과일련번호*/
+			, OUTC_CN	      /*성과내용*/
+			, OUTC_YMD        /*성과일자*/
+			, USE_YN	      /*사용여부*/
+			, FRST_RGTR_ID    /*최초등록자아이디*/
+    	) values (
+    		  #{CASE_MNG_NO, jdbcType=VARCHAR}    /*사례관리번호*/
+			, #{CASE_MNG_ODRNO, jdbcType=VARCHAR} /*사례관리차수*/
+			, AKA120_SQ01.NEXTVAL	              /*성과일련번호*/
+			, #{OUTC_CN, jdbcType=VARCHAR}        /*성과내용*/
+			, #{OUTC_YMD, jdbcType=VARCHAR}	      /*성과일자*/
+			, 'Y'	                              /*사용여부*/
+			, #{FRST_RGTR_ID, jdbcType=VARCHAR}	  /*최초등록자아이디*/
+    	)
+    </insert>
+
+    <update id="dsOccpOutUpdate" parameterType="HashMap">
+    	/* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsOccpOutUpdate - 응용2팀 강화영  */
+    	
+    	update AKA120 set
+		       OUTC_CN       = #{OUTC_CN, jdbcType=VARCHAR}
+			 , OUTC_YMD      = #{OUTC_YMD, jdbcType=VARCHAR}
+			 , LAST_MDFR_ID  = #{LAST_MDFR_ID, jdbcType=VARCHAR}
+			 , LAST_MDFCN_DT = SYSDATE
+		 where CASE_MNG_NO    = #{CASE_MNG_NO}
+		   and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+		   and OUTC_SN        = #{OUTC_SN}
+    </update>
+
+    <update id="dsOccpOutDelete" parameterType="HashMap">
+    	/* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsOccpOutDelete - 응용2팀 강화영  */
+
+    	update AKA120 set
+		       USE_YN = 'N'
+		 where CASE_MNG_NO    = #{CASE_MNG_NO}
+		   and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+		   and OUTC_SN        = #{OUTC_SN}
+    </update>
+
+    <select id="dsSchulwList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsSchulwList - 응용2팀 강화영  */
+        
+        select T3.SRVC_PVSN_BGNG_YMD  /*사업시작일자*/
+            , T3.SRVC_PVSN_END_YMD /*사업종료일자*/
+            , T3.SRVC_PVSN_NO SRVC_EXCN_BIZ_NO /*서비스실행사업번호*/
+            , T2.CASE_MNG_NO /*사례관리번호*/
+            , T2.CASE_MNG_ODRNO /*사례관리차수*/
+            , T5.RESULT_END_YMD /*결과종료일자*/
+            , T5.SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD /*학업중단숙려대상상담결과코드*/
+            , T5.SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD /*학업중단숙려대상종료이후지원코드*/
+            , T5.DSCSN_EVL_CN /*상담평가내용*/
+            , T5.SCHL_RADPT_OUTC_CN /*학교재적응성과내용*/
+            , T4.PVSN_RESRCE_NM /*서비스실행사업명*/
+			from SEB100 T2
+            , SEB510 T1
+            , SEB500 T3
+            , AKA101 T5
+            , SDA100 T4
+			where T2.CASE_MNG_NO = #{CASE_MNG_NO, jdbcType=VARCHAR}
+			and T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}
+			AND T2.UNT_TASKWK_SE_CD = 'U03'      
+			AND T1.CASE_MNG_NO      = T2.CASE_MNG_NO
+            AND T1.CASE_MNG_ODRNO   = T2.CASE_MNG_ODRNO
+            and T1.DEL_YN = 'N'     
+            AND T1.SRVC_PVSN_NO = T3.SRVC_PVSN_NO
+            AND T1.RESRCE_NO = T3.RESRCE_NO
+            AND T1.CASE_MNG_NO = T5.CASE_MNG_NO(+)
+            AND T1.CASE_MNG_ODRNO = T5.CASE_MNG_ODRNO(+)
+            and t4.RESRCE_NO = t3.RESRCE_NO
+    ]]>  
+    </select>
+    
+    <select id="dsSchulwDetail" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsSchulwDetail - 응용2팀 강화영  */
+        
+        select CASE_MNG_NO /*사례관리번호*/
+			, CASE_MNG_ODRNO /*사례관리차수*/
+			, SRVC_PVSN_NO /*서비스제공번호*/
+			, RESULT_END_YMD /*결과종료일자*/
+			, SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD /*학업중단숙려대상상담결과코드*/
+			, SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD /*학업중단숙려대상종료이후지원코드*/
+			, DSCSN_EVL_CN /*상담평가내용*/
+			, SCHL_RADPT_OUTC_CN /*학교재적응성과내용*/
+			, USE_YN /*사용여부*/
+			, FRST_RGTR_ID /*최초등록자아이디*/
+			, FRST_REG_DT /*최초등록일시*/
+			, LAST_MDFR_ID /*최종수정자아이디*/
+			, LAST_MDFCN_DT /*최종수정일시*/
+        from AKA101 a
+        where a.CASE_MNG_NO = #{CASE_MNG_NO, jdbcType=VARCHAR}
+        and a.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}    
+        and a.SRVC_PVSN_NO = #{SRVC_PVSN_NO, jdbcType=VARCHAR}
+        and a.RESRCE_NO = #{RESRCE_NO, jdbcType=VARCHAR}        
+        ]]>
+    </select>
+    
+    <insert id="dsSchulwInsert" parameterType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsSchulwInsert - 응용2팀 강화영  */
+        
+        insert into AKA101
+        (
+	        CASE_MNG_NO /*사례관리번호*/
+			, CASE_MNG_ODRNO /*사례관리차수*/
+			, SRVC_PVSN_NO /*서비스제공번호*/
+			, RESRCE_NO /*자원번호*/
+			, RESULT_END_YMD /*결과종료일자*/
+			, SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD /*학업중단숙려대상상담결과코드*/
+			, SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD /*학업중단숙려대상종료이후지원코드*/
+			, DSCSN_EVL_CN /*상담평가내용*/
+			, SCHL_RADPT_OUTC_CN /*학교재적응성과내용*/
+			, USE_YN /*사용여부*/
+			, FRST_RGTR_ID /*최초등록자아이디*/
+        ) values (
+	        #{CASE_MNG_NO,jdbcType=VARCHAR} /*사례관리번호*/
+			, #{CASE_MNG_ODRNO,jdbcType=VARCHAR} /*사례관리차수*/
+			, #{SRVC_PVSN_NO,jdbcType=VARCHAR} /*서비스제공번호*/
+			, #{RESRCE_NO,jdbcType=VARCHAR} /*자원번호*/
+			, #{RESULT_END_YMD,jdbcType=VARCHAR} /*결과종료일자*/
+			, #{SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD,jdbcType=VARCHAR} /*학업중단숙려대상상담결과코드*/
+			, #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD,jdbcType=VARCHAR} /*학업중단숙려대상종료이후지원코드*/
+			, #{DSCSN_EVL_CN,jdbcType=VARCHAR} /*상담평가내용*/
+			, #{SCHL_RADPT_OUTC_CN,jdbcType=VARCHAR} /*학교재적응성과내용*/
+			, 'Y' /*사용여부*/
+			, #{FRST_RGTR_ID,jdbcType=VARCHAR} /*최초등록자아이디*/
+        )
+        ]]>
+    </insert>
+    
+    <update id="dsSchulwUpdate" parameterType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.dsSchulwInsert - 응용2팀 강화영  */
+        
+        update AKA101 set 
+        RESULT_END_YMD = #{RESULT_END_YMD,jdbcType=VARCHAR} /*결과종료일자*/
+		, SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD = #{SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD,jdbcType=VARCHAR} /*학업중단숙려대상상담결과코드*/
+		, SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD = #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD,jdbcType=VARCHAR} /*학업중단숙려대상종료이후지원코드*/
+		, DSCSN_EVL_CN = #{DSCSN_EVL_CN,jdbcType=VARCHAR} /*상담평가내용*/
+		, SCHL_RADPT_OUTC_CN = #{SCHL_RADPT_OUTC_CN,jdbcType=VARCHAR} /*학교재적응성과내용*/
+		, LAST_MDFR_ID = #{LAST_MDFR_ID,jdbcType=VARCHAR} /*최종수정자아이디*/
+		, LAST_MDFCN_DT = SYSDATE
+        where CASE_MNG_NO = #{CASE_MNG_NO,jdbcType=VARCHAR} /*사례관리번호*/
+            and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO,jdbcType=VARCHAR} /*사례관리차수*/
+            and SRVC_PVSN_NO = #{SRVC_PVSN_NO,jdbcType=VARCHAR} /*서비스제공번호*/
+            and RESRCE_NO = #{RESRCE_NO,jdbcType=VARCHAR} /*자원번호*/
+        ]]>
+    </update>
+    
+    <select id="onSchulwDscntcList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.onSchulwDscntcList - 응용2팀 강화영  */
+        /*사례목록을 참조로 만든 쿼리(selectCaseinqList):사례목록쿼리가 변경되면 확인후 변경해야함!!!!*/
+        
+        SELECT /* selectCaseinqList - Lee JunYeong */
+              T1.CASE_MNG_NO                                    AS CASE_MNG_NO                  /* 사례관리번호 */
+            , T1.CASE_MNG_ODRNO                                 AS CASE_MNG_ODRNO               /* 사례관리차수 */
+            , TO_CHAR(T1.FRST_REG_DT,  'YYYY-MM-DD')            AS FRST_REG_DT                  /* 등록일자 */
+            , T2.TRPR_INFO_NO                                   AS TRPR_INFO_NO                 /* 대상자정보번호 */
+            , C##RG.DEC_B64(CASE WHEN T3.INDV_IDNTFC_NO IS NULL THEN T2.TRPR_NM_ENCPT
+                   ELSE T3.FLNM_ENCPT  END)                     AS TRPR_NM_ENCPT                /* 대상자명 */
+            , TO_CHAR(TO_DATE(T2.TRPR_BRTH_YMD),  'YYYY-MM-DD') AS TRPR_BRTH_YMD                /* 대상자출생일자 */
+            , CASE WHEN T3.INDV_IDNTFC_NO IS NULL THEN T2.SXDC_SE_CD
+                   ELSE T3.SXDC_SE_CD     END                   AS SXDC_SE_CD                   /* 대상자성별구분코드 */
+            , T1.YNGBGS_STTS_LCLAS_SE_CD                        AS YNGBGS_STTS_LCLAS_SE_CD      /* 청소년상태대분류구분코드 */
+            , T1.YNGBGS_STTS_SCLAS_SE_CD                        AS YNGBGS_STTS_SCLAS_SE_CD      /* 청소년상태소분류구분코드 */
+            , C##RG.DEC_B64(T5.FLNM_ENCPT)                   AS PIC_NM_ENCPT                 /* 담당자명 */
+            , T6.INST_NM                                        AS INST_NM                      /* 담당기관명 */
+            , T2.CASE_TRPR_TYPE_SE_CD                           AS CASE_TRPR_TYPE_SE_CD         /* 사례대상자유형구분코드 */
+            , T1.CASE_PRGRS_STTS_SE_CD                          AS CASE_PRGRS_STTS_SE_CD        /* 사례진행상태구분코드 */
+            , T1.UNT_TASKWK_SE_CD                               AS UNT_TASKWK_SE_CD             /* 단위업무구분코드 */
+            ,(SELECT UP_CMMNS_CD_VALUE
+                FROM SAC100
+               WHERE CMMNS_CD_ID    = 'CASE_PRGRS_STTS_SE_CD'
+                 AND CMMNS_CD_VALUE = T1.CASE_PRGRS_STTS_SE_CD) AS CASE_PRGRS_STTS_TYPE_SE_CD   /* 사례진행상태유형구분코드 */
+            , (select count(*)
+	            from SEB100 TT2
+	            , SEB120 TT1
+	            , SDA420 TT3
+	            , SDA400 TT4
+	            where TT2.CASE_MNG_NO = T1.CASE_MNG_NO
+	            and TT2.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+	            AND TT2.UNT_TASKWK_SE_CD = 'U03'      
+	            AND TT1.CASE_MNG_NO      = TT2.CASE_MNG_NO
+	            AND TT1.CASE_MNG_ODRNO   = TT2.CASE_MNG_ODRNO
+	            and TT1.DEL_YN = 'N'     
+	            AND TT1.SRVC_EXCN_BIZ_NO = TT3.SRVC_EXCN_BIZ_NO
+	            AND TT3.SRVC_BIZ_NO = TT4.SRVC_BIZ_NO
+	            AND TT4.BIZ_CL_SE_CD = '04' ) CNT1
+            , (select count(*)
+	            from AKA101 TT5
+	            where TT5.CASE_MNG_NO = T1.CASE_MNG_NO
+	            and TT5.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO ) CNT2
+          FROM SEB100 T1
+             , SEA200 T2
+             , SCA300 T3
+             , SEB150 T4
+             , SCA100 T5
+             , SAA000 T6
+
+         WHERE 1 = 1
+           AND T1.TRPR_INFO_NO          = T2.TRPR_INFO_NO
+           AND T2.INDV_IDNTFC_NO        = T3.INDV_IDNTFC_NO(+)
+           AND T1.CASE_MNG_NO           = T4.CASE_MNG_NO(+)
+           AND T1.CASE_MNG_ODRNO        = T4.CASE_MNG_ODRNO(+)
+           AND T5.ENFSN_NO(+)           = T4.CASE_PIC_NO
+           AND T6.INST_NO(+)            = T4.PIC_INST_NO
+           AND T4.PCHPRS_YN(+)          = 'Y'
+      ]]>
+	    <if test="START_DATE != null and START_DATE != ''">
+	      <![CDATA[
+	           AND TO_CHAR(T1.FRST_REG_DT, 'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE}
+	      ]]>
+	    </if>
+	    <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+	      <![CDATA[
+	           AND T2.TRPR_NM_ENCPT         = #{TRPR_NM_ENCPT}
+	      ]]>
+	    </if>
+	    <if test="YNGBGS_STTS_LCLAS_SE_CD != null and YNGBGS_STTS_LCLAS_SE_CD != ''">
+	      <![CDATA[
+	           AND T1.YNGBGS_STTS_LCLAS_SE_CD = #{YNGBGS_STTS_LCLAS_SE_CD}
+	      ]]>
+	    </if>
+	    <if test="YNGBGS_STTS_SCLAS_SE_CD != null and YNGBGS_STTS_SCLAS_SE_CD != ''">
+	      <![CDATA[
+	           AND T1.YNGBGS_STTS_SCLAS_SE_CD = #{YNGBGS_STTS_SCLAS_SE_CD}
+	      ]]>
+	    </if>
+	    <if test="PIC_NM_ENCPT != null and PIC_NM_ENCPT != ''">
+	      <![CDATA[
+	           AND T5.FLNM_ENCPT            = #{PIC_NM_ENCPT}
+	      ]]>
+	    </if>
+	    <if test="INST_NM != null and INST_NM != ''">
+	      <![CDATA[
+	           AND(T6.INST_NO               = #{INST_NO}
+	            OR T6.INST_NM               = #{INST_NM})
+	      ]]>
+	    </if>
+	    <if test="CASE_TRPR_TYPE_SE_CD != null and CASE_TRPR_TYPE_SE_CD != ''">
+	      <![CDATA[
+	           AND T2.CASE_TRPR_TYPE_SE_CD  = #{CASE_TRPR_TYPE_SE_CD}
+	      ]]>
+	    </if>
+	    <if test="CASE_PRGRS_STTS_SE_CD != null and CASE_PRGRS_STTS_SE_CD != ''">
+	      <![CDATA[
+	           AND T1.CASE_PRGRS_STTS_SE_CD IN (SELECT CMMNS_CD_VALUE FROM SAC100
+	                                             WHERE CMMNS_CD_ID       = 'CASE_PRGRS_STTS_SE_CD'
+	                                               AND UP_CMMNS_CD_VALUE = #{CASE_PRGRS_STTS_SE_CD})
+	      ]]>
+	    </if>
+	    <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+	      <![CDATA[
+	           AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	      ]]>
+	    </if>
+	    <if test="TAG_NO != null and TAG_NO != ''">
+	      <![CDATA[
+	           AND REGEXP_LIKE(T1.TAG_NO, '(' || REPLACE(#{TAG_NO},',','|') || ')')  -- 태그번호
+	      ]]>
+	    </if>
+	    <if test="ENFSN_ROLE_SE_CD != null and ENFSN_ROLE_SE_CD != ''">
+	        <if test='ENFSN_ROLE_SE_CD !="1" and ENFSN_ROLE_SE_CD !="2"'>
+	          <![CDATA[
+	           AND T2.RCPT_PIC_NO = #{USER_ID}
+	          ]]>
+	        </if>
+	    </if>
+	
+	      <![CDATA[
+	         ORDER BY T1.FRST_REG_DT DESC, T1.CASE_MNG_NO, T1.CASE_MNG_ODRNO DESC
+	      ]]>   
+  
+    </select>
+    
+    <select id="selectOccpAbilitInsertList" parameterType="HashMap" resultType="HashMap">
+        <!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" />
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectOccpAbilitInsertList - 응용2팀 강화영  */
+        /*사례목록을 참조로 만든 쿼리(selectCaseinqList):사례목록쿼리가 변경되면 확인후 변경해야함!!!!*/
+        /* selectCaseinqList - Lee JunYeong */
+              T1.CASE_MNG_NO                                    AS CASE_MNG_NO                  /* 사례관리번호 */
+            , T1.CASE_MNG_ODRNO                                 AS CASE_MNG_ODRNO               /* 사례관리차수 */
+            , TO_CHAR(T1.FRST_REG_DT,  'YYYY-MM-DD')            AS FRST_REG_DT                  /* 등록일자 */
+            , T2.TRPR_INFO_NO                                   AS TRPR_INFO_NO                 /* 대상자정보번호 */
+            , C##RG.DEC_B64(CASE WHEN T3.INDV_IDNTFC_NO IS NULL THEN T2.TRPR_NM_ENCPT
+                   ELSE T3.FLNM_ENCPT  END)                     AS TRPR_NM_ENCPT                /* 대상자명 */
+            , DECODE(T2.TRPR_BRTH_YMD, '-', '', TO_CHAR(TO_DATE(T2.TRPR_BRTH_YMD),  'YYYY-MM-DD')) AS TRPR_BRTH_YMD /* 대상자출생일자 */
+            , CASE WHEN T3.INDV_IDNTFC_NO IS NULL THEN T2.SXDC_SE_CD
+                   ELSE T3.SXDC_SE_CD     END                   AS SXDC_SE_CD                   /* 대상자성별구분코드 */
+            , T1.YNGBGS_STTS_LCLAS_SE_CD                        AS YNGBGS_STTS_LCLAS_SE_CD      /* 청소년상태대분류구분코드 */
+            , T1.YNGBGS_STTS_SCLAS_SE_CD                        AS YNGBGS_STTS_SCLAS_SE_CD      /* 청소년상태소분류구분코드 */
+            , T1.YNGBGS_SE_NO                                   AS YNGBGS_SE_NO                 /* 청소년구분번호 */
+            , C##RG.DEC_B64(T5.FLNM_ENCPT)                   AS PIC_NM_ENCPT                 /* 담당자명 */
+            , T6.INST_NM                                        AS INST_NM                      /* 담당기관명 */
+            , T2.CASE_TRPR_TYPE_SE_CD                           AS CASE_TRPR_TYPE_SE_CD         /* 사례대상자유형구분코드 */
+            , T1.CASE_PRGRS_STTS_SE_CD                          AS CASE_PRGRS_STTS_SE_CD        /* 사례진행상태구분코드 */
+            , T1.UNT_TASKWK_SE_CD                               AS UNT_TASKWK_SE_CD             /* 단위업무구분코드 */
+            ,(SELECT UP_CMMNS_CD_VALUE
+                FROM SAC100
+               WHERE CMMNS_CD_ID    = 'CASE_PRGRS_STTS_SE_CD'
+                 AND CMMNS_CD_VALUE = T1.CASE_PRGRS_STTS_SE_CD) AS CASE_PRGRS_STTS_TYPE_SE_CD   /* 사례진행상태유형구분코드 */
+            , T7.REPA_YN /*재참여여부*/
+            , (
+            CASE WHEN T7.STG4_ENTRY_WAIT_YMD IS NOT NULL THEN '4단계'
+                ELSE (
+                    CASE WHEN T7.STG3_ENTRY_WAIT_YMD IS NOT NULL THEN '3단계'
+                    ELSE (
+                        CASE WHEN T7.STG2_ENTRY_WAIT_YMD IS NOT NULL THEN '2단계'
+                        ELSE (
+                            CASE WHEN T7.STG1_PTCPTN_STTS_SE_CD IS NOT NULL THEN '1단계'
+                            ELSE '' END
+                        ) END
+                    ) END
+                ) END
+            ) STEP_TOT /*참여상태-단계*/
+        , (
+            CASE WHEN T7.STG4_MDSTRM_FAILR_YMD IS NOT NULL  
+                OR T7.STG3_MDSTRM_FAILR_YMD IS NOT NULL  
+                OR T7.STG2_MDSTRM_FAILR_YMD IS NOT NULL 
+                THEN '중도탈락'
+            ELSE (
+                CASE WHEN T7.STG4_FNSH_YMD IS NOT NULL  
+                OR T7.STG3_FNSH_YMD IS NOT NULL  
+                OR T7.STG2_FNSH_YMD IS NOT NULL 
+                THEN '수료'
+                ELSE (
+                    CASE WHEN T7.STG4_DUTR_YMD IS NOT NULL  
+                    OR T7.STG3_DUTR_YMD IS NOT NULL  
+                    OR T7.STG2_DUTR_YMD IS NOT NULL 
+                    THEN '훈련중'
+                    ELSE (
+                        CASE WHEN T7.STG4_ENTRY_WAIT_YMD IS NOT NULL  
+                        OR T7.STG3_ENTRY_WAIT_YMD IS NOT NULL  
+                        OR T7.STG2_ENTRY_WAIT_YMD IS NOT NULL 
+                        THEN '진입대기'
+                        ELSE '' END
+                    ) END
+                ) END
+            ) END
+        ) STEP_DETAIL_TOT /*참여상태-상태*/        
+        , T7.OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD /*직업역량강화중도탈락사유대분류구분코드*/
+        , T7.OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD /*직업역량강화중도탈락사유소분류구분코드*/
+        , T7.OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_ETC_CN /*직업역량강화중도탈락사유기타내용*/
+        , (
+        SELECT C.CMMNS_CD_VALUE_NM
+        FROM SAC100 C
+        WHERE C.CMMNS_CD_ID = 'OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD'
+        AND C.CMMNS_CD_VALUE = T7.OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD
+        ) OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_NM
+        , (
+        SELECT C.CMMNS_CD_VALUE_NM
+        FROM SAC100 C
+        WHERE C.CMMNS_CD_ID = 'OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD'
+        AND C.CMMNS_CD_VALUE = T7.OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD
+        ) OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_NM        
+        
+        , (select sum(b.GRDNG_SCORE)  
+              from SBB510 b 
+              where b.QUSTNB_MNG_NO = T7.BEFFAT_QUSTNB_MNG_NO
+              and b.SRVY_RSPNS_MNG_NO = T7.BEFFAT_SRVY_RSPNS_MNG_NO
+              and b.QUSTNB_TMPT_MNG_NO = T7.BEFFAT_QUSTNB_TMPT_MNG_NO
+              ) BEFFAT_GRDNG_SCORE /*사전채점점수*/
+        , (select sum(b.GRDNG_SCORE) 
+              from SBB510 b 
+              where b.QUSTNB_MNG_NO = T7.AFTFCT_QUSTNB_MNG_NO
+              and b.SRVY_RSPNS_MNG_NO = T7.AFTFCT_SRVY_RSPNS_MNG_NO
+              and b.QUSTNB_TMPT_MNG_NO = T7.AFTFCT_QUSTNB_TMPT_MNG_NO
+              ) AFTFCT_GRDNG_SCORE /*사후채점점수*/    
+        ,  T2.INDV_IDNTFC_NO
+        /* 2022.08.22 Lee SeungYeon - 권한적용을 위한 항목 추가 */
+        , T4.CASE_PIC_NO                                    AS ENFSN_NO                     /* 사례담당자번호(종사자번호) */
+        , T4.PIC_INST_NO                                    AS INST_NO                      /* 담당자기관번호(기관번호) */
+        , T7.STG1_PTCPTN_STTS_SE_CD
+        , (SELECT C.CMMNS_CD_VALUE_NM
+	        FROM SAC100 C
+	        WHERE C.CMMNS_CD_ID = 'STG1_PTCPTN_STTS_SE_CD'
+	        AND C.CMMNS_CD_VALUE = T7.STG1_PTCPTN_STTS_SE_CD
+            ) AS STG1_PTCPTN_STTS_SE_NM
+        , T7.STG2_FNSH_YMD
+        , T7.STG2_MDSTRM_FAILR_YMD
+        , T7.STG3_FNSH_YMD
+        , T7.STG3_MDSTRM_FAILR_YMD
+        , T7.STG4_FNSH_YMD
+        , T7.STG4_MDSTRM_FAILR_YMD
+        , ( SELECT LISTAGG(B.CMMNS_CD_VALUE_NM||'-'||C.CMMNS_CD_VALUE_NM|| DECODE(D.CMMNS_CD_VALUE_NM, '','','-'||D.CMMNS_CD_VALUE_NM), CHR(10)) WITHIN GROUP (ORDER BY B.CMMNS_CD_VALUE_NM)
+            FROM AKA130 A, SAC100 B, SAC100 C, SAC100 D
+            WHERE 1 = 1 
+            AND A.CASE_MNG_NO = T1.CASE_MNG_NO AND A.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO AND A.UNT_TASKWK_SE_CD = T1.UNT_TASKWK_SE_CD
+            AND A.OUTC_CN_LCLAS_SE_CD = B.CMMNS_CD_VALUE(+) AND B.CMMNS_CD_ID(+) = 'OUTC_CN_LCLAS_SE_CD'
+            AND A.OUTC_CN_MLSFC_SE_CD = C.CMMNS_CD_VALUE(+) AND C.CMMNS_CD_ID(+) = 'OUTC_CN_MLSFC_SE_CD'
+            AND A.OUTC_CN_SCLAS_SE_CD = D.CMMNS_CD_VALUE(+) AND D.CMMNS_CD_ID(+) = 'OUTC_CN_SCLAS_SE_CD') AS OUTC_CN
+        , CASE WHEN T7.STG4_MDSTRM_FAILR_YMD IS NOT NULL THEN '4단계'
+               WHEN T7.STG3_MDSTRM_FAILR_YMD IS NOT NULL THEN '3단계'
+               WHEN T7.STG2_MDSTRM_FAILR_YMD IS NOT NULL THEN '2단계'
+               ELSE '' END AS MDSTRM_FAILR
+          FROM SEB100 T1
+             , SEA200 T2
+             , SCA300 T3
+             , SEB150 T4
+             , SCA100 T5
+             , SAA000 T6
+             , AKA100 T7
+
+         WHERE 1 = 1
+           AND T1.TRPR_INFO_NO          = T2.TRPR_INFO_NO
+           AND T2.INDV_IDNTFC_NO        = T3.INDV_IDNTFC_NO(+)
+           AND T1.CASE_MNG_NO           = T4.CASE_MNG_NO
+           AND T1.CASE_MNG_ODRNO        = T4.CASE_MNG_ODRNO
+           AND T5.ENFSN_NO           = T4.CASE_PIC_NO
+           AND T6.INST_NO            = T4.PIC_INST_NO
+           AND T4.PCHPRS_YN          = 'Y'
+           and T1.CASE_MNG_NO = T7.CASE_MNG_NO(+)
+           and T1.CASE_MNG_ODRNO = T7.CASE_MNG_ODRNO(+)
+        ]]>
+           /* 20230220_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작*/
+           <include refid="GroupAuthrtMapper.occpAbilitGropuAuthrt"/>   
+            /* 20230220_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+           <if test="START_DATE != null and START_DATE != ''">
+          <![CDATA[
+               AND TO_CHAR(T1.FRST_REG_DT, 'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE}
+          ]]>
+        </if>
+        <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+          <![CDATA[
+               AND T2.TRPR_NM_ENCPT         = C##RG.ENC_B64(#{TRPR_NM_ENCPT})
+          ]]>
+        </if>
+        <if test="YNGBGS_STTS_LCLAS_SE_CD != null and YNGBGS_STTS_LCLAS_SE_CD != ''">
+	        <![CDATA[
+	          AND T1.YNGBGS_SE_NO LIKE '%' || #{YNGBGS_STTS_LCLAS_SE_CD} || '%'
+	        ]]>
+	        </if>
+        <if test="YNGBGS_STTS_SCLAS_SE_CD != null and YNGBGS_STTS_SCLAS_SE_CD != ''">
+          <![CDATA[
+               AND T1.YNGBGS_STTS_SCLAS_SE_CD = #{YNGBGS_STTS_SCLAS_SE_CD}
+          ]]>
+        </if>
+        <if test="PIC_NM_ENCPT != null and PIC_NM_ENCPT != ''">
+          <![CDATA[
+               AND T5.FLNM_ENCPT            = C##RG.ENC_B64(#{PIC_NM_ENCPT})
+          ]]>
+        </if>
+        <if test="INST_NM != null and INST_NM != ''">
+          <![CDATA[
+               AND(T6.INST_NO               = #{INST_NO}
+                OR T6.INST_NM               = #{INST_NM})
+          ]]>
+        </if>
+        <if test="CASE_TRPR_TYPE_SE_CD != null and CASE_TRPR_TYPE_SE_CD != ''">
+          <![CDATA[
+               AND T2.CASE_TRPR_TYPE_SE_CD  = #{CASE_TRPR_TYPE_SE_CD}
+          ]]>
+        </if>
+        <if test="CASE_PRGRS_STTS_SE_CD != null and CASE_PRGRS_STTS_SE_CD != ''">
+          <![CDATA[
+               AND T1.CASE_PRGRS_STTS_SE_CD IN (SELECT CMMNS_CD_VALUE FROM SAC100
+                                                 WHERE CMMNS_CD_ID       = 'CASE_PRGRS_STTS_SE_CD'
+                                                   AND UP_CMMNS_CD_VALUE = #{CASE_PRGRS_STTS_SE_CD})
+          ]]>
+        </if>
+        <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+          <![CDATA[
+               AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+          ]]>
+        </if>
+        <if test="TAG_NO != null and TAG_NO != ''">
+          <![CDATA[
+               AND REGEXP_LIKE(T1.TAG_NO, '(' || REPLACE(#{TAG_NO},',','|') || ')')  -- 태그번호
+          ]]>
+        </if>
+        <if test="ENFSN_ROLE_SE_CD != null and ENFSN_ROLE_SE_CD != ''">
+            <if test='ENFSN_ROLE_SE_CD !="1" and ENFSN_ROLE_SE_CD !="2"'>
+              <![CDATA[
+               AND T2.RCPT_PIC_NO = #{USER_ID}
+              ]]>
+            </if>
+        </if>
+         ORDER BY T1.FRST_REG_DT DESC, T1.CASE_MNG_NO, T1.CASE_MNG_ODRNO DESC
+        
+        <!-- 페이지 인덱서 OFFSET 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    
+    <select id="selectPreSurvshtList" parameterType="HashMap" resultType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectPreSurvshtList - 응용2팀 강화영  */
+        <![CDATA[
+        SELECT B.QESITM_MNG_NO
+                    , B.QUSTNB_MNG_NO
+                    , B.QESITM_SQNCE
+                    , (select d.QUSTNB_RELM_MNG_NO from SBB120 d
+                        where d.QUSTNB_MNG_NO = b.QUSTNB_MNG_NO
+                        and to_number(b.QESITM_SQNCE) >= to_number(d.QUSTNB_BGNG_QESITM_NO)
+                        and to_number(b.QESITM_SQNCE) <= to_number(d.QUSTNB_END_QESITM_NO)
+                    ) QUSTNB_RELM_MNG_NO
+                    , (select d.QUSTNB_GRDNG_RELM_MNG_NO from sbb130 d
+                        where d.QUSTNB_MNG_NO = b.QUSTNB_MNG_NO
+                        and to_number(b.QESITM_SQNCE) >= to_number(d.QUSTNB_BGNG_QESITM_NO)
+                        and to_number(b.QESITM_SQNCE) <= to_number(d.QUSTNB_END_QESITM_NO)
+                    ) QUSTNB_GRDNG_RELM_MNG_NO
+                    , B.CHTY_QESITM_YN
+                    , B.CHTY_QESITM_ESNTAL_NO
+                    , (select d.QESITM_SINGL_RSPNS_VALUE
+                        from SBB220 d
+                        where d.QESITM_MNG_NO = b.QESITM_MNG_NO
+                        and d.SRVY_RSPNS_MNG_NO = #{SRVY_RSPNS_MNG_NO, jdbcType=VARCHAR}
+                    ) CHTY_QESITM_RSPNS_VALUE
+                    , (select d.QESITM_RSPNS_CN
+                        from SBB220 d
+                        where d.QESITM_MNG_NO = b.QESITM_MNG_NO
+                        and d.SRVY_RSPNS_MNG_NO = #{SRVY_RSPNS_MNG_NO, jdbcType=VARCHAR}
+                    ) QESITM_RSPNS_CN
+                    , C.QESITM_CN
+                    , C.QESITM_DSCRP_CN
+                    , C.QESITM_TYPE_SE_CD
+                    , C.ESNTL_YN
+                    , C.USE_YN
+        FROM SBB100 A
+        JOIN SBB300 B ON A.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+        JOIN SBB200 C ON B.QESITM_MNG_NO = C.QESITM_MNG_NO  AND C.USE_YN = 'Y'
+        WHERE A.QUSTNB_MNG_NO = #{QUSTNB_MNG_NO}
+        ORDER BY to_number(B.QESITM_SQNCE) ASC
+        ]]>
+    </select>
+    
+    <update id="mergeSBB100" parameterType="HashMap">
+         /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.mergeSBB100 - 응용2팀 강화영  */
+         
+         MERGE INTO
+                SBB110      AA      /** 설문대상자 **/
+        USING   DUAL
+            ON
+            (
+                AA.QUSTNB_MNG_NO      =   #{QUSTNB_MNG_NO}
+                AND AA.QUSTNB_TMPT_MNG_NO      =   #{QUSTNB_TMPT_MNG_NO}
+            )
+        WHEN MATCHED THEN
+            UPDATE SET
+            AA.LAST_MDFR_ID         =   #{LAST_MDFR_ID}
+            ,   AA.LAST_MDFCN_DT        =   SYSDATE
+        WHEN NOT MATCHED THEN 
+            INSERT
+            (
+                    AA.QUSTNB_MNG_NO
+                ,   AA.QUSTNB_TMPT_MNG_NO
+                ,   AA.CASE_MNG_NO
+                ,   AA.CASE_MNG_ODRNO
+                ,   AA.FRST_RGTR_ID
+                
+            )
+            VALUES
+            (
+                    #{QUSTNB_MNG_NO}
+                ,   #{QUSTNB_TMPT_MNG_NO}
+                ,   #{CASE_MNG_NO}
+                ,   #{CASE_MNG_ODRNO}
+                ,   #{FRST_RGTR_ID}
+            )
+         
+    </update>
+    
+    <update id="mergeSBB500" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.mergeSBB500 - 응용2팀 강화영  */
+        
+        MERGE INTO
+                SBB500      AA      /** 설문응답 **/
+        USING   DUAL
+            ON
+            (
+                    AA.QUSTNB_MNG_NO      =   #{QUSTNB_MNG_NO, jdbcType=VARCHAR}
+                AND AA.QUSTNB_TMPT_MNG_NO =   #{QUSTNB_TMPT_MNG_NO, jdbcType=VARCHAR}
+                AND AA.SRVY_RSPNS_MNG_NO  =   #{SRVY_RSPNS_MNG_NO, jdbcType=VARCHAR}
+            )
+        WHEN MATCHED THEN
+            UPDATE SET
+                AA.RSPNS_DT             =   SYSDATE
+            ,   AA.CNTN_IP_ADDR       =   #{CNTN_IP_ADDR}
+            ,   AA.LAST_MDFR_ID         =   #{LAST_MDFR_ID}
+            ,   AA.LAST_MDFCN_DT        =   SYSDATE 
+        WHEN NOT MATCHED THEN 
+            INSERT
+            (
+                    AA.QUSTNB_MNG_NO
+                ,   AA.QUSTNB_TMPT_MNG_NO
+                ,   AA.SRVY_RSPNS_MNG_NO
+                ,   AA.UNT_TASKWK_SE_CD 
+                ,   AA.USER_ID
+                ,   AA.CASE_MNG_NO
+                ,   AA.CASE_MNG_ODRNO
+                ,   AA.RSPNS_DT
+                ,   AA.CNTN_IP_ADDR
+                ,   AA.FRST_RGTR_ID
+            )
+            VALUES
+            (
+                    #{QUSTNB_MNG_NO}
+                ,   #{QUSTNB_TMPT_MNG_NO}
+                ,   #{SRVY_RSPNS_MNG_NO}
+                ,   'U03' 
+                ,   (select c.USER_ID from SEA200 a, SEB100 b, SAA200 c
+                    where a.TRPR_INFO_NO = b.TRPR_INFO_NO
+                    and a.INDV_IDNTFC_NO = c.INDV_IDNTFC_NO
+                    and b.CASE_MNG_NO = #{CASE_MNG_NO} and b.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+                    )
+                ,   #{CASE_MNG_NO}
+                ,   #{CASE_MNG_ODRNO}
+                ,   SYSDATE
+                ,   #{CNTN_IP_ADDR}
+                ,   #{FRST_RGTR_ID}
+            )
+    </update>
+    
+    <delete id="deleteSBB220" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.deleteSBB220 - 응용2팀 강화영  */
+        
+        delete from SBB220
+        where SRVY_RSPNS_MNG_NO = #{SRVY_RSPNS_MNG_NO}        
+    </delete>
+    
+    <insert id="insertSBB220" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertSBB220 - 응용2팀 강화영  */
+        
+        insert into SBB220
+        (
+            QESITM_MNG_NO
+			, SRVY_RSPNS_MNG_NO
+			, QESITM_SINGL_RSPNS_VALUE
+			, QESITM_RSPNS_CN
+			, FRST_RGTR_ID
+        ) values (
+            #{QESITM_MNG_NO}
+            , #{SRVY_RSPNS_MNG_NO}
+            , #{CHTY_QESITM_RSPNS_VALUE}
+            , #{QESITM_RSPNS_CN}
+            , #{FRST_RGTR_ID}
+        )        
+    </insert>
+    
+    <update id="mergeSBB510" parameterType="HashMap">
+        MERGE INTO
+                SBB510      AA      /** 채점결과 **/
+        USING   DUAL
+            ON
+            (
+                    AA.QUSTNB_MNG_NO            =   #{QUSTNB_MNG_NO, jdbcType=VARCHAR}
+                AND AA.SRVY_RSPNS_MNG_NO        =   #{SRVY_RSPNS_MNG_NO, jdbcType=VARCHAR}
+                AND AA.QUSTNB_GRDNG_RELM_MNG_NO =   #{QUSTNB_GRDNG_RELM_MNG_NO, jdbcType=VARCHAR}
+            )
+        WHEN MATCHED THEN
+            UPDATE SET
+            AA.GRDNG_SCORE       =   #{GRDNG_SCORE}
+            ,   AA.LAST_MDFR_ID         =   #{LAST_MDFR_ID}
+            ,   AA.LAST_MDFCN_DT        =   SYSDATE 
+        WHEN NOT MATCHED THEN 
+            INSERT
+            (
+                    AA.QUSTNB_MNG_NO
+                ,   AA.SRVY_RSPNS_MNG_NO
+                ,   AA.QUSTNB_TMPT_MNG_NO
+                ,   AA.QUSTNB_GRDNG_RELM_MNG_NO 
+                ,   AA.GRDNG_RESULT_MNG_NO
+                ,   AA.UNT_TASKWK_SE_CD
+                ,   AA.GRDNG_SCORE
+                ,   AA.FRST_RGTR_ID
+            )
+            VALUES
+            (
+                #{QUSTNB_MNG_NO}
+                ,   #{SRVY_RSPNS_MNG_NO}
+                ,   #{QUSTNB_TMPT_MNG_NO}
+                ,   #{QUSTNB_GRDNG_RELM_MNG_NO} 
+                ,   (SELECT ISRY_APP.SA_FN_GET_RENU_NO('SO', #{FRST_RGTR_ID}, TO_CHAR(SYSDATE,'YYYYMMDD')) /* 문항관리번호 */
+                        FROM DUAL)
+                ,   'U03'
+                ,   #{GRDNG_SCORE}
+                ,   #{FRST_RGTR_ID}
+            )
+    </update>
+    
+    <update id="updateChupAKA000" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateChupAKA000 - 응용2팀 강화영  */
+        
+        MERGE INTO
+                AKA000      AA      /** 사례관리-등록고유 **/
+        USING   DUAL
+            ON
+            (
+                    AA.CASE_MNG_NO     =   #{CASE_MNG_NO, jdbcType=VARCHAR}
+                AND AA.CASE_MNG_ODRNO  =   #{CASE_MNG_ODRNO, jdbcType=VARCHAR}
+            )
+        WHEN MATCHED THEN
+            UPDATE SET
+            AA.CHUP_INSPTN_TRPR_YN     =   #{CHUP_INSPTN_TRPR_YN}
+            ,   AA.LAST_MDFR_ID        =   #{USER_ID}
+            ,   AA.LAST_MDFCN_DT       =   SYSDATE 
+        WHEN NOT MATCHED THEN
+            INSERT
+            (
+                    AA.CASE_MNG_NO
+                ,   AA.CASE_MNG_ODRNO
+                ,   AA.CHUP_INSPTN_TRPR_YN
+                ,   AA.FRST_RGTR_ID
+            )
+            VALUES
+            (
+                    #{CASE_MNG_NO}
+                ,   #{CASE_MNG_ODRNO}
+                ,   #{CHUP_INSPTN_TRPR_YN} 
+                ,   #{USER_ID}
+            )    
+    </update>
+    
+     <insert id="insertChupAKA001" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertChupAKA001 - 응용2팀 강화영  */
+        
+        insert into AKA001 (
+            CASE_MNG_NO
+			, CASE_MNG_ODRNO
+			, INSPTN_YN
+			, INSPTN_YMD
+			, FRST_RGTR_ID
+        ) values (
+            #{CASE_MNG_NO}
+            , #{CASE_MNG_ODRNO}
+            , #{INSPTN_YN}
+            , #{INSPTN_YMD}
+            , #{USER_ID}
+        )
+     </insert>
+     
+     <update id="updateChupAKA001" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateChupAKA001 - 응용2팀 강화영  */
+        
+        update AKA001 set
+        INSPTN_YN = #{INSPTN_YN}
+        , INSPTN_YMD = #{INSPTN_YMD}
+        , LAST_MDFR_ID = #{USER_ID}
+        , LAST_MDFCN_DT = SYSDATE 
+        where CASE_MNG_NO = #{CASE_MNG_NO, jdbcType=VARCHAR}
+        AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}
+        AND INSPTN_YMD = #{INSPTN_YMD}
+     </update>
+     
+     <delete id="deleteChupAKA001" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.deleteChupAKA001 - 응용2팀 강화영  */
+     
+        delete from AKA001
+        where CASE_MNG_NO = #{CASE_MNG_NO, jdbcType=VARCHAR}
+        AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO, jdbcType=VARCHAR}
+        AND INSPTN_YMD = #{INSPTN_YMD}
+     </delete>
+     
+     <delete id="deleteAKA011" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.deleteAKA011 - 공통팀 윤희성  */
+     
+        DELETE FROM AKA011
+        WHERE QUSTNB_TMPT_MNG_NO = #{QUSTNB_TMPT_MNG_NO}
+        AND SRVY_RSPNS_MNG_NO = #{SRVY_RSPNS_MNG_NO}
+     </delete>
+     
+     <insert id="insertAKA011" parameterType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertAKA011 - 공통팀 윤희성  */
+        
+        insert into AKA011 (
+            QUSTNB_TMPT_MNG_NO
+            , SRVY_RSPNS_MNG_NO
+            , QESITM_MNG_NO
+            , QESITM_SINGL_RSPNS_VALUE
+            , QESITM_RSPNS_CN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT
+        ) values (
+            #{QUSTNB_TMPT_MNG_NO}
+            , #{SRVY_RSPNS_MNG_NO}
+            , #{QESITM_MNG_NO}
+            , #{QESITM_SINGL_RSPNS_VALUE}
+            , #{QESITM_RSPNS_CN}
+            , #{USER_ID}
+            , SYSDATE
+            , #{USER_ID}
+            , SYSDATE
+        )
+     </insert>
+     
+    <select id="selectChupInfo" parameterType="HashMap" resultType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectChupInfo  */
+        SELECT T1.CASE_MNG_NO                       AS CASE_MNG_NO          /* 사례관리번호 */
+             , T1.CASE_MNG_ODRNO                    AS CASE_MNG_ODRNO       /* 사례관리차수 */
+             , NVL(T1.CHUP_INSPTN_TRPR_YN, 'N')     AS CHUP_INSPTN_TRPR_YN  /* 건강검진수검대상자여부 */
+          FROM AKA000 T1   /* 사례관리-등록고유-건강검진수검대 */
+         WHERE T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </select>
+
+<!--   
+    <select id="selectChupList" parameterType="HashMap" resultType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectChupList  */
+        SELECT T1.CASE_MNG_NO                       AS CASE_MNG_NO    /* 사례관리번호 */
+             , T1.CASE_MNG_ODRNO                    AS CASE_MNG_ODRNO /* 사례관리차수 */
+             , NVL(T1.INSPTN_YN, 'N')               AS INSPTN_YN      /* 수검여부 */
+             , T1.INSPTN_YMD                        AS INSPTN_YMD     /* 수검일자 */
+             , TO_CHAR(T1.FRST_REG_DT,'YYYY-MM-DD') AS FRST_REG_DT  /* 등록일자 */
+          FROM AKA001 T1   /* 사례관리-등록고유-건강 */
+         WHERE T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </select>
+-->    
+    
+    <select id="selectQusList" parameterType="HashMap" resultType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectQusList  */
+        SELECT QUSTNB_MNG_NO
+             , QUSTNB_TMPT_MNG_NO
+             , CASE_MNG_NO
+             , CASE_MNG_ODRNO
+             , CASE_TRPR_NM_ENCPT
+        FROM SBB110
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO} 
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </select>
+    
+    <select id="selectInspSrvyList" parameterType="HashMap" resultType="HashMap">
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectInspSrvyList  */
+        SELECT CASE_MNG_NO,
+            CASE_MNG_ODRNO,
+            INDEX_SN,
+            QUSTNB_TMPT_MNG_NO,
+            QUSTNB_MNG_NO,
+            SRVY_RSPNS_MNG_NO,
+            INSP_SRVY_TYPE_CL_SE_CD,
+            INSP_YMD,
+            INSP_RESULT_CN,
+            INSP_KND_SE_CD,
+            INSP_RESULT_SCORE,
+            SUCDE_ITRVW_RCORDP_WRT_YN,
+            QUSTNB_TMPT_MNG_NO2,
+            QUSTNB_MNG_NO2,
+            SRVY_RSPNS_MNG_NO2,
+            INTNET_SMRTP_DGNSS_CL_SE_CD,
+            INTNET_DGNSS_SUM_SCORE,
+            INTNET_DGNSS_FCTR_SCORE1,
+            INTNET_DGNSS_FCTR_SCORE3,
+            INTNET_DGNSS_FCTR_SCORE4,
+            SPCLTY_PROGRM_DGSTFN_CL_SE_CD,
+            BEFFAT_AFTFCT_SE_CD
+        FROM AKA010 
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO} 
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </select>
+    
+    <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+    <!-- 사례상세조회 - 검사/설문   -->
+    <select id="selectCaseInspSrvyList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectCaseInspSrvyList - 응용3팀 이승연  */
+            SELECT T1.CASE_MNG_NO                   AS CASE_MNG_NO                      /* 사례관리번호 */
+                 , T1.CASE_MNG_ODRNO                AS CASE_MNG_ODRNO                   /* 사례관리차수 */
+                 , T1.INDEX_SN                      AS INDEX_SN                         /* 색인일련번호 */
+                 , T1.QUSTNB_TMPT_MNG_NO            AS QUSTNB_TMPT_MNG_NO               /* 설문지템플릿관리번호 */
+                 , T1.QUSTNB_MNG_NO                 AS QUSTNB_MNG_NO                    /* 설문지관리번호 */
+                 , T1.SRVY_RSPNS_MNG_NO             AS SRVY_RSPNS_MNG_NO                /* 설문응답관리번호 */
+                 , T1.INSP_SRVY_TYPE_CL_SE_CD       AS INSP_SRVY_TYPE_CL_SE_CD          /* 검사설문유형분류코드 */
+                 , T1.INSP_YMD                      AS INSP_YMD                         /* 검사일자 */
+                 , T1.INSP_RESULT_CN                AS INSP_RESULT_CN                   /* 검사결과내용 */
+                 /* 정서.행동특성검사 */
+                 , T1.INSP_KND_SE_CD                AS INSP_KND_SE_CD                   /* 검사종류구분코드 */
+                 , T1.INSP_RESULT_SCORE             AS INSP_RESULT_SCORE                /* 검사결과점수 */
+                 , T1.SUCDE_ITRVW_RCORDP_WRT_YN     AS SUCDE_ITRVW_RCORDP_WRT_YN        /* 자살면담기록지작성여부 */
+                 , T1.QUSTNB_TMPT_MNG_NO2           AS QUSTNB_TMPT_MNG_NO2              /* 설문지템플릿관리번호2 */
+                 , T1.QUSTNB_MNG_NO2                AS QUSTNB_MNG_NO2                   /* 설문지관리번호2 */
+                 , T1.SRVY_RSPNS_MNG_NO2            AS SRVY_RSPNS_MNG_NO2               /* 설문응답관리번호2 */
+                 /* 인터넷.스마트폰진단 */
+                 , T1.INTNET_SMRTP_DGNSS_CL_SE_CD   AS INTNET_SMRTP_DGNSS_CL_SE_CD      /* 인터넷스마트폰진단분류구분코드 */
+                 , T1.INTNET_DGNSS_SUM_SCORE        AS INTNET_DGNSS_SUM_SCORE           /* 인터넷진단합계점수 */
+                 , T1.INTNET_DGNSS_FCTR_SCORE1      AS INTNET_DGNSS_FCTR_SCORE1         /* 인터넷진단요인점수1 */
+                 , T1.INTNET_DGNSS_FCTR_SCORE3      AS INTNET_DGNSS_FCTR_SCORE3         /* 인터넷진단요인점수3 */
+                 , T1.INTNET_DGNSS_FCTR_SCORE4      AS INTNET_DGNSS_FCTR_SCORE4         /* 인터넷진단요인점수4 */
+                 /* 전문 프로그램 만족도 관리 */
+                 , T1.SPCLTY_PROGRM_DGSTFN_CL_SE_CD AS SPCLTY_PROGRM_DGSTFN_CL_SE_CD    /* 전문프로그램만족도분류코드 */
+                 , T1.BEFFAT_AFTFCT_SE_CD           AS BEFFAT_AFTFCT_SE_CD              /* 사전사후구분코드 */
+                 , T1.DEL_YN                        AS DEL_YN                           /* 삭제여부 */
+                 , ( SELECT X.ADDTNG_MNG_VALUE1
+					   FROM SAC100 X
+					  WHERE X.CMMNS_CD_ID          = 'SPCLTY_PROGRM_DGSTFN_CL_SE_CD'
+					    AND X.CMMNS_CD_VALUE       = T1.SPCLTY_PROGRM_DGSTFN_CL_SE_CD
+					    AND T1.BEFFAT_AFTFCT_SE_CD = 'PRE'
+                   )                                AS PRE_QUSTNB_TMPT_MNG_NO           /* 사전_설문지템플릿관리번호 */
+                 , ( SELECT X.ADDTNG_MNG_VALUE2
+                       FROM SAC100 X
+                      WHERE X.CMMNS_CD_ID          = 'SPCLTY_PROGRM_DGSTFN_CL_SE_CD'
+                        AND X.CMMNS_CD_VALUE       = T1.SPCLTY_PROGRM_DGSTFN_CL_SE_CD
+                        AND T1.BEFFAT_AFTFCT_SE_CD = 'AF'
+                   )                                AS AF_QUSTNB_TMPT_MNG_NO            /* 사후_설문지템플릿관리번호 */
+                 , ( SELECT X.ADDTNG_MNG_VALUE2
+                       FROM SAC100 X
+                      WHERE X.CMMNS_CD_ID          = 'INSP_KND_SE_CD'
+                        AND X.CMMNS_CD_VALUE       = T1.INSP_KND_SE_CD
+                   )                                AS SUCDE_ITRVW_RCORDP_TMPT_MNG_NO   /* 자살면담기록지템플릿관리번호 */
+                 , T1.SUCDE_ITRVW_RCORDP_WRT_YN     AS SUICIDE_SRVY_YN                  /* 자살면담기록지대상여부 */
+                 /* 심리정서, 환경 척도*/
+                 , T1.TRL_EMT_ENVRN_SE_CD_NM        AS TRL_EMT_ENVRN_SE_CD_NM           /*  심리정서환경구분코드명 */
+                 , T1.ANXIET_DEPRES_SCORE           AS ANXIET_DEPRES_SCORE              /*  불안우울점수  */
+				 , T1.SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE    AS  SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE    /*  과잉행동주의집중충동점수    */
+				 , T1.DEFIAN_CNDCT_SCORE            AS DEFIAN_CNDCT_SCORE               /*  반항품행점수  */
+				 , T1.DELUSI_AUHA_SCORE             AS DELUSI_AUHA_SCORE                /*  망상환청점수  */
+				 , T1.ADDC_SCORE                    AS ADDC_SCORE                       /*  중독점수    */
+				 , T1.SUCDE_SLFIJR_SCORE            AS SUCDE_SLFIJR_SCORE               /*  자살자해점수  */
+				 , T1.HOUSEK_ENVRN_SCORE            AS HOUSEK_ENVRN_SCORE               /*  가정환경점수  */
+				 , T1.FRIDA_ENVRN_SCORE             AS FRIDA_ENVRN_SCORE                /*  또래환경점수  */
+				 , T1.RGN_SOCTY_ENVRN_SCORE         AS RGN_SOCTY_ENVRN_SCORE            /*  지역사회환경점수    */
+				 , T1.PARNTS_SNDTER_REL_SCORE       AS PARNTS_SNDTER_REL_SCORE          /*  부모자녀관계점수    */
+				 /* 자립역량 척도*/
+				 , T1.SLFRL_ABILIT_SE_CD_NM         AS SLFRL_ABILIT_SE_CD_NM            /*  자립역량구분코드명   */
+				 , T1.PRTCTN_FCTR_SCORE             AS PRTCTN_FCTR_SCORE                /*  보호요인점수  */
+				 , T1.DIGNIT_SCORE                  AS DIGNIT_SCORE                     /*  자존감점수   */
+				 , T1.SINCER_SCORE                  AS SINCER_SCORE                     /*  성실성점수   */
+				 , T1.SCHULW_EFFICA_SCORE           AS SCHULW_EFFICA_SCORE              /*  학업효능감점수 */
+				 , T1.COSE_INFO_EXPLR_ACTVT_SCORE   AS COSE_INFO_EXPLR_ACTVT_SCORE      /*  진로정보탐색활동점수  */
+				 , T1.SOCIAL_SEOFCO_SCORE           AS SOCIAL_SEOFCO_SCORE              /*  사회적유능감  */
+				 
+				 , T1.ANXIET_DEPRES_RESULT_NM           AS ANXIET_DEPRES_RESULT_NM              /*  불안우울결과  */
+                 , T1.SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM    AS  SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM    /*  과잉행동주의집중충동결과    */
+                 , T1.DEFIAN_CNDCT_RESULT_NM            AS DEFIAN_CNDCT_RESULT_NM               /*  반항품행결과  */
+                 , T1.DELUSI_AUHA_RESULT_NM             AS DELUSI_AUHA_RESULT_NM                /*  망상환청결과  */
+                 , T1.ADDC_RESULT_NM                    AS ADDC_RESULT_NM                       /*  중독결과    */
+                 , T1.SUCDE_SLFIJR_RESULT_NM            AS SUCDE_SLFIJR_RESULT_NM               /*  자살자해결과  */
+                 , T1.HOUSEK_ENVRN_RESULT_NM            AS HOUSEK_ENVRN_RESULT_NM               /*  가정환경결과  */
+                 , T1.FRIDA_ENVRN_RESULT_NM             AS FRIDA_ENVRN_RESULT_NM                /*  또래환경결과  */
+                 , T1.RGN_SOCTY_ENVRN_RESULT_NM         AS RGN_SOCTY_ENVRN_RESULT_NM            /*  지역사회환경결과    */
+                 , T1.PARNTS_SNDTER_REL_RESULT_NM       AS PARNTS_SNDTER_REL_RESULT_NM          /*  부모자녀관계결과    */
+                 /* 자립역량 척도*/
+                 , T1.PRTCTN_FCTR_RESULT_NM             AS PRTCTN_FCTR_RESULT_NM                /*  보호요인결과  */
+                 , T1.DIGNIT_RESULT_NM                  AS DIGNIT_RESULT_NM                     /*  자존감결과   */
+                 , T1.SINCER_RESULT_NM                  AS SINCER_RESULT_NM                     /*  성실성결과   */
+                 , T1.SCHULW_EFFICA_RESULT_NM           AS SCHULW_EFFICA_RESULT_NM              /*  학업효능감결과 */
+                 , T1.COSE_INFO_EXPLR_ACTVT_RESULT_NM   AS COSE_INFO_EXPLR_ACTVT_RESULT_NM      /*  진로정보탐색활동결과  */
+                 , T1.SOCIAL_SEOFCO_RESULT_NM           AS SOCIAL_SEOFCO_RESULT_NM              /*  사회적유능감  */
+              FROM AKA010 T1 /* 검사설문 */
+             WHERE T1.CASE_MNG_NO          =  #{CASE_MNG_NO}          /* 사례관리번호 */
+               AND T1.CASE_MNG_ODRNO       =  #{CASE_MNG_ODRNO}       /* 사례관리차수 */
+               AND T1.DEL_YN               != 'Y'                     /* 삭제여부 != 'Y' */
+        ]]>
+        <if test="INSP_SRVY_TYPE_CL_SE_CD != null and INSP_SRVY_TYPE_CL_SE_CD != ''">
+               AND T1.INSP_SRVY_TYPE_CL_SE_CD =  #{INSP_SRVY_TYPE_CL_SE_CD} /* 검사설문유형분류코드 */
+        </if>
+    </select>
+
+    <!-- 검사/설문 등록 -->
+    <insert id="insertAKA010" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertAKA010 - 응용3팀 이승연  */
+            INSERT INTO AKA010
+            (
+                CASE_MNG_NO
+				, CASE_MNG_ODRNO
+				, INDEX_SN
+				, QUSTNB_TMPT_MNG_NO
+				, QUSTNB_MNG_NO
+				, SRVY_RSPNS_MNG_NO
+				, INSP_SRVY_TYPE_CL_SE_CD
+				, INSP_YMD
+				, INSP_RESULT_CN
+				, INSP_KND_SE_CD
+				, INSP_RESULT_SCORE
+				, SUCDE_ITRVW_RCORDP_WRT_YN
+				, QUSTNB_TMPT_MNG_NO2
+				, QUSTNB_MNG_NO2
+				, SRVY_RSPNS_MNG_NO2
+				, INTNET_SMRTP_DGNSS_CL_SE_CD
+				, INTNET_DGNSS_SUM_SCORE
+				, INTNET_DGNSS_FCTR_SCORE1
+				, INTNET_DGNSS_FCTR_SCORE3
+				, INTNET_DGNSS_FCTR_SCORE4
+				, SPCLTY_PROGRM_DGSTFN_CL_SE_CD
+				, BEFFAT_AFTFCT_SE_CD
+				, TRL_EMT_ENVRN_SE_CD_NM
+				, ANXIET_DEPRES_SCORE
+				, SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE
+				, DEFIAN_CNDCT_SCORE
+				, DELUSI_AUHA_SCORE
+				, ADDC_SCORE
+				, SUCDE_SLFIJR_SCORE
+				, HOUSEK_ENVRN_SCORE
+				, FRIDA_ENVRN_SCORE
+				, RGN_SOCTY_ENVRN_SCORE
+				, SLFRL_ABILIT_SE_CD_NM
+				, PRTCTN_FCTR_SCORE
+				, DIGNIT_SCORE
+				, SINCER_SCORE
+				, SCHULW_EFFICA_SCORE
+				, COSE_INFO_EXPLR_ACTVT_SCORE
+				, SOCIAL_SEOFCO_SCORE
+				, PARNTS_SNDTER_REL_SCORE
+				, ANXIET_DEPRES_RESULT_NM
+                , SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM
+                , DEFIAN_CNDCT_RESULT_NM
+                , DELUSI_AUHA_RESULT_NM
+                , ADDC_RESULT_NM
+                , SUCDE_SLFIJR_RESULT_NM
+                , HOUSEK_ENVRN_RESULT_NM
+                , FRIDA_ENVRN_RESULT_NM
+                , RGN_SOCTY_ENVRN_RESULT_NM
+                , PRTCTN_FCTR_RESULT_NM
+                , DIGNIT_RESULT_NM
+                , SINCER_RESULT_NM
+                , SCHULW_EFFICA_RESULT_NM
+                , COSE_INFO_EXPLR_ACTVT_RESULT_NM
+                , SOCIAL_SEOFCO_RESULT_NM
+                , PARNTS_SNDTER_REL_RESULT_NM
+				, DEL_YN
+				, FRST_RGTR_ID
+				, FRST_REG_DT
+				, LAST_MDFR_ID
+				, LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{CASE_MNG_NO}
+              , #{CASE_MNG_ODRNO}
+              , AKA010_SQ01.NEXTVAL
+              , #{QUSTNB_TMPT_MNG_NO}
+              , #{QUSTNB_MNG_NO}
+              , #{SRVY_RSPNS_MNG_NO}
+              , #{INSP_SRVY_TYPE_CL_SE_CD}
+              , #{INSP_YMD}
+              , #{INSP_RESULT_CN}
+              , #{INSP_KND_SE_CD}
+              , #{INSP_RESULT_SCORE}
+              , NVL(#{SUCDE_ITRVW_RCORDP_WRT_YN},'N')
+              , #{QUSTNB_TMPT_MNG_NO2}
+              , #{QUSTNB_MNG_NO2}
+              , #{SRVY_RSPNS_MNG_NO2}
+              , #{INTNET_SMRTP_DGNSS_CL_SE_CD}
+              , #{INTNET_DGNSS_SUM_SCORE}
+              , #{INTNET_DGNSS_FCTR_SCORE1}
+              , #{INTNET_DGNSS_FCTR_SCORE3}
+              , #{INTNET_DGNSS_FCTR_SCORE4}
+              , #{SPCLTY_PROGRM_DGSTFN_CL_SE_CD}
+              , #{BEFFAT_AFTFCT_SE_CD}              
+              , #{TRL_EMT_ENVRN_SE_CD_NM}
+			  , #{ANXIET_DEPRES_SCORE}
+			  , #{SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE}
+			  , #{DEFIAN_CNDCT_SCORE}
+			  , #{DELUSI_AUHA_SCORE}
+			  , #{ADDC_SCORE}
+			  , #{SUCDE_SLFIJR_SCORE}
+			  , #{HOUSEK_ENVRN_SCORE}
+			  , #{FRIDA_ENVRN_SCORE}
+			  , #{RGN_SOCTY_ENVRN_SCORE}
+			  , #{SLFRL_ABILIT_SE_CD_NM}
+			  , #{PRTCTN_FCTR_SCORE}
+			  , #{DIGNIT_SCORE}
+			  , #{SINCER_SCORE}
+			  , #{SCHULW_EFFICA_SCORE}
+			  , #{COSE_INFO_EXPLR_ACTVT_SCORE}
+			  , #{SOCIAL_SEOFCO_SCORE}
+              , #{PARNTS_SNDTER_REL_SCORE}
+              , #{ANXIET_DEPRES_RESULT_NM}
+              , #{SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM}
+              , #{DEFIAN_CNDCT_RESULT_NM}
+              , #{DELUSI_AUHA_RESULT_NM}
+              , #{ADDC_RESULT_NM}
+              , #{SUCDE_SLFIJR_RESULT_NM}
+              , #{HOUSEK_ENVRN_RESULT_NM}
+              , #{FRIDA_ENVRN_RESULT_NM}
+              , #{RGN_SOCTY_ENVRN_RESULT_NM}
+              , #{PRTCTN_FCTR_RESULT_NM}
+              , #{DIGNIT_RESULT_NM}
+              , #{SINCER_RESULT_NM}
+              , #{SCHULW_EFFICA_RESULT_NM}
+              , #{COSE_INFO_EXPLR_ACTVT_RESULT_NM}
+              , #{SOCIAL_SEOFCO_RESULT_NM}
+              , #{PARNTS_SNDTER_REL_RESULT_NM}
+              , NVL(#{DEL_YN},'N')
+              , #{USER_ID}
+              , SYSDATE
+              , #{USER_ID}
+              , SYSDATE
+            )
+        ]]>        
+    </insert>
+    
+    <!-- 검사/설문 수정 -->
+    <update id="updateAKA010" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateAKA010 - 응용3팀 이승연  */
+            UPDATE AKA010
+               SET QUSTNB_TMPT_MNG_NO            = #{QUSTNB_TMPT_MNG_NO}
+                 , QUSTNB_MNG_NO                 = #{QUSTNB_MNG_NO}
+                 , SRVY_RSPNS_MNG_NO             = #{SRVY_RSPNS_MNG_NO}
+                 , INSP_YMD                      = #{INSP_YMD}
+                 , INSP_RESULT_CN                = #{INSP_RESULT_CN}
+                 , INSP_KND_SE_CD                = #{INSP_KND_SE_CD}
+                 , INSP_RESULT_SCORE             = #{INSP_RESULT_SCORE}
+                 , SUCDE_ITRVW_RCORDP_WRT_YN     = #{SUCDE_ITRVW_RCORDP_WRT_YN}
+                 , QUSTNB_TMPT_MNG_NO2           = #{QUSTNB_TMPT_MNG_NO2}
+                 , QUSTNB_MNG_NO2                = #{QUSTNB_MNG_NO2}
+                 , SRVY_RSPNS_MNG_NO2            = #{SRVY_RSPNS_MNG_NO2}  
+                 , INTNET_SMRTP_DGNSS_CL_SE_CD   = #{INTNET_SMRTP_DGNSS_CL_SE_CD}
+                 , INTNET_DGNSS_SUM_SCORE        = #{INTNET_DGNSS_SUM_SCORE}
+                 , INTNET_DGNSS_FCTR_SCORE1      = #{INTNET_DGNSS_FCTR_SCORE1}
+                 , INTNET_DGNSS_FCTR_SCORE3      = #{INTNET_DGNSS_FCTR_SCORE3}
+                 , INTNET_DGNSS_FCTR_SCORE4      = #{INTNET_DGNSS_FCTR_SCORE4}
+                 , SPCLTY_PROGRM_DGSTFN_CL_SE_CD = #{SPCLTY_PROGRM_DGSTFN_CL_SE_CD}
+                 , BEFFAT_AFTFCT_SE_CD           = #{BEFFAT_AFTFCT_SE_CD}
+                 , TRL_EMT_ENVRN_SE_CD_NM        = #{TRL_EMT_ENVRN_SE_CD_NM}
+				 , ANXIET_DEPRES_SCORE           = #{ANXIET_DEPRES_SCORE}
+				 , SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE  =   #{SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE}
+				 , DEFIAN_CNDCT_SCORE            = #{DEFIAN_CNDCT_SCORE}
+				 , DELUSI_AUHA_SCORE             = #{DELUSI_AUHA_SCORE}
+				 , ADDC_SCORE                    = #{ADDC_SCORE}
+				 , SUCDE_SLFIJR_SCORE            = #{SUCDE_SLFIJR_SCORE}
+				 , HOUSEK_ENVRN_SCORE            = #{HOUSEK_ENVRN_SCORE}
+				 , FRIDA_ENVRN_SCORE             = #{FRIDA_ENVRN_SCORE}
+				 , RGN_SOCTY_ENVRN_SCORE         = #{RGN_SOCTY_ENVRN_SCORE}
+				 , SLFRL_ABILIT_SE_CD_NM         = #{SLFRL_ABILIT_SE_CD_NM}
+				 , PRTCTN_FCTR_SCORE             = #{PRTCTN_FCTR_SCORE}
+				 , DIGNIT_SCORE                  = #{DIGNIT_SCORE}
+				 , SINCER_SCORE                  = #{SINCER_SCORE}
+				 , SCHULW_EFFICA_SCORE           = #{SCHULW_EFFICA_SCORE}
+				 , COSE_INFO_EXPLR_ACTVT_SCORE   = #{COSE_INFO_EXPLR_ACTVT_SCORE}
+				 , SOCIAL_SEOFCO_SCORE           = #{SOCIAL_SEOFCO_SCORE}
+				 , PARNTS_SNDTER_REL_SCORE       = #{PARNTS_SNDTER_REL_SCORE}
+				 , ANXIET_DEPRES_RESULT_NM       = #{ANXIET_DEPRES_RESULT_NM}
+                 , SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM  =   #{SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM}
+                 , DEFIAN_CNDCT_RESULT_NM        = #{DEFIAN_CNDCT_RESULT_NM}
+                 , DELUSI_AUHA_RESULT_NM         = #{DELUSI_AUHA_RESULT_NM}
+                 , ADDC_RESULT_NM                = #{ADDC_RESULT_NM}
+                 , SUCDE_SLFIJR_RESULT_NM        = #{SUCDE_SLFIJR_RESULT_NM}
+                 , HOUSEK_ENVRN_RESULT_NM        = #{HOUSEK_ENVRN_RESULT_NM}
+                 , FRIDA_ENVRN_RESULT_NM         = #{FRIDA_ENVRN_RESULT_NM}
+                 , RGN_SOCTY_ENVRN_RESULT_NM     = #{RGN_SOCTY_ENVRN_RESULT_NM}
+                 , PRTCTN_FCTR_RESULT_NM         = #{PRTCTN_FCTR_RESULT_NM}
+                 , DIGNIT_RESULT_NM              = #{DIGNIT_RESULT_NM}
+                 , SINCER_RESULT_NM              = #{SINCER_RESULT_NM}
+                 , SCHULW_EFFICA_RESULT_NM       = #{SCHULW_EFFICA_RESULT_NM}
+                 , COSE_INFO_EXPLR_ACTVT_RESULT_NM   = #{COSE_INFO_EXPLR_ACTVT_RESULT_NM}
+                 , SOCIAL_SEOFCO_RESULT_NM       = #{SOCIAL_SEOFCO_RESULT_NM}
+                 , PARNTS_SNDTER_REL_RESULT_NM   = #{PARNTS_SNDTER_REL_RESULT_NM}
+                 , LAST_MDFR_ID                  = #{USER_ID}
+                 , LAST_MDFCN_DT                 = SYSDATE
+             WHERE CASE_MNG_NO    = #{CASE_MNG_NO}   
+               AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+               AND INDEX_SN       = #{INDEX_SN}
+        ]]>
+    </update>
+    
+    <!-- 검사/설문 삭제 -->
+    <update id="deleteAKA010" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.deleteAKA010 - 응용3팀 이승연  */
+            UPDATE AKA010
+               SET DEL_YN         = 'Y'
+                 , LAST_MDFR_ID   = #{USER_ID}
+                 , LAST_MDFCN_DT  = SYSDATE
+             WHERE CASE_MNG_NO    = #{CASE_MNG_NO}   
+               AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+               AND INDEX_SN       = #{INDEX_SN}
+        ]]>
+    </update>
+
+    <!-- 사례건강검진 조회 -->
+    <select id="selectCaseChupList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectCaseChupList - 응용3팀 이승연  */            
+            SELECT T1.CASE_MNG_NO                             AS CASE_MNG_NO                            /* 사례관리번호 */
+                 , T1.CASE_MNG_ODRNO                          AS CASE_MNG_ODRNO                         /* 사례관리차수 */
+                 , T1.CHUP_INSPTN_TRPR_YN                     AS CHUP_INSPTN_TRPR_YN                    /* 건강검진수검대상자여부 */
+                 , T1.ACTVT_SAFETY_MUAIAS_TRPR_YN             AS ACTVT_SAFETY_MUAIAS_TRPR_YN            /* 활동안전공제회대상자여부 */
+                 , T1.ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD  AS ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD /* 활동안전공제회제외대상사유구분코드 */
+              FROM AKA000 T1 /* 사례건강검진 */
+             WHERE T1.CASE_MNG_NO    =  #{CASE_MNG_NO}    /* 사례관리번호 */
+               AND T1.CASE_MNG_ODRNO =  #{CASE_MNG_ODRNO} /* 사례관리차수 */
+        ]]>
+    </select>
+
+    <!-- 건강검진조회(AKA001)   -->
+    <select id="selectChupList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectChupList - 응용3팀 이승연  */
+            SELECT T1.CASE_MNG_NO                     AS CASE_MNG_NO          /* 사례관리번호 */
+                 , T1.CASE_MNG_ODRNO                  AS CASE_MNG_ODRNO       /* 사례관리차수 */
+                 , T2.SRVC_PVSN_BGNG_YMD                      AS INSPTN_YMD           /* 수검일자 */
+                 , NVL2(T2.SRVC_PVSN_BGNG_YMD, 'Y', 'N')                       AS INSPTN_YN            /* 수검여부 */
+              FROM AKA000 T1 /* 사례건강검진 */
+                 , (SELECT A.CASE_MNG_NO, A.CASE_MNG_ODRNO, A.RESRCE_NO, MAX(B.SRVC_PVSN_BGNG_YMD) AS SRVC_PVSN_BGNG_YMD
+                    FROM SEB510 A, SEB500 B, SDA100 C
+                    WHERE 1=1
+                    AND A.SRVC_PVSN_NO = B.SRVC_PVSN_NO 
+                    AND A.RESRCE_NO = B.RESRCE_NO
+                    AND A.RESRCE_NO = C.RESRCE_NO
+                    AND C.SRVC_RESRCE_SCLAS_SE_CD = '020304' /* 건강검진수검 */
+                    AND A.DEL_YN         != 'Y'
+                    AND B.DEL_YN         != 'Y'
+                    GROUP BY A.CASE_MNG_NO, A.CASE_MNG_ODRNO, A.RESRCE_NO) T2
+             WHERE 1=1
+               AND T1.CASE_MNG_NO    =  #{CASE_MNG_NO}    /* 사례관리번호 */
+               AND T1.CASE_MNG_ODRNO =  #{CASE_MNG_ODRNO} /* 사례관리차수 */
+               AND T1.CASE_MNG_NO    =  T2.CASE_MNG_NO(+)
+               AND T1.CASE_MNG_ODRNO =  T2.CASE_MNG_ODRNO(+)
+        ]]>
+    </select>
+    
+    <!-- 활동안전공제회조회(AKA002)  -->
+    <select id="selectActvtSafetyMuaiasList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectActvtSafetyMuaiasList - 응용3팀 이승연  */
+            SELECT T1.CASE_MNG_NO                               AS CASE_MNG_NO      /* 사례관리번호 */
+                 , T1.CASE_MNG_ODRNO                            AS CASE_MNG_ODRNO   /* 사례관리차수 */
+                 , T2.INDEX_SN                                  AS INDEX_SN         /* 색인일련번호 */
+                 , TO_CHAR(T2.FRST_REG_DT,'YYYYMMDD')           AS REG_YMD          /* 등록일자 */
+                 , T2.JOIN_YN                                   AS JOIN_YN          /* 가입여부 */
+                 , T2.JOIN_YMD                                  AS JOIN_YMD         /* 가입일자 */
+              FROM AKA000 T1 /* 사례건강검진 */
+                 , AKA002 T2 /* 활동안전공제회 */
+             WHERE T1.CASE_MNG_NO    =  #{CASE_MNG_NO}    /* 사례관리번호 */
+               AND T1.CASE_MNG_ODRNO =  #{CASE_MNG_ODRNO} /* 사례관리차수 */
+               AND T1.CASE_MNG_NO    =  T2.CASE_MNG_NO
+               AND T1.CASE_MNG_ODRNO =  T2.CASE_MNG_ODRNO
+               AND T2.DEL_YN         != 'Y'               /* 삭제여부 != 'Y' */
+        ]]>
+    </select>
+    
+    <!-- 위기스크리닝 조회(AKA000)  -->
+    <select id="selectCrisisScrenn" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            SELECT /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectCrisisScrenn */
+	            CASE_MNG_NO                                /* 사례관리번호 */
+	            , CASE_MNG_ODRNO                           /* 사례관리차수 */
+	            , CHIL_ILTRT_QUSTNB_TYPE_SE_CD             /* 아동학대설문지유형구분코드 */
+	            , QUSTNB_TMPT_MNG_NO                       /* 설문지템플릿관리번호 */
+	            , QUSTNB_MNG_NO                            /* 설문지관리번호 */
+	            , SRVY_RSPNS_MNG_NO                        /* 설문응답관리번호 */
+	            , INSP_YMD                                 /* 검사일자 */
+	            , CRISIS_SCRENN_YN                         /* 위기스크리닝여부 */
+	            , CRISIS_SCRENN_CN                         /* 위기스크리닝내용 */
+	            , CLIENA_RPT_YN                            /* 내담자보고여부 */
+	            , CLIENA_RPT_CN                            /* 내담자보고내용 */
+	            , OUTHFA_FTSPT_EXPMN_YN                    /* 가정밖보호시설경험자여부 */
+	            , OUTHFA_FTSPT_EXPMN_CN                    /* 가정밖보호시설경험자내용 */
+	            , ETC_CRISIS_SITTN_SGN_YN                  /* 기타위기상황징후여부 */
+	            , ETC_CRISIS_SITTN_SGN_CN                  /* 기타위기상황징후내용 */
+	            , ATFINO                                   /* 첨부파일 */
+	            , DEL_YN                                   /* 삭제여부 */
+	            , CHIL_ILTRT_SRVY_ENFORC_YN                /* 아동학대설문실시여부 */
+	            , HPE_SRVC_EXMN_ENFORC_YN                  /* 희망서비스조사실시여부 */
+			FROM AKA000
+			WHERE CASE_MNG_NO = #{CASE_MNG_NO} 
+			  AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+	   ]]>
+    </select>
+    
+    <!-- 사례건강검진 등록 -->
+    <insert id="insertAKA000" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertAKA000 - 응용3팀 이승연  */
+            INSERT INTO AKA000
+            (
+                CASE_MNG_NO                              /* 사례관리번호 */
+              , CASE_MNG_ODRNO                           /* 사례관리차수 */
+              , CHUP_INSPTN_TRPR_YN                      /* 건강검진수검대상자여부 */
+              , ACTVT_SAFETY_MUAIAS_TRPR_YN              /* 활동안전공제회대상자여부 */
+              , ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD   /* 활동안전공제회제외대상사유구분코드 */
+              , FRST_RGTR_ID                             /* 최초등록자아이디 */
+              , FRST_REG_DT                              /* 최초등록일시 */
+              , LAST_MDFR_ID                             /* 최종수정자아이디 */
+              , LAST_MDFCN_DT                            /* 최종수정일시 */
+            )
+            VALUES
+            (
+                #{CASE_MNG_NO}
+              , #{CASE_MNG_ODRNO}
+              , NVL(#{CHUP_INSPTN_TRPR_YN},'N')
+              , NVL(#{ACTVT_SAFETY_MUAIAS_TRPR_YN},'N')
+              , #{ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD}
+              , #{USER_ID}
+              , SYSDATE
+              , #{USER_ID}
+              , SYSDATE
+            )
+        ]]>
+    </insert>
+    
+    <!-- 사례건강검진 수정 -->
+    <update id="updateAKA000" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateAKA000 - 응용3팀 이승연  */
+            UPDATE AKA000
+               SET CHUP_INSPTN_TRPR_YN                    = #{CHUP_INSPTN_TRPR_YN}                    /* 건강검진수검대상자여부 */
+                 , ACTVT_SAFETY_MUAIAS_TRPR_YN            = #{ACTVT_SAFETY_MUAIAS_TRPR_YN}            /* 활동안전공제회대상자여부 */
+                 , ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD = #{ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD} /* 활동안전공제회제외대상사유구분코드 */
+                 , LAST_MDFR_ID                           = #{USER_ID}                                /* 최종수정자아이디 */
+                 , LAST_MDFCN_DT                          = SYSDATE                                   /* 최종수정일시 */
+             WHERE CASE_MNG_NO    = #{CASE_MNG_NO}    /* 사례관리번호 */
+               AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO} /* 사례관리차수 */
+        ]]>
+    </update>
+
+    <!-- 건강검진 등록 -->
+    <insert id="insertAKA001" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertAKA001 - 응용3팀 이승연  */
+            INSERT INTO AKA001
+            (
+                CASE_MNG_NO          /* 사례관리번호 */
+              , CASE_MNG_ODRNO       /* 사례관리차수 */
+              , INDEX_SN             /* 색인일련번호 */
+              , SRVC_PVSN_NO         /* 서비스제공번호 */
+              , INSPTN_YMD           /* 수검일자 */
+              , INSPTN_YN            /* 수검여부 */
+              , CHUP_RESRCE_NO_SE_CD /* 건강검진자원번호구분코드 */              
+              , DEL_YN               /* 삭제여부 */
+              , FRST_RGTR_ID         /* 최초등록자아이디 */
+              , FRST_REG_DT          /* 최초등록일시 */
+              , LAST_MDFR_ID         /* 최종수정자아이디 */
+              , LAST_MDFCN_DT        /* 최종수정일시 */
+            )
+            VALUES
+            (
+                #{CASE_MNG_NO}
+              , #{CASE_MNG_ODRNO}
+              , AKA001_SQ01.NEXTVAL
+              , #{SRVC_PVSN_NO}
+              , #{INSPTN_YMD}
+              , NVL(#{INSPTN_YN},'Y')
+              , #{CHUP_RESRCE_NO_SE_CD}
+              , NVL(#{DEL_YN},'N')
+              , #{USER_ID}
+              , SYSDATE
+              , #{USER_ID}
+              , SYSDATE
+            )
+        ]]>
+    </insert>
+    
+    <!-- 건강검진 수정 -->
+    <update id="updateAKA001" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateAKA001 - 응용3팀 이승연  */
+            UPDATE AKA001
+               SET SRVC_PVSN_NO         = #{SRVC_PVSN_NO}         /* 서비스제공번호 */
+                 , INSPTN_YMD           = #{INSPTN_YMD}           /* 수검일자 */
+                 , INSPTN_YN            = #{INSPTN_YN}            /* 수검여부 */
+                 , CHUP_RESRCE_NO_SE_CD = #{CHUP_RESRCE_NO_SE_CD} /* 건강검진자원번호구분코드 */
+                 , LAST_MDFR_ID         = #{USER_ID}              /* 최종수정자아이디 */
+                 , LAST_MDFCN_DT        = SYSDATE                 /* 최종수정일시 */
+             WHERE CASE_MNG_NO          = #{CASE_MNG_NO}          /* 사례관리번호 */
+               AND CASE_MNG_ODRNO       = #{CASE_MNG_ODRNO}       /* 사례관리차수 */
+               AND INDEX_SN             = #{INDEX_SN}             /* 색인일련번호 */
+        ]]>
+    </update>
+    
+    <!-- 건강검진 삭제 -->
+    <update id="deleteAKA001" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.deleteAKA001 - 응용3팀 이승연  */
+            UPDATE AKA001
+               SET DEL_YN         = 'Y'
+                 , LAST_MDFR_ID   = #{USER_ID}
+                 , LAST_MDFCN_DT  = SYSDATE
+             WHERE CASE_MNG_NO    = #{CASE_MNG_NO}   
+               AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+               AND INDEX_SN       = #{INDEX_SN}
+        ]]>
+    </update>
+
+    <!-- 활동안전공제회 등록 -->
+    <insert id="insertAKA002" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.insertAKA002 - 응용3팀 이승연  */
+            INSERT INTO AKA002
+            (
+                CASE_MNG_NO      /* 사례관리번호 */
+              , CASE_MNG_ODRNO   /* 사례관리차수 */
+              , INDEX_SN         /* 색인일련번호 */
+              , JOIN_YN          /* 가입여부 */
+              , JOIN_YMD         /* 가입일자 */
+              , DEL_YN           /* 삭제여부 */
+              , FRST_RGTR_ID     /* 최초등록자아이디 */
+              , FRST_REG_DT      /* 최초등록일시 */
+              , LAST_MDFR_ID     /* 최종수정자아이디 */
+              , LAST_MDFCN_DT    /* 최종수정일시 */
+            )
+            VALUES
+            (
+                #{CASE_MNG_NO}
+              , #{CASE_MNG_ODRNO}
+              , AKA002_SQ01.NEXTVAL
+              , NVL(#{JOIN_YN},'N')
+              , #{JOIN_YMD}
+              , NVL(#{DEL_YN},'N')
+              , #{USER_ID}
+              , SYSDATE
+              , #{USER_ID}
+              , SYSDATE
+            )
+        ]]>
+    </insert>
+    
+    <!-- 활동안전공제회 수정 -->
+    <update id="updateAKA002" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateAKA002 - 응용3팀 이승연  */
+            UPDATE AKA002
+               SET JOIN_YN        = #{JOIN_YN}        /* 가입여부 */
+                 , JOIN_YMD       = #{JOIN_YMD}       /* 가입일자 */
+                 , LAST_MDFR_ID   = #{USER_ID}        /* 최종수정자아이디 */
+                 , LAST_MDFCN_DT  = SYSDATE           /* 최종수정일시 */
+             WHERE CASE_MNG_NO    = #{CASE_MNG_NO}    /* 사례관리번호 */
+               AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO} /* 사례관리차수 */
+               AND INDEX_SN       = #{INDEX_SN}       /* 색인일련번호 */
+        ]]>
+    </update>
+    
+    <!-- 활동안전공제회 삭제 -->
+    <update id="deleteAKA002" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.deleteAKA002 - 응용3팀 이승연  */
+            UPDATE AKA002
+               SET DEL_YN         = 'Y'
+                 , LAST_MDFR_ID   = #{USER_ID}
+                 , LAST_MDFCN_DT  = SYSDATE
+             WHERE CASE_MNG_NO    = #{CASE_MNG_NO}   
+               AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+               AND INDEX_SN       = #{INDEX_SN}
+        ]]>
+    </update>
+    
+    <insert id="outcomeTrmninsert" parameterType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.outcomeTrmninsert - 응용2팀 강화영  */
+        insert into AKA100
+        (
+        CASE_MNG_NO
+        , CASE_MNG_ODRNO
+        , RESULT_END_YMD
+        , SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD
+        , SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD
+        , SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN
+        , FRST_RGTR_ID
+        , FRST_REG_DT
+        ) values (
+        #{CASE_MNG_NO}
+        , #{CASE_MNG_ODRNO}
+        , #{RESULT_END_YMD}
+        , #{SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD}
+        , #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD}
+        , #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN}
+        , #{FRST_RGTR_ID}
+        , SYSDATE
+        )
+        ]]>
+    </insert>
+    
+    <update id="outcomeTrmnupdate" parameterType="HashMap">
+    <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.outcomeTrmnupdate - 응용2팀 강화영  */
+	    update AKA100 set
+	    RESULT_END_YMD = #{RESULT_END_YMD}
+	    , SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD = #{SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD}
+	    , SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD = #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD}
+	    , SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN = #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN}
+	    , LAST_MDFR_ID = #{LAST_MDFR_ID}
+	    , LAST_MDFCN_DT = SYSDATE
+	    where CASE_MNG_NO = #{CASE_MNG_NO}
+	    and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    ]]>
+    </update>
+    
+    <update id="updateSEB510" parameterType="HashMap">
+    <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateSEB510 - 응용2팀 강화영  */
+        update SEB510 set
+        SRVC_PVSN_RESULT_CN = #{SRVC_PVSN_RESULT_CN}
+        where SRVC_PVSN_NO = #{SRVC_PVSN_NO}
+        and CASE_MNG_NO = #{CASE_MNG_NO}
+        and CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+        and RESRCE_NO = #{RESRCE_NO}
+    ]]>
+    </update>
+    
+    <update id="updateAKA100" parameterType="HashMap">
+    <![CDATA[
+        /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateAKA100 - 응용2팀 강화영  */
+        MERGE INTO
+                AKA100      AA
+        USING   DUAL
+            ON
+            (
+                AA.CASE_MNG_NO      =   #{CASE_MNG_NO}
+                and AA.CASE_MNG_ODRNO      =   #{CASE_MNG_ODRNO}
+            )
+        WHEN MATCHED THEN
+            UPDATE SET
+            AA.RESULT_END_YMD = #{RESULT_END_YMD}
+	        , AA.SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD = #{SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD}
+	        , AA.SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD = #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD}
+	        , AA.SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN = #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN}
+	        , AA.LAST_MDFR_ID = #{LAST_MDFR_ID}
+	        , AA.LAST_MDFCN_DT = SYSDATE
+        WHEN NOT MATCHED THEN 
+            INSERT
+            (
+                AA.CASE_MNG_NO
+		        , AA.CASE_MNG_ODRNO
+		        , AA.RESULT_END_YMD
+		        , AA.SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD
+		        , AA.SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD
+		        , AA.SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN
+		        , AA.FRST_RGTR_ID
+		        , AA.FRST_REG_DT
+            )
+            VALUES
+            (
+                #{CASE_MNG_NO}
+		        , #{CASE_MNG_ODRNO}
+		        , #{RESULT_END_YMD}
+		        , #{SCHULW_DSCNTC_CNSDRA_TRGT_DSCSN_RESULT_SE_CD}
+		        , #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_SPRT_SE_CD}
+		        , #{SCHULW_DSCNTC_CNSDRA_TRGT_END_AFTR_DTL_CN}
+		        , #{FRST_RGTR_ID}
+		        , SYSDATE
+            )
+    ]]>
+    </update>
+    <select id="selectStgHis" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        SELECT /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectStgHis */
+        STG1_PTCPTN_STTS_SE_CD
+	    , STG2_ENTRY_WAIT_YMD
+	    , STG2_DUTR_YMD
+	    , STG2_FNSH_YMD
+	    , STG2_MDSTRM_FAILR_YMD
+	    , STG3_ENTRY_WAIT_YMD
+	    , STG3_DUTR_YMD
+	    , STG3_FNSH_YMD
+	    , STG3_MDSTRM_FAILR_YMD
+	    , STG4_ENTRY_WAIT_YMD
+	    , STG4_DUTR_YMD
+	    , STG4_FNSH_YMD
+	    , STG4_MDSTRM_FAILR_YMD
+	    , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_LCLAS_SE_CD
+	    , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_SCLAS_SE_CD
+	    , OCCP_ABILIT_STRNGT_MDSTRM_FAILR_CS_ETC_CN
+	FROM AKA100 A
+	    , (SELECT T1.CASE_MNG_NO
+	            , T1.CASE_MNG_ODRNO
+	        FROM SEB100 T1, SEA200 T2
+	        WHERE T1.TRPR_INFO_NO = T2.TRPR_INFO_NO
+        ]]>	        
+	        <if test="INDV_IDNTFC_NO != null and INDV_IDNTFC_NO != ''">
+	           <![CDATA[
+	               AND T2.INDV_IDNTFC_NO = #{INDV_IDNTFC_NO}
+	           ]]>
+	        </if>
+	        <if test="TRPR_INFO_NO != null and TRPR_INFO_NO != ''">
+               <![CDATA[
+                   AND T1.TRPR_INFO_NO = #{TRPR_INFO_NO}
+               ]]>
+            </if>
+    <![CDATA[            
+	        AND T1.CASE_TRMN_YMD = (SELECT MAX(CASE_TRMN_YMD) FROM SEB100 WHERE TRPR_INFO_NO = T1.TRPR_INFO_NO AND CASE_MNG_NO||CASE_MNG_ODRNO <> #{CASE_MNG_NO}||#{CASE_MNG_ODRNO})
+	      ) B
+	WHERE A.CASE_MNG_NO = B.CASE_MNG_NO 
+	AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+     ]]>
+    </select>
+    
+    <select id="selectCertiTrprQlfcInfo" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectCertiTrprQlfcInfo */
+            SELECT T1.TRPR_INFO_NO           /* 대상자정보번호 */
+                 , T1.INDV_IDNTFC_NO         /* 개인식별번호 */
+                 , T1.MNG_SN                 /* 관리일련번호 */
+                 , T1.OFAP_PRVATE_QLFC_SE_CD /* 공인민간자격구분코드 */
+                 , T1.CERTI_SE_CD            /* 자격증구분코드 */
+                 , T1.QLFC_GRAD_SE_CD        /* 자격등급구분코드 */
+                 , T1.QLFC_GRAD_SE_NM        /* 자격등급구분명 */
+                 , T1.CERTI_NM               /* 자격증명 */
+                 , T1.CERTI_NO               /* 자격증번호 */
+                 , T1.ACQS_YMD               /* 취득일자 */
+                 , T1.QLFC_EXPRY_YMD         /* 자격만료일자 */
+                 , T1.PBLCN_INST_NM          /* 발행기관명 */
+                 , T1.OUTC_SE_CD             /* 성과구분코드 */
+                 , T1.RM_CN                  /* 비고내용 */
+              FROM SEA260 T1 /* 대상자자격정보 */
+             WHERE T1.TRPR_INFO_NO  = #{TRPR_INFO_NO}                      /* 대상자정보번호 */
+               AND T1.CERTI_NM      = REPLACE(#{CERTI_NM},' ','')          /* 자격증명 */
+               AND T1.PBLCN_INST_NM = REPLACE(#{MAIN_ENFC_INST_NM},' ','') /* 발행기관명 */
+               AND T1.OUTC_SE_CD    = '2'                                  /* 성과구분코드(2:성과) */
+               AND T1.DEL_YN        = 'N'                                  /* 삭제여부 */
+        ]]>
+    </select>
+
+    <select id="selectTrprInfoNo" parameterType="HashMap" resultType="String">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectTrprInfoNo */
+            SELECT TRPR_INFO_NO
+			FROM SEB100
+			WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+			  AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO} 
+        ]]>
+    </select>
+    
+    <select id="selectIndvIdntfcNo" parameterType="String" resultType="String">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectIndvIdntfcNo */
+            SELECT INDV_IDNTFC_NO 
+			FROM SEA200
+			WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+        ]]>
+    </select>
+    
+    <!-- 사례 목록 조회 -->
+    <select id="selectOutcMainList" parameterType="HashMap" resultType="HashMap">
+        SELECT 
+       /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectOutcMainList */
+              T1.*
+              , ( SELECT LISTAGG(B.CMMNS_CD_VALUE_NM||'-'||C.CMMNS_CD_VALUE_NM|| DECODE(D.CMMNS_CD_VALUE_NM, '','','-'||D.CMMNS_CD_VALUE_NM), CHR(10)) WITHIN GROUP (ORDER BY B.CMMNS_CD_VALUE_NM)
+                            FROM AKA130 A, SAC100 B, SAC100 C, SAC100 D
+                            WHERE 1 = 1
+                            AND A.USE_YN = 'Y'
+                            AND A.CASE_MNG_NO = T1.CASE_MNG_NO AND A.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO AND A.UNT_TASKWK_SE_CD = T1.UNT_TASKWK_SE_CD
+                            AND A.OUTC_CN_LCLAS_SE_CD = B.CMMNS_CD_VALUE(+) AND B.CMMNS_CD_ID(+) = 'OUTC_CN_LCLAS_SE_CD'
+                            AND A.OUTC_CN_MLSFC_SE_CD = C.CMMNS_CD_VALUE(+) AND C.CMMNS_CD_ID(+) = 'OUTC_CN_MLSFC_SE_CD'
+                            AND A.OUTC_CN_SCLAS_SE_CD = D.CMMNS_CD_VALUE(+) AND D.CMMNS_CD_ID(+) = 'OUTC_CN_SCLAS_SE_CD') AS OUTC_LIST /* 성과 내용 */
+         FROM (
+                <include refid="CASE_LIST">
+                </include>
+              ) T1
+         WHERE 1 = 1
+          <![CDATA[
+           AND T1.SEQ >= #{START_IDX} AND T1.SEQ <= #{LAST_IDX}
+           ]]>
+    </select>
+    
+    <select id="selectOutcMainListCount" parameterType="HashMap" resultType="String">
+        SELECT  /* isry.itgcm.casemng.caseunity.mapper.DrmgsCaseRegMapper.selectOutcMainListCount */ count(1)
+        FROM SEB100 T1
+         , SEA200 T2
+         , SCA100 X          
+         , SEB150 Y
+        ,  SAA000 Z
+        WHERE 1=1 
+        AND T1.TRPR_INFO_NO          = T2.TRPR_INFO_NO                                                                       
+        AND Z.INST_NO        = Y.PIC_INST_NO
+        AND X.ENFSN_NO       = Y.CASE_PIC_NO
+        AND Y.PCHPRS_YN      = 'Y' 
+        AND Y.CASE_MNG_NO    = T1.CASE_MNG_NO
+        AND Y.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO 
+        <include refid="CASE_LIST_WHERE"></include>
+    </select>
+    
+    <sql id="CASE_LIST">
+       SELECT /*+ INDEX_DESC(T1 SEB100_PK)*/ T1.CASE_MNG_NO                                                     AS CASE_MNG_NO                  /* 사례관리번호 */
+             , T1.CASE_MNG_ODRNO                                                  AS CASE_MNG_ODRNO               /* 사례관리차수 */
+             , TO_CHAR(T1.FRST_REG_DT,  'YYYY-MM-DD')                             AS FRST_REG_DT                  /* 등록일자 */
+             , T2.TRPR_INFO_NO                                                    AS TRPR_INFO_NO                 /* 대상자정보번호 */
+             , C##RG.DEC_B64(T2.TRPR_NM_ENCPT)                                 AS TRPR_NM_ENCPT                /* 대상자명 */
+             , CASE WHEN REPLACE(T2.TRPR_BRTH_YMD, '-', '') = '00000000' THEN ''
+               ELSE TO_CHAR(TO_DATE(REPLACE(T2.TRPR_BRTH_YMD, '-', '')), 'YYYY-MM-DD')
+                END                                                               AS TRPR_BRTH_YMD                /* 대상자출생일자 */
+             , T2.SXDC_SE_CD                                                   AS SXDC_SE_CD                   /* 대상자성별구분코드 */
+             , T1.YNGBGS_STTS_LCLAS_SE_CD                                         AS YNGBGS_STTS_LCLAS_SE_CD      /* 청소년상태대분류구분코드 */
+             , T1.YNGBGS_STTS_SCLAS_SE_CD                                         AS YNGBGS_STTS_SCLAS_SE_CD      /* 청소년상태소분류구분코드 */
+             , T1.YNGBGS_SE_NO                                                    AS YNGBGS_SE_NO                 /* 청소년구분번호 */
+             , C##RG.DEC_B64(X.FLNM_ENCPT)                                   AS PIC_NM_ENCPT                 /* 담당자명(주담당자기준) */
+             , Y.PIC_INST_NO                                                     AS PIC_INST_NO                  /* 담당기관(주담당자기준) */
+             , Z.INST_NM                                                       AS INST_NM                      /* 담당기관명(주담당자기준) */
+             , T2.CASE_TRPR_TYPE_SE_CD                                            AS CASE_TRPR_TYPE_SE_CD         /* 사례대상자유형구분코드 */
+             , T1.CASE_PRGRS_STTS_SE_CD                                           AS CASE_PRGRS_STTS_SE_CD        /* 사례진행상태구분코드 */
+                        , (SELECT UP_CMMNS_CD_VALUE
+                 FROM SAC100
+                WHERE CMMNS_CD_ID    = 'CASE_PRGRS_STTS_SE_CD'
+                  AND CMMNS_CD_VALUE = T1.CASE_PRGRS_STTS_SE_CD)                 AS CASE_PRGRS_STTS_TYPE_SE_CD   /* 사례진행상태유형구분코드 */
+            , T1.UNT_TASKWK_SE_CD                                                AS UNT_TASKWK_SE_CD             /* 단위업무구분코드 */
+            , NVL(T4.APRV_YN, 'N')                                               AS APRV_YN                      /* 승인여부 */
+            , T4.APRV_YMD                                                        AS APRV_YMD                     /* 승인일자 */
+            , T4.APRV_PIC_NO                                                     AS APRV_PIC_NO                  /* 승인담당자번호 */
+            , T2.TRMN_CASE_MNG_NO                                                AS TRMN_CASE_MNG_NO             /* 종결사례관리번호 */
+            , T2.TRMN_CASE_MNG_ODRNO                                             AS TRMN_CASE_MNG_ODRNO          /* 종결사례관리차수 */
+            , ''                                                                 AS SEA201_MDFCN_DT              /* 수정일시(SEA201) */
+            , T1.CASE_BGNG_YMD AS CASE_BGNG_YMD
+            , T1.CASE_TRMN_YMD AS CASE_TRMN_YMD
+            , CASE WHEN T1.CASE_PRGRS_STTS_SE_CD = '01'                   THEN 'REG'   /* 등록 */
+                WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('02','03','06','12') THEN 'PRGRS' /* 진행 */
+                WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('04','08','10')      THEN 'TRMN'  /* 종결 */
+                ELSE ''
+            END                                 AS STEP_SE
+            , T2.RCPT_PIC_NO                    AS RCPT_PIC_NO
+            , Z.CTPV_CD                         AS CTPV_CD
+            , T1.ORGNL_CASE_MNG_NO              AS ORGNL_CASE_MNG_NO
+            , ROWNUM AS SEQ
+            , #{TOT_CNT} AS TOT_CNT
+        FROM SEB100 T1
+         , SEA200 T2
+         , AFA410 T4
+         , SCA100 X          
+         , SEB150 Y
+        ,  SAA000 Z
+        WHERE 1=1 
+        AND T1.TRPR_INFO_NO          = T2.TRPR_INFO_NO
+                                                                                                                                         
+        AND T1.CASE_MNG_NO           = T4.CASE_MNG_NO(+)
+        AND T1.CASE_MNG_ODRNO        = T4.CASE_MNG_ODRNO(+)
+        AND Z.INST_NO        = Y.PIC_INST_NO
+        AND X.ENFSN_NO       = Y.CASE_PIC_NO
+        AND Y.PCHPRS_YN      = 'Y' 
+        AND Y.CASE_MNG_NO    = T1.CASE_MNG_NO
+        AND Y.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO 
+        <include refid="CASE_LIST_WHERE"></include>
+    </sql>
+
+    <sql id="CASE_LIST_WHERE">
+        <choose>
+           <when test="SEARCH_GUBN == '02'">
+               <![CDATA[
+                  /* 진행일자 조회 */
+                  AND T1.CASE_BGNG_YMD <= #{END_DATE} AND NVL(T1.CASE_TRMN_YMD, T1.CASE_BGNG_YMD) >= #{START_DATE}
+                ]]>
+           </when>
+           <otherwise>
+               <![CDATA[
+                  /* 등록일자 조회 */                        
+                  AND T1.FRST_REG_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS') 
+                  AND T1.FRST_REG_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS') 
+                ]]>
+           </otherwise>
+        </choose>
+        <if test="CASE_PRGRS_STTS_TYPE_SE_CD != null and CASE_PRGRS_STTS_TYPE_SE_CD != ''">
+         <![CDATA[
+           AND T1.CASE_PRGRS_STTS_SE_CD IN (SELECT CMMNS_CD_VALUE FROM SAC100
+                                             WHERE CMMNS_CD_ID       = 'CASE_PRGRS_STTS_SE_CD'
+                                               AND UP_CMMNS_CD_VALUE = #{CASE_PRGRS_STTS_TYPE_SE_CD})
+         ]]>
+        </if>
+        <if test="CASE_PRGRS_STTS_SE_CD != null and CASE_PRGRS_STTS_SE_CD != ''">
+           AND T1.CASE_PRGRS_STTS_SE_CD = #{CASE_PRGRS_STTS_SE_CD}
+        </if>
+        <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+         <![CDATA[
+           AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+         ]]>
+        </if>
+        /* 20230220_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작*/
+        <choose>
+            <when test="INST_NOS != null and INST_NOS.size == 1">
+                <![CDATA[
+                AND EXISTS (SELECT 1 FROM SEB150 YY
+                    WHERE 1=1
+                    AND T1.CASE_MNG_NO = YY.CASE_MNG_NO 
+                    AND T1.CASE_MNG_ODRNO = YY.CASE_MNG_ODRNO
+                    AND YY.PIC_INST_NO = #{INST_NOS[0]}
+                )
+               ]]>
+            </when>
+            <otherwise>
+                <![CDATA[
+                AND EXISTS (
+                    SELECT 1 FROM SEB150 YY
+                    WHERE 1=1
+                    AND T1.CASE_MNG_NO = YY.CASE_MNG_NO 
+                    AND T1.CASE_MNG_ODRNO = YY.CASE_MNG_ODRNO 
+                    AND YY.PIC_INST_NO IN 
+                    ]]>
+                    <foreach collection="INST_NOS" item="item" open="("
+                        separator="," close=")">
+                        #{item}
+                    </foreach>
+                )
+            </otherwise>
+        </choose>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            <![CDATA[
+            AND EXISTS (SELECT 1 FROM SEB150 YY
+                WHERE 1=1
+                AND T1.CASE_MNG_NO = YY.CASE_MNG_NO 
+                AND T1.CASE_MNG_ODRNO = YY.CASE_MNG_ODRNO
+                AND YY.PIC_DSGN_YMD <= TO_CHAR(SYSDATE,'YYYYMMDD')
+                AND YY.CASE_PIC_NO = #{ENFSN_NO}
+            )
+            ]]>
+        </if>
+        /* 20230220_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+        <if test="YNGBGS_STTS_LCLAS_SE_CD != null and YNGBGS_STTS_LCLAS_SE_CD != ''">
+        <![CDATA[
+          AND T1.YNGBGS_SE_NO LIKE '%' || #{YNGBGS_STTS_LCLAS_SE_CD} || '%'
+        ]]>
+        </if>
+        <if test="YNGBGS_STTS_SCLAS_SE_CD != null and YNGBGS_STTS_SCLAS_SE_CD != ''">
+        <![CDATA[
+          AND T1.YNGBGS_STTS_SCLAS_SE_CD = #{YNGBGS_STTS_SCLAS_SE_CD}
+        ]]>
+        </if>
+        <if test="CASE_TRPR_TYPE_SE_CD != null and CASE_TRPR_TYPE_SE_CD != ''">
+        <![CDATA[
+          AND T2.CASE_TRPR_TYPE_SE_CD  = #{CASE_TRPR_TYPE_SE_CD}
+        ]]>
+        </if>
+        <if test="ENFSN_ROLE_SE_CD != null and ENFSN_ROLE_SE_CD != ''">
+          <if test='ENFSN_ROLE_SE_CD !="1" and ENFSN_ROLE_SE_CD !="2"'>
+          <![CDATA[
+          AND T2.RCPT_PIC_NO = #{USER_ID}
+          ]]>
+        </if>
+        </if>
+        <if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+        <![CDATA[
+          AND #{SRVC_EXCN_BIZ_NO} IN (SELECT SRVC_EXCN_BIZ_NO
+                                        FROM SEB120
+                                       WHERE CASE_MNG_NO     = T1.CASE_MNG_NO
+                                         AND CASE_MNG_ODRNO  = T1.CASE_MNG_ODRNO
+                                         AND DEL_YN         != 'Y')
+        ]]>
+        </if>
+        <if test="APRV_YN != null and APRV_YN != ''">
+        <![CDATA[
+          AND #{APRV_YN}  = NVL(( SELECT APRV_YN
+                                    FROM AFA410
+                                   WHERE CASE_MNG_NO    = T1.CASE_MNG_NO
+                                     AND CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+                                ),'N')
+        ]]>
+        </if>
+        <if test="PIC_NM_ENCPT != null and PIC_NM_ENCPT != ''">
+        <![CDATA[
+            AND X.FLNM_ENCPT      = C##RG.ENC_B64(#{PIC_NM_ENCPT})
+        ]]>
+        </if>
+        <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+        <![CDATA[
+            AND T2.TRPR_NM_ENCPT     = C##RG.ENC_B64(#{TRPR_NM_ENCPT})
+        ]]>
+        </if>
+        <if test="INST_NM != null and INST_NM != ''">
+        <![CDATA[
+            AND(Y.PIC_INST_NO       = #{INST_NO}
+             OR Z.INST_NM           = #{INST_NM})
+        ]]>
+        </if>         
+        <if test="JBPS_SE_CD != null and JBPS_SE_CD != ''">
+            AND X.JBPS_SE_CD = #{JBPS_SE_CD}
+        </if>
+        <if test="ORGNL_CASE_MNG_NO != null and ORGNL_CASE_MNG_NO != ''">
+            AND T1.ORGNL_CASE_MNG_NO IS NOT NULL
+        </if>
+        <if test="OUTC_CN_LCLAS_SE_CD != null and OUTC_CN_LCLAS_SE_CD != ''">
+            AND EXISTS (SELECT 1 FROM AKA130 WHERE CASE_MNG_NO = T1.CASE_MNG_NO AND CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO AND USE_YN = 'Y' AND OUTC_CN_LCLAS_SE_CD = #{OUTC_CN_LCLAS_SE_CD})
+        </if>
+        <if test="OUTC_CN_MLSFC_SE_CD != null and OUTC_CN_MLSFC_SE_CD != ''">
+            AND EXISTS (SELECT 1 FROM AKA130 WHERE CASE_MNG_NO = T1.CASE_MNG_NO AND CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO AND USE_YN = 'Y' AND OUTC_CN_MLSFC_SE_CD = #{OUTC_CN_MLSFC_SE_CD})
+        </if>
+        <if test="OUTC_CN_SCLAS_SE_CD != null and OUTC_CN_SCLAS_SE_CD != ''">
+            AND EXISTS (SELECT 1 FROM AKA130 WHERE CASE_MNG_NO = T1.CASE_MNG_NO AND CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO AND USE_YN = 'Y' AND OUTC_CN_SCLAS_SE_CD = #{OUTC_CN_SCLAS_SE_CD})
+        </if>
+        <if test="OCCP_CL_SE_CD != null and OCCP_CL_SE_CD != ''">
+            AND EXISTS (SELECT 1 FROM AKA130 WHERE CASE_MNG_NO = T1.CASE_MNG_NO AND CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO AND USE_YN = 'Y' AND OCCP_CL_SE_CD = #{OCCP_CL_SE_CD})
+        </if>
+        <choose>
+            <when test="TRPR_NOS.size == 1">
+                <![CDATA[
+                AND T1.TRPR_INFO_NO = #{TRPR_NOS[0]}
+               ]]>
+            </when>
+            <when test="TRPR_NOS.size > 1">
+                <![CDATA[
+                AND T1.TRPR_INFO_NO IN 
+                    ]]>
+                    <foreach collection="TRPR_NOS" item="item" open="("
+                        separator="," close=")">
+                        #{item}
+                    </foreach>
+            </when>
+        </choose>
+    </sql>    
+    
+    <!-- 성과월마감목록 조회-->
+    <select id="selectSec330" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+          SELECT /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectSec330 */
+            TO_CHAR(CASE WHEN T1.DDLN_APLCN_CRTR_SE_CD = '00' THEN LAST_DAY(TO_DATE(T1.DDLN_YM || T1.DDLN_APLCN_CRTR_SE_CD, 'YYYYMMDD'))
+            ELSE TO_DATE(TO_CHAR(ADD_MONTHS(to_date(T1.DDLN_YM, 'YYYYMM'), 1), 'YYYYMM') || T1.DDLN_APLCN_CRTR_SE_CD, 'YYYYMMDD') END, 'YYYYMMDD')  AS DDLN_APLCN_YMD       /* 마감적용기준구분코드*/
+            , T1.DDLN_YM
+            , T1.DDLN_APLCN_CRTR_SE_CD
+            FROM SEC330 T1    /* 사례관리마감*/
+                 WHERE 1 = 1
+                   AND (T1.UNT_TASKWK_SE_CD             = #{UNT_TASKWK_SE_CD})              /* 단위업무구분코드*/  
+                   AND T1.DDLN_YN                       = 'Y'                             /* 마감여부*/
+           ]]>        
+          <if test="INST_NO_LIST.size  != 0">
+		      AND T1.INST_NO IN 
+			  <foreach collection="INST_NO_LIST" item="instNoList" index="index" separator="," open="(" close=")">
+		       	   #{instNoList}
+	    	  </foreach>
+		  </if>
+    </select>
+    
+    <!-- 위기스크리닝 저장 및 수정 -->
+    <update id="updateCrisisScrenn" parameterType="HashMap">
+        <![CDATA[
+            /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.updateAKA000 - 응용3팀 이승연  */
+            UPDATE AKA000
+               SET CHIL_ILTRT_QUSTNB_TYPE_SE_CD = #{CHIL_ILTRT_QUSTNB_TYPE_SE_CD}   /* 아동학대설문지유형구분코드 */
+                 , QUSTNB_TMPT_MNG_NO           = #{QUSTNB_TMPT_MNG_NO}             /* 설문지템플릿관리번호 */
+                 , QUSTNB_MNG_NO                = #{QUSTNB_MNG_NO}                  /* 설문지관리번호 */
+                 , SRVY_RSPNS_MNG_NO            = #{SRVY_RSPNS_MNG_NO}              /* 설문응답관리번호 */
+                 , INSP_YMD                     = #{INSP_YMD}                       /* 검사일자 */
+                 , CRISIS_SCRENN_YN             = #{CRISIS_SCRENN_YN}               /* 위기스크리닝여부 */
+                 , CRISIS_SCRENN_CN             = #{CRISIS_SCRENN_CN}               /* 위기스크리닝내용 */
+                 , CLIENA_RPT_YN                = #{CLIENA_RPT_YN}                  /* 내담자보고여부 */
+                 , CLIENA_RPT_CN                = #{CLIENA_RPT_CN}                  /* 내담자보고내용 */
+                 , OUTHFA_FTSPT_EXPMN_YN        = #{OUTHFA_FTSPT_EXPMN_YN}          /* 가정밖보호시설경험자여부 */
+                 , OUTHFA_FTSPT_EXPMN_CN        = #{OUTHFA_FTSPT_EXPMN_CN}          /* 가정밖보호시설경험자내용 */
+                 , ETC_CRISIS_SITTN_SGN_YN      = #{ETC_CRISIS_SITTN_SGN_YN}        /* 기타위기상황징후여부 */
+                 , ETC_CRISIS_SITTN_SGN_CN      = #{ETC_CRISIS_SITTN_SGN_CN}        /* 기타위기상황징후내용 */
+                 , CHIL_ILTRT_SRVY_ENFORC_YN    = #{CHIL_ILTRT_SRVY_ENFORC_YN}      /* 아동학대설문실시여부 */
+                 , HPE_SRVC_EXMN_ENFORC_YN      = #{HPE_SRVC_EXMN_ENFORC_YN}        /* 희망서비스조사실시여부 */
+                 , ATFINO                       = #{ATFINO}                         /* 첨부파일 */
+                 , LAST_MDFR_ID                 = #{USER_ID}                        /* 최종수정자아이디 */
+                 , LAST_MDFCN_DT                = SYSDATE                           /* 최종수정일시 */
+             WHERE CASE_MNG_NO    = #{CASE_MNG_NO}    /* 사례관리번호 */
+               AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO} /* 사례관리차수 */
+        ]]>
+    </update>
+    
+    <!-- 희망서비스조사표 조회(AKA012)  -->
+    <select id="selectHpeSrvc" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            SELECT /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectHpeSrvc */
+                  CASE_MNG_NO                   /*  사례관리번호  */
+				, CASE_MNG_ODRNO                /*  사례관리차수  */
+				, EXMN_YMD                      /*  조사일자    */
+				, HPE_SRVC_DIFFIC_SE_CD_NM      /*  희망서비스어려움구분코드명   */
+				, HPE_SRVC_DIFFIC_ETC_CN        /*  희망서비스어려움기타내용    */
+				, HPE_SRVC_RANKON_GOAL_SE_CD    /*  희망서비스1순위목표구분코드  */
+				, HPE_SRVC_RANKSE_GOAL_SE_CD    /*  희망서비스2순위목표구분코드  */
+				, HPE_SRVC_RANKTH_GOAL_SE_CD    /*  희망서비스3순위목표구분코드  */
+				, HPE_SRVC_GOAL_ETC_CN          /*  희망서비스목표기타내용 */
+				, HPE_SRVC_DMD_SE_CD_NM         /*  희망서비스수요구분코드명    */
+				, HPE_SRVC_DMD_ETC_CN1          /*  희망서비스수요기타내용1    */
+				, HPE_SRVC_DMD_ETC_CN2          /*  희망서비스수요기타내용2    */
+				, HPE_SRVC_DMD_ETC_CN3          /*  희망서비스수요기타내용3    */
+				, HPE_SRVC_DMD_ETC_CN4          /*  희망서비스수요기타내용4    */
+				, HPE_SRVC_DMD_ETC_CN5          /*  희망서비스수요기타내용5    */
+            FROM AKA012
+            WHERE CASE_MNG_NO = #{CASE_MNG_NO} 
+              AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+       ]]>
+    </select>
+    
+    <update id="mergeHpeSrvc" parameterType="HashMap">
+         /* isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.mergeHpeSrvc  */
+         
+         MERGE INTO
+                AKA012      AA      /** 희망서비스조사표 **/
+        USING   DUAL
+            ON
+            (
+                AA.CASE_MNG_NO          =   #{CASE_MNG_NO}
+                AND AA.CASE_MNG_ODRNO   =   #{CASE_MNG_ODRNO}
+            )
+        WHEN MATCHED THEN
+            UPDATE SET
+                AA.EXMN_YMD                     =   #{EXMN_YMD}  /*  조사일자    */
+			,   AA.HPE_SRVC_DIFFIC_SE_CD_NM     =   #{HPE_SRVC_DIFFIC_SE_CD_NM}  /*  희망서비스어려움구분코드명   */
+			,   AA.HPE_SRVC_DIFFIC_ETC_CN       =   #{HPE_SRVC_DIFFIC_ETC_CN}    /*  희망서비스어려움기타내용    */
+			,   AA.HPE_SRVC_RANKON_GOAL_SE_CD   =   #{HPE_SRVC_RANKON_GOAL_SE_CD}    /*  희망서비스1순위목표구분코드  */
+			,   AA.HPE_SRVC_RANKSE_GOAL_SE_CD   =   #{HPE_SRVC_RANKSE_GOAL_SE_CD}    /*  희망서비스2순위목표구분코드  */
+			,   AA.HPE_SRVC_RANKTH_GOAL_SE_CD   =   #{HPE_SRVC_RANKTH_GOAL_SE_CD}    /*  희망서비스3순위목표구분코드  */
+			,   AA.HPE_SRVC_GOAL_ETC_CN         =   #{HPE_SRVC_GOAL_ETC_CN}  /*  희망서비스목표기타내용 */
+			,   AA.HPE_SRVC_DMD_SE_CD_NM        =   #{HPE_SRVC_DMD_SE_CD_NM} /*  희망서비스수요구분코드명    */
+			,   AA.HPE_SRVC_DMD_ETC_CN1         =   #{HPE_SRVC_DMD_ETC_CN1}  /*  희망서비스수요기타내용1    */
+			,   AA.HPE_SRVC_DMD_ETC_CN2         =   #{HPE_SRVC_DMD_ETC_CN2}  /*  희망서비스수요기타내용2    */
+			,   AA.HPE_SRVC_DMD_ETC_CN3         =   #{HPE_SRVC_DMD_ETC_CN3}  /*  희망서비스수요기타내용3    */
+			,   AA.HPE_SRVC_DMD_ETC_CN4         =   #{HPE_SRVC_DMD_ETC_CN4}  /*  희망서비스수요기타내용4    */
+			,   AA.HPE_SRVC_DMD_ETC_CN5         =   #{HPE_SRVC_DMD_ETC_CN5}  /*  희망서비스수요기타내용5    */
+			,   AA.LAST_MDFR_ID                 =   #{USER_ID}  /*  최종수정자아이디    */
+            ,   AA.LAST_MDFCN_DT                =   SYSDATE /*  최종수정일시  */
+        WHEN NOT MATCHED THEN 
+            INSERT
+            (
+                    AA.CASE_MNG_NO /*  사례관리번호  */
+				,   AA.CASE_MNG_ODRNO  /*  사례관리차수  */
+				,   AA.EXMN_YMD    /*  조사일자    */
+				,   AA.HPE_SRVC_DIFFIC_SE_CD_NM    /*  희망서비스어려움구분코드명   */
+				,   AA.HPE_SRVC_DIFFIC_ETC_CN  /*  희망서비스어려움기타내용    */
+				,   AA.HPE_SRVC_RANKON_GOAL_SE_CD  /*  희망서비스1순위목표구분코드  */
+				,   AA.HPE_SRVC_RANKSE_GOAL_SE_CD  /*  희망서비스2순위목표구분코드  */
+				,   AA.HPE_SRVC_RANKTH_GOAL_SE_CD  /*  희망서비스3순위목표구분코드  */
+				,   AA.HPE_SRVC_GOAL_ETC_CN    /*  희망서비스목표기타내용 */
+				,   AA.HPE_SRVC_DMD_SE_CD_NM   /*  희망서비스수요구분코드명    */
+				,   AA.HPE_SRVC_DMD_ETC_CN1    /*  희망서비스수요기타내용1    */
+				,   AA.HPE_SRVC_DMD_ETC_CN2    /*  희망서비스수요기타내용2    */
+				,   AA.HPE_SRVC_DMD_ETC_CN3    /*  희망서비스수요기타내용3    */
+				,   AA.HPE_SRVC_DMD_ETC_CN4    /*  희망서비스수요기타내용4    */
+				,   AA.HPE_SRVC_DMD_ETC_CN5    /*  희망서비스수요기타내용5    */
+				,   AA.FRST_RGTR_ID    /*  최초등록자아이디    */
+				,   AA.FRST_REG_DT /*  최초등록일시  */
+				,   AA.LAST_MDFR_ID    /*  최종수정자아이디    */
+				,   AA.LAST_MDFCN_DT   /*  최종수정일시  */
+            )
+            VALUES
+            (
+                  #{CASE_MNG_NO}
+				, #{CASE_MNG_ODRNO}
+				, #{EXMN_YMD}
+				, #{HPE_SRVC_DIFFIC_SE_CD_NM}
+				, #{HPE_SRVC_DIFFIC_ETC_CN}
+				, #{HPE_SRVC_RANKON_GOAL_SE_CD}
+				, #{HPE_SRVC_RANKSE_GOAL_SE_CD}
+				, #{HPE_SRVC_RANKTH_GOAL_SE_CD}
+				, #{HPE_SRVC_GOAL_ETC_CN}
+				, #{HPE_SRVC_DMD_SE_CD_NM}
+				, #{HPE_SRVC_DMD_ETC_CN1}
+				, #{HPE_SRVC_DMD_ETC_CN2}
+				, #{HPE_SRVC_DMD_ETC_CN3}
+				, #{HPE_SRVC_DMD_ETC_CN4}
+				, #{HPE_SRVC_DMD_ETC_CN5}
+				, #{USER_ID}
+				, SYSDATE
+				, #{USER_ID}
+				, SYSDATE
+            )
+         
+    </update>
+</mapper>

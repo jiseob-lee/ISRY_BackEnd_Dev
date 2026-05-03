@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper">
+
+    <sql id="RGN_SOCTYHNF_TRNNG_WHERE">
+        <choose>
+            <when test= 'INST_NOS != null and INST_NOS.size == 1'>
+               AND T1.PIC_INST_NO = #{INST_NOS[0]}
+            </when>
+            <otherwise>
+	            AND T1.PIC_INST_NO IN
+	            <foreach collection="INST_NOS" item="item" open="("
+	                separator="," close=")">
+	                #{item}
+	            </foreach>            
+            </otherwise>
+        </choose>
+	        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+	            /*종사자 rgnSoctyHnfTrnngGropuAuthrt*/
+	            AND T1.PIC_NO = #{ENFSN_NO}
+	        </if>  
+    
+         <!--  교육기간(교육시작일자, 교육종료일자) -->
+         <if test="EDU_BGNG_YMD != null and EDU_BGNG_YMD != '' and EDU_END_YMD != null and EDU_END_YMD != ''">
+           AND T1.EDU_BGNG_YMD BETWEEN #{EDU_BGNG_YMD} AND #{EDU_END_YMD}
+         </if>    
+         <!--  담당자명 -->
+         <if test="PIC_NO != null and PIC_NO != ''">
+           AND T1.PIC_NO = #{PIC_NO}
+         </if>
+         <!-- 담당기관명  -->    
+         <if test="PIC_INST_NO != null and PIC_INST_NO != ''">
+           AND T1.PIC_INST_NO = #{PIC_INST_NO}
+         </if>
+         <!-- 교육방식 -->    
+         <if test="SRVC_PVSN_MTHD_SE_CD != null and SRVC_PVSN_MTHD_SE_CD != ''">
+           AND T1.SRVC_PVSN_MTHD_SE_CD = #{SRVC_PVSN_MTHD_SE_CD}
+         </if>
+         <!-- 교육제목 -->    
+         <if test="EDU_TTL_NM != null and EDU_TTL_NM != ''">
+           AND T1.EDU_TTL_NM LIKE '%' || #{EDU_TTL_NM} || '%'
+         </if>    
+    </sql>
+
+
+    <!-- 지역사회 인력양성 목록 -->
+    <select id="selectRgnSoctyHnfTrnngInqList" parameterType="HashMap" resultType="HashMap">
+    /* isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.selectRgnSoctyHnfTrnngInqList(지역사회 인력양성 목록)*/
+
+        SELECT T.*
+             , (SUM_STDENT_NOPE + SUM_OSCHL_NOPE + SUM_IOCPTNL_NOPE + SUM_GNRL_NOPE) AS SUM_TOTAL  
+          FROM (
+	        SELECT #{TOT_CNT} AS TOT_CNT
+	             , ROWNUM     AS SEQ  
+	             , T11.*     
+	             , (  NVL(T11.ELESCH_STDENT_MALE_NOPE, 0) + NVL(T11.ELESCH_STDENT_FEMALE_NOPE, 0) + NVL(T11.MSKUL_STDENT_MALE_NOPE, 0) + NVL(T11.MSKUL_STDENT_FEMALE_NOPE, 0)  
+	                + NVL(T11.HGSCHL_STDENT_MALE_NOPE, 0) + NVL(T11.HGSCHL_STDENT_FEMALE_NOPE, 0) + NVL(T11.UNIVA_STDENT_MALE_NOPE, 0) + NVL(T11.UNIVA_STDENT_FEMALE_NOPE, 0)
+	               ) AS SUM_STDENT_NOPE   /* 재학생합계*/             
+	             , (  NVL(T11.ELESCH_OSCHL_MALE_NOPE, 0) + NVL(T11.ELESCH_OSCHL_FEMALE_NOPE, 0) + NVL(T11.MSKUL_OSCHL_MALE_NOPE, 0) + NVL(T11.MSKUL_OSCHL_FEMALE_NOPE, 0)  
+	                + NVL(T11.HGSCHL_OSCHL_MALE_NOPE, 0) + NVL(T11.HGSCHL_OSCHL_FEMALE_NOPE, 0) + NVL(T11.UNIVA_OSCHL_MALE_NOPE, 0) + NVL(T11.UNIVA_OSCHL_FEMALE_NOPE, 0)
+	               ) AS SUM_OSCHL_NOPE   /* 학교밖합계*/              
+	             , (  NVL(T11.AGRDHS_IOCPTN_MALE_NOPE, 0) + NVL(T11.AGRDHS_EMPYMN_MALE_NOPE, 0) + NVL(T11.AGRDHS_IOCPTN_FEMALE_NOPE, 0) + NVL(T11.AGRDHS_EMPYMN_FEMALE_NOPE, 0)  
+	               ) AS SUM_IOCPTNL_NOPE   /* 졸업생합계*/              
+	             , (  NVL(T11.ENFSN_MALE_NOPE, 0) + NVL(T11.ENFSN_FEMALE_NOPE, 0) + NVL(T11.TEACHR_MALE_NOPE, 0) + NVL(T11.TEACHR_FEMALE_NOPE, 0)  
+	                + NVL(T11.PEPL_MALE_NOPE, 0) + NVL(T11.PEPL_FEMALE_NOPE, 0)) AS SUM_GNRL_NOPE   /* 일반합계*/             
+	      FROM(
+		    SELECT
+		           T1.RGN_SOCTY_HNF_TRNNG_MNG_NO           AS           RGN_SOCTY_HNF_TRNNG_MNG_NO              /* 지역사회인력양성관리번호*/                     
+		         , T1.UNT_TASKWK_SE_CD                     AS           UNT_TASKWK_SE_CD                        /* 단위업무구분코드*/
+		         , T1.EDU_BGNG_YMD                         AS           EDU_BGNG_YMD                            /* 교육시작일자*/
+		         , T1.EDU_END_YMD                          AS           EDU_END_YMD                             /* 교육종료일자*/
+		         , T1.PIC_NO                               AS           PIC_NO                                  /* 담당자번호*/
+		         , T1.PIC_INST_NO                          AS           PIC_INST_NO                             /* 담당자기관번호*/
+		         , T1.SRVC_PVSN_MTHD_SE_CD                 AS           SRVC_PVSN_MTHD_SE_CD                    /* 서비스제공방법구분코드*/
+		         , T1.EDU_TTL_NM                           AS           EDU_TTL_NM                              /* 교육제목명*/
+		         , T1.EDU_BGNG_HR                          AS           EDU_BGNG_HR                             /* 교육시작시간*/
+		         , T1.EDU_END_HR                           AS           EDU_END_HR                              /* 교육종료시간*/
+		         , T1.EDU_CN                               AS           EDU_CN                                  /* 교육내용*/
+		         , T1.PLACE_NM                             AS           PLACE_NM                                /* 장소명*/
+		         , T1.ELESCH_STDENT_MALE_NOPE              AS           ELESCH_STDENT_MALE_NOPE                 /* 초등학교재학생남성인원수*/
+		         , T1.ELESCH_STDENT_FEMALE_NOPE            AS           ELESCH_STDENT_FEMALE_NOPE               /* 초등학교재학생여성인원수*/
+		         , T1.MSKUL_STDENT_MALE_NOPE               AS           MSKUL_STDENT_MALE_NOPE                  /* 중학교재학생남성인원수*/
+		         , T1.MSKUL_STDENT_FEMALE_NOPE             AS           MSKUL_STDENT_FEMALE_NOPE                /* 중학교재학생여성인원수*/
+		         , T1.HGSCHL_STDENT_MALE_NOPE              AS           HGSCHL_STDENT_MALE_NOPE                 /* 고등학교재학생남성인원수*/
+		         , T1.HGSCHL_STDENT_FEMALE_NOPE            AS           HGSCHL_STDENT_FEMALE_NOPE               /* 고등학교재학생여성인원수*/
+		         , T1.UNIVA_STDENT_MALE_NOPE               AS           UNIVA_STDENT_MALE_NOPE                  /* 대학재학생남성인원수*/
+		         , T1.UNIVA_STDENT_FEMALE_NOPE             AS           UNIVA_STDENT_FEMALE_NOPE                /* 대학재학생여성인원수*/
+		         , T1.ELESCH_OSCHL_MALE_NOPE               AS           ELESCH_OSCHL_MALE_NOPE                  /* 초등학교학교밖남성인원수*/
+		         , T1.ELESCH_OSCHL_FEMALE_NOPE             AS           ELESCH_OSCHL_FEMALE_NOPE                /* 초등학교학교밖여성인원수*/
+		         , T1.MSKUL_OSCHL_MALE_NOPE                AS           MSKUL_OSCHL_MALE_NOPE                   /* 중학교학교밖남성인원수*/
+		         , T1.MSKUL_OSCHL_FEMALE_NOPE              AS           MSKUL_OSCHL_FEMALE_NOPE                 /* 중학교학교밖여성인원수*/
+		         , T1.HGSCHL_OSCHL_MALE_NOPE               AS           HGSCHL_OSCHL_MALE_NOPE                  /* 고등학교학교밖남성인원수*/
+		         , T1.HGSCHL_OSCHL_FEMALE_NOPE             AS           HGSCHL_OSCHL_FEMALE_NOPE                /* 고등학교학교밖여성인원수*/
+		         , T1.UNIVA_OSCHL_MALE_NOPE                AS           UNIVA_OSCHL_MALE_NOPE                   /* 대학학교밖남성인원수*/
+		         , T1.UNIVA_OSCHL_FEMALE_NOPE              AS           UNIVA_OSCHL_FEMALE_NOPE                 /* 대학학교밖여성인원수*/
+		         , T1.AGRDHS_IOCPTN_MALE_NOPE              AS           AGRDHS_IOCPTN_MALE_NOPE                 /* 고졸후무직남성인원수*/
+		         , T1.AGRDHS_EMPYMN_MALE_NOPE              AS           AGRDHS_EMPYMN_MALE_NOPE                 /* 고졸후취업남성인원수*/
+		         , T1.AGRDHS_IOCPTN_FEMALE_NOPE            AS           AGRDHS_IOCPTN_FEMALE_NOPE               /* 고졸후무직여성인원수*/
+		         , T1.AGRDHS_EMPYMN_FEMALE_NOPE            AS           AGRDHS_EMPYMN_FEMALE_NOPE               /* 고졸후취업여성인원수*/
+		         , T1.ENFSN_MALE_NOPE                      AS           ENFSN_MALE_NOPE                         /* 종사자남성인원수*/
+		         , T1.ENFSN_FEMALE_NOPE                    AS           ENFSN_FEMALE_NOPE                       /* 종사자여성인원수*/
+		         , T1.TEACHR_MALE_NOPE                     AS           TEACHR_MALE_NOPE                        /* 교사남성인원수*/
+		         , T1.TEACHR_FEMALE_NOPE                   AS           TEACHR_FEMALE_NOPE                      /* 교사여성인원수*/
+		         , T1.PEPL_MALE_NOPE                       AS           PEPL_MALE_NOPE                          /* 일반인남성인원수*/
+		         , T1.PEPL_FEMALE_NOPE                     AS           PEPL_FEMALE_NOPE                        /* 일반인여성인원수*/
+		         , T1.EDU_RESULT_CN                        AS           EDU_RESULT_CN                           /* 교육결과내용*/
+		         , T1.ATFINO                               AS           ATFINO                                  /* 첨부파일번호*/
+		         , T1.FRST_RGTR_ID                         AS           FRST_RGTR_ID                            /* 최초등록자아이디*/
+		         , T1.FRST_REG_DT                          AS           FRST_REG_DT                             /* 최초등록일시*/
+		         , T1.LAST_MDFR_ID                         AS           LAST_MDFR_ID                            /* 최종수정자아이디*/
+		         , T1.LAST_MDFCN_DT                        AS           LAST_MDFCN_DT                           /* 최종수정일시*/
+		         , C##RG.DEC_B64(T2.FLNM_ENCPT)         AS           PIC_NM                                  /* 담당자명암호화*/
+		         , T3.INST_NM                              AS           PIC_INST_NM                             /* 담당자기관명*/
+		      FROM SED200 T1 /* 지역사회인력양성*/
+		         , SCA100 T2 /* 종사자*/
+		         , SAA000 T3 /* 통합기관*/
+	         WHERE 1 = 1
+	           AND T1.PIC_NO = T2.ENFSN_NO
+	           AND T1.PIC_INST_NO = T3.INST_NO(+)
+	           AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}    /* 단위업무구분코드*/
+	           AND T1.FRST_REG_DT BETWEEN TO_DATE((#{REG_BGNG_YMD} || '000000'), 'YYYYMMDDHH24MISS') /* 등록시작일자*/
+	                                  AND TO_DATE((#{REG_END_YMD}  || '235959'), 'YYYYMMDDHH24MISS') /* 등록종료일자*/
+	          <include refid="RGN_SOCTYHNF_TRNNG_WHERE"/> 
+		      ORDER BY RGN_SOCTY_HNF_TRNNG_MNG_NO DESC, FRST_REG_DT DESC
+	        ) T11
+	   ) T
+           WHERE 1 = 1
+           <![CDATA[
+            AND T.SEQ >= #{START_IDX} AND T.SEQ <= #{LAST_IDX}
+            ]]>	   
+    </select>
+    
+    <select id="rgnSoctyHnfTrnngInqListCount"  parameterType="HashMap" resultType="Integer">
+        SELECT /* isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.rgnSoctyHnfTrnngInqListCount(지역사회 인력양성 건수)*/ COUNT(*) CNT
+          FROM SED200 T1 /* 지역사회인력양성*/
+             , SCA100 T2 /* 종사자*/
+             , SAA000 T3 /* 통합기관*/
+         WHERE 1 = 1
+           AND T1.PIC_NO = T2.ENFSN_NO
+           AND T1.PIC_INST_NO = T3.INST_NO(+)
+           AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}    /* 단위업무구분코드*/
+           AND T1.FRST_REG_DT BETWEEN TO_DATE((#{REG_BGNG_YMD} || '000000'), 'YYYYMMDDHH24MISS') /* 등록시작일자*/
+                                  AND TO_DATE((#{REG_END_YMD}  || '235959'), 'YYYYMMDDHH24MISS') /* 등록종료일자*/
+          <include refid="RGN_SOCTYHNF_TRNNG_WHERE"/>                                
+    </select>    
+    
+    <!-- 지역사회 인력양성 상세 -->
+    <select id="selectRgnSoctyHnfTrnngDetail" parameterType="HashMap" resultType="HashMap">
+	    SELECT  /* isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.selectRgnSoctyHnfTrnngInqList(지역사회 인력양성 상세)*/ 
+	           T1.RGN_SOCTY_HNF_TRNNG_MNG_NO           AS           RGN_SOCTY_HNF_TRNNG_MNG_NO              /* 지역사회인력양성관리번호*/            
+	         , T1.UNT_TASKWK_SE_CD                     AS           UNT_TASKWK_SE_CD                        /* 단위업무구분코드*/                
+	         , T1.EDU_BGNG_YMD                         AS           EDU_BGNG_YMD                            /* 교육시작일자*/                  
+	         , T1.EDU_END_YMD                          AS           EDU_END_YMD                             /* 교육종료일자*/                  
+	         , T1.PIC_NO                               AS           PIC_NO                                  /* 담당자번호*/                   
+	         , T1.PIC_INST_NO                          AS           PIC_INST_NO                             /* 담당자기관번호*/                 
+	         , T1.SRVC_PVSN_MTHD_SE_CD                 AS           SRVC_PVSN_MTHD_SE_CD                    /* 서비스제공방법구분코드*/             
+	         , T1.EDU_TTL_NM                           AS           EDU_TTL_NM                              /* 교육제목명*/                   
+	         , T1.EDU_BGNG_HR                          AS           EDU_BGNG_HR                             /* 교육시작시간*/                  
+	         , T1.EDU_END_HR                           AS           EDU_END_HR                              /* 교육종료시간*/                  
+	         , T1.EDU_CN                               AS           EDU_CN                                  /* 교육내용*/
+             , T1.PLACE_NM                             AS           PLACE_NM                                /* 장소명*/	                             
+	         , T1.ELESCH_STDENT_MALE_NOPE              AS           ELESCH_STDENT_MALE_NOPE                 /* 초등학교재학생남성인원수*/
+	         , T1.ELESCH_STDENT_FEMALE_NOPE            AS           ELESCH_STDENT_FEMALE_NOPE               /* 초등학교재학생여성인원수*/
+	         , T1.MSKUL_STDENT_MALE_NOPE               AS           MSKUL_STDENT_MALE_NOPE                  /* 중학교재학생남성인원수*/ 
+	         , T1.MSKUL_STDENT_FEMALE_NOPE             AS           MSKUL_STDENT_FEMALE_NOPE                /* 중학교재학생여성인원수*/ 
+	         , T1.HGSCHL_STDENT_MALE_NOPE              AS           HGSCHL_STDENT_MALE_NOPE                 /* 고등학교재학생남성인원수*/
+	         , T1.HGSCHL_STDENT_FEMALE_NOPE            AS           HGSCHL_STDENT_FEMALE_NOPE               /* 고등학교재학생여성인원수*/
+	         , T1.UNIVA_STDENT_MALE_NOPE               AS           UNIVA_STDENT_MALE_NOPE                  /* 대학재학생남성인원수*/  
+	         , T1.UNIVA_STDENT_FEMALE_NOPE             AS           UNIVA_STDENT_FEMALE_NOPE                /* 대학재학생여성인원수*/  
+	         , T1.ELESCH_OSCHL_MALE_NOPE               AS           ELESCH_OSCHL_MALE_NOPE                  /* 초등학교학교밖남성인원수*/     
+	         , T1.ELESCH_OSCHL_FEMALE_NOPE             AS           ELESCH_OSCHL_FEMALE_NOPE                /* 초등학교학교밖여성인원수*/     
+	         , T1.MSKUL_OSCHL_MALE_NOPE                AS           MSKUL_OSCHL_MALE_NOPE                   /* 중학교학교밖남성인원수*/      
+	         , T1.MSKUL_OSCHL_FEMALE_NOPE              AS           MSKUL_OSCHL_FEMALE_NOPE                 /* 중학교학교밖여성인원수*/      
+	         , T1.HGSCHL_OSCHL_MALE_NOPE               AS           HGSCHL_OSCHL_MALE_NOPE                  /* 고등학교학교밖남성인원수*/     
+	         , T1.HGSCHL_OSCHL_FEMALE_NOPE             AS           HGSCHL_OSCHL_FEMALE_NOPE                /* 고등학교학교밖여성인원수*/     
+	         , T1.UNIVA_OSCHL_MALE_NOPE                AS           UNIVA_OSCHL_MALE_NOPE                   /* 대학학교밖남성인원수*/       
+	         , T1.UNIVA_OSCHL_FEMALE_NOPE              AS           UNIVA_OSCHL_FEMALE_NOPE                 /* 대학학교밖여성인원수*/       
+	         , T1.AGRDHS_IOCPTN_MALE_NOPE              AS           AGRDHS_IOCPTN_MALE_NOPE                 /* 고졸후무직남성인원수*/   
+	         , T1.AGRDHS_EMPYMN_MALE_NOPE              AS           AGRDHS_EMPYMN_MALE_NOPE                 /* 고졸후취업남성인원수*/   
+	         , T1.AGRDHS_IOCPTN_FEMALE_NOPE            AS           AGRDHS_IOCPTN_FEMALE_NOPE               /* 고졸후무직여성인원수*/   
+	         , T1.AGRDHS_EMPYMN_FEMALE_NOPE            AS           AGRDHS_EMPYMN_FEMALE_NOPE               /* 고졸후취업여성인원수*/   
+	         , T1.ENFSN_MALE_NOPE                      AS           ENFSN_MALE_NOPE                         /* 종사자남성인원수*/      
+	         , T1.ENFSN_FEMALE_NOPE                    AS           ENFSN_FEMALE_NOPE                       /* 종사자여성인원수*/      
+	         , T1.TEACHR_MALE_NOPE                     AS           TEACHR_MALE_NOPE                        /* 교사남성인원수*/       
+	         , T1.TEACHR_FEMALE_NOPE                   AS           TEACHR_FEMALE_NOPE                      /* 교사여성인원수*/       
+	         , T1.PEPL_MALE_NOPE                       AS           PEPL_MALE_NOPE                          /* 일반인남성인원수*/      
+	         , T1.PEPL_FEMALE_NOPE                     AS           PEPL_FEMALE_NOPE                        /* 일반인여성인원수*/      
+	         , T1.EDU_RESULT_CN                        AS           EDU_RESULT_CN                           /* 교육결과내용*/
+	         , T1.ATFINO                               AS           ATFINO                                  /* 첨부파일번호*/
+	         , T1.FRST_RGTR_ID                         AS           FRST_RGTR_ID                            /* 최초등록자아이디*/
+	         , T1.FRST_REG_DT                          AS           FRST_REG_DT                             /* 최초등록일시*/
+	         , T1.LAST_MDFR_ID                         AS           LAST_MDFR_ID                            /* 최종수정자아이디
+	         , T1.LAST_MDFCN_DT                        AS           LAST_MDFCN_DT                           /* 최종수정일시*/
+             , C##RG.DEC_B64(T2.FLNM_ENCPT)         AS           PIC_NM                                  /* 담당자명암호화*/
+             , T3.INST_NM                              AS           PIC_INST_NM                             /* 담당자기관명*/
+          FROM SED200 T1 /* 지역사회인력양성*/
+             , SCA100 T2 /* 종사자*/
+             , SAA000 T3 /* 통합기관*/
+         WHERE 1 = 1
+           AND T1.PIC_NO = T2.ENFSN_NO
+           AND T1.PIC_INST_NO = T3.INST_NO(+)
+	       AND RGN_SOCTY_HNF_TRNNG_MNG_NO = #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+         <!-- 단위업무구분 -->    
+         <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+           AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}    /* 단위업무구분코드*/
+         </if>	       
+    </select>
+        
+    <!-- 지역사회 인력양성 서비스사업 -->
+    <select id="selectRgnSoctyHnfTrnngSrvcBiz" parameterType="HashMap" resultType="HashMap">
+		SELECT   /* isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.selectRgnSoctyHnfTrnngSrvcBiz(지역사회 인력양성 서비스사업)*/
+		      T1.RGN_SOCTY_HNF_TRNNG_MNG_NO
+		    , T1.SRVC_EXCN_BIZ_NO
+		    , T2.SRVC_EXCN_BIZ_NM
+		    , T2.EXCN_BIZ_CL_SE_CD
+		    , T2.BIZ_BGNG_YMD
+		    , T2.BIZ_END_YMD
+		    , T2.SRVC_EXCN_BIZ_NO     AS      ORI_SRVC_EXCN_BIZ_NO
+		    , T3.BIZ_YR
+		    , T3.SRVC_BIZ_NM
+		    , T3.BIZ_CL_SE_CD
+		    , T1.DEL_YN
+		    , T1.FRST_RGTR_ID
+		    , T1.FRST_REG_DT
+		    , T1.LAST_MDFR_ID
+		    , T1.LAST_MDFCN_DT
+		  FROM SED210 T1
+		     , SDA420 T2
+		     , SDA400 T3
+		 WHERE 1 = 1
+		   AND T1.RGN_SOCTY_HNF_TRNNG_MNG_NO = #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+		   AND T1.DEL_YN = 'N'
+		   AND T1.SRVC_EXCN_BIZ_NO = T2.SRVC_EXCN_BIZ_NO
+		   AND T2.SRVC_BIZ_NO      = T3.SRVC_BIZ_NO
+    </select>
+    
+    <!-- 지역사회 인력양성 서비스사업 중복체크 -->
+    <select id="getSrvcExcnBizCnt" parameterType="HashMap" resultType="Integer">
+        /* 지역사회 인력양성 서비스사업 중복체크(SED210)*/
+        SELECT COUNT(*) AS EXCN_BIZ_CNT
+          FROM SED210 
+         WHERE 1 = 1
+           AND RGN_SOCTY_HNF_TRNNG_MNG_NO = #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND SRVC_EXCN_BIZ_NO           = #{SRVC_EXCN_BIZ_NO}
+    </select>    
+    
+    <!-- 지역사회 인력양성 실행서비스세부사업 -->
+    <select id="selectRgnSoctyHnfTrnngExcnSrvcDetaiaBiz" parameterType="HashMap" resultType="HashMap">
+        SELECT   /* isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.selectRgnSoctyHnfTrnngExcnSrvcDetaiaBiz(지역사회 인력양성 실행서비스세부사업)*/
+               T1.RGN_SOCTY_HNF_TRNNG_MNG_NO
+		     , T1.EXCN_SRVC_BIZ_CL_NO
+		     , T1.EXCN_SRVC_DETAIA_BIZ_NO
+		     , T2.SRVC_BIZ_NM
+		     , T2.BIZ_CL_SE_CD
+		     , T2.BIZ_YR
+		     , T3.EXCN_SRVC_DETAIA_BIZ_NM
+		     , T3.BGT_EXCN_AMT
+		     , T3.BIZ_BGNG_YMD
+		     , T3.BIZ_END_YMD
+		     , T3.EXCN_SRVC_DETAIA_BIZ_CL_SE_CD
+		     , T1.DEL_YN
+		     , T1.FRST_RGTR_ID
+		     , T1.FRST_REG_DT
+		     , T1.LAST_MDFR_ID
+		     , T1.LAST_MDFCN_DT
+          FROM SED220 T1
+             , SDA430 T2
+             , SDA440 T3  
+         WHERE 1 = 1
+           AND T1.RGN_SOCTY_HNF_TRNNG_MNG_NO = #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND T1.DEL_YN = 'N'                
+           AND T1.EXCN_SRVC_BIZ_CL_NO     = T2.EXCN_SRVC_BIZ_CL_NO
+           AND T1.EXCN_SRVC_DETAIA_BIZ_NO = T3.EXCN_SRVC_DETAIA_BIZ_NO(+)
+    </select>  
+    
+    <!-- 지역사회 인력양성 세부서비스사업 중복체크 -->
+    <select id="getExcnSrvcDetaiaBizCnt" parameterType="HashMap" resultType="Integer">
+        /* 지역사회 인력양성 서비스사업 중복체크(SED220)*/
+        SELECT COUNT(*) AS EXCN_BIZ_CNT
+          FROM SED220 
+         WHERE 1 = 1
+           AND RGN_SOCTY_HNF_TRNNG_MNG_NO    = #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND EXCN_SRVC_BIZ_CL_NO           = #{EXCN_SRVC_BIZ_CL_NO}
+           AND EXCN_SRVC_DETAIA_BIZ_NO       = #{EXCN_SRVC_DETAIA_BIZ_NO}
+    </select>     
+
+    <!-- 지역사회 인력양성 등록 -->
+    <insert id="insertSED200Data" parameterType="HashMap">
+		INSERT /* YOO.CHI.HOON isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.insertSED200Data(지역사회 인력양성 등록)*/
+		  INTO SED200
+		     ( RGN_SOCTY_HNF_TRNNG_MNG_NO
+		     , UNT_TASKWK_SE_CD
+		     , EDU_BGNG_YMD
+		     , EDU_END_YMD
+		     , PIC_NO
+		     , PIC_INST_NO
+		     , SRVC_PVSN_MTHD_SE_CD
+		     , EDU_TTL_NM
+		     , EDU_BGNG_HR
+		     , EDU_END_HR
+		     , EDU_CN
+		     , ELESCH_STDENT_MALE_NOPE
+		     , ELESCH_STDENT_FEMALE_NOPE
+		     , MSKUL_STDENT_MALE_NOPE
+		     , MSKUL_STDENT_FEMALE_NOPE
+		     , HGSCHL_STDENT_MALE_NOPE
+		     , HGSCHL_STDENT_FEMALE_NOPE
+		     , UNIVA_STDENT_MALE_NOPE
+		     , UNIVA_STDENT_FEMALE_NOPE
+		     , ELESCH_OSCHL_MALE_NOPE
+		     , ELESCH_OSCHL_FEMALE_NOPE
+		     , MSKUL_OSCHL_MALE_NOPE
+		     , MSKUL_OSCHL_FEMALE_NOPE
+		     , HGSCHL_OSCHL_MALE_NOPE
+		     , HGSCHL_OSCHL_FEMALE_NOPE
+		     , UNIVA_OSCHL_MALE_NOPE
+		     , UNIVA_OSCHL_FEMALE_NOPE
+		     , AGRDHS_IOCPTN_MALE_NOPE
+		     , AGRDHS_EMPYMN_MALE_NOPE
+		     , AGRDHS_IOCPTN_FEMALE_NOPE
+		     , AGRDHS_EMPYMN_FEMALE_NOPE
+		     , ENFSN_MALE_NOPE
+		     , ENFSN_FEMALE_NOPE
+		     , TEACHR_MALE_NOPE
+		     , TEACHR_FEMALE_NOPE
+		     , PEPL_MALE_NOPE
+		     , PEPL_FEMALE_NOPE
+		     , EDU_RESULT_CN
+		     , PLACE_NM
+		     , ATFINO
+		     , FRST_RGTR_ID
+		     , FRST_REG_DT
+		     , LAST_MDFR_ID
+		     , LAST_MDFCN_DT
+		     )
+		VALUES
+		     ( #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+		     , #{UNT_TASKWK_SE_CD}
+		     , #{EDU_BGNG_YMD}
+		     , #{EDU_END_YMD}
+		     , #{PIC_NO}
+		     , #{PIC_INST_NO}
+		     , #{SRVC_PVSN_MTHD_SE_CD}
+		     , #{EDU_TTL_NM}
+		     , #{EDU_BGNG_HR}
+		     , #{EDU_END_HR}
+		     , #{EDU_CN}
+		     , #{ELESCH_STDENT_MALE_NOPE}
+		     , #{ELESCH_STDENT_FEMALE_NOPE}
+		     , #{MSKUL_STDENT_MALE_NOPE}
+		     , #{MSKUL_STDENT_FEMALE_NOPE}
+		     , #{HGSCHL_STDENT_MALE_NOPE}
+		     , #{HGSCHL_STDENT_FEMALE_NOPE}
+		     , #{UNIVA_STDENT_MALE_NOPE}
+		     , #{UNIVA_STDENT_FEMALE_NOPE}
+		     , #{ELESCH_OSCHL_MALE_NOPE}
+		     , #{ELESCH_OSCHL_FEMALE_NOPE}
+		     , #{MSKUL_OSCHL_MALE_NOPE}
+		     , #{MSKUL_OSCHL_FEMALE_NOPE}
+		     , #{HGSCHL_OSCHL_MALE_NOPE}
+		     , #{HGSCHL_OSCHL_FEMALE_NOPE}
+		     , #{UNIVA_OSCHL_MALE_NOPE}
+		     , #{UNIVA_OSCHL_FEMALE_NOPE}
+		     , #{AGRDHS_IOCPTN_MALE_NOPE}
+		     , #{AGRDHS_EMPYMN_MALE_NOPE}
+		     , #{AGRDHS_IOCPTN_FEMALE_NOPE}
+		     , #{AGRDHS_EMPYMN_FEMALE_NOPE}
+		     , #{ENFSN_MALE_NOPE}
+		     , #{ENFSN_FEMALE_NOPE}
+		     , #{TEACHR_MALE_NOPE}
+		     , #{TEACHR_FEMALE_NOPE}
+		     , #{PEPL_MALE_NOPE}
+		     , #{PEPL_FEMALE_NOPE}
+		     , #{EDU_RESULT_CN}
+		     , #{PLACE_NM}
+		     , #{ATFINO}
+		     , #{USER_ID}
+		     , SYSDATE
+		     , #{USER_ID}
+		     , SYSDATE
+		     )
+    </insert>
+    
+    <!-- 지역사회 인력양성 이력 등록 -->
+    <insert id="insertSED200History" parameterType="HashMap">
+		INSERT /* YOO.CHI.HOON isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.insertSED200History(지역사회 인력양성 이력등록)*/
+		  INTO SED201
+		    ( RGN_SOCTY_HNF_TRNNG_MNG_NO
+		    , MDFCN_DT
+		    , DATAA_CHG_SE_CD
+		    , UNT_TASKWK_SE_CD
+		    , EDU_BGNG_YMD
+		    , EDU_END_YMD
+		    , PIC_NO
+		    , PIC_INST_NO
+		    , SRVC_PVSN_MTHD_SE_CD
+		    , EDU_TTL_NM
+		    , EDU_BGNG_HR
+		    , EDU_END_HR
+		    , EDU_CN
+		    , ELESCH_STDENT_MALE_NOPE
+		    , ELESCH_STDENT_FEMALE_NOPE
+		    , MSKUL_STDENT_MALE_NOPE
+		    , MSKUL_STDENT_FEMALE_NOPE
+		    , HGSCHL_STDENT_MALE_NOPE
+		    , HGSCHL_STDENT_FEMALE_NOPE
+		    , UNIVA_STDENT_MALE_NOPE
+		    , UNIVA_STDENT_FEMALE_NOPE
+		    , ELESCH_OSCHL_MALE_NOPE
+		    , ELESCH_OSCHL_FEMALE_NOPE
+		    , MSKUL_OSCHL_MALE_NOPE
+		    , MSKUL_OSCHL_FEMALE_NOPE
+		    , HGSCHL_OSCHL_MALE_NOPE
+		    , HGSCHL_OSCHL_FEMALE_NOPE
+		    , UNIVA_OSCHL_MALE_NOPE
+		    , UNIVA_OSCHL_FEMALE_NOPE
+		    , AGRDHS_IOCPTN_MALE_NOPE
+		    , AGRDHS_EMPYMN_MALE_NOPE
+		    , AGRDHS_IOCPTN_FEMALE_NOPE
+		    , AGRDHS_EMPYMN_FEMALE_NOPE
+		    , ENFSN_MALE_NOPE
+		    , ENFSN_FEMALE_NOPE
+		    , TEACHR_MALE_NOPE
+		    , TEACHR_FEMALE_NOPE
+		    , PEPL_MALE_NOPE
+		    , PEPL_FEMALE_NOPE
+		    , EDU_RESULT_CN
+		    , PLACE_NM
+		    , ATFINO
+		    , FRST_RGTR_ID
+		    , FRST_REG_DT
+		    , LAST_MDFR_ID
+		    , LAST_MDFCN_DT
+		     )
+		VALUES
+		    ( #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+		    , SYSDATE
+		    , #{DATAA_CHG_SE_CD}
+		    , #{UNT_TASKWK_SE_CD}
+		    , #{EDU_BGNG_YMD}
+		    , #{EDU_END_YMD}
+		    , #{PIC_NO}
+		    , #{PIC_INST_NO}
+		    , #{SRVC_PVSN_MTHD_SE_CD}
+		    , #{EDU_TTL_NM}
+		    , #{EDU_BGNG_HR}
+		    , #{EDU_END_HR}
+		    , #{EDU_CN}
+		    , #{ELESCH_STDENT_MALE_NOPE}
+		    , #{ELESCH_STDENT_FEMALE_NOPE}
+		    , #{MSKUL_STDENT_MALE_NOPE}
+		    , #{MSKUL_STDENT_FEMALE_NOPE}
+		    , #{HGSCHL_STDENT_MALE_NOPE}
+		    , #{HGSCHL_STDENT_FEMALE_NOPE}
+		    , #{UNIVA_STDENT_MALE_NOPE}
+		    , #{UNIVA_STDENT_FEMALE_NOPE}
+		    , #{ELESCH_OSCHL_MALE_NOPE}
+		    , #{ELESCH_OSCHL_FEMALE_NOPE}
+		    , #{MSKUL_OSCHL_MALE_NOPE}
+		    , #{MSKUL_OSCHL_FEMALE_NOPE}
+		    , #{HGSCHL_OSCHL_MALE_NOPE}
+		    , #{HGSCHL_OSCHL_FEMALE_NOPE}
+		    , #{UNIVA_OSCHL_MALE_NOPE}
+		    , #{UNIVA_OSCHL_FEMALE_NOPE}
+		    , #{AGRDHS_IOCPTN_MALE_NOPE}
+		    , #{AGRDHS_EMPYMN_MALE_NOPE}
+		    , #{AGRDHS_IOCPTN_FEMALE_NOPE}
+		    , #{AGRDHS_EMPYMN_FEMALE_NOPE}
+		    , #{ENFSN_MALE_NOPE}
+		    , #{ENFSN_FEMALE_NOPE}
+		    , #{TEACHR_MALE_NOPE}
+		    , #{TEACHR_FEMALE_NOPE}
+		    , #{PEPL_MALE_NOPE}
+		    , #{PEPL_FEMALE_NOPE}
+		    , #{EDU_RESULT_CN}
+		    , #{PLACE_NM}
+		    , #{ATFINO}
+		    , #{USER_ID}
+		    , SYSDATE
+		    , #{USER_ID}
+		    , SYSDATE
+		    )    
+    </insert>
+    
+    <!-- 지역사회 인력양성 이력 수정 -->    
+    <update id="updateSED200Data" parameterType="HashMap">
+        UPDATE /* YOO.CHI.HOON isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.updateSED200Data(지역사회 인력양성 수정)*/ 
+           SED200 T1
+           SET 
+               T1.EDU_BGNG_YMD                         =          #{EDU_BGNG_YMD}
+             , T1.EDU_END_YMD                          =          #{EDU_END_YMD}
+             , T1.PIC_NO                               =          #{PIC_NO}
+             , T1.PIC_INST_NO                          =          #{PIC_INST_NO}
+             , T1.SRVC_PVSN_MTHD_SE_CD                 =          #{SRVC_PVSN_MTHD_SE_CD}
+             , T1.EDU_TTL_NM                           =          #{EDU_TTL_NM}
+             , T1.EDU_BGNG_HR                          =          #{EDU_BGNG_HR}
+             , T1.EDU_END_HR                           =          #{EDU_END_HR}
+             , T1.EDU_CN                               =          #{EDU_CN}
+             , T1.ELESCH_STDENT_MALE_NOPE              =          #{ELESCH_STDENT_MALE_NOPE}
+             , T1.ELESCH_STDENT_FEMALE_NOPE            =          #{ELESCH_STDENT_FEMALE_NOPE}
+             , T1.MSKUL_STDENT_MALE_NOPE               =          #{MSKUL_STDENT_MALE_NOPE}
+             , T1.MSKUL_STDENT_FEMALE_NOPE             =          #{MSKUL_STDENT_FEMALE_NOPE}
+             , T1.HGSCHL_STDENT_MALE_NOPE              =          #{HGSCHL_STDENT_MALE_NOPE}
+             , T1.HGSCHL_STDENT_FEMALE_NOPE            =          #{HGSCHL_STDENT_FEMALE_NOPE}
+             , T1.UNIVA_STDENT_MALE_NOPE               =          #{UNIVA_STDENT_MALE_NOPE}
+             , T1.UNIVA_STDENT_FEMALE_NOPE             =          #{UNIVA_STDENT_FEMALE_NOPE}
+             , T1.ELESCH_OSCHL_MALE_NOPE               =          #{ELESCH_OSCHL_MALE_NOPE}
+             , T1.ELESCH_OSCHL_FEMALE_NOPE             =          #{ELESCH_OSCHL_FEMALE_NOPE}
+             , T1.MSKUL_OSCHL_MALE_NOPE                =          #{MSKUL_OSCHL_MALE_NOPE}
+             , T1.MSKUL_OSCHL_FEMALE_NOPE              =          #{MSKUL_OSCHL_FEMALE_NOPE}
+             , T1.HGSCHL_OSCHL_MALE_NOPE               =          #{HGSCHL_OSCHL_MALE_NOPE}
+             , T1.HGSCHL_OSCHL_FEMALE_NOPE             =          #{HGSCHL_OSCHL_FEMALE_NOPE}
+             , T1.UNIVA_OSCHL_MALE_NOPE                =          #{UNIVA_OSCHL_MALE_NOPE}
+             , T1.UNIVA_OSCHL_FEMALE_NOPE              =          #{UNIVA_OSCHL_FEMALE_NOPE}
+             , T1.AGRDHS_IOCPTN_MALE_NOPE              =          #{AGRDHS_IOCPTN_MALE_NOPE}
+             , T1.AGRDHS_EMPYMN_MALE_NOPE              =          #{AGRDHS_EMPYMN_MALE_NOPE}
+             , T1.AGRDHS_IOCPTN_FEMALE_NOPE            =          #{AGRDHS_IOCPTN_FEMALE_NOPE}
+             , T1.AGRDHS_EMPYMN_FEMALE_NOPE            =          #{AGRDHS_EMPYMN_FEMALE_NOPE}
+             , T1.ENFSN_MALE_NOPE                      =          #{ENFSN_MALE_NOPE}
+             , T1.ENFSN_FEMALE_NOPE                    =          #{ENFSN_FEMALE_NOPE}
+             , T1.TEACHR_MALE_NOPE                     =          #{TEACHR_MALE_NOPE}
+             , T1.TEACHR_FEMALE_NOPE                   =          #{TEACHR_FEMALE_NOPE}
+             , T1.PEPL_MALE_NOPE                       =          #{PEPL_MALE_NOPE}
+             , T1.PEPL_FEMALE_NOPE                     =          #{PEPL_FEMALE_NOPE}
+             , T1.EDU_RESULT_CN                        =          #{EDU_RESULT_CN}
+             , T1.PLACE_NM                             =          #{PLACE_NM}
+             , T1.ATFINO                               =          #{ATFINO}
+             , T1.LAST_MDFR_ID                         =          #{LAST_MDFR_ID}
+             , T1.LAST_MDFCN_DT                        =          SYSDATE
+         WHERE T1.RGN_SOCTY_HNF_TRNNG_MNG_NO           =          #{RGN_SOCTY_HNF_TRNNG_MNG_NO}   
+           AND T1.UNT_TASKWK_SE_CD                     =          #{UNT_TASKWK_SE_CD}
+    </update>
+    <!-- 지역사회 인력양성 서비스사업 등록 -->
+    <insert id="insertSED210Data" parameterType="HashMap">
+        INSERT /* YOO.CHI.HOON isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.insertSED210Data(지역사회 인력양성 서비스사업 등록)*/
+          INTO SED210
+            ( RGN_SOCTY_HNF_TRNNG_MNG_NO
+			, SRVC_EXCN_BIZ_NO
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT
+             )
+        VALUES
+            ( #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+            , #{SRVC_EXCN_BIZ_NO}
+            , NVL(#{DEL_YN}, 'N')
+            , #{USER_ID}
+            , SYSDATE
+            , #{USER_ID}
+            , SYSDATE
+            )    
+    </insert>
+    
+   <!-- 지역사회 인력양성 서비스사업 수정 -->    
+    <update id="updateSED210Data" parameterType="HashMap">
+        UPDATE SED210
+           SET SRVC_EXCN_BIZ_NO                     =          #{SRVC_EXCN_BIZ_NO}
+             , DEL_YN                               =          NVL(#{DEL_YN}, 'N')
+             , LAST_MDFR_ID                         =          #{USER_ID}
+             , LAST_MDFCN_DT                        =          SYSDATE
+         WHERE RGN_SOCTY_HNF_TRNNG_MNG_NO           =          #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND SRVC_EXCN_BIZ_NO                     =          #{SRVC_EXCN_BIZ_NO}   
+    </update>
+        
+   <!-- 지역사회 인력양성 서비스사업 삭제 -->    
+    <update id="deleteSED210Data" parameterType="HashMap">
+        UPDATE SED210
+           SET 
+               DEL_YN                               =          'Y'
+             , LAST_MDFR_ID                         =          #{USER_ID}
+             , LAST_MDFCN_DT                        =          SYSDATE
+         WHERE RGN_SOCTY_HNF_TRNNG_MNG_NO           =          #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND SRVC_EXCN_BIZ_NO                     =          #{SRVC_EXCN_BIZ_NO}   
+    </update>
+    
+   <!-- 지역사회 인력양성 서비스사업 기등록 서비스사업 사용 -->    
+    <update id="updateSrvcExcnBizYn" parameterType="HashMap">
+        UPDATE SED210
+           SET DEL_YN                               =          NVL(#{DEL_YN}, 'N')
+             , LAST_MDFR_ID                         =          #{USER_ID}
+             , LAST_MDFCN_DT                        =          SYSDATE
+         WHERE RGN_SOCTY_HNF_TRNNG_MNG_NO           =          #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND SRVC_EXCN_BIZ_NO                     =          #{SRVC_EXCN_BIZ_NO}   
+    </update>    
+    
+    <!-- 지역사회 인력양성 실행서비스세부사업 등록 -->
+    <insert id="insertSED220Data" parameterType="HashMap">
+        INSERT /* YOO.CHI.HOON isry.itgcm.casemng.uneart.mapper.RgnSoctyHnfTrnngMapper.insertSED220Data(지역사회 인력양성 실행서비스세부사업 등록)*/
+          INTO SED220
+            ( RGN_SOCTY_HNF_TRNNG_MNG_NO
+            , EXCN_SRVC_BIZ_CL_NO
+            , EXCN_SRVC_DETAIA_BIZ_NO
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT
+             )
+        VALUES
+            ( #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+            , #{EXCN_SRVC_BIZ_CL_NO}
+            , #{EXCN_SRVC_DETAIA_BIZ_NO}
+            , NVL(#{DEL_YN}, 'N')
+            , #{USER_ID}
+            , SYSDATE
+            , #{USER_ID}
+            , SYSDATE
+            )    
+    </insert> 
+
+   <!-- 지역사회 인력양성 실행서비스세부사업 수정 -->    
+    <update id="updateSED220Data" parameterType="HashMap">
+        UPDATE SED220
+           SET EXCN_SRVC_BIZ_CL_NO                  =          #{EXCN_SRVC_BIZ_CL_NO}
+             , DEL_YN                               =          NVL(#{DEL_YN}, 'N')
+             , LAST_MDFR_ID                         =          #{USER_ID}
+             , LAST_MDFCN_DT                        =          SYSDATE
+         WHERE RGN_SOCTY_HNF_TRNNG_MNG_NO           =          #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND EXCN_SRVC_BIZ_CL_NO                  =          #{EXCN_SRVC_BIZ_CL_NO}   
+           AND EXCN_SRVC_DETAIA_BIZ_NO              =          #{EXCN_SRVC_DETAIA_BIZ_NO}   
+    </update>    
+           
+   <!-- 지역사회 인력양성 실행서비스세부사업 삭제 -->    
+    <update id="deleteSED220Data" parameterType="HashMap">
+        UPDATE SED220
+           SET 
+               DEL_YN                               =          'Y'
+             , LAST_MDFR_ID                         =          #{USER_ID}
+             , LAST_MDFCN_DT                        =          SYSDATE
+         WHERE RGN_SOCTY_HNF_TRNNG_MNG_NO           =          #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND EXCN_SRVC_BIZ_CL_NO                  =          #{EXCN_SRVC_BIZ_CL_NO} 
+           AND EXCN_SRVC_DETAIA_BIZ_NO              =          #{EXCN_SRVC_DETAIA_BIZ_NO} 
+    </update>    
+
+   <!-- 지역사회 인력양성 실행서비스세부사업 수정 -->    
+    <update id="updateExcnSrvcDetaiaBizYn" parameterType="HashMap">
+        UPDATE SED220
+           SET 
+               DEL_YN                               =          NVL(#{DEL_YN}, 'N')
+             , LAST_MDFR_ID                         =          #{USER_ID}
+             , LAST_MDFCN_DT                        =          SYSDATE
+         WHERE RGN_SOCTY_HNF_TRNNG_MNG_NO           =          #{RGN_SOCTY_HNF_TRNNG_MNG_NO}
+           AND EXCN_SRVC_BIZ_CL_NO                  =          #{EXCN_SRVC_BIZ_CL_NO} 
+           AND EXCN_SRVC_DETAIA_BIZ_NO              =          #{EXCN_SRVC_DETAIA_BIZ_NO} 
+    </update>    
+
+
+</mapper>

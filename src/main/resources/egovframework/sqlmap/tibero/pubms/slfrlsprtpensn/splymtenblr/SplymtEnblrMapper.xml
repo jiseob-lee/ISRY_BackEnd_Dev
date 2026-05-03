@@ -1,0 +1,1582 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubms.slfrlsprtpensn.splymtenblr.mapper.SplymtEnblrMapper">
+
+    <select id="selectSplymtEnblrMtchngListCount" parameterType="HashMap" resultType="int">    
+        SELECT
+            COUNT(*) AS TOT_CNT
+        FROM
+        (
+            /* selectSplymtEnblrMtchngListCount - BaekGyuHa */            
+            WITH BASE_TBL AS (
+          SELECT ROW_NUMBER() OVER (PARTITION BY A.RECIPI_MNG_NO
+                             ORDER BY A.PENSN_GIVE_STTS_OCRN_YMD DESC, A.TASKWK_OCRN_SQNCE DESC) AS RNO
+               , A.*
+               , B.TRPR_INFO_NO
+            FROM AEB131 A
+               , AEB130 B
+           WHERE A.DEL_YN        = 'N'
+             AND A.RECIPI_MNG_NO = B.RECIPI_MNG_NO
+        )
+        , LAST_TBL AS (
+          SELECT RECIPI_MNG_NO
+               , CASE WHEN PENSN_GIVE_STTS_SE_CD IN ('03','05','06') THEN 'N' ELSE 'Y' END AS NOW_PENSN_GIVE_YN
+            FROM BASE_TBL
+           WHERE RNO = 1
+        )
+        , FIRST_TBL AS (
+          SELECT *
+            FROM (
+                   SELECT ROW_NUMBER() OVER (PARTITION BY A.RECIPI_MNG_NO ORDER BY RNO DESC) AS RRNO
+                        , A.*
+                     FROM BASE_TBL A
+                    WHERE A.PENSN_GIVE_STTS_SE_CD = '01'
+                 )
+           WHERE RRNO = 1
+        )
+        , MATCH_TBL AS (
+          SELECT A.NOW_PENSN_GIVE_YN
+               , B.*
+           FROM LAST_TBL  A
+              , FIRST_TBL B
+          WHERE A.RECIPI_MNG_NO = B.RECIPI_MNG_NO
+        )
+        <if test="GROUP_AUTHRT_SE_CD gt 300">
+        , INST_TBL AS (
+          SELECT INST_NO
+            FROM SAA000
+           WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+           START WITH INST_NO IN
+               (
+                 SELECT INST_NO
+                   FROM SAB230
+                  WHERE USER_ID = #{USER_ID2}
+                 UNION
+                 SELECT INST_NO
+                   FROM SAA000
+                  WHERE 1=1
+                    AND UNT_TASKWK_SE_CD = 'U04'
+                    AND RGN_CD IN
+                        (
+                          SELECT B.RGN_CD
+                            FROM SAB230 A
+                               , SAA000 B
+                           WHERE A.USER_ID          = #{USER_ID2}
+                             AND A.INST_NO          = B.INST_NO
+                             AND B.UNT_TASKWK_SE_CD = 'U05'
+                        )
+               )
+         CONNECT BY UP_INST_NO = PRIOR INST_NO
+        )
+        , AUTHDATA_TBL AS (
+          SELECT DISTINCT
+                 A.TRPR_INFO_NO
+               , B.PIC_INST_NO
+               , C.LASTA_LVNG_SHELTR_NO
+               , C.MTCHNG_PIC_INST_NO
+            FROM SEB100 A
+               , SEB150 B
+               , AEB132 C
+           WHERE A.CASE_MNG_NO      = B.CASE_MNG_NO
+             AND A.CASE_MNG_ODRNO   = B.CASE_MNG_ODRNO
+             AND A.UNT_TASKWK_SE_CD = 'U04'
+             AND A.TRPR_INFO_NO     = C.TRPR_INFO_NO
+        )
+        , AUTH_TBL AS (
+          SELECT TRPR_INFO_NO
+            FROM AUTHDATA_TBL
+           WHERE 1 = 1
+             AND PIC_INST_NO IN
+                 (
+                   SELECT INST_NO FROM INST_TBL
+                 )
+          UNION
+          SELECT TRPR_INFO_NO
+            FROM AUTHDATA_TBL
+           WHERE 1 = 1
+             AND LASTA_LVNG_SHELTR_NO IN
+                 (
+                   SELECT INST_NO FROM INST_TBL
+                 )
+          UNION
+          SELECT TRPR_INFO_NO
+            FROM AUTHDATA_TBL
+           WHERE 1 = 1
+             AND MTCHNG_PIC_INST_NO IN
+                 (
+                   SELECT INST_NO FROM INST_TBL
+                 )
+        )
+        </if>
+        SELECT Z.*
+          FROM (
+            SELECT *
+              FROM (
+                /* selectSplymtEnblrMtchngList - BaekGyuHa */
+                     SELECT ROWNUM AS SEQ
+                          , ENBLR_MNG_NO
+                          , RRNO_ENCPT
+                          , RRNO
+                          , BRTH_YMD
+                          , SXDC_SE_CD
+                          , TRPR_NM_ENCPT
+                          , TRPR_NM
+                          , TRPR_INFO_NO
+                          , INDV_IDNTFC_NO
+                          , LASTA_LVNG_SHELTR_NO
+                          , LASTA_LVNG_SHELTR_NM
+                          , LASTA_LVNG_YMD
+                          , ISRY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT
+                          , ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN
+                          , ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN_NM
+                          , UNITY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT
+                          , UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN
+                          , UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN_NM
+                          , RECIPI_MNG_NO
+                          , RECIPI_MTCHNG_YN
+                          , RECIPI_MTCHNG_YN_NM
+                          , MTCHNG_PIC_ENFSN_NO
+                          , MTCHNG_PIC_ENFSN_NM
+                          , MTCHNG_PIC_ENFSN_NM_ENCPT
+                          , MTCHNG_PIC_INST_NO
+                          , MTCHNG_PIC_INST_NM
+                          , MTCHNG_PIC_TELNO
+                          , MTCHNG_YMD
+                          , TRPR_BRTH_YMD
+                          , PENSN_GIVE_STTS_SE_CD
+                          , RCMDTN_SHELTR_NO
+                          , RCMDTN_YMD
+                          , RCMDTN_SHELTR_NM
+                          , NOW_PENSN_GIVE_YN
+                          , NOW_PENSN_GIVE_YN_NM
+                          , PENSN_GIVE_STTS_OCRN_YMD
+                          , PENSN_GIVE_STTS_BGNG_YM
+                          , MM_PENSN_GIVE_AMT
+                          , PENSN_GIVE_CHG_LCGOV_NO
+                          , PENSN_GIVE_CHG_LCGOV_NM
+                          , TASKWK_OCRN_SQNCE
+                       FROM (
+                              SELECT A.ENBLR_MNG_NO
+                                   , D.RRNO_ENCPT
+                                   , REPLACE(C##RG.DEC_B64(D.RRNO_ENCPT), '-', '') AS RRNO
+                                   , D.BRTH_YMD
+                                   , D.SXDC_SE_CD
+                                   , C.TRPR_NM_ENCPT
+                                   , C##RG.DEC_B64(C.TRPR_NM_ENCPT) AS TRPR_NM
+                                   , A.TRPR_INFO_NO
+                                   , C.INDV_IDNTFC_NO
+                                   , A.LASTA_LVNG_SHELTR_NO
+                                   , A.LASTA_LVNG_SHELTR_NM
+                                   , REPLACE(A.LASTA_LVNG_YMD, '-', '') AS LASTA_LVNG_YMD
+                                   , A.ISRY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT
+                                   , A.ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN
+                                   , CASE WHEN A.ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN = 'Y' THEN '예' ELSE '아니오' END ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN_NM
+                                   , A.UNITY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT
+                                   , A.UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN
+                                   , CASE WHEN A.UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN = 'Y' THEN '예' ELSE '아니오' END UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN_NM
+                                   , A.RECIPI_MNG_NO
+                                   , CASE WHEN A.RECIPI_MNG_NO IS NOT NULL THEN 'Y' ELSE 'N' END RECIPI_MTCHNG_YN
+                                   , CASE WHEN A.RECIPI_MNG_NO IS NOT NULL THEN '예' ELSE '아니오' END RECIPI_MTCHNG_YN_NM
+                                   , A.MTCHNG_PIC_ENFSN_NO
+                                   , (SELECT C##RG.DEC_B64(F.FLNM_ENCPT) FROM SCA100 F /* 종사자 */ WHERE F.ENFSN_NO = A.MTCHNG_PIC_ENFSN_NO) AS MTCHNG_PIC_ENFSN_NM
+                                   , (SELECT F.FLNM_ENCPT FROM SCA100 F /* 종사자 */ WHERE F.ENFSN_NO = A.MTCHNG_PIC_ENFSN_NO) AS MTCHNG_PIC_ENFSN_NM_ENCPT
+                                   , A.MTCHNG_PIC_INST_NO
+                                   , (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = A.MTCHNG_PIC_INST_NO) AS MTCHNG_PIC_INST_NM
+                                   , REPLACE(A.MTCHNG_PIC_TELNO, '-', '') AS MTCHNG_PIC_TELNO
+                                   , A.MTCHNG_YMD
+                                   , C.TRPR_BRTH_YMD
+                                   , B.PENSN_GIVE_STTS_SE_CD
+                                   , B.RCMDTN_SHELTR_NO
+                                   , REPLACE(B.RCMDTN_YMD, '-', '') AS RCMDTN_YMD
+                                   , (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = B.RCMDTN_SHELTR_NO) AS RCMDTN_SHELTR_NM
+                                   , B.NOW_PENSN_GIVE_YN
+                                   , CASE
+                                         WHEN B.NOW_PENSN_GIVE_YN IS NULL THEN ''
+                                         WHEN (B.PENSN_GIVE_STTS_SE_CD = '03' OR B.PENSN_GIVE_STTS_SE_CD = '05' OR B.PENSN_GIVE_STTS_SE_CD = '06') THEN '아니오'
+                                         ELSE '예'
+                                     END NOW_PENSN_GIVE_YN_NM
+                                   , B.PENSN_GIVE_STTS_OCRN_YMD
+                                   , B.PENSN_GIVE_STTS_BGNG_YM
+                                   , B.MM_PENSN_GIVE_AMT
+                                   , B.PENSN_GIVE_CHG_LCGOV_NO
+                                   , (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = B.PENSN_GIVE_CHG_LCGOV_NO) AS PENSN_GIVE_CHG_LCGOV_NM
+                                   , B.TASKWK_OCRN_SQNCE
+                                FROM AEB132    A /* 자립지원수당수급가능자 */
+                                   , MATCH_TBL B /* 자립지원수당상태 */
+                                   , SEA200    C /* 대상자정보 */
+                                   , SCA300    D /* 개인정보 */
+                                   <if test="GROUP_AUTHRT_SE_CD gt 300">
+                                   , AUTH_TBL  E
+                                   </if>
+                               WHERE A.RECIPI_MNG_NO  = B.RECIPI_MNG_NO(+)
+                                 AND A.TRPR_INFO_NO   = C.TRPR_INFO_NO
+                                 AND C.INDV_IDNTFC_NO = D.INDV_IDNTFC_NO(+)
+                                 AND NOT EXISTS ( SELECT 1 FROM AEB130 WHERE TRPR_INFO_NO = A.TRPR_INFO_NO )
+                                 <if test="GROUP_AUTHRT_SE_CD gt 300">
+                                 AND A.TRPR_INFO_NO   = E.TRPR_INFO_NO
+                                 </if>
+                            )
+                      WHERE 1=1
+                      <include refid="SPLYMTENBLR_LIST_WHERE"></include>
+                   )
+               ) Z
+        )
+    </select>
+
+    <select id="selectSplymtEnblrMtchngList" parameterType="HashMap" resultType="HashMap">
+        WITH BASE_TBL AS (
+          SELECT ROW_NUMBER() OVER (PARTITION BY A.RECIPI_MNG_NO
+                             ORDER BY A.PENSN_GIVE_STTS_OCRN_YMD DESC, A.TASKWK_OCRN_SQNCE DESC) AS RNO
+               , A.*
+               , B.TRPR_INFO_NO
+            FROM AEB131 A
+               , AEB130 B
+           WHERE A.DEL_YN        = 'N'
+             AND A.RECIPI_MNG_NO = B.RECIPI_MNG_NO
+        )
+        , LAST_TBL AS (
+          SELECT RECIPI_MNG_NO
+               , CASE WHEN PENSN_GIVE_STTS_SE_CD IN ('03','05','06') THEN 'N' ELSE 'Y' END AS NOW_PENSN_GIVE_YN
+            FROM BASE_TBL
+           WHERE RNO = 1
+        )
+        , FIRST_TBL AS (
+          SELECT *
+            FROM (
+                   SELECT ROW_NUMBER() OVER (PARTITION BY A.RECIPI_MNG_NO ORDER BY RNO DESC) AS RRNO
+                        , A.*
+                     FROM BASE_TBL A
+                    WHERE A.PENSN_GIVE_STTS_SE_CD = '01'
+                 )
+           WHERE RRNO = 1
+        )
+        , MATCH_TBL AS (
+          SELECT A.NOW_PENSN_GIVE_YN
+               , B.*
+           FROM LAST_TBL  A
+              , FIRST_TBL B
+          WHERE A.RECIPI_MNG_NO = B.RECIPI_MNG_NO
+        )
+        <if test="GROUP_AUTHRT_SE_CD gt 300">
+        , INST_TBL AS (
+          SELECT INST_NO
+            FROM SAA000
+           WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+           START WITH INST_NO IN
+               (
+                 SELECT INST_NO
+                   FROM SAB230
+                  WHERE USER_ID = #{USER_ID2}
+                 UNION
+                 SELECT INST_NO
+                   FROM SAA000
+                  WHERE 1=1
+                    AND UNT_TASKWK_SE_CD = 'U04'
+                    AND RGN_CD IN
+                        (
+                          SELECT B.RGN_CD
+                            FROM SAB230 A
+                               , SAA000 B
+                           WHERE A.USER_ID          = #{USER_ID2}
+                             AND A.INST_NO          = B.INST_NO
+                             AND B.UNT_TASKWK_SE_CD = 'U05'
+                        )
+               )
+         CONNECT BY UP_INST_NO = PRIOR INST_NO
+        )
+        , AUTHDATA_TBL AS (
+          SELECT DISTINCT
+                 A.TRPR_INFO_NO
+               , B.PIC_INST_NO
+               , C.LASTA_LVNG_SHELTR_NO
+               , C.MTCHNG_PIC_INST_NO
+            FROM SEB100 A
+               , SEB150 B
+               , AEB132 C
+           WHERE A.CASE_MNG_NO      = B.CASE_MNG_NO
+             AND A.CASE_MNG_ODRNO   = B.CASE_MNG_ODRNO
+             AND A.UNT_TASKWK_SE_CD = 'U04'
+             AND A.TRPR_INFO_NO     = C.TRPR_INFO_NO
+        )
+        , AUTH_TBL AS (
+          SELECT TRPR_INFO_NO
+            FROM AUTHDATA_TBL
+           WHERE 1 = 1
+             AND PIC_INST_NO IN
+                 (
+                   SELECT INST_NO FROM INST_TBL
+                 )
+          UNION
+          SELECT TRPR_INFO_NO
+            FROM AUTHDATA_TBL
+           WHERE 1 = 1
+             AND LASTA_LVNG_SHELTR_NO IN
+                 (
+                   SELECT INST_NO FROM INST_TBL
+                 )
+          UNION
+          SELECT TRPR_INFO_NO
+            FROM AUTHDATA_TBL
+           WHERE 1 = 1
+             AND MTCHNG_PIC_INST_NO IN
+                 (
+                   SELECT INST_NO FROM INST_TBL
+                 )
+        )
+        </if>
+        SELECT Z.*
+          FROM (
+            SELECT *
+              FROM (
+                /* selectSplymtEnblrMtchngList - BaekGyuHa */
+                     SELECT ROWNUM AS SEQ
+                          , ENBLR_MNG_NO
+                          , RRNO_ENCPT
+                          , RRNO
+                          , BRTH_YMD
+                          , SXDC_SE_CD
+                          , TRPR_NM_ENCPT
+                          , TRPR_NM
+                          , TRPR_INFO_NO
+                          , INDV_IDNTFC_NO
+                          , LASTA_LVNG_SHELTR_NO
+                          , LASTA_LVNG_SHELTR_NM
+                          , LASTA_LVNG_YMD
+                          , ISRY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT
+                          , ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN
+                          , ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN_NM
+                          , UNITY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT
+                          , UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN
+                          , UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN_NM
+                          , RECIPI_MNG_NO
+                          , RECIPI_MTCHNG_YN
+                          , RECIPI_MTCHNG_YN_NM
+                          , MTCHNG_PIC_ENFSN_NO
+                          , MTCHNG_PIC_ENFSN_NM
+                          , MTCHNG_PIC_ENFSN_NM_ENCPT
+                          , MTCHNG_PIC_INST_NO
+                          , MTCHNG_PIC_INST_NM
+                          , MTCHNG_PIC_TELNO
+                          , MTCHNG_YMD
+                          , TRPR_BRTH_YMD
+                          , PENSN_GIVE_STTS_SE_CD
+                          , RCMDTN_SHELTR_NO
+                          , RCMDTN_YMD
+                          , RCMDTN_SHELTR_NM
+                          , NOW_PENSN_GIVE_YN
+                          , NOW_PENSN_GIVE_YN_NM
+                          , PENSN_GIVE_STTS_OCRN_YMD
+                          , PENSN_GIVE_STTS_BGNG_YM
+                          , MM_PENSN_GIVE_AMT
+                          , PENSN_GIVE_CHG_LCGOV_NO
+                          , PENSN_GIVE_CHG_LCGOV_NM
+                          , TASKWK_OCRN_SQNCE
+                          , MBL_TELNO_ENCPT
+						  , MBL_TELNO
+						  , TRPR_TELNO
+						  , EML_ADDR_ENCPT
+						  , EML_ADDR
+						  , SNS_SE_CD
+						  , MSNGR_ID_ENCPT
+						  , MSNGR_ID
+						  , ADDR
+                       FROM (
+                              SELECT A.ENBLR_MNG_NO
+                                   , D.RRNO_ENCPT
+                                   , REPLACE(C##RG.DEC_B64(D.RRNO_ENCPT), '-', '') AS RRNO
+                                   , D.BRTH_YMD
+                                   , D.SXDC_SE_CD
+                                   , C.TRPR_NM_ENCPT
+                                   , C##RG.DEC_B64(C.TRPR_NM_ENCPT) AS TRPR_NM
+                                   , A.TRPR_INFO_NO
+                                   , C.INDV_IDNTFC_NO
+                                   , A.LASTA_LVNG_SHELTR_NO
+                                   , A.LASTA_LVNG_SHELTR_NM
+                                   , REPLACE(A.LASTA_LVNG_YMD, '-', '') AS LASTA_LVNG_YMD
+                                   , A.ISRY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT
+                                   , A.ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN
+                                   , CASE WHEN A.ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN = 'Y' THEN '예' ELSE '아니오' END ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN_NM
+                                   , A.UNITY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT
+                                   , A.UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN
+                                   , CASE WHEN A.UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN = 'Y' THEN '예' ELSE '아니오' END UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN_NM
+                                   , A.RECIPI_MNG_NO
+                                   , CASE WHEN A.RECIPI_MNG_NO IS NOT NULL THEN 'Y' ELSE 'N' END RECIPI_MTCHNG_YN
+                                   , CASE WHEN A.RECIPI_MNG_NO IS NOT NULL THEN '예' ELSE '아니오' END RECIPI_MTCHNG_YN_NM
+                                   , A.MTCHNG_PIC_ENFSN_NO
+                                   , (SELECT C##RG.DEC_B64(F.FLNM_ENCPT) FROM SCA100 F /* 종사자 */ WHERE F.ENFSN_NO = A.MTCHNG_PIC_ENFSN_NO) AS MTCHNG_PIC_ENFSN_NM
+                                   , (SELECT F.FLNM_ENCPT FROM SCA100 F /* 종사자 */ WHERE F.ENFSN_NO = A.MTCHNG_PIC_ENFSN_NO) AS MTCHNG_PIC_ENFSN_NM_ENCPT
+                                   , A.MTCHNG_PIC_INST_NO
+                                   , (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = A.MTCHNG_PIC_INST_NO) AS MTCHNG_PIC_INST_NM
+                                   , REPLACE(A.MTCHNG_PIC_TELNO, '-', '') AS MTCHNG_PIC_TELNO
+                                   , A.MTCHNG_YMD
+                                   , C.TRPR_BRTH_YMD
+                                   , B.PENSN_GIVE_STTS_SE_CD
+                                   , B.RCMDTN_SHELTR_NO
+                                   , REPLACE(B.RCMDTN_YMD, '-', '') AS RCMDTN_YMD
+                                   , (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = B.RCMDTN_SHELTR_NO) AS RCMDTN_SHELTR_NM
+                                   , B.NOW_PENSN_GIVE_YN
+                                   , CASE
+                                         WHEN B.NOW_PENSN_GIVE_YN IS NULL THEN ''
+                                         WHEN (B.PENSN_GIVE_STTS_SE_CD = '03' OR B.PENSN_GIVE_STTS_SE_CD = '05' OR B.PENSN_GIVE_STTS_SE_CD = '06') THEN '아니오'
+                                         ELSE '예'
+                                     END NOW_PENSN_GIVE_YN_NM
+                                   , B.PENSN_GIVE_STTS_OCRN_YMD
+                                   , B.PENSN_GIVE_STTS_BGNG_YM
+                                   , B.MM_PENSN_GIVE_AMT
+                                   , B.PENSN_GIVE_CHG_LCGOV_NO
+                                   , (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = B.PENSN_GIVE_CHG_LCGOV_NO) AS PENSN_GIVE_CHG_LCGOV_NM
+                                   , B.TASKWK_OCRN_SQNCE
+                                   , C.MBL_TELNO_ENCPT
+								   , REPLACE(C##RG.DEC_B64(C.MBL_TELNO_ENCPT), '-', '') AS MBL_TELNO
+								   , REPLACE(C##RG.DEC_B64(C.TRPR_TELNO), '-', '') AS TRPR_TELNO
+								   , C.EML_ADDR_ENCPT
+								   , C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR
+								   , C.SNS_SE_CD
+								   , C.MSNGR_ID_ENCPT
+								   , C##RG.DEC_B64(C.MSNGR_ID_ENCPT) AS MSNGR_ID
+								   , CASE
+                                        WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NOT NULL THEN C.PST_ADDR || ' ' || C.DADDR
+									    WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NULL THEN C.PST_ADDR
+									ELSE ''
+									END ADDR
+                                FROM AEB132    A /* 자립지원수당수급가능자 */
+                                   , MATCH_TBL B /* 자립지원수당상태 */
+                                   , SEA200    C /* 대상자정보 */
+                                   , SCA300    D /* 개인정보 */
+                                   <if test="GROUP_AUTHRT_SE_CD gt 300">
+                                   , AUTH_TBL  E
+                                   </if>
+                               WHERE A.RECIPI_MNG_NO  = B.RECIPI_MNG_NO(+)
+                                 AND A.TRPR_INFO_NO   = C.TRPR_INFO_NO
+                                 AND C.INDV_IDNTFC_NO = D.INDV_IDNTFC_NO(+)
+                                 AND NOT EXISTS ( SELECT 1 FROM AEB130 WHERE TRPR_INFO_NO = A.TRPR_INFO_NO )
+                                 <if test="GROUP_AUTHRT_SE_CD gt 300">
+                                 AND A.TRPR_INFO_NO   = E.TRPR_INFO_NO
+                                 </if>
+                            )
+                      WHERE 1=1
+                      <include refid="SPLYMTENBLR_LIST_WHERE"></include>
+                   )
+               ) Z
+         WHERE SEQ <![CDATA[>=]]> #{START_IDX} AND SEQ <![CDATA[<=]]> #{LAST_IDX}
+    </select>
+    
+    <select id="selectSplymtEnblrDtlListCount" parameterType="HashMap" resultType="int">
+        /* selectSplymtEnblrDtlListCount - BaekGyuHa */
+		SELECT
+		  COUNT(*) AS TOT_CNT
+        FROM
+        (   
+            SELECT 
+                F.INST_NO        /* 쉼터번호 */
+                 , F.INST_NM        /* 쉼터명 */
+                 , (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'FCLTY_TYPE_SE_CD' AND CMMNS_CD_VALUE = I.FCLTY_TYPE_SE_CD) AS FCLTY_TYPE_NM   /* 쉼터유형 */
+                 , B.CASE_BGNG_YMD  /* 입소일자 */
+                 , B.CASE_TRMN_YMD  /* 퇴소일자 */
+                 , NVL(TO_DATE(B.CASE_TRMN_YMD) - TO_DATE(B.CASE_BGNG_YMD) + 1,0) AS IN_DAY  /* 입소기간 */
+                 , C##RG.DEC_B64(L.FLNM_ENCPT) AS FLNM_NM  /* 담당자 */
+                 , L.WRD_TELNO                                /* 담당자연락처 */
+            FROM SEB100 B                                                                            /* 사례기본 테이블 */
+               LEFT JOIN SEB150 C                                                                  /* 사례담당자 */
+                 ON B.CASE_MNG_NO    = C.CASE_MNG_NO
+                AND B.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+                AND C.PCHPRS_YN      = 'Y'                 /* 주담당자여부 */
+               INNER JOIN SAA000 F                                                                 /* 통합기관 - 쉼터명을 가지기 위한 번호 */
+                  ON C.PIC_INST_NO   = F.INST_NO
+               LEFT JOIN AKA500 I                                                                  /* 센터현황 */
+                 ON C.PIC_INST_NO    = I.INST_NO
+               LEFT JOIN AEA100 K                                                                  /* 쉼터사례정보  only 입소*/
+                 ON B.CASE_MNG_NO    = K.CASE_MNG_NO
+                AND B.CASE_MNG_ODRNO = K.CASE_MNG_ODRNO
+               LEFT JOIN SCA100 L                                                                  /* 쉼터사례정보  only 입소*/
+                 ON C.CASE_PIC_NO    = L.ENFSN_NO
+            WHERE B.TRPR_INFO_NO IN (
+                                   SELECT TRPR_INFO_NO
+                                     FROM SEA200
+                                    WHERE UNT_TASKWK_SE_CD = 'U04'
+                                      AND INDV_IDNTFC_NO IN (
+                                                              SELECT INDV_IDNTFC_NO
+                                                                FROM SEA200
+                                                               WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+                                                            )
+                                   UNION
+                                   SELECT TRPR_INFO_NO
+                                     FROM SEA200
+                                    WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+                                 )
+            AND B.CASE_PRGRS_STTS_SE_CD IN ('04', '06', '07', '08', '09', '10', '11')  /* 종결,사후관리,사례(사후)관리종결,재가입 (07/09/11-코드없음) */
+            AND B.UNT_TASKWK_SE_CD  = 'U04'
+            AND K.SHELTR_TRPR_SE_CD = '1'               /* 입소*/
+            ORDER BY B.CASE_BGNG_YMD
+        )
+    </select>
+    
+    <select id="selectSplymtEnblrDtlList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        SELECT
+            Z.*
+        FROM
+        (   
+            /* selectSplymtEnblrDtlList (청소년안전망시스템 입소 내역) - BaekGyuHa */
+			SELECT 
+			    F.INST_NO        /* 쉼터번호 */
+			     , F.INST_NM        /* 쉼터명 */
+			     , (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'FCLTY_TYPE_SE_CD' AND CMMNS_CD_VALUE = I.FCLTY_TYPE_SE_CD) AS FCLTY_TYPE_NM   /* 쉼터유형 */
+			     , B.CASE_BGNG_YMD  /* 입소일자 */
+			     , B.CASE_TRMN_YMD  /* 퇴소일자 */
+			     , NVL(TO_DATE(B.CASE_TRMN_YMD) - TO_DATE(B.CASE_BGNG_YMD) + 1,0) AS IN_DAY  /* 입소기간 */
+			     , C##RG.DEC_B64(L.FLNM_ENCPT) AS FLNM_NM  /* 담당자 */
+			     , L.WRD_TELNO                                /* 담당자연락처 */
+			FROM SEB100 B                                                                            /* 사례기본 테이블 */
+			   LEFT JOIN SEB150 C                                                                  /* 사례담당자 */
+			     ON B.CASE_MNG_NO    = C.CASE_MNG_NO
+			    AND B.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+			    AND C.PCHPRS_YN      = 'Y'                 /* 주담당자여부 */
+			   INNER JOIN SAA000 F                                                                 /* 통합기관 - 쉼터명을 가지기 위한 번호 */
+			      ON C.PIC_INST_NO   = F.INST_NO
+			   LEFT JOIN AKA500 I                                                                  /* 센터현황 */
+			     ON C.PIC_INST_NO    = I.INST_NO
+			   LEFT JOIN AEA100 K                                                                  /* 쉼터사례정보  only 입소*/
+			     ON B.CASE_MNG_NO    = K.CASE_MNG_NO
+			    AND B.CASE_MNG_ODRNO = K.CASE_MNG_ODRNO
+			   LEFT JOIN SCA100 L                                                                  /* 쉼터사례정보  only 입소*/
+			     ON C.CASE_PIC_NO    = L.ENFSN_NO
+			WHERE B.TRPR_INFO_NO IN (
+			                       SELECT TRPR_INFO_NO
+			                         FROM SEA200
+			                        WHERE UNT_TASKWK_SE_CD = 'U04'
+			                          AND INDV_IDNTFC_NO IN (
+			                                                  SELECT INDV_IDNTFC_NO
+			                                                    FROM SEA200
+			                                                   WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+			                                                )
+			                       UNION
+			                       SELECT TRPR_INFO_NO
+			                         FROM SEA200
+			                        WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+			                     )
+			AND B.CASE_PRGRS_STTS_SE_CD IN ('04', '06', '07', '08', '09', '10', '11')  /* 종결,사후관리,사례(사후)관리종결,재가입 (07/09/11-코드없음) */
+			AND B.UNT_TASKWK_SE_CD  = 'U04'
+			AND K.SHELTR_TRPR_SE_CD = '1'               /* 입소*/
+			ORDER BY B.CASE_BGNG_YMD
+        )Z
+        ]]>
+    </select>
+    
+    <select id="selectSplymtEnblrDtlSEB900ListCount" parameterType="HashMap" resultType="int">
+        SELECT
+            COUNT(*) AS TOT_CNT
+        FROM
+        (   
+            /* selectSplymtEnblrDtlSEB900ListCount (구 시스템 입소 내역) - BaekGyuHa */
+            SELECT DSCSN_INST_NM AS INST_NM         /* 쉼터명 */
+                , INST_KND_NM   AS FCLTY_TYPE_NM   /* 쉼터유형 */
+                , CASE_BGNG_YMD                    /* 입소일자 */
+                , CASE_END_YMD  AS CASE_TRMN_YMD   /* 퇴소일자 */
+                , NVL(TO_DATE(CASE_END_YMD) - TO_DATE(CASE_BGNG_YMD) + 1,0) AS IN_DAY /* 입소기간 */
+                , ETC_TELNO
+                , ETC_TELNO1
+                , ETC_TELNO2
+                , PARNTS_TELNO
+                , EML_ADDR_ENCPT
+            FROM SEB900    /* 원스크린 */
+            WHERE TASKWK_SE_CD = 'U04'
+            AND FLNM_ENCPT    = #{TRPR_NM}
+            AND BRTH_YMD      = #{BRTH_YMD}  
+            AND SXDC_SE_CD    = #{SXDC_SE_CD}
+            <!-- AND CASE_END_YMD IS NOT NULL
+            <include refid="SEB900_LIST_WHERE"></include> -->
+        )
+    </select>
+    
+    <select id="selectSplymtEnblrDtlSEB900List" parameterType="HashMap" resultType="HashMap">
+		/* selectSplymtEnblrDtlSEB900List (구 시스템 입소 내역) - BaekGyuHa */
+		SELECT DSCSN_INST_NM AS INST_NM         /* 쉼터명 */
+		    , INST_KND_NM   AS FCLTY_TYPE_NM   /* 쉼터유형 */
+		    , CASE_BGNG_YMD                    /* 입소일자 */
+		    , CASE_END_YMD  AS CASE_TRMN_YMD   /* 퇴소일자 */
+		    , NVL(TO_DATE(CASE_END_YMD) - TO_DATE(CASE_BGNG_YMD) + 1,0) AS IN_DAY /* 입소기간 */
+		    , ETC_TELNO
+		    , ETC_TELNO1
+		    , ETC_TELNO2
+		    , PARNTS_TELNO
+		    , EML_ADDR_ENCPT
+		FROM SEB900    /* 원스크린 */
+		WHERE TASKWK_SE_CD = 'U04'
+		AND FLNM_ENCPT    = #{TRPR_NM}      
+		AND BRTH_YMD      = #{BRTH_YMD}  
+		AND SXDC_SE_CD    = #{SXDC_SE_CD}
+		<!-- AND CASE_END_YMD IS NOT NULL
+		<include refid="SEB900_LIST_WHERE"></include> -->
+		ORDER BY CASE_BGNG_YMD
+    </select>
+    
+    <!-- <select id="selectMtchngListCount" parameterType="HashMap" resultType="int">
+        SELECT
+            COUNT(*) AS TOT_CNT
+        FROM
+        (
+            /* selectMtchngListCount - BaekGyuHa */
+            SELECT        
+	            TRPR_NM_ENCPT
+	            ,TRPR_NM
+	            ,RRNO_ENCPT
+	            ,RRNO
+	            ,TRPR_INFO_NO
+	            ,INDV_IDNTFC_NO
+	            ,TRPR_BRTH_YMD
+	            ,SXDC_SE_CD
+	            ,MBL_TELNO_ENCPT
+	            ,MBL_TELNO
+	            ,TRPR_TELNO
+	            ,EML_ADDR_ENCPT
+	            ,EML_ADDR
+	            ,SNS_SE_CD
+	            ,MSNGR_ID_ENCPT
+	            ,MSNGR_ID
+	            ,ADDR
+	            ,RECIPI_MNG_NO
+	            ,SPLYMT_REG_YMD
+	            ,RCPT_INST_NO
+	            ,RCPT_INST_NM
+	            ,RCMDTN_YMD
+	            ,ENBLR_MNG_NO
+	        FROM
+	        (
+	            /* selectMtchngList - BaekGyuHa */                
+	            <if test="GROUP_AUTHRT_SE_CD gt 300">
+	            WITH T1 AS (
+	              SELECT C.RECIPI_MNG_NO
+	                   , B.PIC_INST_NO AS INST_NO
+	                FROM SEB100 A
+	                   , SEB150 B
+	                   , AEB130 C
+	               WHERE A.CASE_MNG_NO      = B.CASE_MNG_NO
+	                 AND A.CASE_MNG_ODRNO   = B.CASE_MNG_ODRNO
+	                 AND A.UNT_TASKWK_SE_CD = 'U04'
+	                 AND A.TRPR_INFO_NO     = C.TRPR_INFO_NO
+	              UNION
+	              SELECT RECIPI_MNG_NO
+	                   , INST_NO
+	                FROM AEB130
+	              UNION
+	              SELECT RECIPI_MNG_NO
+	                   , PENSN_GIVE_CHG_LCGOV_NO AS INST_NO
+	                FROM AEB131
+	              UNION
+	              SELECT RECIPI_MNG_NO
+	                   , PENSN_GIVE_CHG_BFE_LCGOV_NO AS INST_NO
+	                FROM AEB131
+	            )
+	            , T2 AS (
+	              SELECT DISTINCT RECIPI_MNG_NO
+	                FROM T1
+	               WHERE INST_NO IN (
+	                                  SELECT INST_NO
+	                                    FROM SAA000
+	                                   WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+	                                   START WITH INST_NO IN
+	                                   (
+	                                     SELECT INST_NO
+	                                       FROM SAB230 WHERE USER_ID = #{USER_ID2}
+	                                     UNION
+	                                     SELECT INST_NO
+	                                       FROM SAA000
+	                                      WHERE 1=1
+	                                        AND UNT_TASKWK_SE_CD = 'U04'
+	                                        AND RGN_CD IN (
+	                                                        SELECT B.RGN_CD
+	                                                          FROM SAB230 A
+	                                                             , SAA000 B
+	                                                         WHERE A.USER_ID          = #{USER_ID2}
+	                                                           AND A.INST_NO          = B.INST_NO
+	                                                           AND B.UNT_TASKWK_SE_CD = 'U05'
+	                                                      )
+	                                   )
+	                                   CONNECT BY UP_INST_NO = PRIOR INST_NO
+	                                )
+	            )
+	            </if>
+	            SELECT
+	                TRPR_NM_ENCPT
+	                ,TRPR_NM
+	                ,RRNO_ENCPT
+	                ,RRNO
+	                ,TRPR_INFO_NO
+	                ,INDV_IDNTFC_NO
+	                ,TRPR_BRTH_YMD
+	                ,SXDC_SE_CD
+	                ,MBL_TELNO_ENCPT
+	                ,MBL_TELNO
+	                ,TRPR_TELNO
+	                ,EML_ADDR_ENCPT
+	                ,EML_ADDR
+	                ,SNS_SE_CD
+	                ,MSNGR_ID_ENCPT
+	                ,MSNGR_ID
+	                ,ADDR
+	                ,RECIPI_MNG_NO
+	                ,SPLYMT_REG_YMD
+	                ,RCPT_INST_NO
+	                ,RCPT_INST_NM
+	                ,RCMDTN_YMD
+	                ,ENBLR_MNG_NO
+	            FROM
+	            (
+	                SELECT
+	                   Z.*
+	                   ,ROWNUM AS SEQ
+	                FROM
+	                (
+	                    /* selectMtchngList - BaekGyuHa */
+	                    SELECT
+	                        TRPR_NM_ENCPT
+	                        ,TRPR_NM
+	                        ,RRNO_ENCPT
+	                        ,RRNO
+	                        ,TRPR_INFO_NO
+	                        ,INDV_IDNTFC_NO
+	                        ,TRPR_BRTH_YMD
+	                        ,SXDC_SE_CD
+	                        ,MBL_TELNO_ENCPT
+	                        ,MBL_TELNO
+	                        ,TRPR_TELNO
+	                        ,EML_ADDR_ENCPT
+	                        ,EML_ADDR
+	                        ,SNS_SE_CD
+	                        ,MSNGR_ID_ENCPT
+	                        ,MSNGR_ID
+	                        ,ADDR
+	                        ,RECIPI_MNG_NO
+	                        ,SPLYMT_REG_YMD
+	                        ,RCPT_INST_NO
+	                        ,RCPT_INST_NM
+	                        ,RCMDTN_YMD
+	                        ,ENBLR_MNG_NO
+	                    FROM
+	                    (
+	                        SELECT
+	                            ROWNUM AS SEQ,
+	                            C.TRPR_NM_ENCPT,
+	                            C##RG.DEC_B64(C.TRPR_NM_ENCPT) AS TRPR_NM,
+	                            D.RRNO_ENCPT,
+	                            REPLACE(C##RG.DEC_B64(D.RRNO_ENCPT), '-', '') AS RRNO,
+	                            A.TRPR_INFO_NO,
+	                            C.INDV_IDNTFC_NO,
+	                            C.TRPR_BRTH_YMD,
+	                            C.SXDC_SE_CD,
+	                            C.MBL_TELNO_ENCPT,
+	                            REPLACE(C##RG.DEC_B64(C.MBL_TELNO_ENCPT), '-', '') AS MBL_TELNO,
+	                            REPLACE(C##RG.DEC_B64(C.TRPR_TELNO), '-', '') AS TRPR_TELNO,
+	                            C.EML_ADDR_ENCPT,
+	                            C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR,
+	                            C.SNS_SE_CD,
+	                            C.MSNGR_ID_ENCPT,
+	                            C##RG.DEC_B64(C.MSNGR_ID_ENCPT) AS MSNGR_ID,
+	                            CASE
+	                                WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NOT NULL THEN C.PST_ADDR || ' ' || C.DADDR
+	                                WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NULL THEN C.PST_ADDR
+	                            ELSE ''
+	                            END ADDR,
+	                            A.RECIPI_MNG_NO,
+	                            TO_CHAR(A.FRST_REG_DT,'YYYY-MM-DD') AS SPLYMT_REG_YMD,
+	                            C.RCPT_INST_NO,
+	                            (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = C.RCPT_INST_NO) AS RCPT_INST_NM,
+	                            TO_CHAR(C.FRST_REG_DT, 'YYYY-MM-DD') AS RCMDTN_YMD,
+	                            F.ENBLR_MNG_NO
+	                        FROM AEB130 A /* 자립지원수당기본 */
+	                        <if test="GROUP_AUTHRT_SE_CD gt 300">
+	                        , T2 B     /* 자립지원수당상태 */
+	                        </if>
+	                        , SEA200 C /* 대상자정보 */
+	                        , SCA300 D /* 개인정보 */
+	                        , AEB131 E /*자립지원수당상태*/
+	                        , AEB132 F /* 자립지원수당수급가능자 */
+	                        WHERE A.TRPR_INFO_NO = C.TRPR_INFO_NO
+	                        AND C.INDV_IDNTFC_NO = D.INDV_IDNTFC_NO(+)
+	                        AND A.RECIPI_MNG_NO = E.RECIPI_MNG_NO
+	                        AND A.TRPR_INFO_NO = F.TRPR_INFO_NO(+)
+	                        <if test="GROUP_AUTHRT_SE_CD gt 300">
+	                        AND A.RECIPI_MNG_NO = B.RECIPI_MNG_NO
+	                        </if>
+	                    )
+	                    WHERE 1=1
+	                    <include refid="MTCHNG_LIST_WHERE"></include>
+	                    <if test="TRPR_BRTH_YMD_START != '' and TRPR_BRTH_YMD_END != ''">
+	                        AND (TRPR_BRTH_YMD BETWEEN TO_DATE(#{TRPR_BRTH_YMD_START} || '000000', 'YYYYMMDDHH24MISS')
+	                        AND TO_DATE(#{TRPR_BRTH_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+	                    </if>
+	                    ORDER BY RECIPI_MNG_NO DESC
+	                )Z
+	            )
+	            GROUP BY 
+	            TRPR_NM_ENCPT
+	            ,TRPR_NM
+	            ,RRNO_ENCPT
+	            ,RRNO
+	            ,TRPR_INFO_NO
+	            ,INDV_IDNTFC_NO
+	            ,TRPR_BRTH_YMD
+	            ,SXDC_SE_CD
+	            ,MBL_TELNO_ENCPT
+	            ,MBL_TELNO
+	            ,TRPR_TELNO
+	            ,EML_ADDR_ENCPT
+	            ,EML_ADDR
+	            ,SNS_SE_CD
+	            ,MSNGR_ID_ENCPT
+	            ,MSNGR_ID
+	            ,ADDR
+	            ,RECIPI_MNG_NO
+	            ,SPLYMT_REG_YMD
+	            ,RCPT_INST_NO
+	            ,RCPT_INST_NM
+	            ,RCMDTN_YMD
+	            ,ENBLR_MNG_NO
+	            ORDER BY TRPR_NM
+	        )Z
+        )
+    </select>
+    
+    <select id="selectMtchngList" parameterType="HashMap" resultType="HashMap">
+        SELECT        
+            TRPR_NM_ENCPT
+			,TRPR_NM
+			,RRNO_ENCPT
+			,RRNO
+			,TRPR_INFO_NO
+			,INDV_IDNTFC_NO
+			,TRPR_BRTH_YMD
+			,SXDC_SE_CD
+			,MBL_TELNO_ENCPT
+			,MBL_TELNO
+			,TRPR_TELNO
+			,EML_ADDR_ENCPT
+			,EML_ADDR
+			,SNS_SE_CD
+			,MSNGR_ID_ENCPT
+			,MSNGR_ID
+			,ADDR
+			,RECIPI_MNG_NO
+			,SPLYMT_REG_YMD
+			,RCPT_INST_NO
+			,RCPT_INST_NM
+			,RCMDTN_YMD
+			,ENBLR_MNG_NO
+			,ROWNUM
+        FROM
+        (
+            /* selectMtchngList - BaekGyuHa */                
+            <if test="GROUP_AUTHRT_SE_CD gt 300">
+	        WITH T1 AS (
+	          SELECT C.RECIPI_MNG_NO
+	               , B.PIC_INST_NO AS INST_NO
+	            FROM SEB100 A
+	               , SEB150 B
+	               , AEB130 C
+	           WHERE A.CASE_MNG_NO      = B.CASE_MNG_NO
+	             AND A.CASE_MNG_ODRNO   = B.CASE_MNG_ODRNO
+	             AND A.UNT_TASKWK_SE_CD = 'U04'
+	             AND A.TRPR_INFO_NO     = C.TRPR_INFO_NO
+	          UNION
+	          SELECT RECIPI_MNG_NO
+	               , INST_NO
+	            FROM AEB130
+	          UNION
+	          SELECT RECIPI_MNG_NO
+	               , PENSN_GIVE_CHG_LCGOV_NO AS INST_NO
+	            FROM AEB131
+	          UNION
+	          SELECT RECIPI_MNG_NO
+	               , PENSN_GIVE_CHG_BFE_LCGOV_NO AS INST_NO
+	            FROM AEB131
+	        )
+	        , T2 AS (
+	          SELECT DISTINCT RECIPI_MNG_NO
+	            FROM T1
+	           WHERE INST_NO IN (
+	                              SELECT INST_NO
+	                                FROM SAA000
+	                               WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+	                               START WITH INST_NO IN
+	                               (
+	                                 SELECT INST_NO
+	                                   FROM SAB230 WHERE USER_ID = #{USER_ID2}
+	                                 UNION
+	                                 SELECT INST_NO
+	                                   FROM SAA000
+	                                  WHERE 1=1
+	                                    AND UNT_TASKWK_SE_CD = 'U04'
+	                                    AND RGN_CD IN (
+	                                                    SELECT B.RGN_CD
+	                                                      FROM SAB230 A
+	                                                         , SAA000 B
+	                                                     WHERE A.USER_ID          = #{USER_ID2}
+	                                                       AND A.INST_NO          = B.INST_NO
+	                                                       AND B.UNT_TASKWK_SE_CD = 'U05'
+	                                                  )
+	                               )
+	                               CONNECT BY UP_INST_NO = PRIOR INST_NO
+	                            )
+	        )
+	        </if>
+	        SELECT
+	            TRPR_NM_ENCPT
+	            ,TRPR_NM
+	            ,RRNO_ENCPT
+	            ,RRNO
+	            ,TRPR_INFO_NO
+	            ,INDV_IDNTFC_NO
+	            ,TRPR_BRTH_YMD
+	            ,SXDC_SE_CD
+	            ,MBL_TELNO_ENCPT
+	            ,MBL_TELNO
+	            ,TRPR_TELNO
+	            ,EML_ADDR_ENCPT
+	            ,EML_ADDR
+	            ,SNS_SE_CD
+	            ,MSNGR_ID_ENCPT
+	            ,MSNGR_ID
+	            ,ADDR
+	            ,RECIPI_MNG_NO
+	            ,SPLYMT_REG_YMD
+	            ,RCPT_INST_NO
+	            ,RCPT_INST_NM
+	            ,RCMDTN_YMD
+	            ,ENBLR_MNG_NO
+	        FROM
+	        (
+	            SELECT
+	               Z.*
+	               ,ROWNUM AS SEQ
+	            FROM
+	            (
+	                /* selectMtchngList - BaekGyuHa */
+	                SELECT
+	                    TRPR_NM_ENCPT
+	                    ,TRPR_NM
+	                    ,RRNO_ENCPT
+	                    ,RRNO
+	                    ,TRPR_INFO_NO
+	                    ,INDV_IDNTFC_NO
+	                    ,TRPR_BRTH_YMD
+	                    ,SXDC_SE_CD
+	                    ,MBL_TELNO_ENCPT
+	                    ,MBL_TELNO
+	                    ,TRPR_TELNO
+	                    ,EML_ADDR_ENCPT
+	                    ,EML_ADDR
+	                    ,SNS_SE_CD
+	                    ,MSNGR_ID_ENCPT
+	                    ,MSNGR_ID
+	                    ,ADDR
+	                    ,RECIPI_MNG_NO
+	                    ,SPLYMT_REG_YMD
+	                    ,RCPT_INST_NO
+	                    ,RCPT_INST_NM
+	                    ,RCMDTN_YMD
+	                    ,ENBLR_MNG_NO
+	                FROM
+	                (
+	                    SELECT
+	                        ROWNUM AS SEQ,
+	                        C.TRPR_NM_ENCPT,
+	                        C##RG.DEC_B64(C.TRPR_NM_ENCPT) AS TRPR_NM,
+	                        D.RRNO_ENCPT,
+	                        REPLACE(C##RG.DEC_B64(D.RRNO_ENCPT), '-', '') AS RRNO,
+	                        A.TRPR_INFO_NO,
+	                        C.INDV_IDNTFC_NO,
+	                        C.TRPR_BRTH_YMD,
+	                        C.SXDC_SE_CD,
+	                        C.MBL_TELNO_ENCPT,
+	                        REPLACE(C##RG.DEC_B64(C.MBL_TELNO_ENCPT), '-', '') AS MBL_TELNO,
+	                        REPLACE(C##RG.DEC_B64(C.TRPR_TELNO), '-', '') AS TRPR_TELNO,
+	                        C.EML_ADDR_ENCPT,
+	                        C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR,
+	                        C.SNS_SE_CD,
+	                        C.MSNGR_ID_ENCPT,
+	                        C##RG.DEC_B64(C.MSNGR_ID_ENCPT) AS MSNGR_ID,
+	                        CASE
+	                            WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NOT NULL THEN C.PST_ADDR || ' ' || C.DADDR
+	                            WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NULL THEN C.PST_ADDR
+	                        ELSE ''
+	                        END ADDR,
+	                        A.RECIPI_MNG_NO,
+	                        TO_CHAR(A.FRST_REG_DT,'YYYY-MM-DD') AS SPLYMT_REG_YMD,
+	                        C.RCPT_INST_NO,
+	                        (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = C.RCPT_INST_NO) AS RCPT_INST_NM,
+	                        TO_CHAR(C.FRST_REG_DT, 'YYYY-MM-DD') AS RCMDTN_YMD,
+	                        F.ENBLR_MNG_NO
+	                    FROM AEB130 A /* 자립지원수당기본 */
+	                    <if test="GROUP_AUTHRT_SE_CD gt 300">
+	                    , T2 B     /* 자립지원수당상태 */
+	                    </if>
+	                    , SEA200 C /* 대상자정보 */
+	                    , SCA300 D /* 개인정보 */
+	                    , AEB131 E /*자립지원수당상태*/
+	                    , AEB132 F /* 자립지원수당수급가능자 */
+	                    WHERE A.TRPR_INFO_NO = C.TRPR_INFO_NO
+	                    AND C.INDV_IDNTFC_NO = D.INDV_IDNTFC_NO(+)
+	                    AND A.RECIPI_MNG_NO = E.RECIPI_MNG_NO
+	                    AND A.TRPR_INFO_NO = F.TRPR_INFO_NO(+)
+	                    <if test="GROUP_AUTHRT_SE_CD gt 300">
+	                    AND A.RECIPI_MNG_NO = B.RECIPI_MNG_NO
+	                    </if>
+	                )
+	                WHERE 1=1
+	                <include refid="MTCHNG_LIST_WHERE"></include>
+	                <if test="TRPR_BRTH_YMD_START != '' and TRPR_BRTH_YMD_END != ''">
+	                    AND (TRPR_BRTH_YMD BETWEEN TO_DATE(#{TRPR_BRTH_YMD_START} || '000000', 'YYYYMMDDHH24MISS')
+	                    AND TO_DATE(#{TRPR_BRTH_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+	                </if>
+	                ORDER BY RECIPI_MNG_NO DESC
+	            )Z
+	        )
+	        GROUP BY 
+	        TRPR_NM_ENCPT
+	        ,TRPR_NM
+	        ,RRNO_ENCPT
+	        ,RRNO
+	        ,TRPR_INFO_NO
+	        ,INDV_IDNTFC_NO
+	        ,TRPR_BRTH_YMD
+	        ,SXDC_SE_CD
+	        ,MBL_TELNO_ENCPT
+	        ,MBL_TELNO
+	        ,TRPR_TELNO
+	        ,EML_ADDR_ENCPT
+	        ,EML_ADDR
+	        ,SNS_SE_CD
+	        ,MSNGR_ID_ENCPT
+	        ,MSNGR_ID
+	        ,ADDR
+	        ,RECIPI_MNG_NO
+	        ,SPLYMT_REG_YMD
+	        ,RCPT_INST_NO
+	        ,RCPT_INST_NM
+	        ,RCMDTN_YMD
+	        ,ENBLR_MNG_NO
+	        ORDER BY TRPR_NM
+        )Z
+        WHERE ROWNUM <![CDATA[>=]]> #{START_IDX} AND ROWNUM <![CDATA[<=]]> #{LAST_IDX}
+    </select> -->
+    
+    <select id="selectMtchngListCount" parameterType="HashMap" resultType="int">
+        SELECT
+            COUNT(*) AS TOT_CNT
+        FROM
+        (
+            /* selectMtchngListCount - BaekGyuHa */
+            <if test="GROUP_AUTHRT_SE_CD gt 300">
+	        WITH T1 AS (
+	          SELECT C.RECIPI_MNG_NO
+	               , B.PIC_INST_NO AS INST_NO
+	            FROM SEB100 A
+	               , SEB150 B
+	               , AEB130 C
+	           WHERE A.CASE_MNG_NO      = B.CASE_MNG_NO
+	             AND A.CASE_MNG_ODRNO   = B.CASE_MNG_ODRNO
+	             AND A.UNT_TASKWK_SE_CD = 'U04'
+	             AND A.TRPR_INFO_NO     = C.TRPR_INFO_NO
+	          UNION
+	          SELECT RECIPI_MNG_NO
+	               , INST_NO
+	            FROM AEB130
+	          UNION
+	          SELECT RECIPI_MNG_NO
+	               , PENSN_GIVE_CHG_LCGOV_NO AS INST_NO
+	            FROM AEB131
+	          UNION
+	          SELECT RECIPI_MNG_NO
+	               , PENSN_GIVE_CHG_BFE_LCGOV_NO AS INST_NO
+	            FROM AEB131
+	        )
+	        , T2 AS (
+	          SELECT DISTINCT RECIPI_MNG_NO
+	            FROM T1
+	           WHERE INST_NO IN (
+	                              SELECT INST_NO
+	                                FROM SAA000
+	                               WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+	                               START WITH INST_NO IN
+	                               (
+	                                 SELECT INST_NO
+	                                   FROM SAB230 WHERE USER_ID = #{USER_ID2}
+	                                 UNION
+	                                 SELECT INST_NO
+	                                   FROM SAA000
+	                                  WHERE 1=1
+	                                    AND UNT_TASKWK_SE_CD = 'U04'
+	                                    AND RGN_CD IN (
+	                                                    SELECT B.RGN_CD
+	                                                      FROM SAB230 A
+	                                                         , SAA000 B
+	                                                     WHERE A.USER_ID          = #{USER_ID2}
+	                                                       AND A.INST_NO          = B.INST_NO
+	                                                       AND B.UNT_TASKWK_SE_CD = 'U05'
+	                                                  )
+	                               )
+	                               CONNECT BY UP_INST_NO = PRIOR INST_NO
+	                            )
+	        )
+	        </if>
+	        SELECT
+	            *
+	        FROM
+	        (
+	            SELECT
+	               Z.*
+	               ,ROWNUM AS SEQ
+	            FROM
+	            (
+	                SELECT
+	                    TRPR_NM_ENCPT
+	                    ,TRPR_NM
+	                    ,RRNO_ENCPT
+	                    ,RRNO
+	                    ,TRPR_INFO_NO
+	                    ,INDV_IDNTFC_NO
+	                    ,TRPR_BRTH_YMD
+	                    ,SXDC_SE_CD
+	                    ,MBL_TELNO_ENCPT
+	                    ,MBL_TELNO
+	                    ,TRPR_TELNO
+	                    ,EML_ADDR_ENCPT
+	                    ,EML_ADDR
+	                    ,SNS_SE_CD
+	                    ,MSNGR_ID_ENCPT
+	                    ,MSNGR_ID
+	                    ,ADDR
+	                    ,RECIPI_MNG_NO
+	                    ,SPLYMT_REG_YMD
+	                    ,RCPT_INST_NO
+	                    ,RCPT_INST_NM
+	                    ,RCMDTN_YMD
+	                    ,MATCH_RECIPI_MNG_NO
+	                FROM
+	                (
+	                    SELECT
+	                        ROWNUM AS SEQ,
+	                        C.TRPR_NM_ENCPT,
+	                        C##RG.DEC_B64(C.TRPR_NM_ENCPT) AS TRPR_NM,
+	                        D.RRNO_ENCPT,
+	                        REPLACE(C##RG.DEC_B64(D.RRNO_ENCPT), '-', '') AS RRNO,
+	                        A.TRPR_INFO_NO,
+	                        C.INDV_IDNTFC_NO,
+	                        C.TRPR_BRTH_YMD,
+	                        C.SXDC_SE_CD,
+	                        C.MBL_TELNO_ENCPT,
+	                        REPLACE(C##RG.DEC_B64(C.MBL_TELNO_ENCPT), '-', '') AS MBL_TELNO,
+	                        REPLACE(C##RG.DEC_B64(C.TRPR_TELNO), '-', '') AS TRPR_TELNO,
+	                        C.EML_ADDR_ENCPT,
+	                        C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR,
+	                        C.SNS_SE_CD,
+	                        C.MSNGR_ID_ENCPT,
+	                        C##RG.DEC_B64(C.MSNGR_ID_ENCPT) AS MSNGR_ID,
+	                        CASE
+	                            WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NOT NULL THEN C.PST_ADDR || ' ' || C.DADDR
+	                            WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NULL THEN C.PST_ADDR
+	                        ELSE ''
+	                        END ADDR,
+	                        A.RECIPI_MNG_NO,
+	                        TO_CHAR(A.FRST_REG_DT,'YYYY-MM-DD') AS SPLYMT_REG_YMD,
+	                        C.RCPT_INST_NO,
+	                        (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = C.RCPT_INST_NO) AS RCPT_INST_NM,
+	                        TO_CHAR(C.FRST_REG_DT, 'YYYY-MM-DD') AS RCMDTN_YMD,
+	                        (SELECT RECIPI_MNG_NO FROM AEB132 F WHERE A.RECIPI_MNG_NO = F.RECIPI_MNG_NO) AS MATCH_RECIPI_MNG_NO
+	                    FROM AEB130 A /* 자립지원수당기본 */
+	                    <if test="GROUP_AUTHRT_SE_CD gt 300">
+	                    , T2 B     /* 자립지원수당상태 */
+	                    </if>
+	                    , SEA200 C /* 대상자정보 */
+	                    , SCA300 D /* 개인정보 */
+	                    WHERE A.TRPR_INFO_NO = C.TRPR_INFO_NO
+	                    AND C.INDV_IDNTFC_NO = D.INDV_IDNTFC_NO(+)
+	                    <if test="GROUP_AUTHRT_SE_CD gt 300">
+	                    AND A.RECIPI_MNG_NO = B.RECIPI_MNG_NO
+	                    </if>
+	                )
+	                WHERE 1=1
+	                <include refid="MTCHNG_LIST_WHERE"></include>
+	                <if test="TRPR_BRTH_YMD_START != '' and TRPR_BRTH_YMD_END != ''">
+	                    AND (TRPR_BRTH_YMD BETWEEN TO_DATE(#{TRPR_BRTH_YMD_START} || '000000', 'YYYYMMDDHH24MISS')
+	                    AND TO_DATE(#{TRPR_BRTH_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+	                </if>
+	                ORDER BY RECIPI_MNG_NO DESC
+	            )Z
+	        )
+        )
+    </select>
+    
+    <select id="selectMtchngList" parameterType="HashMap" resultType="HashMap">
+        <if test="GROUP_AUTHRT_SE_CD gt 300">
+        WITH T1 AS (
+          SELECT C.RECIPI_MNG_NO
+               , B.PIC_INST_NO AS INST_NO
+            FROM SEB100 A
+               , SEB150 B
+               , AEB130 C
+           WHERE A.CASE_MNG_NO      = B.CASE_MNG_NO
+             AND A.CASE_MNG_ODRNO   = B.CASE_MNG_ODRNO
+             AND A.UNT_TASKWK_SE_CD = 'U04'
+             AND A.TRPR_INFO_NO     = C.TRPR_INFO_NO
+          UNION
+          SELECT RECIPI_MNG_NO
+               , INST_NO
+            FROM AEB130
+          UNION
+          SELECT RECIPI_MNG_NO
+               , PENSN_GIVE_CHG_LCGOV_NO AS INST_NO
+            FROM AEB131
+          UNION
+          SELECT RECIPI_MNG_NO
+               , PENSN_GIVE_CHG_BFE_LCGOV_NO AS INST_NO
+            FROM AEB131
+        )
+        , T2 AS (
+          SELECT DISTINCT RECIPI_MNG_NO
+            FROM T1
+           WHERE INST_NO IN (
+                              SELECT INST_NO
+                                FROM SAA000
+                               WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+                               START WITH INST_NO IN
+                               (
+                                 SELECT INST_NO
+                                   FROM SAB230 WHERE USER_ID = #{USER_ID2}
+                                 UNION
+                                 SELECT INST_NO
+                                   FROM SAA000
+                                  WHERE 1=1
+                                    AND UNT_TASKWK_SE_CD = 'U04'
+                                    AND RGN_CD IN (
+                                                    SELECT B.RGN_CD
+                                                      FROM SAB230 A
+                                                         , SAA000 B
+                                                     WHERE A.USER_ID          = #{USER_ID2}
+                                                       AND A.INST_NO          = B.INST_NO
+                                                       AND B.UNT_TASKWK_SE_CD = 'U05'
+                                                  )
+                               )
+                               CONNECT BY UP_INST_NO = PRIOR INST_NO
+                            )
+        )
+        </if>
+        SELECT
+            *
+        FROM
+        (
+            SELECT
+               Z.*
+               ,ROWNUM AS SEQ
+            FROM
+            (
+                /* selectMtchngList - BaekGyuHa */
+                SELECT
+                    TRPR_NM_ENCPT
+                    ,TRPR_NM
+                    ,RRNO_ENCPT
+                    ,RRNO
+                    ,TRPR_INFO_NO
+                    ,INDV_IDNTFC_NO
+                    ,TRPR_BRTH_YMD
+                    ,SXDC_SE_CD
+                    ,MBL_TELNO_ENCPT
+                    ,MBL_TELNO
+                    ,TRPR_TELNO
+                    ,EML_ADDR_ENCPT
+                    ,EML_ADDR
+                    ,SNS_SE_CD
+                    ,MSNGR_ID_ENCPT
+                    ,MSNGR_ID
+                    ,ADDR
+                    ,RECIPI_MNG_NO
+                    ,SPLYMT_REG_YMD
+                    ,RCPT_INST_NO
+                    ,RCPT_INST_NM
+                    ,RCMDTN_YMD
+                    ,MATCH_RECIPI_MNG_NO
+                FROM
+                (
+                    SELECT
+                        ROWNUM AS SEQ,
+                        C.TRPR_NM_ENCPT,
+                        C##RG.DEC_B64(C.TRPR_NM_ENCPT) AS TRPR_NM,
+                        D.RRNO_ENCPT,
+                        REPLACE(C##RG.DEC_B64(D.RRNO_ENCPT), '-', '') AS RRNO,
+                        A.TRPR_INFO_NO,
+                        C.INDV_IDNTFC_NO,
+                        C.TRPR_BRTH_YMD,
+                        C.SXDC_SE_CD,
+                        C.MBL_TELNO_ENCPT,
+                        REPLACE(C##RG.DEC_B64(C.MBL_TELNO_ENCPT), '-', '') AS MBL_TELNO,
+                        REPLACE(C##RG.DEC_B64(C.TRPR_TELNO), '-', '') AS TRPR_TELNO,
+                        C.EML_ADDR_ENCPT,
+                        C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR,
+                        C.SNS_SE_CD,
+                        C.MSNGR_ID_ENCPT,
+                        C##RG.DEC_B64(C.MSNGR_ID_ENCPT) AS MSNGR_ID,
+                        CASE
+                            WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NOT NULL THEN C.PST_ADDR || ' ' || C.DADDR
+                            WHEN C.PST_ADDR IS NOT NULL AND C.DADDR IS NULL THEN C.PST_ADDR
+                        ELSE ''
+                        END ADDR,
+                        A.RECIPI_MNG_NO,
+                        TO_CHAR(A.FRST_REG_DT,'YYYY-MM-DD') AS SPLYMT_REG_YMD,
+                        C.RCPT_INST_NO,
+                        (SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = C.RCPT_INST_NO) AS RCPT_INST_NM,
+                        TO_CHAR(C.FRST_REG_DT, 'YYYY-MM-DD') AS RCMDTN_YMD,
+                        (SELECT RECIPI_MNG_NO FROM AEB132 F WHERE A.RECIPI_MNG_NO = F.RECIPI_MNG_NO) AS MATCH_RECIPI_MNG_NO
+                    FROM AEB130 A /* 자립지원수당기본 */
+                    <if test="GROUP_AUTHRT_SE_CD gt 300">
+                    , T2 B     /* 자립지원수당상태 */
+                    </if>
+                    , SEA200 C /* 대상자정보 */
+                    , SCA300 D /* 개인정보 */
+                    WHERE A.TRPR_INFO_NO = C.TRPR_INFO_NO
+                    AND C.INDV_IDNTFC_NO = D.INDV_IDNTFC_NO(+)                    
+                    <if test="GROUP_AUTHRT_SE_CD gt 300">
+                    AND A.RECIPI_MNG_NO = B.RECIPI_MNG_NO
+                    </if>
+                )
+                WHERE 1=1
+                <include refid="MTCHNG_LIST_WHERE"></include>
+                <if test="TRPR_BRTH_YMD_START != '' and TRPR_BRTH_YMD_END != ''">
+                    AND (TRPR_BRTH_YMD BETWEEN TO_DATE(#{TRPR_BRTH_YMD_START} || '000000', 'YYYYMMDDHH24MISS')
+                    AND TO_DATE(#{TRPR_BRTH_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+                </if>
+                ORDER BY RECIPI_MNG_NO DESC
+            )Z
+        )
+        WHERE SEQ <![CDATA[>=]]> #{START_IDX} AND SEQ <![CDATA[<=]]> #{LAST_IDX}
+    </select>
+    
+    <update id="updateMtchngReg" parameterType="HashMap">
+        /* updateMtchngReg - Baek GyuHa */
+        UPDATE AEB132 /* 자립지원수당수급가능자 */
+        SET        
+            RECIPI_MNG_NO = #{RECIPI_MNG_NO},
+            MTCHNG_PIC_ENFSN_NO = #{MTCHNG_PIC_ENFSN_NO},
+            MTCHNG_PIC_INST_NO = #{MTCHNG_PIC_INST_NO},
+            MTCHNG_PIC_TELNO = REPLACE(#{MTCHNG_PIC_TELNO}, '-', ''),
+            MTCHNG_YMD = REPLACE(#{MTCHNG_YMD}, '-', ''),
+            LAST_MDFR_ID = #{USER_ID2},
+            LAST_MDFCN_DT = SYSDATE
+        WHERE ENBLR_MNG_NO = #{ENBLR_MNG_NO}        
+    </update>    
+        
+    <sql id="SPLYMTENBLR_LIST_WHERE">
+        <if test="ENBLR_MNG_NO != null and ENBLR_MNG_NO != ''">
+            AND ENBLR_MNG_NO LIKE '%' || #{ENBLR_MNG_NO} || '%' 
+        </if>
+        <if test="LASTA_LVNG_SHELTR_NO != null and LASTA_LVNG_SHELTR_NO != ''">
+            AND LASTA_LVNG_SHELTR_NO = #{LASTA_LVNG_SHELTR_NO} 
+        </if>
+        <if test="LASTA_LVNG_YMD_START != '' and LASTA_LVNG_YMD_END != ''">
+            AND (LASTA_LVNG_YMD BETWEEN TO_DATE(#{LASTA_LVNG_YMD_START} || '000000', 'YYYYMMDDHH24MISS') 
+            AND TO_DATE(#{LASTA_LVNG_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+        </if>       
+        <if test="ISRY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT != null and ISRY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT != ''">
+            AND ISRY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT = #{ISRY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT}
+        </if>
+        <if test="ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN != null and ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN != ''">
+            AND ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN = #{ISRY_RECENT_YEAR1_CTNUTN_ENTRNC_YN}
+        </if>
+        <if test="UNITY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT != null and UNITY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT != ''">
+            AND UNITY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT = #{UNITY_PAST_YEARS3_ENTRNC_PRD_SUM_DAYCNT}
+        </if>
+        <if test="UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN != null and UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN != ''">
+            AND UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN = #{UNITY_RECENT_YEAR1_CTNUTN_ENTRNC_YN}
+        </if>
+        <if test="RECIPI_MNG_NO != null and RECIPI_MNG_NO != ''">
+            AND RECIPI_MNG_NO LIKE '%' || #{RECIPI_MNG_NO} || '%' 
+        </if>
+        <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+            AND TRPR_NM_ENCPT = #{TRPR_NM_ENCPT} 
+        </if>
+        <if test="TRPR_NM != null and TRPR_NM != ''">
+            AND TRPR_NM LIKE '%' || #{TRPR_NM} || '%' 
+        </if>
+        <if test="TRPR_BRTH_YMD_START != '' and TRPR_BRTH_YMD_END != ''">
+		    AND (TRPR_BRTH_YMD BETWEEN TO_DATE(#{TRPR_BRTH_YMD_START} || '000000', 'YYYYMMDDHH24MISS') 
+		    AND TO_DATE(#{TRPR_BRTH_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+		</if>
+        <if test="TRPR_INFO_NO != null and TRPR_INFO_NO != ''">
+            AND TRPR_INFO_NO LIKE '%' || #{TRPR_INFO_NO} || '%' 
+        </if>
+        <if test="RCMDTN_SHELTR_NM != null and RCMDTN_SHELTR_NM != ''">
+            AND RCMDTN_SHELTR_NM LIKE '%' || #{RCMDTN_SHELTR_NM} || '%' 
+        </if>
+        <if test="RCMDTN_YMD != null and RCMDTN_YMD != ''">
+            AND RCMDTN_YMD = #{RCMDTN_YMD}
+        </if>
+        <if test="INDV_IDNTFC_NO != null and INDV_IDNTFC_NO != ''">
+            AND INDV_IDNTFC_NO LIKE '%' || #{INDV_IDNTFC_NO} || '%' 
+        </if>
+        <if test="PENSN_GIVE_STTS_OCRN_YMD_START != '' and PENSN_GIVE_STTS_OCRN_YMD_END != ''">
+            AND (PENSN_GIVE_STTS_OCRN_YMD BETWEEN TO_DATE(#{PENSN_GIVE_STTS_OCRN_YMD_START} || '000000', 'YYYYMMDDHH24MISS') 
+            AND TO_DATE(#{PENSN_GIVE_STTS_OCRN_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+        </if>
+        <if test="PENSN_GIVE_STTS_BGNG_YM != null and PENSN_GIVE_STTS_BGNG_YM != ''">
+            AND PENSN_GIVE_STTS_BGNG_YM = #{PENSN_GIVE_STTS_BGNG_YM} 
+        </if>
+        <if test="MM_PENSN_GIVE_AMT != '' and MM_PENSN_GIVE_AMT != ''">
+            AND MM_PENSN_GIVE_AMT = #{MM_PENSN_GIVE_AMT}
+        </if>
+        <!-- <if test="MM_PENSN_GIVE_AMT_START != '' and MM_PENSN_GIVE_AMT_END != ''">
+            AND (MM_PENSN_GIVE_AMT BETWEEN #{MM_PENSN_GIVE_AMT_START} AND #{MM_PENSN_GIVE_AMT_END})
+        </if> -->
+        <if test="PENSN_GIVE_CHG_LCGOV_NO != null and PENSN_GIVE_CHG_LCGOV_NO != ''">
+            AND PENSN_GIVE_CHG_LCGOV_NO = #{PENSN_GIVE_CHG_LCGOV_NO} 
+        </if>
+        <if test="MTCHNG_PIC_ENFSN_NO != null and MTCHNG_PIC_ENFSN_NO != ''">
+            AND MTCHNG_PIC_ENFSN_NO = #{MTCHNG_PIC_ENFSN_NO} 
+        </if>
+        <if test="MTCHNG_PIC_INST_NO != null and MTCHNG_PIC_INST_NO != ''">
+            AND MTCHNG_PIC_INST_NO = #{MTCHNG_PIC_INST_NO}
+        </if>
+        <if test="RECIPI_MTCHNG_YN != null and RECIPI_MTCHNG_YN != ''">
+            AND RECIPI_MTCHNG_YN = #{RECIPI_MTCHNG_YN}
+        </if>
+        <if test="NOW_PENSN_GIVE_YN != null and NOW_PENSN_GIVE_YN != ''">
+            AND NOW_PENSN_GIVE_YN = #{NOW_PENSN_GIVE_YN}
+        </if>
+    </sql>
+    
+    <sql id="SEB900_LIST_WHERE">
+        <if test="(TRPR_TELNO != null and TRPR_TELNO != '') or (MBL_TELNO != null and MBL_TELNO != '')">
+            AND 
+            (
+                REGEXP_REPLACE(ETC_TELNO , '[^0-9]') = REGEXP_REPLACE(#{TRPR_TELNO}, '[^0-9]') OR
+                REGEXP_REPLACE(ETC_TELNO1, '[^0-9]') = REGEXP_REPLACE(#{TRPR_TELNO}, '[^0-9]') OR
+                REGEXP_REPLACE(ETC_TELNO2, '[^0-9]') = REGEXP_REPLACE(#{TRPR_TELNO}, '[^0-9]') OR
+                REGEXP_REPLACE(PARNTS_TELNO, '[^0-9]') = REGEXP_REPLACE(#{TRPR_TELNO}, '[^0-9]') OR
+                REGEXP_REPLACE(ETC_TELNO , '[^0-9]') = REGEXP_REPLACE(#{MBL_TELNO} , '[^0-9]') OR
+                REGEXP_REPLACE(ETC_TELNO1, '[^0-9]') = REGEXP_REPLACE(#{MBL_TELNO} , '[^0-9]') OR
+                REGEXP_REPLACE(ETC_TELNO2, '[^0-9]') = REGEXP_REPLACE(#{MBL_TELNO} , '[^0-9]') OR
+                REGEXP_REPLACE(PARNTS_TELNO, '[^0-9]') = REGEXP_REPLACE(#{MBL_TELNO} , '[^0-9]')
+            )
+        </if>
+        <if test="EML_ADDR != null and EML_ADDR != ''">
+            AND EML_ADDR_ENCPT = #{EML_ADDR}
+        </if>
+    </sql>
+    
+    <!-- <sql id="MTCHNG_LIST_WHERE">
+        <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+            AND TRPR_NM_ENCPT = #{TRPR_NM_ENCPT} 
+        </if>
+        <if test="TRPR_NM != null and TRPR_NM != ''">
+            AND TRPR_NM LIKE '%' || #{TRPR_NM} || '%' 
+        </if>
+        <if test="RRNO_ENCPT != null and RRNO_ENCPT != ''">
+             AND RRNO_ENCPT = #{RRNO_ENCPT} 
+        </if>
+        <if test="RRNO != null and RRNO != ''">
+             AND REPLACE(RRNO, '-', '') LIKE '%' || REPLACE(#{RRNO}, '-', '') || '%'
+        </if>
+        <if test="TRPR_BRTH_YMD != null and TRPR_BRTH_YMD != ''">
+            AND TRPR_BRTH_YMD = #{TRPR_BRTH_YMD} 
+        </if>    
+        <if test="SXDC_SE_CD != null and SXDC_SE_CD != ''">
+            AND SXDC_SE_CD = #{SXDC_SE_CD} 
+        </if>
+        <if test="MBL_TELNO_ENCPT != null and MBL_TELNO_ENCPT != ''">
+            AND MBL_TELNO_ENCPT = #{MBL_TELNO_ENCPT} 
+        </if>
+        <if test="MBL_TELNO != null and MBL_TELNO != ''">
+            AND REPLACE(MBL_TELNO, '-', '') LIKE '%' || REPLACE(#{MBL_TELNO}, '-', '') || '%' 
+        </if>
+        <if test="EML_ADDR_ENCPT != null and EML_ADDR_ENCPT != ''">
+            AND EML_ADDR_ENCPT = #{EML_ADDR_ENCPT} 
+        </if>
+        <if test="EML_ADDR != null and EML_ADDR != ''">
+            AND EML_ADDR LIKE '%' || #{EML_ADDR} || '%' 
+        </if>
+        <if test="TRPR_TELNO != null and TRPR_TELNO != ''">
+            AND REPLACE(TRPR_TELNO, '-', '') LIKE '%' || REPLACE(#{TRPR_TELNO}, '-', '') || '%' 
+        </if>
+        <if test="SNS_SE_CD != null and SNS_SE_CD != ''">
+            AND SNS_SE_CD = #{SNS_SE_CD} 
+        </if>
+        <if test="MSNGR_ID_ENCPT != null and MSNGR_ID_ENCPT != ''">
+            AND MSNGR_ID_ENCPT = #{MSNGR_ID_ENCPT}
+        </if>
+        <if test="MSNGR_ID != null and MSNGR_ID != ''"> 
+            AND MSNGR_ID LIKE '%' || #{MSNGR_ID} || '%'
+        </if>
+        <if test="RECIPI_MNG_NO != null and RECIPI_MNG_NO != ''">
+            AND RECIPI_MNG_NO LIKE '%' || #{RECIPI_MNG_NO} || '%' 
+        </if>
+        <if test="TRPR_INFO_NO != null and TRPR_INFO_NO != ''">
+            AND TRPR_INFO_NO LIKE '%' || #{TRPR_INFO_NO} || '%' 
+        </if>
+        <if test="INDV_IDNTFC_NO != null and INDV_IDNTFC_NO != ''">
+            AND INDV_IDNTFC_NO LIKE '%' || #{INDV_IDNTFC_NO} || '%' 
+        </if>
+        <if test="ENBLR_MNG_NO != null and ENBLR_MNG_NO != ''">
+            AND ENBLR_MNG_NO LIKE '%' || #{ENBLR_MNG_NO} || '%' 
+        </if>
+    </sql> -->
+    
+    <sql id="MTCHNG_LIST_WHERE">
+        <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+            AND TRPR_NM_ENCPT = #{TRPR_NM_ENCPT} 
+        </if>
+        <if test="TRPR_NM != null and TRPR_NM != ''">
+            AND TRPR_NM LIKE '%' || #{TRPR_NM} || '%' 
+        </if>
+        <if test="RRNO_ENCPT != null and RRNO_ENCPT != ''">
+             AND RRNO = #{RRNO_ENCPT} 
+        </if>
+        <if test="RRNO != null and RRNO != ''">
+             AND REPLACE(RRNO, '-', '') LIKE '%' || REPLACE(#{RRNO}, '-', '') || '%'
+        </if>
+        <!-- <if test="TRPR_BRTH_YMD != null and TRPR_BRTH_YMD != ''">
+            AND TRPR_BRTH_YMD = #{TRPR_BRTH_YMD} 
+        </if> -->
+        <if test="TRPR_BRTH_YMD_START != '' and TRPR_BRTH_YMD_END != ''">
+            AND (TRPR_BRTH_YMD BETWEEN TO_DATE(#{TRPR_BRTH_YMD_START} || '000000', 'YYYYMMDDHH24MISS') 
+            AND TO_DATE(#{TRPR_BRTH_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+        </if>
+        <if test="SXDC_SE_CD != null and SXDC_SE_CD != ''">
+            AND SXDC_SE_CD = #{SXDC_SE_CD} 
+        </if>
+        <if test="MBL_TELNO_ENCPT != null and MBL_TELNO_ENCPT != ''">
+            AND MBL_TELNO_ENCPT = #{MBL_TELNO_ENCPT} 
+        </if>
+        <if test="MBL_TELNO != null and MBL_TELNO != ''">
+            AND REPLACE(MBL_TELNO, '-', '') LIKE '%' || REPLACE(#{MBL_TELNO}, '-', '') || '%' 
+        </if>
+        <if test="EML_ADDR_ENCPT != null and EML_ADDR_ENCPT != ''">
+            AND EML_ADDR_ENCPT = #{EML_ADDR_ENCPT} 
+        </if>
+        <if test="EML_ADDR != null and EML_ADDR != ''">
+            AND EML_ADDR LIKE '%' || #{EML_ADDR} || '%' 
+        </if>
+        <if test="TRPR_TELNO != null and TRPR_TELNO != ''">
+            AND REPLACE(TRPR_TELNO, '-', '') LIKE '%' || REPLACE(#{TRPR_TELNO}, '-', '') || '%' 
+        </if>
+        <if test="SNS_SE_CD != null and SNS_SE_CD != ''">
+            AND SNS_SE_CD = #{SNS_SE_CD} 
+        </if>
+        <if test="MSNGR_ID_ENCPT != null and MSNGR_ID_ENCPT != ''">
+            AND MSNGR_ID_ENCPT = #{MSNGR_ID_ENCPT}
+        </if>
+        <if test="MSNGR_ID != null and MSNGR_ID != ''"> 
+            AND MSNGR_ID LIKE '%' || #{MSNGR_ID} || '%'
+        </if>
+        <if test="RECIPI_MNG_NO != null and RECIPI_MNG_NO != ''">
+            AND RECIPI_MNG_NO LIKE '%' || #{RECIPI_MNG_NO} || '%' 
+        </if>
+        <if test="TRPR_INFO_NO != null and TRPR_INFO_NO != ''">
+            AND TRPR_INFO_NO LIKE '%' || #{TRPR_INFO_NO} || '%' 
+        </if>
+        <if test="INDV_IDNTFC_NO != null and INDV_IDNTFC_NO != ''">
+            AND INDV_IDNTFC_NO LIKE '%' || #{INDV_IDNTFC_NO} || '%' 
+        </if>
+    </sql>
+    
+</mapper>

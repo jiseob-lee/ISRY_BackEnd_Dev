@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : SrvcResrcePopMapper.xml
+* @Description : 자원제공서비스목록(팝업) SQL Mapper
+*
+* @author  : Seo.Hae.Seok
+* @since   : 2022. 05. 11.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 05. 11.  Seo.Hae.Seok    최초작성
+* </pre>selectSrvcResrceList
+-->
+<mapper namespace="isry.itgcm.bizcmmns.cmmns.mapper.SrvcResrcePopMapper">
+
+    <!-- 자원제공서비스 목록조회 -->
+    <select id="selectSrvcResrceList" parameterType="HashMap" resultType="HashMap">
+        SELECT /* isry.itgcm.bizcmmns.cmmns.SrvcResrcePopMapper.selectSrvcResrceList(자원제공서비스목록조회) */
+               T1.RESRCE_NO                                                                               AS RESRCE_NO                   -- 자원번호(RS)
+             , T1.PVSN_RESRCE_NM                                                                          AS PVSN_RESRCE_NM              -- 제공자원명
+             , T1.SRVC_EXCN_BIZ_NO                                                                        AS SRVC_EXCN_BIZ_NO            -- 서비스실행사업번호
+             , ( SELECT X.SRVC_EXCN_BIZ_NM FROM SDA420 X WHERE X.SRVC_EXCN_BIZ_NO = T1.SRVC_EXCN_BIZ_NO ) AS SRVC_EXCN_BIZ_NM            -- 서비스실행사업명
+             , T1.GR_TRGT_SRVC_YN                                                                         AS GR_TRGT_SRVC_YN             -- 집단대상서비스여부
+             , T1.SRVC_TYPE_SE_CD                                                                         AS SRVC_TYPE_SE_CD             -- 서비스유형구분코드
+             , T1.SRVC_RESRCE_LCLAS_SE_CD                                                                 AS SRVC_RESRCE_LCLAS_SE_CD     -- 자원제공서비스대분류구분코드
+             , T1.SRVC_RESRCE_MLSFC_SE_CD                                                                 AS SRVC_RESRCE_MLSFC_SE_CD     -- 자원제공서비스중분류구분코드
+             , T1.SRVC_RESRCE_SCLAS_SE_CD                                                                 AS SRVC_RESRCE_SCLAS_SE_CD     -- 자원제공서비스소분류구분코드
+             , T1.SRVC_RESRCE_DTL_SE_CD                                                                   AS SRVC_RESRCE_DTL_SE_CD       -- 자원제공서비스상세구분코드
+             , T1.RESRCE_RGN_SGG_CD                                                                       AS RESRCE_RGN_SGG_CD           -- 자원지역시군구코드
+             , T1.RESRCE_SE_CD                                                                            AS RESRCE_SE_CD                -- 자원구분코드
+             , T1.RSFR_INST_NO                                                                            AS RSFR_INST_NO                -- 자원제공주체번호
+             , NVL(( SELECT X.INST_NM FROM SAA000 X WHERE X.INST_NO = T1.RSFR_INST_NO ),
+                      ( SELECT X.INST_NM FROM SDA600 X WHERE X.INST_NO = T1.RSFR_INST_NO ))               AS RSFR_INST_NM                -- 자원제공주체명
+             , T1.OTM_YN                                                                                  AS OTM_YN                      -- 일회성여부
+             , T1.PVSN_BGNG_YMD                                                                           AS PVSN_BGNG_YMD               -- 제공시작일자
+             , T1.PVSN_END_YMD                                                                            AS PVSN_END_YMD                -- 제공종료일자
+             , T1.HPGE_URL_ADDR                                                                           AS HPGE_URL_ADDR               -- 홈페이지URL주소
+             , T1.SRVC_DSCRP_CN                                                                           AS SRVC_DSCRP_CN               -- 서비스설명내용
+             , T1.USE_YN                                                                                  AS USE_YN                      -- 사용여부
+             , T1.PVSN_QY_CNT                                                                             AS PVSN_QY_CNT                 -- 제공수량수
+             , T1.PVSN_AMT                                                                                AS PVSN_AMT                    -- 제공금액
+             , T1.SPRT_CONT                                                                               AS SPRT_CONT                   -- 지원횟수
+             , T1.RSFR_SRVC_SPRT_UNT_SE_CD                                                                AS RSFR_SRVC_SPRT_UNT_SE_CD    -- 자원제공서비스지원단위구분코드
+             , T1.SPNGDS_CL_SE_CD                                                                         AS SPNGDS_CL_SE_CD             -- 후원품분류구분코드
+             , T1.RSFR_CYCL_SE_CD                                                                         AS RSFR_CYCL_SE_CD             -- 자원제공주기구분코드
+             , T1.VLTWRK_DAYCNT                                                                           AS VLTWRK_DAYCNT               -- 자원봉사시간
+             , T1.UTZTN_PSNCPA_NOPE                                                                       AS UTZTN_PSNCPA_NOPE           -- 이용정원인원수
+             , T1.PTCPTN_NOPE                                                                             AS PTCPTN_NOPE                 -- 참여인원수
+             , T1.DPSITR_NM_ENCPT                                                                         AS DPSITR_NM_ENCPT             -- 기탁자명
+             , T1.DPSITR_TELNO                                                                            AS DPSITR_TELNO                -- 기탁자전화번호
+             , T1.DPSTN_UNT_UNTPC_AMT                                                                     AS DPSTN_UNT_UNTPC_AMT         -- 기탁단위단가금액
+             , T1.ME_ALOTM_AMT                                                                            AS ME_ALOTM_AMT                -- 본인부담금금액
+             , T1.DPSITR_ANYM_YN                                                                          AS DPSITR_ANYM_YN              -- 기탁자익명여부
+             , T1.CHG_DMND_DT                                                                               AS CHG_DMND_DT                 -- 변경요청일시
+             , T1.CHG_DMND_ID                                                                             AS CHG_DMND_ID                 -- 변경요청아이디
+             , T1.CHG_DMND_CS_CN                                                                          AS CHG_DMND_CS_CN              -- 변경요청사유내용
+             , T1.APRV_DT                                                                                 AS APRV_DT                     -- 승인일시
+             , T1.APRV_STTS_SE_CD                                                                         AS APRV_STTS_SE_CD             -- 승인상태구분코드
+             , T1.AUTZR_NO                                                                                AS AUTZR_NO                    -- 승인자번호
+             , T1.APRV_CN                                                                                 AS APRV_CN                     -- 승인내용
+             , T1.RJCT_CS_CN                                                                              AS RJCT_CS_CN                  -- 반려사유내용
+             , T1.ATFINO                                                                                  AS ATFINO                      -- 첨부파일번호
+             , T1.OPER_SHAPE_SE_CD                                                                        AS OPER_SHAPE_SE_CD            -- 운영형태구분코드
+             , T1.ASIS_RESRCE_NO                                                                          AS ASIS_RESRCE_NO              -- ASIS자원번호
+          FROM SDA100 T1 /* 자원기본 */
+         WHERE 1 = 1
+           AND T1.APRV_STTS_SE_CD   IN ('2')           -- 승인상태구분코드
+           AND T1.USE_YN           = 'Y'                    -- 사용여부
+           AND EXISTS (
+                SELECT 'X'
+                  FROM SDA110 T2 /*자원관리담당자*/, SAA000 T5/*통합기관*/
+                 WHERE T1.RESRCE_NO        = T2.RESRCE_NO(+) 
+                   AND T2.PIC_INST_NO      = T5.INST_NO(+)
+		     <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+		           AND T5.UNT_TASKWK_SE_CD         = #{UNT_TASKWK_SE_CD}                  -- 단위업무구분코드
+		     </if>                   
+		     <if test="PIC_INST_NO != null and PIC_INST_NO != ''">
+		           AND T2.PIC_INST_NO         = #{PIC_INST_NO}                  -- 단위업무구분코드
+		     </if>                   
+           )           
+           <!-- <![CDATA[
+           AND (#{SRVC_YR} || '0101'  <= T1.PVSN_BGNG_YMD OR #{SRVC_YR} || '1231' >= T1.PVSN_END_YMD)
+           ]]>   -->
+       
+       <if test="RESRCE_NO != null and RESRCE_NO != ''"> 
+           AND T1.RESRCE_NO                = #{RESRCE_NO}                         -- 자원번호(RS)
+       </if>
+       <if test="PVSN_RESRCE_NM != null and PVSN_RESRCE_NM != ''"> 
+           AND T1.PVSN_RESRCE_NM           LIKE '%' || #{PVSN_RESRCE_NM} || '%'   -- 제공자원명
+       </if>
+       <if test="RSFR_INST_NO != null and RSFR_INST_NO != ''"> 
+           AND T1.RSFR_INST_NO             = #{RSFR_INST_NO}             -- 자원제공주체번호
+       </if>
+       <if test="SRVC_EXCN_BIZ_NM != null and SRVC_EXCN_BIZ_NM != ''"> 
+           AND T1.SRVC_EXCN_BIZ_NO         IN (SELECT X.SRVC_EXCN_BIZ_NO FROM SDA420 X WHERE X.SRVC_EXCN_BIZ_NM LIKE #{SRVC_EXCN_BIZ_NM} || '%')   -- 서비스실행사업명
+       </if>
+       <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''"> 
+           AND T1.SRVC_RESRCE_LCLAS_SE_CD = #{SRVC_RESRCE_LCLAS_SE_CD}  -- 자원제공서비스대분류구분코드
+       </if>
+       <if test="SRVC_RESRCE_MLSFC_SE_CD != null and SRVC_RESRCE_MLSFC_SE_CD != ''"> 
+           AND T1.SRVC_RESRCE_MLSFC_SE_CD  = #{SRVC_RESRCE_MLSFC_SE_CD} -- 자원제공서비스중분류구분코드
+       </if>
+       <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''"> 
+           AND T1.SRVC_RESRCE_SCLAS_SE_CD  = #{SRVC_RESRCE_SCLAS_SE_CD}  -- 자원제공서비스소분류구분코드
+       </if>
+       <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''"> 
+           AND T1.SRVC_RESRCE_DTL_SE_CD    = #{SRVC_RESRCE_DTL_SE_CD}    -- 자원제공서비스상세구분코드
+       </if>
+       <if test="GR_TRGT_SRVC_YN != null and GR_TRGT_SRVC_YN != ''">
+           AND T1.GR_TRGT_SRVC_YN          = #{GR_TRGT_SRVC_YN}                   -- 집단대상서비스여부
+       </if>
+      ORDER BY T1.RESRCE_NO
+             , T1.PVSN_RESRCE_NM
+    </select>
+
+    <select id="selectSrvcResrcePagingList" parameterType="HashMap" resultType="HashMap">
+        SELECT T1.* 
+        FROM (
+	        SELECT 
+	            T1.RESRCE_NO
+	            , T1.PVSN_RESRCE_NM
+	            , T1.SRVC_EXCN_BIZ_NO
+	            , T1.SRVC_EXCN_BIZ_NM
+	            , T1.GR_TRGT_SRVC_YN
+	            , T1.SRVC_TYPE_SE_CD
+	            , T1.SRVC_RESRCE_LCLAS_SE_CD
+	            , T1.SRVC_RESRCE_MLSFC_SE_CD
+	            , T1.SRVC_RESRCE_SCLAS_SE_CD
+	            , T1.SRVC_RESRCE_DTL_SE_CD
+	            , T1.RESRCE_RGN_SGG_CD
+	            , T1.RESRCE_SE_CD
+	            , T1.RSFR_INST_NO
+	            , T1.RSFR_INST_NM
+	            , T1.OTM_YN
+	            , T1.PVSN_BGNG_YMD
+	            , T1.PVSN_END_YMD
+	            , T1.HPGE_URL_ADDR
+	            , T1.SRVC_DSCRP_CN
+	            , T1.USE_YN
+	            , T1.PVSN_QY_CNT
+	            , T1.PVSN_AMT
+	            , T1.SPRT_CONT
+	            , T1.RSFR_SRVC_SPRT_UNT_SE_CD
+	            , T1.SPNGDS_CL_SE_CD
+	            , T1.RSFR_CYCL_SE_CD
+	            , T1.VLTWRK_DAYCNT
+	            , T1.UTZTN_PSNCPA_NOPE
+	            , T1.PTCPTN_NOPE
+	            , T1.DPSITR_NM_ENCPT
+	            , T1.DPSITR_TELNO
+	            , T1.DPSTN_UNT_UNTPC_AMT
+	            , T1.ME_ALOTM_AMT
+	            , T1.DPSITR_ANYM_YN
+	            , T1.CHG_DMND_DT
+	            , T1.CHG_DMND_ID
+	            , T1.CHG_DMND_CS_CN
+	            , T1.APRV_DT
+	            , T1.APRV_STTS_SE_CD
+	            , T1.AUTZR_NO
+	            , T1.APRV_CN
+	            , T1.RJCT_CS_CN
+	            , T1.ATFINO
+	            , T1.OPER_SHAPE_SE_CD
+	            , T1.ASIS_RESRCE_NO
+	            , ROWNUM AS SEQ
+	            FROM (
+	            SELECT /* isry.itgcm.bizcmmns.cmmns.SrvcResrcePopMapper.selectSrvcResrcePagingList(자원제공서비스목록조회) */
+	               T1.RESRCE_NO                                                                               AS RESRCE_NO                   -- 자원번호(RS)
+	             , T1.PVSN_RESRCE_NM                                                                          AS PVSN_RESRCE_NM              -- 제공자원명
+	             , T1.SRVC_EXCN_BIZ_NO                                                                        AS SRVC_EXCN_BIZ_NO            -- 서비스실행사업번호
+	             , ( SELECT X.SRVC_EXCN_BIZ_NM FROM SDA420 X WHERE X.SRVC_EXCN_BIZ_NO = T1.SRVC_EXCN_BIZ_NO ) AS SRVC_EXCN_BIZ_NM            -- 서비스실행사업명
+	             , T1.GR_TRGT_SRVC_YN                                                                         AS GR_TRGT_SRVC_YN             -- 집단대상서비스여부
+	             , T1.SRVC_TYPE_SE_CD                                                                         AS SRVC_TYPE_SE_CD             -- 서비스유형구분코드
+	             , T1.SRVC_RESRCE_LCLAS_SE_CD                                                                 AS SRVC_RESRCE_LCLAS_SE_CD     -- 자원제공서비스대분류구분코드
+	             , T1.SRVC_RESRCE_MLSFC_SE_CD                                                                 AS SRVC_RESRCE_MLSFC_SE_CD     -- 자원제공서비스중분류구분코드
+	             , T1.SRVC_RESRCE_SCLAS_SE_CD                                                                 AS SRVC_RESRCE_SCLAS_SE_CD     -- 자원제공서비스소분류구분코드
+	             , T1.SRVC_RESRCE_DTL_SE_CD                                                                   AS SRVC_RESRCE_DTL_SE_CD       -- 자원제공서비스상세구분코드
+	             , T1.RESRCE_RGN_SGG_CD                                                                       AS RESRCE_RGN_SGG_CD           -- 자원지역시군구코드
+	             , T1.RESRCE_SE_CD                                                                            AS RESRCE_SE_CD                -- 자원구분코드
+	             , T1.RSFR_INST_NO                                                                            AS RSFR_INST_NO                -- 자원제공주체번호
+	             , NVL(( SELECT X.INST_NM FROM SAA000 X WHERE X.INST_NO = T1.RSFR_INST_NO ),
+	                      ( SELECT X.INST_NM FROM SDA600 X WHERE X.INST_NO = T1.RSFR_INST_NO ))               AS RSFR_INST_NM                -- 자원제공주체명
+	             , T1.OTM_YN                                                                                  AS OTM_YN                      -- 일회성여부
+	             , T1.PVSN_BGNG_YMD                                                                           AS PVSN_BGNG_YMD               -- 제공시작일자
+	             , T1.PVSN_END_YMD                                                                            AS PVSN_END_YMD                -- 제공종료일자
+	             , T1.HPGE_URL_ADDR                                                                           AS HPGE_URL_ADDR               -- 홈페이지URL주소
+	             , T1.SRVC_DSCRP_CN                                                                           AS SRVC_DSCRP_CN               -- 서비스설명내용
+	             , T1.USE_YN                                                                                  AS USE_YN                      -- 사용여부
+	             , T1.PVSN_QY_CNT                                                                             AS PVSN_QY_CNT                 -- 제공수량수
+	             , T1.PVSN_AMT                                                                                AS PVSN_AMT                    -- 제공금액
+	             , T1.SPRT_CONT                                                                               AS SPRT_CONT                   -- 지원횟수
+	             , T1.RSFR_SRVC_SPRT_UNT_SE_CD                                                                AS RSFR_SRVC_SPRT_UNT_SE_CD    -- 자원제공서비스지원단위구분코드
+	             , T1.SPNGDS_CL_SE_CD                                                                         AS SPNGDS_CL_SE_CD             -- 후원품분류구분코드
+	             , T1.RSFR_CYCL_SE_CD                                                                         AS RSFR_CYCL_SE_CD             -- 자원제공주기구분코드
+	             , T1.VLTWRK_DAYCNT                                                                           AS VLTWRK_DAYCNT               -- 자원봉사시간
+	             , T1.UTZTN_PSNCPA_NOPE                                                                       AS UTZTN_PSNCPA_NOPE           -- 이용정원인원수
+	             , T1.PTCPTN_NOPE                                                                             AS PTCPTN_NOPE                 -- 참여인원수
+	             , T1.DPSITR_NM_ENCPT                                                                         AS DPSITR_NM_ENCPT             -- 기탁자명
+	             , T1.DPSITR_TELNO                                                                            AS DPSITR_TELNO                -- 기탁자전화번호
+	             , T1.DPSTN_UNT_UNTPC_AMT                                                                     AS DPSTN_UNT_UNTPC_AMT         -- 기탁단위단가금액
+	             , T1.ME_ALOTM_AMT                                                                            AS ME_ALOTM_AMT                -- 본인부담금금액
+	             , T1.DPSITR_ANYM_YN                                                                          AS DPSITR_ANYM_YN              -- 기탁자익명여부
+	             , T1.CHG_DMND_DT                                                                               AS CHG_DMND_DT                 -- 변경요청일시
+	             , T1.CHG_DMND_ID                                                                             AS CHG_DMND_ID                 -- 변경요청아이디
+	             , T1.CHG_DMND_CS_CN                                                                          AS CHG_DMND_CS_CN              -- 변경요청사유내용
+	             , T1.APRV_DT                                                                                 AS APRV_DT                     -- 승인일시
+	             , T1.APRV_STTS_SE_CD                                                                         AS APRV_STTS_SE_CD             -- 승인상태구분코드
+	             , T1.AUTZR_NO                                                                                AS AUTZR_NO                    -- 승인자번호
+	             , T1.APRV_CN                                                                                 AS APRV_CN                     -- 승인내용
+	             , T1.RJCT_CS_CN                                                                              AS RJCT_CS_CN                  -- 반려사유내용
+	             , T1.ATFINO                                                                                  AS ATFINO                      -- 첨부파일번호
+	             , T1.OPER_SHAPE_SE_CD                                                                        AS OPER_SHAPE_SE_CD            -- 운영형태구분코드
+	             , T1.ASIS_RESRCE_NO                                                                          AS ASIS_RESRCE_NO              -- ASIS자원번호
+	        FROM SDA100 T1
+	        JOIN SDA110 T2 ON T1.RESRCE_NO = T2.RESRCE_NO
+	        JOIN SAA000 T3 ON T2.PIC_INST_NO = T3.INST_NO
+	        WHERE T1.USE_YN = 'Y'
+	        AND T1.APRV_STTS_SE_CD   IN ('2')           -- 승인상태구분코드
+	        AND T2.PCHPRS_YN = 'Y'
+	        <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+	              AND T3.UNT_TASKWK_SE_CD         = #{UNT_TASKWK_SE_CD}                  -- 단위업무구분코드
+	        </if>                   
+	        <if test="PIC_INST_NO != null and PIC_INST_NO != ''">
+	              AND T2.PIC_INST_NO         = #{PIC_INST_NO}                  -- 단위업무구분코드
+	        </if>
+	        <if test="RESRCE_NO != null and RESRCE_NO != ''"> 
+	           AND T1.RESRCE_NO                = #{RESRCE_NO}                         -- 자원번호(RS)
+	        </if>
+	        <if test="PVSN_RESRCE_NM != null and PVSN_RESRCE_NM != ''"> 
+	           AND T1.PVSN_RESRCE_NM           LIKE '%' || #{PVSN_RESRCE_NM} || '%'   -- 제공자원명
+	        </if>
+	        <if test="RSFR_INST_NO != null and RSFR_INST_NO != ''"> 
+	           AND T1.RSFR_INST_NO             = #{RSFR_INST_NO}             -- 자원제공주체번호
+	        </if>
+	        <if test="SRVC_EXCN_BIZ_NM != null and SRVC_EXCN_BIZ_NM != ''"> 
+	           AND T1.SRVC_EXCN_BIZ_NO         IN (SELECT X.SRVC_EXCN_BIZ_NO FROM SDA420 X WHERE X.SRVC_EXCN_BIZ_NM LIKE #{SRVC_EXCN_BIZ_NM} || '%')   -- 서비스실행사업명
+	        </if>
+	        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''"> 
+	           AND T1.SRVC_RESRCE_LCLAS_SE_CD = #{SRVC_RESRCE_LCLAS_SE_CD}  -- 자원제공서비스대분류구분코드
+	        </if>
+	        <if test="SRVC_RESRCE_MLSFC_SE_CD != null and SRVC_RESRCE_MLSFC_SE_CD != ''"> 
+	           AND T1.SRVC_RESRCE_MLSFC_SE_CD  = #{SRVC_RESRCE_MLSFC_SE_CD} -- 자원제공서비스중분류구분코드
+	        </if>
+	        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''"> 
+	           AND T1.SRVC_RESRCE_SCLAS_SE_CD  = #{SRVC_RESRCE_SCLAS_SE_CD}  -- 자원제공서비스소분류구분코드
+	        </if>
+	        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''"> 
+	           AND T1.SRVC_RESRCE_DTL_SE_CD    = #{SRVC_RESRCE_DTL_SE_CD}    -- 자원제공서비스상세구분코드
+	        </if>
+	        <if test="GR_TRGT_SRVC_YN != null and GR_TRGT_SRVC_YN != ''">
+	           AND T1.GR_TRGT_SRVC_YN          = #{GR_TRGT_SRVC_YN}                   -- 집단대상서비스여부
+	        </if>
+	        /*20230511:해당년도가 포함되어 있는 서비스 목록*/
+	        <!-- <![CDATA[
+	        AND (#{SRVC_YR} || '0101'  <= T1.PVSN_BGNG_YMD OR #{SRVC_YR} || '1231' >= T1.PVSN_END_YMD)
+	        ]]>  -->
+	        ORDER BY T1.RESRCE_NO, T1.PVSN_RESRCE_NM
+	        ) T1
+        ) T1 
+        <![CDATA[
+         WHERE T1.SEQ >= #{START_IDX} AND T1.SEQ <= #{LAST_IDX}
+         ]]>
+    </select>
+    
+    <select id="selectSrvcResrceCount" parameterType="HashMap" resultType="String">
+        SELECT COUNT(*)
+        FROM SDA100 T1
+        JOIN SDA110 T2 ON T1.RESRCE_NO = T2.RESRCE_NO
+        JOIN SAA000 T3 ON T2.PIC_INST_NO = T3.INST_NO
+        WHERE T1.USE_YN = 'Y'
+        AND T1.APRV_STTS_SE_CD   IN ('2')           -- 승인상태구분코드
+        AND T2.PCHPRS_YN = 'Y'
+        <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+              AND T3.UNT_TASKWK_SE_CD         = #{UNT_TASKWK_SE_CD}                  -- 단위업무구분코드
+        </if>                   
+        <if test="PIC_INST_NO != null and PIC_INST_NO != ''">
+              AND T2.PIC_INST_NO         = #{PIC_INST_NO}                  -- 단위업무구분코드
+        </if>
+        <if test="RESRCE_NO != null and RESRCE_NO != ''"> 
+           AND T1.RESRCE_NO                = #{RESRCE_NO}                         -- 자원번호(RS)
+        </if>
+        <if test="PVSN_RESRCE_NM != null and PVSN_RESRCE_NM != ''"> 
+           AND T1.PVSN_RESRCE_NM           LIKE '%' || #{PVSN_RESRCE_NM} || '%'   -- 제공자원명
+        </if>
+        <if test="RSFR_INST_NO != null and RSFR_INST_NO != ''"> 
+           AND T1.RSFR_INST_NO             = #{RSFR_INST_NO}             -- 자원제공주체번호
+        </if>
+        <if test="SRVC_EXCN_BIZ_NM != null and SRVC_EXCN_BIZ_NM != ''"> 
+           AND T1.SRVC_EXCN_BIZ_NO         IN (SELECT X.SRVC_EXCN_BIZ_NO FROM SDA420 X WHERE X.SRVC_EXCN_BIZ_NM LIKE #{SRVC_EXCN_BIZ_NM} || '%')   -- 서비스실행사업명
+        </if>
+        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''"> 
+           AND T1.SRVC_RESRCE_LCLAS_SE_CD = #{SRVC_RESRCE_LCLAS_SE_CD}  -- 자원제공서비스대분류구분코드
+        </if>
+        <if test="SRVC_RESRCE_MLSFC_SE_CD != null and SRVC_RESRCE_MLSFC_SE_CD != ''"> 
+           AND T1.SRVC_RESRCE_MLSFC_SE_CD  = #{SRVC_RESRCE_MLSFC_SE_CD} -- 자원제공서비스중분류구분코드
+        </if>
+        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''"> 
+           AND T1.SRVC_RESRCE_SCLAS_SE_CD  = #{SRVC_RESRCE_SCLAS_SE_CD}  -- 자원제공서비스소분류구분코드
+        </if>
+        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''"> 
+           AND T1.SRVC_RESRCE_DTL_SE_CD    = #{SRVC_RESRCE_DTL_SE_CD}    -- 자원제공서비스상세구분코드
+        </if>
+        <if test="GR_TRGT_SRVC_YN != null and GR_TRGT_SRVC_YN != ''">
+           AND T1.GR_TRGT_SRVC_YN          = #{GR_TRGT_SRVC_YN}                   -- 집단대상서비스여부
+        </if>
+        /*20230511:해당년도가 포함되어 있는 서비스 목록*/
+        <!-- <![CDATA[
+        AND (#{SRVC_YR} || '0101'  <= T1.PVSN_BGNG_YMD OR #{SRVC_YR} || '1231' >= T1.PVSN_END_YMD)
+        ]]>  -->
+    </select>
+</mapper>

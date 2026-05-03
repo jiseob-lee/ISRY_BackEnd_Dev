@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri Oct 22 16:29:19 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.userjoin.mapper.SrchAddrMapper">
+
+
+	<select id="selectAddr" parameterType="HashMap" resultType="String" fetchSize="500">
+	<![CDATA[
+		/* selectAddr - Lee JiSeob */
+		
+		Select 
+		
+		CTPV_NM || ' ' || SGG_NM || Decode(EMD_SE_CD, '0', ' ' || STTY_EMD_NM, '') || ' ' ||
+		ROAD_NM || Decode(UDGD_YN, 0, '', '1',' 지하', '2', ' 공중') || ' ' || BMNO_NO ||
+		Decode(BSNO_NO, 0, '', '-' || BSNO_NO) 
+		
+		|| ' ' ||
+		
+		Case When (EMD_SE_CD = '0' And APTCPX_YN = '0') Then ''
+		When (EMD_SE_CD = '0' And APTCPX_YN = '1') Then '(' || SGG_BLDG_NM || ')'
+		When (EMD_SE_CD = '1' And APTCPX_YN = '0') Then '(' || STTY_EMD_NM || ')'
+		When (EMD_SE_CD = '1' And APTCPX_YN = '1')
+		Then '(' || STTY_EMD_NM || ', ' || SGG_BLDG_NM || ')'
+		End 
+		
+        || '|' ||
+         
+        BSIS_ZONE_NO
+        
+        || '|' ||
+         
+        CTPV_NM
+        
+        || '|' ||
+         
+        CASE WHEN SGG_NM IS NULL THEN ' ' ELSE SGG_NM END
+        
+        || '|' ||
+        
+        CTPV_NM || ' ' || SGG_NM || ' ' || STTY_EMD_NM || ' ' 
+        || DECODE(STLI_NM, '', '', STLI_NM || ' ') 
+        || DECODE(MTN_YN, '1', '산 ', '') 
+        || LOTNO_MNO_NO || DECODE(LOTNO_SNO_NO, 0, '', '-' || LOTNO_SNO_NO)
+        || DECODE(APTCPX_YN, '1', ' ' || SGG_BLDG_NM, '')
+        
+		FROM
+		
+		(
+		
+		SELECT *
+		
+		FROM SAD400 /* 도로명주소 - 중간조인테이블 */
+		
+	]]>
+		<where>
+		
+		<if test="keyword != null and keyword != ''">
+	<![CDATA[
+			AND CATSEARCH(ROAD_NM, #{keyword} || '*', NULL) = 0
+	]]>
+		</if>
+		<if test="si != null and si != ''">
+	<![CDATA[
+			AND CTPV_NM = #{si}
+	]]>
+		</if>	
+		<if test="gu != null and gu != ''">
+	<![CDATA[
+			AND SGG_NM LIKE #{gu} || '%'
+	]]>
+		</if>	
+		<if test="no != null and no != ''">
+	<![CDATA[
+			AND (BMNO_NO = #{no, jdbcType=NUMERIC} OR LOTNO_MNO_NO = #{no, jdbcType=NUMERIC})
+	]]>
+		</if>
+		
+		</where>	
+	
+	<![CDATA[
+	
+		UNION ALL
+		
+		
+		SELECT *
+		
+		FROM SAD400 /* 도로명주소 - 중간조인테이블 */
+		
+	]]>
+		<where>
+		
+		<if test="keyword != null and keyword != ''">
+	<![CDATA[
+		And catsearch(STTY_EMD_NM, #{keyword} || '*', NULL) = 0
+	]]>
+		</if>
+		<if test="si != null and si != ''">
+	<![CDATA[
+			AND CTPV_NM = #{si}
+	]]>
+		</if>	
+		<if test="gu != null and gu != ''">
+	<![CDATA[
+			AND SGG_NM LIKE #{gu} || '%'
+	]]>
+		</if>	
+		<if test="no != null and no != ''">
+	<![CDATA[
+			AND (BMNO_NO = #{no, jdbcType=NUMERIC} OR LOTNO_MNO_NO = #{no, jdbcType=NUMERIC})
+	]]>
+		</if>
+		
+		</where>
+			
+	<![CDATA[
+		) C
+	]]>
+	</select>
+
+	
+	<select id="searchAddr3" parameterType="HashMap" resultType="String" fetchSize="450">
+	<![CDATA[
+		/* selectAddr3 Lee JiSeob */
+		
+		Select 
+		
+		A.SIDO_NAME || ' ' || A.SIGUNGU_NAME || Decode(B.EMD_GUBUN, '0', ' ' || A.LAW_EMD_NAME, '') || ' ' ||
+		A.DORO_NAME || Decode(A.JIHA_YN, 0, '', '1',' 지하', '2', ' 공중') || ' ' || A.BUILD_BONBEON ||
+		Decode(A.BUILD_BUBEON, 0, '', '-' || A.BUILD_BUBEON) 
+		
+		|| ' ' ||
+		
+		Case When (B.EMD_GUBUN = '0' And A.UNION_HOUSE_YN = '0') Then ''
+		When (B.EMD_GUBUN = '0' And A.UNION_HOUSE_YN = '1') Then '(' || A.SIGUNGU_BUILD_NAME || ')'
+		When (B.EMD_GUBUN = '1' And A.UNION_HOUSE_YN = '0') Then '(' || A.LAW_EMD_NAME || ')'
+		When (B.EMD_GUBUN = '1' And A.UNION_HOUSE_YN = '1')
+		Then '(' || A.LAW_EMD_NAME || ', ' || A.SIGUNGU_BUILD_NAME || ')'
+		End 
+		
+		|| '|' ||
+		 
+		A.base_area_no
+		
+		From 
+		
+		(
+		SELECT C.DORO_NAME_CODE, C.EMD_SERIAL, C.EMD_GUBUN, C.DORO_NAME
+		FROM DR_DORO_CODE C
+	]]>
+		<if test="keyword != null and keyword != ''">
+	<![CDATA[
+		WHERE C.DORO_NAME LIKE #{keyword} || '%'
+	]]>
+	<!--
+	<![CDATA[ 
+		OR 
+		A.LAW_EMD_NAME LIKE #{keyword} || '%'
+	]]>
+	-->
+		</if>
+
+	<![CDATA[	
+		) B,
+		
+		(
+			Select  
+			C.BASE_AREA_NO,
+			C.SIDO_NAME,
+			C.SIGUNGU_NAME,
+			C.LAW_EMD_NAME,
+			C.DORO_NAME_CODE,
+			C.DORO_NAME,
+			C.JIHA_YN,
+			C.BUILD_BONBEON,
+			C.BUILD_BUBEON,
+			C.UNION_HOUSE_YN,
+			C.SIGUNGU_BUILD_NAME,
+			C.EMD_SIRIAL_NO,
+			C.JIBEON_BONBEON
+			From DR_BUILDING C
+
+			WHERE 1=1			
+	]]>
+				
+		<if test="si != null and si != ''">
+	<![CDATA[
+			AND C.SIDO_NAME = #{si}
+	]]>
+		</if>	
+		<if test="gu != null and gu != ''">
+	<![CDATA[
+			AND C.SIGUNGU_NAME = #{gu}
+	]]>
+		</if>	
+		<if test="no != null and no != ''">
+	<!--
+	<![CDATA[
+			AND (A.BUILD_BONBEON = #{no, jdbcType=NUMERIC} or A.JIBEON_BONBEON = #{no, jdbcType=NUMERIC})
+	]]>
+	-->
+	<![CDATA[
+			AND C.BUILD_BONBEON = #{no, jdbcType=NUMERIC}
+	]]>
+		</if>	
+	
+	<!--
+	<![CDATA[
+	
+			UNION ALL
+			
+			Select 
+			D.BASE_AREA_NO,
+			X.SIDO_NAME,
+			X.SIGUNGU_NAME,
+			X.LAW_EMD_NAME,
+			X.DORO_NAME_CODE,
+			D.DORO_NAME,
+			D.JIHA_YN,
+			D.BUILD_BONBEON,
+			D.BUILD_BUBEON,
+			D.UNION_HOUSE_YN,
+			D.SIGUNGU_BUILD_NAME,
+			D.EMD_SIRIAL_NO,
+			D.JIBEON_BONBEON
+			
+			From DR_BUILDING D,
+			(
+				SELECT 
+				G.SIDO_NAME,
+				G.SIGUNGU_NAME,
+				G.LAW_EMD_NAME,
+				G.DORO_NAME_CODE,
+				G.JIHA_YN,
+				G.BUILD_BONBEON,
+				G.BUILD_BUBEON
+				FROM DR_RELATE_JIBEON G
+			) X
+			
+			Where D.DORO_NAME_CODE = X.DORO_NAME_CODE
+			And D.JIHA_YN = X.JIHA_YN
+			And D.BUILD_BONBEON = X.BUILD_BONBEON
+			And D.BUILD_BUBEON = X.BUILD_BUBEON
+			
+	]]>
+	-->
+	<![CDATA[
+		) A
+		
+		Where
+		B.DORO_NAME_CODE = A.DORO_NAME_CODE 
+		AND B.EMD_SERIAL = A.EMD_SIRIAL_NO
+	]]>
+	
+	<!--		
+		<if test="keyword != null and keyword != ''">
+	<![CDATA[
+		And 
+		(
+		B.DORO_NAME LIKE #{keyword} || '%'
+	]]>
+
+	<![CDATA[ 
+		OR 
+		A.LAW_EMD_NAME LIKE #{keyword} || '%'
+	]]>
+
+	<![CDATA[
+		)
+	]]>
+		</if>
+	-->
+	<!--			
+		<if test="si != null and si != ''">
+	<![CDATA[
+			AND A.SIDO_NAME = #{si}
+	]]>
+		</if>	
+		<if test="gu != null and gu != ''">
+	<![CDATA[
+			AND A.SIGUNGU_NAME = #{gu}
+	]]>
+		</if>	
+		<if test="no != null and no != ''">
+
+	<![CDATA[
+			AND (A.BUILD_BONBEON = #{no, jdbcType=NUMERIC} or A.JIBEON_BONBEON = #{no, jdbcType=NUMERIC})
+	]]>
+
+	<![CDATA[
+			AND A.BUILD_BONBEON = #{no, jdbcType=NUMERIC}
+	]]>
+		</if>	
+	-->	
+	<![CDATA[	
+		/* AND ROWNUM <= 150 */
+		
+		UNION ALL
+		
+	]]>
+
+
+	<![CDATA[
+		
+		Select 
+		
+		A.SIDO_NAME || ' ' || A.SIGUNGU_NAME || Decode(B.EMD_GUBUN, '0', ' ' || A.LAW_EMD_NAME, '') || ' ' ||
+		A.DORO_NAME || Decode(A.JIHA_YN, 0, '', '1',' 지하', '2', ' 공중') || ' ' || A.BUILD_BONBEON ||
+		Decode(A.BUILD_BUBEON, 0, '', '-' || A.BUILD_BUBEON) 
+		
+		|| ' ' ||
+		
+		Case When (B.EMD_GUBUN = '0' And A.UNION_HOUSE_YN = '0') Then ''
+		When (B.EMD_GUBUN = '0' And A.UNION_HOUSE_YN = '1') Then '(' || A.SIGUNGU_BUILD_NAME || ')'
+		When (B.EMD_GUBUN = '1' And A.UNION_HOUSE_YN = '0') Then '(' || A.LAW_EMD_NAME || ')'
+		When (B.EMD_GUBUN = '1' And A.UNION_HOUSE_YN = '1')
+		Then '(' || A.LAW_EMD_NAME || ', ' || A.SIGUNGU_BUILD_NAME || ')'
+		End 
+		
+		|| '|' ||
+		 
+		A.base_area_no
+		
+		From 
+		
+		(
+		SELECT C.DORO_NAME_CODE, C.EMD_SERIAL, C.EMD_GUBUN, C.DORO_NAME
+		FROM DR_DORO_CODE C
+		
+		) B,
+		
+		(
+			Select  
+			C.BASE_AREA_NO,
+			C.SIDO_NAME,
+			C.SIGUNGU_NAME,
+			C.LAW_EMD_NAME,
+			C.DORO_NAME_CODE,
+			C.DORO_NAME,
+			C.JIHA_YN,
+			C.BUILD_BONBEON,
+			C.BUILD_BUBEON,
+			C.UNION_HOUSE_YN,
+			C.SIGUNGU_BUILD_NAME,
+			C.EMD_SIRIAL_NO,
+			C.JIBEON_BONBEON
+			From DR_BUILDING C
+			
+			WHERE 1=1
+	]]>	
+		<if test="keyword != null and keyword != ''">
+	<![CDATA[
+			AND C.LAW_EMD_NAME LIKE #{keyword} || '%'
+	]]>
+		</if>
+				
+		<if test="si != null and si != ''">
+	<![CDATA[
+			AND C.SIDO_NAME = #{si}
+	]]>
+		</if>	
+		<if test="gu != null and gu != ''">
+	<![CDATA[
+			AND C.SIGUNGU_NAME = #{gu}
+	]]>
+		</if>	
+		<if test="no != null and no != ''">
+	<![CDATA[
+			AND (C.BUILD_BONBEON = #{no, jdbcType=NUMERIC} or C.JIBEON_BONBEON = #{no, jdbcType=NUMERIC})
+	]]>
+		</if>	
+		
+		
+	<!--
+	<![CDATA[
+	
+			UNION ALL
+			
+			Select 
+			D.BASE_AREA_NO,
+			X.SIDO_NAME,
+			X.SIGUNGU_NAME,
+			X.LAW_EMD_NAME,
+			X.DORO_NAME_CODE,
+			D.DORO_NAME,
+			D.JIHA_YN,
+			D.BUILD_BONBEON,
+			D.BUILD_BUBEON,
+			D.UNION_HOUSE_YN,
+			D.SIGUNGU_BUILD_NAME,
+			D.EMD_SIRIAL_NO,
+			D.JIBEON_BONBEON
+			
+			From DR_BUILDING D,
+			(
+				SELECT 
+				G.SIDO_NAME,
+				G.SIGUNGU_NAME,
+				G.LAW_EMD_NAME,
+				G.DORO_NAME_CODE,
+				G.JIHA_YN,
+				G.BUILD_BONBEON,
+				G.BUILD_BUBEON
+				FROM DR_RELATE_JIBEON G
+			) X
+			
+			Where D.DORO_NAME_CODE = X.DORO_NAME_CODE
+			And D.JIHA_YN = X.JIHA_YN
+			And D.BUILD_BONBEON = X.BUILD_BONBEON
+			And D.BUILD_BUBEON = X.BUILD_BUBEON
+			
+	]]>
+	-->
+	<![CDATA[
+		) A
+		
+		Where
+		B.DORO_NAME_CODE = A.DORO_NAME_CODE 
+		AND B.EMD_SERIAL = A.EMD_SIRIAL_NO
+	]]>
+	
+	<!--	
+		<if test="keyword != null and keyword != ''">
+	<![CDATA[
+		And 
+		(
+	]]>
+	
+	<![CDATA[ 
+		B.DORO_NAME LIKE #{keyword} || '%'
+		OR
+	]]>
+	
+	<![CDATA[ 
+		 
+		A.LAW_EMD_NAME LIKE #{keyword} || '%'
+	]]>
+	
+	<![CDATA[
+		)
+	]]>
+		</if>
+	-->
+	
+	<!--
+		<if test="si != null and si != ''">
+	<![CDATA[
+			AND A.SIDO_NAME = #{si}
+	]]>
+		</if>	
+		<if test="gu != null and gu != ''">
+	<![CDATA[
+			AND A.SIGUNGU_NAME = #{gu}
+	]]>
+		</if>	
+		<if test="no != null and no != ''">
+	<![CDATA[
+			AND (A.BUILD_BONBEON = #{no, jdbcType=NUMERIC} or A.JIBEON_BONBEON = #{no, jdbcType=NUMERIC})
+	]]>
+		</if>
+	-->	
+
+	</select>
+
+	
+	<select id="selectAddr2" resultType="String">
+	<![CDATA[
+		
+		/* selectAddr2 Lee JiSeob */
+		
+		Select 
+		
+		-- DISTINCT 
+		A.base_area_no AS ZIP_NO,
+		
+		A.SIDO_NAME || ' ' || A.SIGUNGU_NAME || Decode(B.EMD_GUBUN, '0', ' ' || A.LAW_EMD_NAME, '') || ' ' ||
+		A.DORO_NAME || Decode(A.JIHA_YN, 0, '', '1',' 지하', '2', ' 공중') || ' ' || A.BUILD_BONBEON ||
+		Decode(A.BUILD_BUBEON, 0, '', '-' || A.BUILD_BUBEON) AS DORO_ADDR,
+		
+		Case When (B.EMD_GUBUN = '0' And A.UNION_HOUSE_YN = '0') Then ''
+		When (B.EMD_GUBUN = '0' And A.UNION_HOUSE_YN = '1') Then '(' || A.SIGUNGU_BUILD_NAME || ')'
+		When (B.EMD_GUBUN = '1' And A.UNION_HOUSE_YN = '0') Then '(' || A.LAW_EMD_NAME || ')'
+		When (B.EMD_GUBUN = '1' And A.UNION_HOUSE_YN = '1')
+		Then '(' || A.LAW_EMD_NAME || ', ' || A.SIGUNGU_BUILD_NAME || ')'
+		End AS ADDITIONAL
+
+		FROM 
+		(
+		SELECT C.DORO_NAME_CODE, C.EMD_SERIAL, C.EMD_GUBUN, C.DORO_NAME
+		FROM DR_DORO_CODE C
+		) B,
+		(
+			Select -- Distinct 
+			C.BASE_AREA_NO,
+			C.SIDO_NAME,
+			C.SIGUNGU_NAME,
+			C.LAW_EMD_NAME,
+			C.DORO_NAME_CODE,
+			C.DORO_NAME,
+			C.JIHA_YN,
+			C.BUILD_BONBEON,
+			C.BUILD_BUBEON,
+			C.UNION_HOUSE_YN,
+			C.SIGUNGU_BUILD_NAME,
+			C.EMD_SIRIAL_NO
+			From DR_BUILDING C
+			
+			UNION ALL
+			
+			Select -- Distinct 
+			D.BASE_AREA_NO,
+			X.SIDO_NAME,
+			X.SIGUNGU_NAME,
+			X.LAW_EMD_NAME,
+			X.DORO_NAME_CODE,
+			D.DORO_NAME,
+			D.JIHA_YN,
+			D.BUILD_BONBEON,
+			D.BUILD_BUBEON,
+			D.UNION_HOUSE_YN,
+			D.SIGUNGU_BUILD_NAME,
+			D.EMD_SIRIAL_NO
+			
+			From DR_BUILDING D, --DR_RELATE_JIBEON X
+			(
+				SELECT 
+				G.SIDO_NAME,
+				G.SIGUNGU_NAME,
+				G.LAW_EMD_NAME,
+				G.DORO_NAME_CODE,
+				G.JIHA_YN,
+				G.BUILD_BONBEON,
+				G.BUILD_BUBEON
+				FROM DR_RELATE_JIBEON G
+			) X
+			
+			Where D.DORO_NAME_CODE = X.DORO_NAME_CODE
+			And D.JIHA_YN = X.JIHA_YN
+			And D.BUILD_BONBEON = X.BUILD_BONBEON
+			And D.BUILD_BUBEON = X.BUILD_BUBEON
+		) A
+		
+		Where
+		B.DORO_NAME_CODE = A.DORO_NAME_CODE 
+		AND B.EMD_SERIAL = A.EMD_SIRIAL_NO
+		And 
+		(
+		B.DORO_NAME LIKE '%증산%' 
+		OR 
+		A.LAW_EMD_NAME LIKE '%증산%'
+		)
+		
+	]]>
+	</select>
+
+	<select id="selectSido" parameterType="HashMap" resultType="String">
+	<![CDATA[
+		/* selectSido - Lee JiSeob */
+		
+		SELECT MAX(CTPV_NM)
+		
+		FROM SAA020 /* 시군구코드 */
+		
+		WHERE CTPV_NM = #{CTPV_NM}
+		
+	]]>
+	</select>
+
+    <select id="selectAddrArea" resultType="HashMap">
+    <![CDATA[
+        /* selectAddrArea - Lee JiSeob */
+        
+        SELECT
+            SGG_CD, 
+            CTPV_NM, 
+            SGG_NM, 
+            ENG_CTPV_NM, 
+            ENG_SGG_NM, 
+            SRTNG_SQNCE, 
+            DEL_YN
+        FROM SAA020
+        ORDER BY SRTNG_SQNCE, SGG_CD
+    ]]>
+    </select>
+
+    <select id="selectSidoArea" resultType="HashMap">
+    <![CDATA[
+        /* selectSidoArea - Lee JiSeob */
+        
+        SELECT 
+            CTPV_NM,
+            ENG_CTPV_NM, 
+            SUBSTR(MIN(SGG_CD), 1, 2) AS SIDO_CD,
+            MIN(SRTNG_SQNCE) AS SRTNG_SQNCE
+        
+        FROM SAA020
+        
+        GROUP BY 
+            CTPV_NM,
+            ENG_CTPV_NM
+        
+        ORDER BY SRTNG_SQNCE
+        
+    ]]>
+    </select>
+
+    <select id="selectSgg" resultType="HashMap">
+    <![CDATA[
+        /* selectSgg - Lee JiSeob */
+        
+        SELECT 
+            CTPV_NM,
+            ENG_CTPV_NM, 
+            SGG_CD,
+            SGG_NM,
+            CASE WHEN SGG_NM = '*' THEN CTPV_NM
+            ELSE CTPV_NM || ' - ' || SGG_NM END AS SIDO_SGG_NM_1,
+            CASE WHEN SGG_NM = '*' THEN CTPV_NM
+            ELSE CTPV_NM || ' ' || SGG_NM END AS SIDO_SGG_NM_2,
+            MAX(SRTNG_SQNCE) AS SRTNG_SQNCE 
+            
+        FROM SAA020
+        
+        GROUP BY 
+            CTPV_NM,
+            ENG_CTPV_NM,
+            SGG_CD,
+            SGG_NM
+            
+        ORDER BY SRTNG_SQNCE
+        
+    ]]>
+    </select>
+
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubmsr.casemng.recvryaftfct.mapper.RecvryAftfctMapper">
+
+    <update id="saveCaseInfoData" parameterType="HashMap">
+    <![CDATA[
+         /* saveCaseInfoData - Lee  MS */
+
+       INSERT INTO AEC110 ( /* 회복지원사례등록 */
+              CASE_MNG_NO,              /* 사례관리번호 */
+              CASE_MNG_ODRNO,           /* 사례관리차수 */
+              PRTCTN_DSPS_SN,           /* 보호처분일련번호 */
+
+              NEW_XTND_SE_CD,           /* 신규연장구분코드 */
+              PRTCTN_DSPS_COURT_SE_CD,  /* 보호처분법원구분코드 */
+              PRTCTN_DSPS_YMD,          /* 보호처분일자 */
+              
+              PRTCTN_DSPS_BGNG_YMD,     /* 보호처분시작일자 */
+              PRTCTN_DSPS_END_YMD,      /* 보호처분종료일자 */
+
+              PRTCTN_DSPS_CN,           /* 보호처분내용 */
+              ADI_DSPS_CN,              /* 부가처분내용 */
+             
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+       )
+       SELECT 
+              CASE_MNG_NO,              /* 사례관리번호 */
+              #{NEW_CASE_MNG_ODRNO},    /* 사례관리차수 */
+              PRTCTN_DSPS_SN,           /* 보호처분일련번호 */
+
+              NEW_XTND_SE_CD,           /* 신규연장구분코드 */
+              PRTCTN_DSPS_COURT_SE_CD,  /* 보호처분법원구분코드 */
+              PRTCTN_DSPS_YMD,          /* 보호처분일자 */
+              
+              PRTCTN_DSPS_BGNG_YMD,     /* 보호처분시작일자 */
+              PRTCTN_DSPS_END_YMD,      /* 보호처분종료일자 */
+
+              PRTCTN_DSPS_CN,     /* 보호처분내용 */
+              ADI_DSPS_CN,      /* 부가처분내용 */
+
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+         FROM AEC110
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}   
+        
+    ]]>
+    </update>
+
+</mapper>

@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.csemd.stats.ensttrlinsp.mapper.EnstTrlInspMapper">
+
+	<!-- 문항정보 조회 -->
+	<select id="selectQesitm" resultType="HashMap">
+	<![CDATA[
+	/* selectQesitm(문항정보 조회) - Lee SangHoon */
+	
+	SELECT
+        T2.QESITM_MNG_NO
+    ,   T2.QESITM_SQNCE
+    ,   T3.QESITM_CN
+    FROM SAC100 T
+    JOIN SBB000 T1
+        ON T1.QUSTNB_TMPT_MNG_NO = T.ADDTNG_MNG_VALUE1
+    JOIN SBB010 T2
+        ON T2.QUSTNB_TMPT_MNG_NO = T1.QUSTNB_TMPT_MNG_NO
+    JOIN SBB200 T3
+        ON T3.QESITM_MNG_NO = T2.QESITM_MNG_NO
+        
+    WHERE T.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+        AND T.CMMNS_CD_VALUE = #{QUSTNB_KND_SE_CD}
+        AND T3.QESITM_TYPE_SE_CD != '04'
+        
+    ORDER BY T2.QESITM_SQNCE
+	]]>
+	</select>
+
+	<!-- 인지도조사 조회 -->
+	<select id="selectAwarExmn" resultType="HashMap">
+	<![CDATA[
+	/* selectAwarExmn(인지도조사 조회) - Lee SangHoon */
+	
+	SELECT
+	   T.SRVY_QESITM_EXMPL_CN
+	,  COUNT(A.QESITM_MNG_NO) AS COUNT
+	FROM SBB210 T
+	LEFT JOIN
+	   (SELECT
+	       T4.QESITM_MNG_NO
+	   ,   T4.QESITM_SINGL_RSPNS_VALUE
+	   ,   ROW_NUMBER() OVER(PARTITION BY T1.INST_NO, T1.TRPR_INFO_NO, T1.QUSTNB_TMPT_MNG_NO, T1.SRVY_ERA_SE_CD, T1.TRPR_REL_SE_CD ORDER BY T1.REG_YMD DESC, T1.MNG_SN DESC) AS ROW_NUMBER
+	   FROM SBB600 T1
+	   JOIN SBB300 T2
+	       ON T2.QUSTNB_TMPT_MNG_NO = T1.QUSTNB_TMPT_MNG_NO
+	       AND T2.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+	   JOIN SBB500 T3
+	       ON T3.QUSTNB_TMPT_MNG_NO = T1.QUSTNB_TMPT_MNG_NO
+	       AND T3.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+	       AND T3.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO)
+	   JOIN SBB220 T4
+	       ON T4.QESITM_MNG_NO = T2.QESITM_MNG_NO
+	       AND T4.SRVY_RSPNS_MNG_NO = T3.SRVY_RSPNS_MNG_NO
+	   WHERE 1=1
+	]]>
+		<if test="INST_NO != null and INST_NO != ''">
+			AND T1.INST_NO = #{INST_NO}
+		</if>
+		<if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+			AND T1.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+		</if>
+	<![CDATA[
+	       AND TO_CHAR(T3.RSPNS_DT,'YYYYMMDD') BETWEEN #{BGNG_YMD} AND #{END_YMD}
+	   ) A
+	   ON A.QESITM_MNG_NO = T.QESITM_MNG_NO
+	   AND A.QESITM_SINGL_RSPNS_VALUE = T.SRVY_QESITM_EXMPL_SCORE
+	   AND A.ROW_NUMBER = 1
+	
+	WHERE T.QESITM_MNG_NO = #{QESITM_MNG_NO}
+	
+	GROUP BY T.SRVY_QESITM_EXMPL_CN, T.SRVY_QESITM_EXMPL_SQNCE
+	ORDER BY T.SRVY_QESITM_EXMPL_SQNCE
+	]]>
+	</select>
+	
+	<select id="selectEmtGhvr" resultType="HashMap">
+	<![CDATA[
+	/* selectEmtGhvr(정서행동검사통계) - Lee HysSun */
+    WITH X AS (
+        SELECT
+              A.TRPR_INFO_NO
+            , A.CASE_MNG_NO
+            , A.CASE_MNG_ODRNO
+            , C.QUSTNB_MNG_NO                      --설문지관리번호
+            , B.QUSTNB_GRDNG_RELM_MNG_NO           --채점영역관리번호
+            , REPLACE(REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', ''), ' ','') AS QUSTNB_GRDNG_RELM_ESNTAL_NM        --채점영역고유명
+            , C.GRDNG_SCORE
+            , A.QUSTNB_TMPT_MNG_NO
+            , D.SRVY_ERA_SE_CD
+        FROM SBB110 A
+        JOIN SBB030 B
+        ON A.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+        JOIN SBB500 X
+        ON X.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+        AND X.QUSTNB_TMPT_MNG_NO = A.QUSTNB_TMPT_MNG_NO
+        AND X.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+        JOIN SBB510 C
+        ON A.QUSTNB_TMPT_MNG_NO = C.QUSTNB_TMPT_MNG_NO
+        AND A.QUSTNB_MNG_NO = C.QUSTNB_MNG_NO
+        AND B.QUSTNB_GRDNG_RELM_MNG_NO = C.QUSTNB_GRDNG_RELM_MNG_NO
+        AND C.SRVY_RSPNS_MNG_NO = X.SRVY_RSPNS_MNG_NO
+        JOIN
+        (
+            SELECT SBB600.*
+            , ROW_NUMBER() OVER(PARTITION BY INST_NO, TRPR_INFO_NO, QUSTNB_TMPT_MNG_NO, SRVY_ERA_SE_CD ORDER BY REG_YMD DESC, MNG_SN DESC) AS ROW_NUMBER
+            FROM SBB600
+        )D
+        ON (A.CASE_MNG_NO = D.CASE_MNG_NO AND A.CASE_MNG_ODRNO = D.CASE_MNG_ODRNO) OR (A.TRPR_INFO_NO = D.TRPR_INFO_NO)
+        AND A.QUSTNB_MNG_NO = D.QUSTNB_MNG_NO
+        AND D.ROW_NUMBER = 1
+         
+        LEFT JOIN SAC100 Q1
+        ON Q1.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+        AND Q1.CMMNS_CD_VALUE IN (#{QUSTNB_CD})
+        ]]>
+        <if test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+           LEFT JOIN SAC100 Q2
+           ON Q2.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+           AND Q2.CMMNS_CD_VALUE IN (#{QUSTNB_CD2})
+        </if>
+        <![CDATA[
+        WHERE A.QUSTNB_TMPT_MNG_NO IN (Q1.ADDTNG_MNG_VALUE1, Q1.ADDTNG_MNG_VALUE2)
+        ]]>
+        <if test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+           OR A.QUSTNB_TMPT_MNG_NO IN (Q2.ADDTNG_MNG_VALUE1, Q2.ADDTNG_MNG_VALUE2)
+        </if>
+        <![CDATA[
+        AND C.QUSTNB_GRDNG_RELM_MNG_NO NOT IN ('SG2023013000126', 'SG2022102800009', 'SG2023013000123')
+        ]]>
+        <if test="INST_NO != NULL and INST_NO != ''">
+           AND D.INST_NO = #{INST_NO}
+        </if>
+        <if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO != ''">
+           AND D.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+        </if>
+        <if test="BGNG_YMD != NULL and BGNG_YMD != '' or END_YMD != NULL and END_YMD != ''">
+           AND TO_CHAR(X.RSPNS_DT,'YYYYMMDD') BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        </if>
+    <![CDATA[
+    )
+    SELECT
+          A.QUSTNB_NM AS RELM
+        , A.LEVEL_CD AS SE_CD
+        , A.LEVEL_NM AS SE
+        , NVL(B.NMPR, 0) AS BEF_NOPE
+        , NVL(C.NMPR, 0) AS AFT_NOPE
+        , NVL(B.NMPR, 0) + NVL(C.NMPR, 0) AS NOPE
+        , NVL(B.CNTNMPR, 0) + NVL(C.CNTNMPR, 0) AS CNTNMPR
+    FROM (
+        SELECT DISTINCT
+              A.QUSTNB_NM
+            , A.QUSTNB_RANK
+            , B.LEVEL_CD
+            , B.LEVEL_NM
+        FROM(
+            SELECT
+                  '전체' AS QUSTNB_NM
+                , '0' AS QUSTNB_RANK
+            FROM DUAL
+            
+            UNION ALL
+    
+            SELECT
+                  REPLACE(REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', ''), ' ','') AS QUSTNB_NM
+                ,   '1' AS QUSTNB_RANK
+            FROM SBB000 A
+            LEFT JOIN SBB030 B
+            ON A.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+            
+            LEFT JOIN SAC100 Q1
+            ON Q1.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+            AND Q1.CMMNS_CD_VALUE IN (#{QUSTNB_CD})
+            ]]>
+	        <if test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+	           LEFT JOIN SAC100 Q2
+	           ON Q2.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	           AND Q2.CMMNS_CD_VALUE IN (#{QUSTNB_CD2})
+	        </if>
+	        <![CDATA[
+            
+            WHERE A.QUSTNB_TMPT_MNG_NO IN (Q1.ADDTNG_MNG_VALUE1, Q1.ADDTNG_MNG_VALUE2)
+            ]]>
+	        <if test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+	           OR A.QUSTNB_TMPT_MNG_NO IN (Q2.ADDTNG_MNG_VALUE1, Q2.ADDTNG_MNG_VALUE2)
+	        </if>
+	        <![CDATA[
+            AND B.QUSTNB_GRDNG_RELM_MNG_NO NOT IN ('SG2023013000126', 'SG2022102800009', 'SG2023013000123')
+        
+            ORDER BY QUSTNB_RANK, QUSTNB_NM
+        ) A
+        CROSS JOIN (
+            SELECT
+                '1GREEN' AS LEVEL_CD
+                , '보통 수준' AS LEVEL_NM
+            FROM DUAL
+            UNION ALL
+            SELECT
+                '2YELLOW' AS LEVEL_CD
+                , '주의 수준' AS LEVEL_NM
+            FROM DUAL
+            UNION ALL
+            SELECT
+                '3RED' AS LEVEL_CD
+                , '위험 수준' AS LEVEL_NM
+            FROM DUAL
+        ) B
+    ) A
+    LEFT JOIN (
+        (
+        --전체 
+        SELECT
+            LEV
+            , COUNT(LEV) AS NMPR
+            , QUSTNB_NM
+            , COUNT(LEV) AS CNTNMPR
+        FROM (
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '전체' AS QUSTNB_NM
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '01'
+            GROUP BY QUSTNB_MNG_NO
+        )
+        GROUP BY LEV, QUSTNB_NM
+        )
+        UNION ALL
+        (
+        --사전
+        SELECT
+            CASE WHEN GRDNG_SCORE < 60 THEN '1GREEN'
+                WHEN GRDNG_SCORE BETWEEN 60 AND 89 THEN '2YELLOW'
+            ELSE '3RED' END AS LEV
+            , COUNT(NVL(CASE_MNG_NO, TRPR_INFO_NO)) AS NMPR
+            , QUSTNB_GRDNG_RELM_ESNTAL_NM AS QUSTNB_NM
+            , NULL AS CNTNMPR
+        FROM X
+        WHERE SRVY_ERA_SE_CD = '01'
+        GROUP BY CASE WHEN GRDNG_SCORE < 60 THEN '1GREEN'
+                            WHEN GRDNG_SCORE BETWEEN 60 AND 89 THEN '2YELLOW'
+                            ELSE '3RED' END, QUSTNB_GRDNG_RELM_ESNTAL_NM
+        )
+    )B
+    ON A.LEVEL_CD = B.LEV
+    AND A.QUSTNB_NM = B.QUSTNB_NM
+    LEFT JOIN (
+    (
+    --전체 
+    SELECT
+        LEV
+        , COUNT(LEV) AS NMPR
+        , QUSTNB_NM
+        , COUNT(LEV) AS CNTNMPR
+    FROM (
+        SELECT
+            CASE 
+                WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                ELSE '3RED'
+            END AS LEV
+            , '전체' AS QUSTNB_NM
+            , QUSTNB_MNG_NO
+        FROM X
+        WHERE SRVY_ERA_SE_CD = '02'
+        GROUP BY QUSTNB_MNG_NO
+        )
+        GROUP BY LEV, QUSTNB_NM
+        )
+        UNION ALL
+        (
+        --사후
+        SELECT
+            CASE WHEN GRDNG_SCORE < 60 THEN '1GREEN'
+                WHEN GRDNG_SCORE BETWEEN 60 AND 89 THEN '2YELLOW'
+            ELSE '3RED' END AS LEV
+            , COUNT(NVL(CASE_MNG_NO, TRPR_INFO_NO)) AS NMPR
+            , QUSTNB_GRDNG_RELM_ESNTAL_NM AS QUSTNB_NM
+            , NULL AS CNTNMPR
+        FROM X
+        WHERE SRVY_ERA_SE_CD = '02'
+        GROUP BY CASE WHEN GRDNG_SCORE < 60 THEN '1GREEN' 
+                                    WHEN GRDNG_SCORE BETWEEN 60 AND 89 THEN '2YELLOW'
+                            ELSE '3RED' END
+                            , QUSTNB_GRDNG_RELM_ESNTAL_NM
+        )
+    ) C
+    ON A.LEVEL_CD = C.LEV
+    AND A.QUSTNB_NM = C.QUSTNB_NM
+
+    ORDER BY A.QUSTNB_RANK
+    ]]>
+    <choose>
+    <when test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+        , CASE WHEN A.QUSTNB_NM LIKE '%타인공격%' THEN 1 
+               WHEN A.QUSTNB_NM LIKE '%자기공격%' THEN 2
+               WHEN A.QUSTNB_NM LIKE '%회피/퇴행%' THEN 3 
+               WHEN A.QUSTNB_NM LIKE '%규범/지시불이행%' THEN 4
+               WHEN A.QUSTNB_NM LIKE '%중독%' THEN 5
+               WHEN A.QUSTNB_NM LIKE '%기타문제행동-훔치기%' THEN 6
+               WHEN A.QUSTNB_NM LIKE '%기타문제행동-성문제%' THEN 7
+       END
+    </when>
+    <otherwise>
+        , CASE WHEN A.QUSTNB_NM LIKE '%범불안장애%' THEN 1 
+               WHEN A.QUSTNB_NM LIKE '%공황발작%' THEN 2
+               WHEN A.QUSTNB_NM LIKE '%PTSD%' THEN 3 
+               WHEN A.QUSTNB_NM LIKE '%우울장애%' THEN 4
+               WHEN A.QUSTNB_NM LIKE '%분노조절%' THEN 5
+               WHEN A.QUSTNB_NM LIKE '%피해사고%' THEN 6
+               WHEN A.QUSTNB_NM LIKE '%신체화%' THEN 7
+               WHEN A.QUSTNB_NM LIKE '%중독%' THEN 8
+       END
+    </otherwise>
+    </choose>
+    <![CDATA[
+    , LEVEL_CD
+	]]>
+	</select>
+	
+	<!-- 인구통계학적정보 - 보호자 구분(기타) -->
+    <select id = "selectPopulStatsInfoPrtcrSeEtc" resultType="HashMap">
+    <![CDATA[
+    /* selectPopulStatsInfoReside(인구통계학적정보_보호자구분(기타) - Park.Seong.Won */
+    SELECT
+        T1.CMMNS_CD_VALUE_NM    AS SE
+        , COUNT(A.TRPR_INFO_NO) AS COUNT
+    
+    FROM AFA100 A
+    JOIN SEA200 B
+        ON B.TRPR_INFO_NO = A.TRPR_INFO_NO
+    JOIN SAC100 T1
+        ON T1.CMMNS_CD_ID = 'RCPT_RQST_COURS_SE_CD'
+        AND T1.CMMNS_CD_VALUE = NVL(A.RCPT_RQST_COURS_SE_CD, B.RCPT_RQST_COURS_SE_CD)
+    JOIN
+	(
+	    SELECT TT.*, TA.SRVY_RSPNS_MNG_NO, TA.RSPNS_DT
+	    , ROW_NUMBER() OVER(PARTITION BY TT.TRPR_INFO_NO, TT.APLY_RCPT_SN
+	    ORDER BY TT.REG_YMD DESC, TT.MNG_SN DESC) RN
+	    
+	    FROM SBB600 TT
+	    JOIN SBB500 TA
+	        ON TA.QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO
+	        AND TA.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO)
+	    LEFT JOIN SAC100 TB
+	        ON TB.ADDTNG_MNG_VALUE1 = TT.QUSTNB_TMPT_MNG_NO
+	        AND TB.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	    WHERE TT.SRVY_ERA_SE_CD = '01'
+	    AND TB.CMMNS_CD_VALUE = '004'
+    ) T3
+        ON T3.TRPR_INFO_NO = A.TRPR_INFO_NO
+        AND T3.APLY_RCPT_SN = A.APLY_RCPT_SN
+        AND T3.RN = 1
+    LEFT JOIN SDA420 C
+        ON C.SRVC_EXCN_BIZ_NO = A.SRVC_EXCN_BIZ_NO
+    LEFT JOIN SDA400 D
+        ON D.SRVC_BIZ_NO = C.SRVC_BIZ_NO
+    
+    WHERE 1=1
+    ]]>
+        <if test="INST_NO != null and INST_NO != ''">
+        /* 기관 */
+        AND C.INST_NO = #{INST_NO}
+        </if>
+        
+        <if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+        /* 과정(서비스실행사업번호) */
+        AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+        </if>
+        
+        <if test="BGNG_YMD != null and BGNG_YMD != '' and END_YMD != null and END_YMD != ''">
+        /* 조회기간(청소년사전설문지 응답일시) */
+        AND TO_CHAR(T3.RSPNS_DT,'YYYYMMDD') BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        </if>
+    <![CDATA[
+        GROUP BY T1.CMMNS_CD_VALUE_NM
+    ]]>
+    </select>
+    
+	<!-- 인구통계학적정보 - 성별구분 -->
+	<select id="selectPopulStatsInfoSxdc" resultType="HashMap">
+	<![CDATA[
+	/* selectPopulStatsInfoSxdc(인구통계학적정보_성별) - Park.Seong.Won */
+	SELECT
+	   C.CMMNS_CD_VALUE_NM     AS SE
+	   , COUNT(A.TRPR_INFO_NO) AS COUNT
+	
+	FROM AFA100 A
+	JOIN SEA200 B
+	   ON B.TRPR_INFO_NO = A.TRPR_INFO_NO
+	JOIN SAC100 C
+	   ON C.CMMNS_CD_ID = 'SXDC_SE_CD'
+	   AND C.CMMNS_CD_VALUE = B.SXDC_SE_CD
+	JOIN
+		(
+		 SELECT TT.*, TA.SRVY_RSPNS_MNG_NO, TA.RSPNS_DT
+		    , ROW_NUMBER() OVER(PARTITION BY TT.TRPR_INFO_NO, TT.APLY_RCPT_SN
+		    ORDER BY TT.REG_YMD DESC, TT.MNG_SN DESC) RN
+		       
+		    FROM SBB600 TT
+		    JOIN SBB500 TA
+		        ON TA.QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO
+		        AND TA.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO)
+		    LEFT JOIN SAC100 TB
+		        ON TB.ADDTNG_MNG_VALUE1 = TT.QUSTNB_TMPT_MNG_NO
+		        AND TB.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+		    WHERE TT.SRVY_ERA_SE_CD = '01'
+		    AND TB.CMMNS_CD_VALUE = '004'
+        ) D
+       ON D.TRPR_INFO_NO = A.TRPR_INFO_NO
+       AND D.APLY_RCPT_SN = A.APLY_RCPT_SN
+       AND D.RN = 1
+    LEFT JOIN SDA420 E
+       ON E.SRVC_EXCN_BIZ_NO = A.SRVC_EXCN_BIZ_NO
+    LEFT JOIN SDA400 F
+       ON F.SRVC_BIZ_NO = E.SRVC_BIZ_NO
+    
+    WHERE 1=1
+	]]>
+		<if test="INST_NO != null and INST_NO != ''">
+	    /* 기관 */
+	    AND E.INST_NO = #{INST_NO}
+	    </if>
+	        
+	    <if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+	    /* 과정(서비스실행사업번호) */
+	    AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+	    </if>
+	    
+	    <if test="BGNG_YMD != null and BGNG_YMD != '' and END_YMD != null and END_YMD != ''">
+        /* 조회기간(청소년사전설문지 응답일시) */
+        AND TO_CHAR(D.RSPNS_DT,'YYYYMMDD') BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        </if>
+	<![CDATA[
+		GROUP BY C.CMMNS_CD_VALUE_NM
+    ]]>
+	</select>
+	
+	<!-- 인구통계학적정보 - 학력구분 -->
+    <select id="selectPopulStatsInfoAcbg" resultType="HashMap">
+    <![CDATA[
+    /* selectPopulStatsInfoAcbg(인구통계학적정보_학력) - Park.Seong.Won */
+    SELECT
+    CASE 
+        WHEN D.CMMNS_CD_VALUE_NM IS NULL THEN '학교밖'
+    ELSE D.CMMNS_CD_VALUE_NM END AS SE
+    , COUNT(A.TRPR_INFO_NO) AS COUNT
+
+    FROM AFA100 A
+    JOIN SEA200 B
+        ON B.TRPR_INFO_NO = A.TRPR_INFO_NO
+    JOIN
+		(
+		    SELECT TT.*, TA.SRVY_RSPNS_MNG_NO, TA.RSPNS_DT
+		    , ROW_NUMBER() OVER(PARTITION BY TT.TRPR_INFO_NO, TT.APLY_RCPT_SN
+		    ORDER BY TT.REG_YMD DESC, TT.MNG_SN DESC) RN
+		
+		    FROM SBB600 TT
+		    JOIN SBB500 TA
+		        ON TA.QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO
+		        AND TA.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO)
+		    LEFT JOIN SAC100 TB
+		        ON TB.ADDTNG_MNG_VALUE1 = TT.QUSTNB_TMPT_MNG_NO
+		        AND TB.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+		    WHERE TT.SRVY_ERA_SE_CD = '01'
+		    AND TB.CMMNS_CD_VALUE = '004'
+        ) C
+        ON C.TRPR_INFO_NO = A.TRPR_INFO_NO
+        AND C.APLY_RCPT_SN = A.APLY_RCPT_SN
+        AND C.RN = 1
+    LEFT JOIN (
+        SELECT T1.*
+        , ROW_NUMBER() OVER(PARTITION BY T1.TRPR_INFO_NO ORDER BY T2.ADDTNG_MNG_VALUE1 DESC, T1.MNG_SN DESC) AS RN
+    
+        FROM SEA230 T1
+        LEFT JOIN SAC100 T2
+            ON T2.CMMNS_CD_ID = 'ACBG_SE_CD'
+            AND T2.CMMNS_CD_VALUE = T1.ACBG_SE_CD
+        WHERE T1.DEL_YN != 'Y'
+        ) T10
+        ON T10.RN = 1
+        AND T10.TRPR_INFO_NO = B.TRPR_INFO_NO
+    LEFT JOIN SAC100 D
+        ON D.CMMNS_CD_ID = 'ACBG_SE_CD'
+        AND D.CMMNS_CD_VALUE = T10.ACBG_SE_CD
+    LEFT JOIN SDA420 E
+        ON E.SRVC_EXCN_BIZ_NO = A.SRVC_EXCN_BIZ_NO
+    LEFT JOIN SDA400 F
+        ON F.SRVC_BIZ_NO = E.SRVC_BIZ_NO
+
+    WHERE 1=1
+	]]>
+		<if test="INST_NO != null and INST_NO != ''">
+	    /* 기관 */
+	    AND E.INST_NO = #{INST_NO}
+        </if>
+        
+        <if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+        /* 과정(서비스실행사업번호) */
+        AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+        </if>
+        
+        <if test="BGNG_YMD != null and BGNG_YMD != '' and END_YMD != null and END_YMD != ''">
+        /* 조회기간(청소년사전설문지 응답일시) */
+        AND TO_CHAR(C.RSPNS_DT,'YYYYMMDD') BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        </if>
+	<![CDATA[
+	GROUP BY D.CMMNS_CD_VALUE_NM
+	]]>
+    </select>
+    
+    <!-- 인구통계학적정보 - 거주지역구분 -->
+    <select id="selectPopulStatsInfoResdnRgn" resultType="HashMap">
+    <![CDATA[
+    /* selectPopulStatsInfoResdnRgn(인구통계학적정보_거주지역) - Park.Seong.Won */
+    WITH TMP AS (
+    SELECT
+        A.TRPR_INFO_NO
+        , A.APLY_RCPT_SN
+        , CASE
+            WHEN SUBSTR(ZIP, 0, 2) IN ('01', '02','03','04','05','06','07','08','09' ) THEN '서울특별시'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('10','11','12','13','14','15','16','17','18','19','20') THEN '경기도'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('21', '22', '23') THEN '인천광역시'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('24', '25', '26') THEN '강원도'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('27', '28', '29') THEN '충청북도'
+            WHEN SUBSTR(ZIP, 0, 2) = '30' THEN '세종시'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('31', '32', '33') THEN '충청남도'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('34', '35') THEN '대전광역시'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('36', '37', '38', '39', '40') THEN '경상북도'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('41', '42', '43') THEN '대구광역시'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('44', '45') THEN '울산광역시'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('46', '47', '48', '49') THEN '부산광역시'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('50', '51', '52', '53') THEN '경상남도'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('54', '55', '56') THEN '전라북도'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('57', '58', '59', '60') THEN '전라남도'
+            WHEN SUBSTR(ZIP, 0, 2) IN ('61', '62' ) THEN '광주광역시'
+            WHEN SUBSTR(ZIP, 0, 2) = '63' THEN '제주도'
+        ELSE '거주지미확인'
+        END AS SE
+    
+    FROM AFA100 A
+    JOIN SEA200 B
+        ON B.TRPR_INFO_NO = A.TRPR_INFO_NO
+    LEFT JOIN SDA420 C
+        ON C.SRVC_EXCN_BIZ_NO = A.SRVC_EXCN_BIZ_NO
+    LEFT JOIN SDA400 D
+        ON D.SRVC_BIZ_NO = C.SRVC_BIZ_NO
+    
+    WHERE 1=1
+	]]>
+	   <if test="INST_NO != null and INST_NO != ''">
+       /* 기관 */
+       AND C.INST_NO = #{INST_NO}
+       </if>
+        
+       <if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+       /* 과정(서비스실행사업번호) */
+       AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+       </if>
+	<![CDATA[  
+	   )
+	SELECT
+	   SE
+	   , COUNT(*) AS COUNT
+	FROM TMP
+	JOIN
+	(
+	    SELECT TT.*, TA.SRVY_RSPNS_MNG_NO, TA.RSPNS_DT
+	        , ROW_NUMBER() OVER(PARTITION BY TT.TRPR_INFO_NO, TT.APLY_RCPT_SN
+	        ORDER BY TT.REG_YMD DESC, TT.MNG_SN DESC) RN
+	    
+	        FROM SBB600 TT
+	        JOIN SBB500 TA
+	            ON TA.QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO
+	            AND TA.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO)
+	        LEFT JOIN SAC100 TB
+	            ON TB.ADDTNG_MNG_VALUE1 = TT.QUSTNB_TMPT_MNG_NO
+	            AND TB.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	        WHERE TT.SRVY_ERA_SE_CD = '01'
+	        AND TB.CMMNS_CD_VALUE = '004'
+    ) T1
+        ON T1.TRPR_INFO_NO = TMP.TRPR_INFO_NO
+        AND T1.APLY_RCPT_SN = TMP.APLY_RCPT_SN
+        AND T1.RN = 1
+    WHERE 1=1
+    ]]>
+    
+    <if test="BGNG_YMD != null and BGNG_YMD != '' and END_YMD != null and END_YMD != ''">
+    /* 조회기간(청소년사전설문지 응답일시) */
+    AND TO_CHAR(T1.RSPNS_DT,'YYYYMMDD') BETWEEN #{BGNG_YMD} AND #{END_YMD}
+    </if>   
+    
+    <![CDATA[
+    GROUP BY SE
+	]]>
+    </select>
+    
+    <!-- 인구통계학적정보 - 주거지구분 -->
+    <select id="selectPopulStatsInfoReside" resultType="HashMap">
+    <![CDATA[
+    /* selectPopulStatsInfoReside(인구통계학적정보_주거지구분) - Park.Seong.Won */
+    SELECT
+        C.CMMNS_CD_VALUE_NM AS SE
+        , COUNT(A.TRPR_INFO_NO) AS COUNT
+
+    FROM AFA100 A
+    JOIN SEA200 B
+        ON B.TRPR_INFO_NO = A.TRPR_INFO_NO
+    JOIN SAC100 C
+        ON C.CMMNS_CD_ID = 'RESIDE_SHAPE_SE_CD'
+        AND C.CMMNS_CD_VALUE = B.RESIDE_SHAPE_SE_CD
+    JOIN
+		(
+		    SELECT TT.*, TA.SRVY_RSPNS_MNG_NO, TA.RSPNS_DT
+		 , ROW_NUMBER() OVER(PARTITION BY TT.TRPR_INFO_NO, TT.APLY_RCPT_SN
+		 ORDER BY TT.REG_YMD DESC, TT.MNG_SN DESC) RN
+		 
+		 FROM SBB600 TT
+		 JOIN SBB500 TA
+		     ON TA.QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO
+		     AND TA.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = TT.QUSTNB_MNG_NO)
+		 LEFT JOIN SAC100 TB
+		     ON TB.ADDTNG_MNG_VALUE1 = TT.QUSTNB_TMPT_MNG_NO
+		     AND TB.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+		 WHERE TT.SRVY_ERA_SE_CD = '01'
+		 AND TB.CMMNS_CD_VALUE = '004'
+        ) T3
+        ON T3.TRPR_INFO_NO = A.TRPR_INFO_NO
+        AND T3.APLY_RCPT_SN = A.APLY_RCPT_SN
+        AND T3.RN = 1
+    LEFT JOIN SDA420 D
+        ON D.SRVC_EXCN_BIZ_NO = A.SRVC_EXCN_BIZ_NO
+    LEFT JOIN SDA400 E
+        ON E.SRVC_BIZ_NO = D.SRVC_BIZ_NO
+
+    WHERE 1=1
+	]]>
+		<if test="INST_NO != null and INST_NO != ''">
+	    /* 기관 */
+	    AND D.INST_NO = #{INST_NO}
+	    </if>
+	        
+	    <if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+	    /* 과정(서비스실행사업번호) */
+	    AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+	    </if>
+	    
+	    <if test="BGNG_YMD != null and BGNG_YMD != '' and END_YMD != null and END_YMD != ''">
+        /* 조회기간(청소년사전설문지 응답일시) */
+        AND TO_CHAR(T3.RSPNS_DT,'YYYYMMDD') BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        </if>      
+	<![CDATA[
+		GROUP BY C.CMMNS_CD_VALUE_NM
+	]]>
+    </select>
+    
+    <select id="selectTrlEmtInsp" resultType="HashMap">
+    <![CDATA[
+    /* selectTrlEmtInsp(심리정서검사통계) - Lee Hye Sun */
+    WITH X AS (
+        SELECT
+              A.TRPR_INFO_NO
+            , A.CASE_MNG_NO
+            , A.CASE_MNG_ODRNO
+            , C.QUSTNB_MNG_NO                                                                           --설문지관리번호
+            , B.QUSTNB_GRDNG_RELM_MNG_NO                                                                --채점영역관리번호
+            , REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') AS QUSTNB_GRDNG_RELM_ESNTAL_NM      --채점영역고유명
+            , C.GRDNG_SCORE
+            , A.QUSTNB_TMPT_MNG_NO
+            , D.SRVY_ERA_SE_CD
+        FROM SBB110 A
+        JOIN SBB030 B
+        ON A.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+        JOIN SBB500 X
+        ON X.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+        AND X.QUSTNB_TMPT_MNG_NO = A.QUSTNB_TMPT_MNG_NO
+        AND X.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+        JOIN SBB510 C
+        ON A.QUSTNB_TMPT_MNG_NO = C.QUSTNB_TMPT_MNG_NO
+        AND A.QUSTNB_MNG_NO = C.QUSTNB_MNG_NO
+        AND B.QUSTNB_GRDNG_RELM_MNG_NO = C.QUSTNB_GRDNG_RELM_MNG_NO
+        AND C.SRVY_RSPNS_MNG_NO = X.SRVY_RSPNS_MNG_NO
+        JOIN
+            (
+            SELECT SBB600.*
+            , ROW_NUMBER() OVER(PARTITION BY INST_NO, TRPR_INFO_NO, QUSTNB_TMPT_MNG_NO, SRVY_ERA_SE_CD ORDER BY REG_YMD DESC, MNG_SN DESC) AS ROW_NUMBER
+            FROM SBB600
+            )D
+        ON (A.CASE_MNG_NO = D.CASE_MNG_NO AND A.CASE_MNG_ODRNO = D.CASE_MNG_ODRNO) OR (A.TRPR_INFO_NO = D.TRPR_INFO_NO)
+        AND A.QUSTNB_MNG_NO = D.QUSTNB_MNG_NO
+        AND D.ROW_NUMBER = 1
+        LEFT JOIN SAC100 Q1
+        ON Q1.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+        AND Q1.CMMNS_CD_VALUE IN (#{QUSTNB_CD})
+        ]]>
+        <choose>
+        <when test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+           LEFT JOIN SAC100 Q2
+            ON Q2.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+            AND Q2.CMMNS_CD_VALUE IN (#{QUSTNB_CD2})
+            
+           WHERE A.QUSTNB_TMPT_MNG_NO IN (Q1.ADDTNG_MNG_VALUE1, Q1.ADDTNG_MNG_VALUE2, Q2.ADDTNG_MNG_VALUE1, Q2.ADDTNG_MNG_VALUE2)
+        </when>
+        <otherwise>
+            WHERE A.QUSTNB_TMPT_MNG_NO IN (Q1.ADDTNG_MNG_VALUE1, Q1.ADDTNG_MNG_VALUE2)
+        </otherwise>
+        </choose>
+        <if test="INST_NO != NULL and INST_NO != ''">
+           AND D.INST_NO = #{INST_NO}
+        </if>
+        <if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO != ''">
+           AND D.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+        </if>
+        <if test="BGNG_YMD != NULL and BGNG_YMD != '' or END_YMD != NULL and END_YMD != ''">
+           AND TO_CHAR(X.RSPNS_DT,'YYYYMMDD') BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        </if> 
+        <![CDATA[
+    )
+    SELECT
+        A.FCTR_NM AS FCTR
+        , A.FCTR_NO AS FCTR_NO
+        , A.QUSTNB_NM AS RELM
+        , A.LEVEL_CD AS SE_CD
+        , A.LEVEL_NM AS SE
+        , NVL(B.NMPR, 0) AS BEF_NOPE
+        , NVL(C.NMPR, 0) AS AFT_NOPE
+        , NVL(B.NMPR, 0) + NVL(C.NMPR, 0) AS NOPE
+        , SUM(NVL(B.NMPR, 0) + NVL(C.NMPR, 0)) OVER(PARTITION BY A.QUSTNB_NM, A.FCTR_NO) AS CNTNMPR
+        , SUM(NVL(B.NMPR, 0)) OVER(PARTITION BY A.QUSTNB_NM, A.FCTR_NO) AS BEF_CNTNMPR
+        , SUM(NVL(C.NMPR, 0)) OVER(PARTITION BY A.QUSTNB_NM, A.FCTR_NO) AS AFT_CNTNMPR
+    FROM (
+        SELECT DISTINCT
+              A.FCTR_NM
+            , A.FCTR_NO
+            , A.QUSTNB_NM
+            , A.QUSTNB_NO
+            , B.LEVEL_CD
+            , B.LEVEL_NM
+        FROM(
+            SELECT
+                '위험요인' AS FCTR_NM
+                , 'A' AS FCTR_NO
+                ,  '전체' AS QUSTNB_NM
+                , '0' AS QUSTNB_NO
+            FROM DUAL
+
+            UNION ALL
+
+            SELECT
+                '위험요인' AS FCTR_NM
+                , 'A' AS FCTR_NO
+                , REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') AS QUSTNB_NM
+                , '1' AS QUSTNB_NO
+            FROM SBB000 A
+            LEFT JOIN SBB030 B
+            ON A.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+            LEFT JOIN SAC100 Q1
+            ON Q1.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+            AND Q1.CMMNS_CD_VALUE IN (#{QUSTNB_CD})
+            ]]>
+            <choose>
+	        <when test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+	           LEFT JOIN SAC100 Q2
+	            ON Q2.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	            AND Q2.CMMNS_CD_VALUE IN (#{QUSTNB_CD2})
+	            
+	           WHERE A.QUSTNB_TMPT_MNG_NO IN (Q1.ADDTNG_MNG_VALUE1, Q1.ADDTNG_MNG_VALUE2, Q2.ADDTNG_MNG_VALUE1, Q2.ADDTNG_MNG_VALUE2)
+	           AND REGEXP_LIKE (REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') , '자기조절력|부적정서|빈약한대인관계기술|대인민감성')
+	        </when>
+	        <otherwise>
+	           WHERE A.QUSTNB_TMPT_MNG_NO IN (Q1.ADDTNG_MNG_VALUE1, Q1.ADDTNG_MNG_VALUE2)
+	           AND REGEXP_LIKE (REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') , '낮은자기조절력|부적정서|역기능적심리도식|빈약한대인관계기술|대인민감성')
+
+	            
+	        </otherwise>
+	        </choose>
+            <![CDATA[
+            UNION ALL
+
+            SELECT
+                 '보호요인' AS FCTR_NM
+                , 'B' AS FCTR_NO
+                , '전체' AS QUSTNB_NM
+                , '0' AS QUSTNB_NO
+            FROM DUAL
+
+            UNION ALL
+
+            SELECT
+                '보호요인' AS FCTR_NM
+                , 'B' AS FCTR_NO
+                , REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') AS QUSTNB_NM
+                , '1' AS QUSTNB_NO
+            FROM SBB000 A
+            LEFT JOIN SBB030 B
+            ON A.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+            LEFT JOIN SAC100 Q1
+            ON Q1.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+            AND Q1.CMMNS_CD_VALUE IN (#{QUSTNB_CD})
+            ]]>
+            <choose>
+            <when test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+               LEFT JOIN SAC100 Q2
+                ON Q2.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+                AND Q2.CMMNS_CD_VALUE IN (#{QUSTNB_CD2})
+                
+               WHERE A.QUSTNB_TMPT_MNG_NO IN (Q1.ADDTNG_MNG_VALUE1, Q1.ADDTNG_MNG_VALUE2, Q2.ADDTNG_MNG_VALUE1, Q2.ADDTNG_MNG_VALUE2)
+               AND REGEXP_LIKE (REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') , '자기이해및수용|긍정정서|진로계획및준비|일상생활자기관리')
+
+            </when>
+            <otherwise>
+               WHERE A.QUSTNB_TMPT_MNG_NO IN (Q1.ADDTNG_MNG_VALUE1, Q1.ADDTNG_MNG_VALUE2)
+               AND REGEXP_LIKE (REPLACE(TRIM(B.QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') , '긍정정서|삶의만족|자기이해|자기수용|스트레스관리기술|욕구충족기회|진로결정수준|자기관리')
+
+            </otherwise>
+            </choose>
+            <![CDATA[
+        ) A
+        CROSS JOIN (
+            SELECT
+                '1GREEN' AS LEVEL_CD
+                , '보통 수준' AS LEVEL_NM
+            FROM DUAL
+            UNION ALL
+            SELECT
+                '2YELLOW' AS LEVEL_CD
+                , '주의 수준' AS LEVEL_NM
+            FROM DUAL
+            UNION ALL
+            SELECT
+                '3RED' AS LEVEL_CD
+                , '위험 수준' AS LEVEL_NM
+            FROM DUAL
+        ) B
+    ) A
+    LEFT JOIN (
+        SELECT
+            LEV
+            , FCTR_NM
+            , FCTR_NO
+            , QUSTNB_NM
+            , QUSTNB_NO
+            , COUNT(LEV) AS NMPR
+        FROM (
+            --위험요인 전체
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '위험요인' AS FCTR_NM
+                , 'A' AS FCTR_NO
+                ,  '전체' AS QUSTNB_NM
+                , '0' AS QUSTNB_NO
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '01'
+            GROUP BY QUSTNB_MNG_NO
+
+            UNION ALL
+
+            --위험요인
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '위험요인' AS FCTR_NM
+                , 'A' AS FCTR_NO
+                , REPLACE(TRIM(QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') AS QUSTNB_NM
+                , '1' AS QUSTNB_NO
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '01'
+            GROUP BY QUSTNB_MNG_NO, QUSTNB_GRDNG_RELM_ESNTAL_NM
+
+            UNION ALL
+
+            --보호요인 전체
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '보호요인' AS FCTR_NM
+                , 'B' AS FCTR_NO
+                ,  '전체' AS QUSTNB_NM
+                , '0' AS QUSTNB_NO
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '01'
+            GROUP BY QUSTNB_MNG_NO
+
+            UNION ALL
+
+            --보호요인
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '보호요인' AS FCTR_NM
+                , 'B' AS FCTR_NO
+                , REPLACE(TRIM(QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') AS QUSTNB_NM
+                , '1' AS QUSTNB_NO
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '01'
+            GROUP BY QUSTNB_MNG_NO, QUSTNB_GRDNG_RELM_ESNTAL_NM
+        )
+        GROUP BY LEV, QUSTNB_NM, FCTR_NM, FCTR_NO, QUSTNB_NM, QUSTNB_NO
+    ) B
+    ON A.FCTR_NO = B.FCTR_NO
+    AND A.LEVEL_CD = B.LEV
+    AND A.QUSTNB_NO = B.QUSTNB_NO
+    AND A.QUSTNB_NM = B.QUSTNB_NM
+    LEFT JOIN (
+        SELECT
+            LEV
+            , FCTR_NM
+            , FCTR_NO
+            , QUSTNB_NM
+            , QUSTNB_NO
+            , COUNT(LEV) AS NMPR
+        FROM (
+            --위험요인 전체
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '위험요인' AS FCTR_NM
+                , 'A' AS FCTR_NO
+                ,  '전체' AS QUSTNB_NM
+                , '0' AS QUSTNB_NO
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '02'
+            GROUP BY QUSTNB_MNG_NO
+
+            UNION ALL
+
+            --위험요인
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '위험요인' AS FCTR_NM
+                , 'A' AS FCTR_NO
+                , REPLACE(TRIM(QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') AS QUSTNB_NM
+                , '1' AS QUSTNB_NO
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '02'
+            GROUP BY QUSTNB_MNG_NO, QUSTNB_GRDNG_RELM_ESNTAL_NM
+
+            UNION ALL
+
+            --보호요인 전체
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '보호요인' AS FCTR_NM
+                , 'B' AS FCTR_NO
+                ,  '전체' AS QUSTNB_NM
+                , '0' AS QUSTNB_NO
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '02'
+            GROUP BY QUSTNB_MNG_NO
+
+            UNION ALL
+
+            --보호요인
+            SELECT
+                CASE 
+                    WHEN MAX(GRDNG_SCORE) < 60 THEN '1GREEN'
+                    WHEN MAX(GRDNG_SCORE) BETWEEN 60 AND 89 THEN '2YELLOW'
+                    ELSE '3RED'
+                END AS LEV
+                , '보호요인' AS FCTR_NM
+                , 'B' AS FCTR_NO
+                , REPLACE(TRIM(QUSTNB_GRDNG_RELM_ESNTAL_NM), ' ', '') AS QUSTNB_NM
+                , '1' AS QUSTNB_NO
+                , QUSTNB_MNG_NO
+            FROM X
+            WHERE SRVY_ERA_SE_CD = '02'
+            GROUP BY QUSTNB_MNG_NO, QUSTNB_GRDNG_RELM_ESNTAL_NM
+        )
+        GROUP BY LEV, QUSTNB_NM, FCTR_NM, FCTR_NO, QUSTNB_NM, QUSTNB_NO
+    ) C
+    ON A.FCTR_NO = C.FCTR_NO
+    AND A.LEVEL_CD = C.LEV
+    AND A.QUSTNB_NO = C.QUSTNB_NO
+    AND A.QUSTNB_NM = C.QUSTNB_NM
+
+    ORDER BY A.FCTR_NO, A.QUSTNB_NO
+    ]]>
+    <choose>
+    <when test="QUSTNB_CD2 != NULL and QUSTNB_CD != ''">
+        , CASE WHEN A.QUSTNB_NM LIKE '%자기조절력%' THEN 1 
+               WHEN A.QUSTNB_NM LIKE '%부적정서%' THEN 2
+               WHEN A.QUSTNB_NM LIKE '%빈약한대인관계기술%' THEN 3 
+               WHEN A.QUSTNB_NM LIKE '%대인민감성%' THEN 4
+               WHEN A.QUSTNB_NM LIKE '%자기이해및수용%' THEN 5
+               WHEN A.QUSTNB_NM LIKE '%긍정정서%' THEN 6
+               WHEN A.QUSTNB_NM LIKE '%진로계획및준비%' THEN 7
+               WHEN A.QUSTNB_NM LIKE '%일상생활자기관리%' THEN 8
+       END
+    </when>
+    <otherwise>
+        , CASE WHEN A.QUSTNB_NM LIKE '%낮은자기조절력%' THEN 1 
+               WHEN A.QUSTNB_NM LIKE '%부적정서%' THEN 2
+               WHEN A.QUSTNB_NM LIKE '%역기능적심리도식%' THEN 3 
+               WHEN A.QUSTNB_NM LIKE '%빈약한대인관계기술%' THEN 4
+               WHEN A.QUSTNB_NM LIKE '%대인민감성%' THEN 5
+               WHEN A.QUSTNB_NM LIKE '%긍정정서%' THEN 6
+               WHEN A.QUSTNB_NM LIKE '%삶의만족%' THEN 7
+               WHEN A.QUSTNB_NM LIKE '%자기이해%' THEN 8
+               WHEN A.QUSTNB_NM LIKE '%자기수용%' THEN 9
+               WHEN A.QUSTNB_NM LIKE '%스트레스관리기술%' THEN 10
+               WHEN A.QUSTNB_NM LIKE '%욕구충족기회%' THEN 11
+               WHEN A.QUSTNB_NM LIKE '%진로결정수준%' THEN 12
+               WHEN A.QUSTNB_NM LIKE '%자기관리%' THEN 13
+       END
+    </otherwise>
+    </choose>
+    <![CDATA[
+    , LEVEL_CD
+    ]]>
+    </select>
+</mapper>

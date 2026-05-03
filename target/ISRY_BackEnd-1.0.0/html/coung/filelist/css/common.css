@@ -1,0 +1,75 @@
+@charset "utf-8";
+#filelist #l-contents {max-width:1062px; margin:0 auto;}
+
+.filelist__wrap {position:relative; padding:0.5em;}
+.filelist__wrap .title {padding:1em; text-align:center; font-size:var(--font-size-xxl);}
+
+.filelist__link {position:absolute; top:30px; left:10px;}
+.filelist__link a {display:inline-block; padding:5px 20px; border:1px solid #000; font-size:var(--font-size-l);}
+
+/* tab */
+.tab--btn {display:flex; position:relative; z-index:2; margin-bottom:-1px;}
+.tab--btn button {position:relative; z-index:1 ;margin-left:-1px; padding:0.5em 0.8em; border:1px solid rgba(0,0,0,0.1); background:rgba(0,0,0,0.1); color:#0000005a; font-size:var(--font-size-l);}
+.tab--btn button.on {z-index:2; background:#fff; border-color:rgba(0,0,0,0.4); color:#333;}
+.tab--btn button:first-child {margin-left:0;}
+
+.tab--content {position:relative; z-index:2;}
+.tab--content.on {display:block;}
+
+.progress {position:absolute; top:-23px; right:0; text-align:right;}
+
+.filelist {border:2px solid #ccc;}
+.filelist tr:hover {background-color:#f5f5f5;}
+.filelist th,
+.filelist td {border-style:solid; border-color:#c8c8c8;}
+.filelist thead th {padding:0.8em; border-width:0 0 0 1px; font-size:var(--font-size-l);}
+.filelist thead th:first-child {border-left:0;}
+
+.filelist tbody th {padding:0.5em; border-width:1px 0 0 0; background-color:#f5f5f5; font-size:var(--font-size-l);}
+.filelist tbody td {padding:0.5em 0.8em; border-width:1px 0 0 1px;}
+.filelist tbody tr.blank td {padding:1px 0 0 0; border-left:0; font-size:0; line-height:0;}
+.filelist tbody td.link {text-align:center;}
+.filelist tbody td.date,
+.filelist tbody td.state {padding:0; text-align:center; font-size:12px; font-family:'Dotum', serif;}
+
+/* history */
+.view_history {position:relative; font-size:12px; font-family:'Dotum', serif;}
+.view_history dt {padding:0.5em 0; background:rgba(0,0,0,0.1); text-align:center; font-weight:bold; cursor:pointer;}
+.view_history dd {display:none; position:absolute; top:-5px; right:calc(100% + 3px); width:300px; padding:0.5em; border:1px solid rgba(0,0,0,0.3); background:#fff;}
+.view_history dt:active + dd {display:block;}
+.view_history ul li {padding:0.3em 0;}
+.view_history ul li + li {border-top:1px solid rgba(0,0,0,0.3);}
+.view_history ul li span {display:inline-block; margin-right:5px;}
+.view_history ul li:last-child {color:#c00; font-weight:700;}
+
+/* state */
+table tr.step-01 {background:#cccc003a;}
+table tr.step-02 {background:#fff8e1;}
+table tr.step-02:hover {background:#fdf3d1;}
+table tr.modify {background:#fff7e7;}
+table tr.modify:hover {background:#fdbdbd;}
+table tr.new {background:#fdf3ec;}
+table tr.new:hover {background:#feedbe;}
+table tr.update {background:#dffcf1;}
+table tr.update:hover {background:#cdfbea;}
+
+table td.step-01:before {content:'퍼블 진행중';}
+table td.step-02:before {content:'퍼블 완료';}
+table td.complete:before {content:'완료';}
+table td.modify:before {content:'수정중';}
+table td.complete.new:before {content:'NEW - 완료'; color:#f3802d; font-weight:bold;}
+table td.update:before {content:'UPDATE - 완료'; color:#f3802d; font-weight:bold;}
+
+/* guide */
+.tab--guide {position:relative; z-index:2;}
+.tab--guide.on {display:block;}
+
+.guide--wrap {padding:10px; border:2px solid #ccc;}
+.guide--wrap h2 {position:relative; margin-bottom:5px; font-size:20px;}
+.guide--wrap h2:before {content:'[ ';}
+.guide--wrap h2:after {content:' ]';}
+.guide--wrap section {padding:10px; border:1px dashed #ccc;}
+.guide--wrap hr {margin:30px 0 10px; border:0; border-top:1px dashed #ccc;}
+
+.example-box {display:inline-block; width:30px; height:30px; margin-right:10px; vertical-align:middle;}
+

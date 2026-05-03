@@ -1,0 +1,34 @@
+package isry.couns.mngr.etxpyreqstdmng.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+
+@Mapper("ovtiWorkEtxpyAplyMngMapper")
+public interface OvtiWorkEtxpyAplyMngMapper{
+	
+	/**
+	 * @Method명   : list
+	 * @param mapParam
+	 * @return
+	 * @작성자     : You Minsang
+	 * @작성일     : 2022. 3. 16. 
+	 * @Method설명 :
+	 */
+	List<Map<String, Object>> selectOvtiWorkEtxpyAplyMngList(Map<String, Object> mapParam) throws Exception;
+
+	List<Map<String, Object>> selectOvtiWorkEtxpyAplyMngDetail1(Map<String, Object> mapParam) throws Exception;
+
+	List<Map<String, Object>> selectOvtiWorkEtxpyAplyMngDetail2(Map<String, Object> mapParam) throws Exception;
+
+	List<Map<String, Object>> selectOvtiWorkEtxpyAplyMngDetail3(Map<String, Object> mapParam) throws Exception;
+
+	List<Map<String, Object>> selectOvtiWorkEtxpyAplyMngDetail4(Map<String, Object> mapParam) throws Exception;
+
+	int mergeWorkEtxpyUntpcMng(Map<String, Object> mapParam) throws Exception;
+
+//	int deleteWorkEtxpyUntpcMng(Map<String, Object> mapParam) throws Exception;
+	int ddd(Map<String, Object> mapParam) throws Exception;
+
+}

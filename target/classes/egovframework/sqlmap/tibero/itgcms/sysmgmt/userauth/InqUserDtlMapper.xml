@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.userauth.mapper.InqUserDtlMapper">
+
+    
+    <select id="selectUserDetail" resultType="HashMap">
+    <![CDATA[
+        /* selectUserDetail - Lee JiSeob */
+        
+        SELECT 
+        
+	        C.ENFSN_NO,
+			C.INDV_IDNTFC_NO,
+			C.UNT_TASKWK_SE_CD,
+			C.FLNM_ENCPT,
+			C.BRTH_YMD,
+			C.SXDC_SE_CD,
+			C.WRD_TELNO,
+			C.MBL_TELNO_ENCPT,
+			C.EML_ADDR_ENCPT,
+			C.MSNGR_ID_ENCPT,
+			C.OGDP_INST_NO,
+			C.OGDP_DEPT_CD,
+			(SELECT E.INST_NM FROM SAA000 E /* 통합기관 */ WHERE E.INST_NO = C.OGDP_INST_NO) AS OGDP_INST_NM,
+			(SELECT E.DEPT_NM FROM SAA300 E /* 기관부서 */ WHERE E.INST_NO = C.OGDP_INST_NO AND E.DEPT_CD = C.OGDP_DEPT_CD) AS OGDP_DEPT_NM,
+			C.ENFSN_ROLE_SE_CD,
+			(SELECT E.CMMNS_CD_VALUE_NM FROM SAC100 E WHERE E.CMMNS_CD_ID = 'ENFSN_ROLE_SE_CD' AND E.CMMNS_CD_VALUE = C.ENFSN_ROLE_SE_CD) AS ENFSN_ROLE_NM,
+			C.QLFC_SE_CD,
+			(SELECT E.CMMNS_CD_VALUE_NM FROM SAC100 E WHERE E.CMMNS_CD_ID = 'QLFC_SE_CD' AND E.CMMNS_CD_VALUE = C.QLFC_SE_CD) AS QLFC_NM,
+			D.USER_ID,
+			D.USER_ID_USE_SE_CD,
+			TO_CHAR(D.JOIN_APLY_DT, 'YYYY-MM-DD HH24:MI:SS') AS JOIN_APLY_DT,
+			D.JOIN_APRV_YN,
+			D.JOIN_APRV_YMD,
+			D.JOIN_AUTZR_ID,
+			D.JOIN_RJCT_CS_CN,
+			D.RM_CN,
+			C.ISTDR_YN
+        FROM SCA100 C /* 종사자 */ , SAA200 D /* 사용자 */
+        WHERE C.ENFSN_NO = D.ENFSN_NO
+        AND D.USER_ID = #{USER_ID}
+        AND C.DEL_YN = 'N' 
+        
+    ]]>
+    </select>
+
+
+    <select id="selectUserUnitSystem" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectUserUnitSystem - Lee JiSeob */
+        
+        SELECT
+            
+            C.UNT_TASKWK_SE_CD,
+            (SELECT E.CMMNS_CD_VALUE_NM FROM SAC100 E /* 공통코드 값 */ WHERE E.CMMNS_CD_ID = 'UNT_SYS_SE_CD' AND E.CMMNS_CD_VALUE = C.UNT_TASKWK_SE_CD) AS UNT_TASKWK_SE_NM,
+            C.OGDP_INST_NO,
+            (SELECT F.INST_NM FROM SAA000 F /* 통합기관 */ WHERE F.INST_NO = C.OGDP_INST_NO) AS OGDP_INST_NM,
+            C.OGDP_DEPT_CD,
+            (SELECT G.DEPT_NM FROM SAA300 G /* 부서 */ WHERE G.INST_NO = C.OGDP_INST_NO AND G.DEPT_CD = C.OGDP_DEPT_CD) AS OGDP_DEPT_NM
+            
+        FROM SCA140 C /* 종사자 수행 업무 */
+        
+        WHERE
+            C.ENFSN_NO = (
+                SELECT
+                    D.ENFSN_NO
+                FROM 
+                    SAA200 D /* 사용자 */
+                WHERE D.USER_ID = #{USER_ID}
+            )
+    ]]>
+    </select>
+
+
+    <select id="selectUserInstituteAuthList" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectUserInstituteAuthList - Lee JiSeob */
+        
+        SELECT
+            USER_ID,
+			INST_NO,
+			(SELECT D.INST_NM FROM SAA000 D /* 통합기관 */ WHERE D.INST_NO = C.INST_NO) AS INST_NAME,
+			GROUP_AUTHRT_SE_CD,
+			(SELECT E.CMMNS_CD_VALUE_NM FROM SAC100 E /* 공통코드 값 */ WHERE E.CMMNS_CD_ID = 'GROUP_AUTHRT_SE_CD' AND E.CMMNS_CD_VALUE = C.GROUP_AUTHRT_SE_CD) AS GROUP_AUTHRT_SE_NAME,
+			AUTHRT_SE_CD,
+			(SELECT E.CMMNS_CD_VALUE_NM FROM SAC100 E /* 공통코드 값 */ WHERE E.CMMNS_CD_ID = 'AUTHRT_SE_CD' AND E.CMMNS_CD_VALUE = C.AUTHRT_SE_CD) AS AUTHRT_SE_NAME,
+			SYS_MNGR_YN,
+			MAIST_YN
+        
+        FROM SAB230 C
+        
+        WHERE USER_ID = #{USER_ID}
+        
+        ORDER BY FRST_REG_DT DESC
+        
+    ]]>
+    </select>
+    
+</mapper>

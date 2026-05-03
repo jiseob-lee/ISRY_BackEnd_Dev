@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.itgcms.dyncBrd.mapper.DyncReplyBrdMapper">
+
+	<select id="selectDynamicReplyBoardList" parameterType="HashMap"
+		resultType="HashMap">
+        <![CDATA[
+        /* isry.sample.mapper.DynamicReplyBoardMapper.selectDynamicReplyBoardList 공통팀 유민상 */
+        WITH TEMP AS (
+                            SELECT   A.NTABRD_ESNTAL_NO
+                                   , A.BBSCTT_ESNTAL_NO
+                                   , A.BBSCTT_SN
+                                   , 0 AS RETE_ESNTAL_NO
+                                   , A.BBSCTT_TTL_NM
+                                   , TO_CHAR(A.FRST_REG_DT, 'YYYYMMDDHH24MISS') AS FRST_REG_DT
+                                   , A.RDCNT_NOCS
+                                   , A.FRST_RGTR_ID
+                                   , C##RG.SA_FN_GET_NAME(A.FRST_RGTR_ID) AS FRST_RGTR_NM
+                                   , A.ATFINO
+                                   , (SELECT COUNT(MNG_SN) FROM SAB821 WHERE ATFINO = A.ATFINO AND FILE_STTS_SE_CD != 'D' AND ATCMFL_CL_NM = '0') AS ATFI_CNT
+                                   , A.RLS_YN
+                                   , CASE WHEN TRUNC(SYSDATE - A.FRST_REG_DT) > 1 THEN 'N' ELSE 'Y' END AS NEW_BBSCTT
+                                   , A.NTC_MATTER_YN AS NTC_MATTER_YN
+                                   , '1' AS DEPTH_LEVEL
+                                   , A.BBSCTT_CN
+                             FROM SBA110 A
+                             WHERE 1=1
+                             AND A.NTABRD_ESNTAL_NO = #{NTABRD_ESNTAL_NO}
+                             AND NVL(A.DEL_YN, 'N') != 'Y'
+
+                        UNION ALL
+
+                             SELECT    B.NTABRD_ESNTAL_NO
+                                     , B.BBSCTT_ESNTAL_NO
+                                     , '' AS BBSCTT_SN
+                                     , B.RETE_ESNTAL_NO
+                                     , 'RE : ' || B.RETE_TTL_NM AS BBSCTT_TTL_NM
+                                     , TO_CHAR(B.FRST_REG_DT, 'YYYYMMDDHH24MISS') AS FRST_REG_DT
+                                     , B.RDCNT_NOCS
+                                     , B.RETE_WRTR_ID AS FRST_RGTR_ID
+                                     , DEC_B64(SA_FN_GET_NAME(B.RETE_WRTR_ID)) AS FRST_RGTR_NM
+                                     , B.ATFINO
+                                     , (SELECT COUNT(MNG_SN) FROM SAB821 WHERE ATFINO = B.ATFINO AND FILE_STTS_SE_CD != 'D' AND ATCMFL_CL_NM = '0') AS ATFI_CNT
+                                     , (SELECT MAX(C.RLS_YN) FROM SBA110 C WHERE C.BBSCTT_ESNTAL_NO = B.BBSCTT_ESNTAL_NO) AS RLS_YN
+                                     , CASE WHEN TRUNC(SYSDATE - B.FRST_REG_DT) > 1 THEN 'N' ELSE 'Y' END AS NEW_BBSCTT
+                                     , 'N' AS NTC_MATTER_YN
+                                     , '2' AS DEPTH_LEVEL
+                                     , C.BBSCTT_CN
+                                 FROM SBA112 B
+                                 INNER JOIN SBA110 C
+                                    ON C.NTABRD_ESNTAL_NO = B.NTABRD_ESNTAL_NO
+                                    AND C.BBSCTT_ESNTAL_NO = B.BBSCTT_ESNTAL_NO
+                                    AND C.DEL_YN = 'N'
+                                 WHERE 1=1
+                                 AND B.NTABRD_ESNTAL_NO = #{NTABRD_ESNTAL_NO}
+                                 AND NVL(B.DEL_YN, 'N') != 'Y'
+
+            ) , TEMP2 AS (  SELECT
+		                              A.NTABRD_ESNTAL_NO
+		                             , A.BBSCTT_ESNTAL_NO
+		                             , A.RETE_ESNTAL_NO AS RETE_ESNTAL_NO
+
+                                     , '|'||LISTAGG (A.NTABRD_COL_ESNTAL_ID, '|') WITHIN GROUP (ORDER BY A.BBSCTT_ESNTAL_NO) AS NTABRD_COL_ESNTAL_ID_LIST
+                                     , '|'||LISTAGG (A.NTABRD_COL_CN,'|') WITHIN GROUP (ORDER BY A.BBSCTT_ESNTAL_NO) AS NTABRD_COL_CN_LIST
+
+		                             /* , MAX(SYS_CONNECT_BY_PATH (A.NTABRD_COL_ESNTAL_ID, '|')) AS NTABRD_COL_ESNTAL_ID_LIST */
+		                             /* , MAX(SYS_CONNECT_BY_PATH (A.NTABRD_COL_CN,'|')) AS NTABRD_COL_CN_LIST */
+
+		                         FROM (
+			                             SELECT  A.NTABRD_ESNTAL_NO
+			                                   , A.BBSCTT_ESNTAL_NO
+			                                   , A.RETE_ESNTAL_NO
+			                                   , A.NTABRD_COL_ESNTAL_ID
+			                                   , A.NTABRD_COL_CN
+			                                 ,(ROW_NUMBER () OVER (PARTITION BY A.NTABRD_ESNTAL_NO ,A.BBSCTT_ESNTAL_NO ,A.RETE_ESNTAL_NO  ORDER BY  A.NTABRD_ESNTAL_NO, A.BBSCTT_ESNTAL_NO, A.NTABRD_COL_ESNTAL_ID )) RNUM
+			                             FROM SBA120 A
+			                             WHERE 1=1
+			                             AND NTABRD_ESNTAL_NO = #{NTABRD_ESNTAL_NO}
+			                             AND NVL(A.DEL_YN, 'N') != 'Y'
+	                                   ) A
+                         /*
+                         START WITH A.RNUM = 1 CONNECT BY PRIOR A.RNUM = (A.RNUM - 1)
+                         AND PRIOR A.NTABRD_ESNTAL_NO = A.NTABRD_ESNTAL_NO AND PRIOR A.BBSCTT_ESNTAL_NO = A.BBSCTT_ESNTAL_NO AND PRIOR A.RETE_ESNTAL_NO = A.RETE_ESNTAL_NO
+                         */
+                         GROUP BY A.NTABRD_ESNTAL_NO, A.BBSCTT_ESNTAL_NO, A.RETE_ESNTAL_NO
+        )
+
+        SELECT   COUNT(DISTINCT C.BBSCTT_ESNTAL_NO) OVER() AS TOT_CNT
+               , COUNT(*) OVER() AS REAL_TOT_CNT
+               , C.NTABRD_ESNTAL_NO
+               , C.BBSCTT_ESNTAL_NO
+               , C.BBSCTT_SN
+               , C.RETE_ESNTAL_NO
+               , C.BBSCTT_TTL_NM
+               , C.FRST_REG_DT
+               , C.RDCNT_NOCS
+               , C.FRST_RGTR_ID
+               , C.FRST_RGTR_NM
+               , C.ATFINO
+               , C.ATFI_CNT
+               , C.RLS_YN
+               , C.HIGH_LIGHT_YN
+               , C.NEW_BBSCTT
+               , C.DEPTH_LEVEL
+               , D.NTABRD_COL_ESNTAL_ID_LIST
+               , D.NTABRD_COL_CN_LIST
+        FROM (
+            SELECT A.*
+                , 'Y' AS HIGH_LIGHT_YN
+            FROM TEMP A
+            WHERE NTC_MATTER_YN = 'Y'
+
+            UNION ALL
+
+            SELECT B.*
+            , 'N' AS HIGH_LIGHT_YN
+            FROM TEMP B
+            ) C, TEMP2 D
+        WHERE 1=1
+        AND C.NTABRD_ESNTAL_NO = D.NTABRD_ESNTAL_NO(+)
+        AND C.BBSCTT_ESNTAL_NO = D.BBSCTT_ESNTAL_NO(+)
+        AND C.RETE_ESNTAL_NO   = D.RETE_ESNTAL_NO(+)
+        ]]>
+		<if test="REPLY_YN == 1">
+			AND C.DEPTH_LEVEL = #{REPLY_YN}
+		</if>
+		<if
+			test='SEARCH_KEY == "3" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND (C.BBSCTT_ESNTAL_NO IN
+			(
+			SELECT BBSCTT_ESNTAL_NO FROM TEMP
+			WHERE BBSCTT_TTL_NM LIKE '%'|| #{SEARCH_DATA} || '%'
+			AND DEPTH_LEVEL =
+			'1'
+			)
+			OR BBSCTT_CN
+			LIKE '%' || #{SEARCH_DATA} || '%')
+		</if>
+		<if
+			test='SEARCH_KEY == "1" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND C.BBSCTT_ESNTAL_NO IN
+			(
+			SELECT BBSCTT_ESNTAL_NO FROM TEMP
+			WHERE BBSCTT_TTL_NM LIKE '%'|| #{SEARCH_DATA} || '%'
+			AND DEPTH_LEVEL =
+			'1'
+			)
+		</if>
+		<if
+			test='SEARCH_KEY == "2" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND BBSCTT_CN LIKE '%' || #{SEARCH_DATA} || '%'
+		</if>
+		<if
+			test='SEARCH_KEY == "4" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND C.BBSCTT_ESNTAL_NO IN
+			(
+			SELECT BBSCTT_ESNTAL_NO FROM TEMP
+			WHERE FRST_RGTR_NM = #{SEARCH_DATA}
+			AND DEPTH_LEVEL = '1'
+			)
+		</if>
+		<if
+			test='SEARCH_KEY == "5" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND C.BBSCTT_ESNTAL_NO IN
+			(
+			SELECT BBSCTT_ESNTAL_NO FROM TEMP
+			WHERE BBSCTT_SN = #{SEARCH_DATA}
+			AND DEPTH_LEVEL = '1'
+			)
+		</if>
+		<if
+			test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+			AND (FRST_REG_DT BETWEEN #{START_DATE} AND #{END_DATE})
+		</if>
+
+		<foreach collection="ADD_ARRAY" item="item">
+			<choose>
+				<when test="item.TYPE.equals('TEXT')">
+					AND C.BBSCTT_ESNTAL_NO IN
+					(
+					SELECT BBSCTT_ESNTAL_NO
+					FROM TEMP E
+					WHERE DEPTH_LEVEL = '1'
+					AND
+					(
+					SELECT NTABRD_COL_CN FROM
+					SBA120
+					WHERE BBSCTT_ESNTAL_NO = E.BBSCTT_ESNTAL_NO
+					AND RETE_ESNTAL_NO
+					= E.RETE_ESNTAL_NO
+					AND NTABRD_COL_ESNTAL_ID = #{item.KEY}
+					) LIKE '%'
+					|| #{item.VALUE} || '%'
+					)
+				</when>
+				<otherwise>
+					AND C.BBSCTT_ESNTAL_NO IN
+					(
+					SELECT BBSCTT_ESNTAL_NO FROM
+					TEMP E
+					WHERE DEPTH_LEVEL = '1'
+					AND
+					(
+					SELECT NTABRD_COL_CN FROM SBA120
+					WHERE BBSCTT_ESNTAL_NO = E.BBSCTT_ESNTAL_NO
+					AND RETE_ESNTAL_NO =
+					E.RETE_ESNTAL_NO
+					AND NTABRD_COL_ESNTAL_ID = #{item.KEY}
+					) =
+					#{item.VALUE}
+					)
+				</otherwise>
+			</choose>
+		</foreach>
+
+		ORDER BY C.HIGH_LIGHT_YN DESC, C.BBSCTT_ESNTAL_NO DESC, C.RETE_ESNTAL_NO
+
+        <if test = "ALL_DATA_EXCEL_DOWN == null || ALL_DATA_EXCEL_DOWN == ''">
+            <!-- 페이지 인덱서 OFFSET 조건 -->
+            <include refid="ComPagingMapper.pageOffset"/>
+        </if>
+	</select>
+
+	<update id="updateRdcntDynamicReplyBoardReplyList"
+		parameterType="HashMap">
+        <![CDATA[
+            /* isry.sample.mapper.DynamicReplyBoardMapper.updateRdcntDynamicReplyBoardReplyList 공통팀 유민상 */
+            UPDATE SBA112 SET
+                RDCNT_NOCS = NVL(TO_NUMBER(RDCNT_NOCS), 0) +1
+
+            WHERE 1=1
+            AND NTABRD_ESNTAL_NO = #{NTABRD_ESNTAL_NO}
+            AND BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+            AND RETE_ESNTAL_NO   = #{RETE_ESNTAL_NO}
+        ]]>
+	</update>
+
+	<select id="selectDynamicReplyBoardReplyList"
+		parameterType="HashMap" resultType="HashMap">
+       <![CDATA[
+        /* 공통팀 유민상 isry.sample.mapper.DynamicReplyBoardMapper.selectDynamicReplyBoardReplyList 공통팀 유민상*/
+        SELECT    NTABRD_ESNTAL_NO
+                , BBSCTT_ESNTAL_NO
+                , RETE_ESNTAL_NO
+                , RETE_WRTR_ID
+                , DEC_B64(SA_FN_GET_NAME(RETE_WRTR_ID)) AS RETE_WRTR_NM
+                , RETE_TTL_NM
+                , RETE_CN
+                , ATFINO
+                , RDCNT_NOCS
+                , FRST_REG_DT
+         FROM SBA112
+        WHERE 1=1
+          AND NVL(DEL_YN, 'N') != 'Y'
+          AND NTABRD_ESNTAL_NO = #{NTABRD_ESNTAL_NO}
+          AND BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+      ]]>
+
+	</select>
+
+	<insert id="insertDynamicReplyBoardReplyList"
+		parameterType="HashMap" useGeneratedKeys="true"
+		keyProperty="RETE_ESNTAL_NO">
+
+		<selectKey resultType="String" keyProperty="RETE_ESNTAL_NO"
+			order="BEFORE">
+            <![CDATA[
+                SELECT SBA112_SQ01.NEXTVAL AS RETE_ESNTAL_NO
+                  FROM DUAL
+            ]]>
+		</selectKey>
+
+		/*
+		isry.sample.mapper.DynamicReplyBoardMapper.insertDynamicReplyBoardReplyList
+		공통팀 유민상 */
+		INSERT INTO SBA112(
+		BBSCTT_ESNTAL_NO
+		, NTABRD_ESNTAL_NO
+		,
+		RETE_ESNTAL_NO
+		, RETE_WRTR_ID
+		, RETE_TTL_NM
+		<if test="RETE_CN != null and RETE_CN != ''">
+			, RETE_CN
+		</if>
+		<if test="ATFINO != null and ATFINO != ''">
+			, ATFINO
+		</if>
+		, RDCNT_NOCS
+		, DEL_YN
+		, FRST_RGTR_ID
+		, FRST_REG_DT
+		, LAST_MDFR_ID
+		,
+		LAST_MDFCN_DT
+		)VALUES(
+		#{BBSCTT_ESNTAL_NO}
+		, #{NTABRD_ESNTAL_NO}
+		,
+		#{RETE_ESNTAL_NO}
+		, #{RETE_WRTR_ID}
+		, #{RETE_TTL_NM}
+		<if test="RETE_CN != null and RETE_CN != ''">
+			, #{RETE_CN}
+		</if>
+		<if test="ATFINO != null and ATFINO != ''">
+			, #{ATFINO}
+		</if>
+		, '0'
+		, 'N'
+		, #{FRST_RGTR_ID}
+		, SYSDATE
+		, #{LAST_MDFR_ID}
+		, SYSDATE
+		)
+	</insert>
+
+	<update id="updateDynamicReplyBoardReplyList"
+		parameterType="HashMap">
+
+		/*
+		isry.sample.mapper.DynamicReplyBoardMapper.updateDynamicReplyBoardReplyList
+		공통팀 유민상 */
+		UPDATE SBA112 SET
+		RETE_WRTR_ID = #{RETE_WRTR_ID}
+		, RETE_TTL_NM
+		= #{RETE_TTL_NM}
+		, RETE_CN = #{RETE_CN}
+		, ATFINO = #{ATFINO}
+		,
+		LAST_MDFCN_DT = SYSDATE
+		, LAST_MDFR_ID = #{LAST_MDFR_ID}
+
+		WHERE 1=1
+		AND
+		NTABRD_ESNTAL_NO = #{NTABRD_ESNTAL_NO__origin}
+		AND BBSCTT_ESNTAL_NO =
+		#{BBSCTT_ESNTAL_NO__origin}
+		AND RETE_ESNTAL_NO =
+		#{RETE_ESNTAL_NO__origin}
+	</update>
+
+	<update id="deleteDynamicReplyBoardReplyList"
+		parameterType="HashMap">
+
+		/*
+		isry.sample.mapper.DynamicReplyBoardMapper.deleteDynamicReplyBoardReplyList
+		공통팀 유민상 */
+		UPDATE SBA112 SET
+		DEL_YN = 'Y'
+		, LAST_MDFCN_DT = SYSDATE
+		,
+		LAST_MDFR_ID = #{LAST_MDFR_ID}
+		WHERE 1=1
+		AND NTABRD_ESNTAL_NO =
+		#{NTABRD_ESNTAL_NO__origin}
+		AND BBSCTT_ESNTAL_NO =
+		#{BBSCTT_ESNTAL_NO__origin}
+		AND RETE_ESNTAL_NO =
+		#{RETE_ESNTAL_NO__origin}
+	</update>
+</mapper>

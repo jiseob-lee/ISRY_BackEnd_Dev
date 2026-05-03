@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.drmgs.actvt.mapper.ActvtSafetyMuaiasMapper">
+
+    <select id="selectActvtSafetyMuaiasList" parameterType="HashMap" resultType="HashMap">
+        
+        <include refid="ComPagingMapper.pageHeader"/>
+        <![CDATA[
+        /* isry.drmgs.actvt.mapper.ActvtSafetyMuaiasMapper.selectActvtSafetyMuaiasList - 청소년활동안전공제회관리_응용2팀 강화영  */
+        
+                 TT10.*
+          FROM (SELECT A.CASE_MNG_NO   AS CASE_MNG_NO          /* 사례관리번호 */
+			      , A.CASE_MNG_ODRNO         AS CASE_MNG_ODRNO       /* 사례관리차수 */
+			      , A.CASE_BGNG_YMD          AS CASE_BGNG_YMD        /* 사례시작일자 */
+			      , C##RG.DEC_B64(B.TRPR_NM_ENCPT) AS YNGBGS               /* 이름 */
+			      , NVL(B.SXDC_SE_CD, 'X')   AS SXDC                 /* 성별 */    
+			      , NVL(E.ACTVT_SAFETY_MUAIAS_TRPR_YN, 'N')                          AS JOIN_YN            /* 가입여부 */
+			      , DECODE(NVL(E.ACTVT_SAFETY_MUAIAS_TRPR_YN, 'N'), 'N', '', D.SRVC_PVSN_BGNG_YMD) AS JOIN_YMD           /* 가입일자 */
+			      , DECODE(NVL(E.ACTVT_SAFETY_MUAIAS_TRPR_YN, 'N'), 'N', '', TO_CHAR(D.FRST_REG_DT, 'YYYYMMDD')) AS JOIN_FRST_DT
+			      , A.FRST_REG_DT
+			      , A.YNGBGS_STTS_LCLAS_SE_CD
+			      , A.YNGBGS_STTS_SCLAS_SE_CD
+			      , (SELECT UP_CMMNS_CD_VALUE
+			          FROM SAC100
+			         WHERE CMMNS_CD_ID    = 'CASE_PRGRS_STTS_SE_CD'
+			           AND CMMNS_CD_VALUE = A.CASE_PRGRS_STTS_SE_CD)                 AS CASE_PRGRS_STTS_SE_CD   /* 사례진행상태유형구분코드 */
+			      , DECODE(E.ACTVT_SAFETY_MUAIAS_TRPR_YN, 'Y', '',(SELECT ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD FROM AKA000 WHERE CASE_MNG_NO = A.CASE_MNG_NO AND CASE_MNG_ODRNO = A.CASE_MNG_ODRNO)) AS JOIN_EXCL_CS /* 가입 제외 사유 */
+			      /* 2022.08.22 Lee SeungYeon - 권한적용을 위한 항목 추가 */
+			      , C.CASE_PIC_NO            AS ENFSN_NO             /* 사례담당자번호(종사자번호) */
+			      , C.PIC_INST_NO            AS INST_NO              /* 담당자기관번호(기관번호) */
+			      , A.YNGBGS_SE_NO                                   /* 청소년구분번호 */      
+			   FROM SEB100 A /* 사례기본 */
+			      , SEA200 B /* 대상자정보 */
+			      , SEB150 C /* 사례담당자 */
+			      , (SELECT T1.CASE_MNG_NO, T1.CASE_MNG_ODRNO, T1.RESRCE_NO, MAX(T2.SRVC_PVSN_BGNG_YMD) AS SRVC_PVSN_BGNG_YMD, MAX(T2.FRST_REG_DT) AS FRST_REG_DT
+			           FROM SEB510 T1, SEB500 T2, SDA100 T3
+			           WHERE 1=1
+			           AND T1.SRVC_PVSN_NO = T2.SRVC_PVSN_NO AND T1.RESRCE_NO = T2.RESRCE_NO 
+			           AND T1.RESRCE_NO = T3.RESRCE_NO AND T3.SRVC_RESRCE_MLSFC_SE_CD = '1003'  /* 제공서비스중분류구분코드_안전 관련 비용지원 */
+			           GROUP BY T1.CASE_MNG_NO, T1.CASE_MNG_ODRNO, T1.RESRCE_NO) D
+			      , AKA000 E
+			  WHERE 1 = 1
+			    AND A.UNT_TASKWK_SE_CD = 'U03'
+			    AND A.TRPR_INFO_NO     = B.TRPR_INFO_NO
+			    AND A.CASE_MNG_NO      = C.CASE_MNG_NO
+			    AND A.CASE_MNG_ODRNO   = C.CASE_MNG_ODRNO
+			    AND 'Y'                 = C.PCHPRS_YN
+			    AND A.CASE_MNG_NO = D.CASE_MNG_NO(+)
+			    AND A.CASE_MNG_ODRNO = D.CASE_MNG_ODRNO(+)
+			    AND A.CASE_MNG_NO      = E.CASE_MNG_NO(+)
+			    AND A.CASE_MNG_ODRNO   = E.CASE_MNG_ODRNO(+)
+			    ]]>
+			    /* 20230228_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작*/                               
+                <include refid="GroupAuthrtMapper.actvtSafetyMuaiasGropuAuthrt"/>                                   
+                /* 20230228_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/     
+			    <if test="CASE_PRGRS_STTS_SE_CD != null and CASE_PRGRS_STTS_SE_CD != ''">
+			        <![CDATA[
+				        AND T2.CASE_PRGRS_STTS_SE_CD IN (SELECT CMMNS_CD_VALUE FROM SAC100
+				                                                             WHERE CMMNS_CD_ID       = 'CASE_PRGRS_STTS_SE_CD'
+				                                                               AND UP_CMMNS_CD_VALUE = #{CASE_PRGRS_STTS_SE_CD})
+			        ]]>
+		        </if>
+			   ) TT10
+		   WHERE 1=1
+		<if test='JOIN_YN != null and JOIN_YN != ""'>
+           AND TT10.JOIN_YN  = #{JOIN_YN}
+        </if>
+		<if test="START_CASE_YMD != null and START_CASE_YMD != '' and END_CASE_YMD != null and END_CASE_YMD != ''">
+		    <![CDATA[
+		    AND TT10.CASE_BGNG_YMD BETWEEN #{START_CASE_YMD} AND #{END_CASE_YMD}
+            ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+	      <![CDATA[
+	           AND TO_CHAR(TT10.FRST_REG_DT, 'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE}
+	      ]]>
+	    </if>
+	    <if test='TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ""'>
+           AND TT10.YNGBGS  = #{TRPR_NM_ENCPT}
+        </if>
+        
+        <!-- 페이지 인덱서 OFFSET 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+
+    <select id="selectActvtSafetyMuaiasPopupList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+              SELECT A.CASE_MNG_NO
+                , A.CASE_MNG_ODRNO
+                , ROWNUM AS INDEX_SN
+                , B.FRST_REG_DT
+                , NVL2(B.SRVC_PVSN_BGNG_YMD, 'Y', 'N') AS JOIN_YN
+                , B.SRVC_PVSN_BGNG_YMD AS JOIN_YMD
+                , B.SRVC_PVSN_TTL_NM AS RESRCE
+                ,(SELECT T2.CMMNS_CD_VALUE_NM
+                    FROM AKA000 T1, SAC100 T2
+                    WHERE CASE_MNG_NO = A.CASE_MNG_NO 
+                    AND CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+                    AND T2.CMMNS_CD_ID = 'ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD'
+                    AND T2.CMMNS_CD_VALUE = T1.ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD) AS ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_NM
+            FROM SEB510 A, SEB500 B, SDA100 C
+            WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+            AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+            AND A.SRVC_PVSN_NO = B.SRVC_PVSN_NO
+            AND A.RESRCE_NO = B.RESRCE_NO
+            AND B.RESRCE_NO = C.RESRCE_NO
+            AND C.SRVC_RESRCE_MLSFC_SE_CD = '1003' /* 제공서비스중분류구분코드_안전 관련 비용지원 */
+        ]]>
+    </select>
+    
+    <select id="selectActvtSafetyMuaiasPopupList2" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+              SELECT A.CASE_MNG_NO 
+			    , A.CASE_MNG_ODRNO 
+			    , ROWNUM AS INDEX_SN
+			    , '' AS FRST_REG_DT
+			    , 'N' AS JOIN_YN
+			    , '' AS JOIN_YMD
+			    , '' AS RESRCE
+			    , B.CMMNS_CD_VALUE_NM AS ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_NM
+			FROM AKA000 A, SAC100 B
+			WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+              AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+              AND B.CMMNS_CD_ID = 'ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD'
+			  AND B.CMMNS_CD_VALUE = A.ACTVT_SAFETY_MUAIAS_EXCL_TRGT_CS_SE_CD
+        ]]>
+    </select>
+</mapper>

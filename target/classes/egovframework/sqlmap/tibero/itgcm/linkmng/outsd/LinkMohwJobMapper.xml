@@ -1,0 +1,1251 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : LinkMohwJobMapper.xml.xml
+* @Description : 복지부 관련 연계 SQL Mapper
+*
+* @author  : Lee.Seung.Yeon
+* @since   : 2022. 08. 01.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 08. 01.  Lee.Seung.Yeon    최초작성
+* </pre>
+-->
+<mapper namespace="isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper">
+
+    <!-- 공유자원 제공서비스 사보정 송신 대상 목록조회 -->
+    <select id="selectTrnsmiTrgtList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.selectTrnsmiTrgtList(공유자원 제공서비스 사보정 송신 대상 목록조회) */
+            WITH VW_TAB AS
+			(
+			  SELECT T1.RSFR_INST_NO                                                             AS SRC_INST_RSC_PVSN_MBD_ID     /* 원천기관자원제공주체ID(청소년안전망의 자원제공주체번호) */
+			       , T1.RESRCE_NO                                                                AS SRC_INST_RSC_PRVSV_ID        /* 원천기관자원제공서비스ID */       
+			       , REGEXP_REPLACE(T1.PVSN_RESRCE_NM, '[\n\r\t|]+', '')                         AS RSC_PRVSV_NM                 /* 자원제공서비스명 */     
+			       , REGEXP_REPLACE(NVL(T1.SRVC_DSCRP_CN, T1.PVSN_RESRCE_NM), '[\n\r\t|]+', '')  AS RSC_PRVSV_DC                 /* 자원제공서비스설명 */
+			       , T1.PVSN_BGNG_YMD                                                            AS RSC_PRVSV_BGNG_YMD           /* 자원제공서비스시작일자 */
+			       , T1.PVSN_END_YMD                                                             AS RSC_PRVSV_END_YMD            /* 자원제공서비스종료일자 */
+			       , '0' || T1.SRVC_TYPE_SE_CD                                                   AS RSC_PVSN_SRV_TCD             /* 자원제공서비스유형코드 */
+			       , T1.OTM_YN                                                                   AS RSC_PRVSV_OTM_YN             /* 자원제공서비스일회성여부 */
+			       , CASE WHEN T1.USE_YN = 'Y' THEN '001'
+			              ELSE '003'
+			          END                                                                        AS RSC_PRVSV_SCD                /* 자원제공서비스상태코드 */     
+			       , NVL(T2.PIC_NM_ENCPT, ( SELECT FLNM_ENCPT
+			                                  FROM SCA100
+			                                 WHERE ENFSN_NO = T2.PIC_NO ))                       AS PIC_FLNM                     /* 담당자성명 */
+			       , REPLACE(T3.WRD_TELNO,'-','')                                                AS PIC_TELNO                    /* 담당자전화번호 */
+			       , T3.MBL_TELNO_ENCPT                                                          AS PIC_MPNO                     /* 담당자휴대전화번호 */
+			       , T3.EML_ADDR_ENCPT                                                           AS PIC_EMADR                    /* 담당자이메일주소 */
+			       , T1.HPGE_URL_ADDR                                                            AS HMPG_URL                     /* 홈페이지URL */     
+			       , T1.PVSN_QY_CNT                                                              AS PVSN_QTY                     /* 제공수량 */
+			       , T1.PVSN_AMT                                                                 AS PVSN_AMT                     /* 제공금액 */     
+			       , T1.DPSITR_NM_ENCPT                                                          AS DPPS_FLNM                    /* 기탁자성명 */
+			       , T1.DPSITR_TELNO                                                             AS DPPS_TELNO                   /* 기탁자전화번호 */
+			       , T1.DPSTN_UNT_UNTPC_AMT                                                      AS DPSTN_UNIT_UPRC              /* 기탁단위단가 */
+			       , T1.ME_ALOTM_AMT                                                             AS SLBNAM_AMT                   /* 본인부담금금액 */
+			       , T1.SPRT_CONT                                                                AS SPRT_TMCNT                   /* 지원횟수 */     
+			       , T1.UTZTN_PSNCPA_NOPE                                                        AS UTL_FXCNT                    /* 이용정원수 */
+			       , T1.PTCPTN_NOPE                                                              AS SRVC_NOPE                    /* 이용인원수 */
+			       , T1.UTZTN_PSNCPA_NOPE - T1.PTCPTN_NOPE                                       AS UTL_PSBLT_NOPE               /* 이용가능인원수 : 이용정원수 - 이용인원수 */
+			       
+			       , T1.RSFR_CYCL_SE_CD                                                          AS RSFR_CYCL_SE_CD              /* 자원제공주기구분코드(기탁제공주기코드, 자원제공주기코드)*/
+                   , T1.SVCB_PSBLTY_RGN_NM                                                       AS SRVC_PSBLT_REGN_CN           /* 봉사가능지역명(봉사가능지역내용)*/
+                   , T1.DPSTN_SUM_AMT                                                            AS DPSTN_TAM                    /* 기탁합계금액(기타총액)*/
+                   , T1.DPSTN_SUM_QY_CNT                                                         AS DPSTN_TTL_QTY                /* 기탁합계수량수(기탁총수량)*/
+                   , T1.ME_ALOTM_YN                                                              AS ME_ALOTM_YN                  /* 본인부담금여부*/
+                   , T1.MOHW_SRVC_RESRCE_CL_SE_CD                                                AS MOHW_SRVC_RESRCE_CL_SE_CD    /* 보건복지부서비스자원분류구분코드 자원제공시스템구분코드(066:청소년안전망)*/
+                   , T1.MOHW_RSFR_SYS_SE_CD                                                      AS MOHW_RSFR_SYS_SE_CD          /* 보건복지부자원제공시스템구분코드*/
+                   , T1.MOHW_LFE_CYCL_CD_NM                                                      AS MOHW_LFE_CYCL_CD_NM          /* 보건복지부생애주기코드*/
+                   , T1.MOHW_INDV_CHAR_CD_NM                                                     AS MOHW_INDV_CHAR_CD_NM         /* 보건복지부개인특성코드명*/
+                   , T1.MOHW_TROBL_CL_CD_NM                                                      AS MOHW_TROBL_CL_CD_NM          /* 보건복지부장애분류코드명*/
+                   , T1.MOHW_TROBL_DGREE_CD_NM                                                   AS MOHW_TROBL_DGREE_CD_NM       /* 보건복지부장애정도코드명*/
+                   , T1.MOHW_INCMEA_SCLSRT_CD_NM                                                 AS MOHW_INCMEA_SCLSRT_CD_NM     /* 보건복지부소득계층코드명*/
+                   , T1.MOHW_HOUSEH_TYPE_CD_NM                                                   AS MOHW_HOUSEH_TYPE_CD_NM       /* 보건복지부가구유형코드명*/
+				   , DECODE(T1.MOHW_LFE_CYCL_CD_NM     , NULL, '', '001='||T1.MOHW_LFE_CYCL_CD_NM) ||
+				       DECODE(T1.MOHW_INDV_CHAR_CD_NM    , NULL, DECODE(T1.MOHW_LFE_CYCL_CD_NM     , NULL, '', ''), DECODE(T1.MOHW_LFE_CYCL_CD_NM     , NULL, '002='||T1.MOHW_INDV_CHAR_CD_NM, '/002='||T1.MOHW_INDV_CHAR_CD_NM))     || 
+				       DECODE(T1.MOHW_INCMEA_SCLSRT_CD_NM, NULL, DECODE(T1.MOHW_INDV_CHAR_CD_NM    , NULL, '', ''), DECODE(SUBSTR((T1.MOHW_LFE_CYCL_CD_NM || T1.MOHW_INDV_CHAR_CD_NM), 1,1), NULL, '003='||T1.MOHW_INCMEA_SCLSRT_CD_NM, '/003='||T1.MOHW_INCMEA_SCLSRT_CD_NM)) || 
+				       DECODE(T1.MOHW_HOUSEH_TYPE_CD_NM  , NULL, DECODE(T1.MOHW_INCMEA_SCLSRT_CD_NM, NULL, '', ''), DECODE(SUBSTR((T1.MOHW_LFE_CYCL_CD_NM || T1.MOHW_INDV_CHAR_CD_NM || T1.MOHW_INCMEA_SCLSRT_CD_NM), 1,1), NULL, '004='||T1.MOHW_HOUSEH_TYPE_CD_NM , '/004='||T1.MOHW_HOUSEH_TYPE_CD_NM))   ||
+				       DECODE(T1.MOHW_TROBL_CL_CD_NM     , NULL, DECODE(T1.MOHW_HOUSEH_TYPE_CD_NM  , NULL, '', ''), DECODE(SUBSTR((T1.MOHW_LFE_CYCL_CD_NM || T1.MOHW_INDV_CHAR_CD_NM || T1.MOHW_INCMEA_SCLSRT_CD_NM || T1.MOHW_HOUSEH_TYPE_CD_NM), 1,1)  , NULL, '005='||T1.MOHW_TROBL_CL_CD_NM, '/005='||T1.MOHW_TROBL_CL_CD_NM))      ||
+				       DECODE(T1.MOHW_TROBL_DGREE_CD_NM  , NULL, DECODE(T1.MOHW_TROBL_CL_CD_NM     , NULL, '', ''), DECODE(SUBSTR((T1.MOHW_LFE_CYCL_CD_NM || T1.MOHW_INDV_CHAR_CD_NM || T1.MOHW_INCMEA_SCLSRT_CD_NM || T1.MOHW_HOUSEH_TYPE_CD_NM || T1.MOHW_TROBL_CL_CD_NM), 1,1), NULL, '007='||T1.MOHW_TROBL_DGREE_CD_NM  , '/007='||T1.MOHW_TROBL_DGREE_CD_NM))
+				        AS RSC_PRVSV_TRGT_CRTR_DTL_CN /* 자원제공서비스대상기준상세내용(복합정보(코드성)로 특정 구분자를 사용하여 데이터 생성)*/   			       
+			       , CASE WHEN T1.APRV_STTS_SE_CD IN ('2','3') THEN 
+			                   T1.APRV_STTS_SE_CD
+			              ELSE '1'
+			          END                                                                        AS RSC_APRV_SCD                 /* 자원승인상태코드 */
+			       , CASE WHEN T1.APRV_STTS_SE_CD = '3' THEN 
+			                   REGEXP_REPLACE(T1.RJCT_CS_CN, '[\n\r\t|]+', '')
+			              ELSE ''
+			          END                                                                        AS RSC_RJCT_RSN_CN              /* 자원반려사유내용 */
+			       , REGEXP_REPLACE(T1.CHG_DMND_CS_CN, '[\n\r\t|]+', '')                         AS RSC_PRVSV_CHG_RSN_CN         /* 자원제공서비스변경사유내용 */
+			       , MOHW_SRVC_RESRCE_CL_SE_CD                                                   AS WLRSC_PRVSV_CLS_ID           /* 복지자원제공서비스분류ID */     
+			    FROM SDA100 T1 /* 자원기본 */
+			       , SDA110 T2 /* 자원관리담당자 */
+			       , SCA100 T3 /* 종사자 */
+			       , SAA000 T4 /* 통합기관 */
+			   WHERE T1.RESRCE_NO        = T2.RESRCE_NO       (+) /* 자원번호 */
+			     AND T1.USE_YN           = 'Y'                    /* 사용여부 */
+                 AND T1.APRV_STTS_SE_CD  ='2' /* 승인상태구분코드 (승인)*/			     
+			     AND 'Y'                 = T2.PCHPRS_YN       (+) /* 주담당자여부 */
+			     AND T2.PIC_NO           = T3.ENFSN_NO        (+)
+			     AND 'N'                 = T3.DEL_YN          (+)
+			     AND T3.OGDP_INST_NO     = T4.INST_NO
+			     AND 'U06'              != T4.UNT_TASKWK_SE_CD(+) /* U06(회복지원시설) 제외 */
+			)
+
+			SELECT '066'                            AS RSC_PVSN_SYS_DCD                 /* 자원제공시스템구분코드(066:청소년안전망) */
+			     , T1.SRC_INST_RSC_PVSN_MBD_ID      AS SRC_INST_RSC_PVSN_MBD_ID         /* 원천기관자원제공주체ID(청소년안전망의 자원제공주체번호) */
+			     , T1.SRC_INST_RSC_PRVSV_ID         AS SRC_INST_RSC_PRVSV_ID            /* 원천기관자원제공서비스ID */
+			     , ''                               AS RSC_PRVSV_ID                     /* 자원제공서비스ID */
+			     , ''                               AS RSC_PVSN_MBD_ID                  /* 자원제공주체ID(청소년안전망의 자원제공주체번호) */
+			     , ''                               AS HBEM_SRV_ID                      /* 행복e음서비스ID */
+			     , T1.WLRSC_PRVSV_CLS_ID            AS WLRSC_PRVSV_CLS_ID               /* 복지자원제공서비스분류ID */
+			     , ''                               AS UP_PVSN_SRV_ID                   /* 상위제공서비스ID */
+			     , T1.RSC_PRVSV_NM                  AS RSC_PRVSV_NM                     /* 자원제공서비스명 */
+			     , ''                               AS RSC_PRVSV_PGM_NM                 /* 자원제공서비스프로그램명 */
+			     , T1.RSC_PRVSV_DC                  AS RSC_PRVSV_DC                     /* 자원제공서비스설명 */
+			     , T1.RSC_PRVSV_BGNG_YMD            AS RSC_PRVSV_BGNG_YMD               /* 자원제공서비스시작일자 */
+			     , T1.RSC_PRVSV_END_YMD             AS RSC_PRVSV_END_YMD                /* 자원제공서비스종료일자 */
+			     , T1.RSC_PVSN_SRV_TCD              AS RSC_PVSN_SRV_TCD                 /* 자원제공서비스유형코드 */
+			     , T1.RSC_PRVSV_OTM_YN              AS RSC_PRVSV_OTM_YN                 /* 자원제공서비스일회성여부 */
+			     , T1.RSC_PRVSV_SCD                 AS RSC_PRVSV_SCD                    /* 자원제공서비스상태코드 */
+			     , ''                               AS RSC_PRVSV_CHR_USRID              /* 자원제공서비스담당사용자ID */     
+			     , T1.PIC_FLNM                      AS PIC_FLNM                         /* 담당자성명 */
+			     , T1.PIC_TELNO                     AS PIC_TELNO                        /* 담당자전화번호 */
+			     , T1.PIC_MPNO                      AS PIC_MPNO                         /* 담당자휴대전화번호 */
+			     , T1.PIC_EMADR                     AS PIC_EMADR                        /* 담당자이메일주소 */
+			     , T1.HMPG_URL                      AS HMPG_URL                         /* 홈페이지URL */
+			     , 'N'                              AS USFL_QTY_MNG_YN                  /* 가용수량관리여부 */
+			     , T1.PVSN_QTY                      AS PVSN_QTY                         /* 제공수량 */
+			     , T1.PVSN_AMT                      AS PVSN_AMT                         /* 제공금액 */     
+			     , T1.DPSTN_TAM                     AS DPSTN_TAM                        /* 기탁총액 */
+			     , T1.DPSTN_TTL_QTY                 AS DPSTN_TTL_QTY                    /* 기탁총수량 */
+			     , T1.RSFR_CYCL_SE_CD               AS DPSTN_PVSN_CYC_CD                /* 기탁제공주기코드*/
+			     , ''                               AS RSC_PVSN_SRSP_UNIT_CD            /* 자원제공서비스지원단위코드 - 인터페이스 항목 사용하지 않음 */
+			     , T1.DPPS_FLNM                     AS DPPS_FLNM                        /* 기탁자성명 */
+			     , T1.DPPS_TELNO                    AS DPPS_TELNO                       /* 기탁자전화번호 */
+			     , T1.DPSTN_UNIT_UPRC               AS DPSTN_UNIT_UPRC                  /* 기탁단위단가 */
+			     , T1.SLBNAM_AMT                    AS SLBNAM_AMT                       /* 본인부담금금액 */
+			     , T1.SPRT_TMCNT                    AS SPRT_TMCNT                       /* 지원횟수 */
+			     , T1.RSFR_CYCL_SE_CD               AS RSC_PVSN_CYC_CD                  /* 자원제공주기코드*/
+			     , T1.UTL_FXCNT                     AS UTL_FXCNT                        /* 이용정원수 */
+			     -- , T1.UTL_NOPE                      AS UTL_NOPE                         /* 이용인원수 */
+			     , T1.UTL_PSBLT_NOPE                AS UTL_PSBLT_NOPE                   /* 이용가능인원수 */
+			     , 0                                AS UTL_WTPS_NT                      /* 이용대기자수 */
+			     , T1.SRVC_NOPE                     AS SRVC_NOPE                        /* 봉사인원수 */
+			     , T1.SRVC_PSBLT_REGN_CN            AS SRVC_PSBLT_REGN_CN               /* 봉사가능지역내용 */
+			     , ''                               AS DPPS_ZIP                         /* 기탁자우편번호 */
+			     , ''                               AS DPPS_ADDR                        /* 기탁자주소 */
+			     , ''                               AS RPRSV_FLNM                       /* 대표자성명 */
+			     , ''                               AS DPSTN_CN                         /* 기탁내용 */
+			     , ''                               AS DPSTN_AMT_DPST_YMD               /* 기탁금액입금일자 */
+			     , ''                               AS RSC_PVSN_DPSTN_TCD               /* 자원제공기탁유형코드 - 인터페이스 항목 사용하지 않음 */
+			     , ''                               AS DPPS_NO                          /* 기탁자번호 */
+			     , ''                               AS PLNG_BIZ_YN                      /* 기획사업여부 - 인터페이스 항목 사용하지 않음 */
+			     , ''                               AS DSGN_DPSTN_DCD                   /* 지정기탁구분코드 - 인터페이스 항목 사용하지 않음 */
+			     , ''                               AS WLRSC_PRVSV_ACC_ID               /* 복지자원제공서비스계좌ID */
+			     , ''                               AS RSC_PRVSV_TRSM_YN                /* 자원제공서비스전송여부 - 인터페이스 항목 사용하지 않음 */
+			     , ''                               AS DPST_CFDOC_TRSM_YN               /* 입금확인서전송여부 - 인터페이스 항목 사용하지 않음 */
+			     , ''                               AS RSC_PRVSV_LINK_DMND_YMD          /* 자원제공서비스연계요청일자 */
+			     , ''                               AS RSC_PRVSV_ADRGN_CD               /* 자원제공서비스행정지역코드 - 인터페이스 항목 사용하지 않음 */
+			     , ''                               AS MM_PERD_DPSTN_DPST_DAY           /* 월정기기탁입금일 */
+			     , ''                               AS CMCH_ITEM_DTL_CCD                /* 공동모금회품목상세분류코드 - 인터페이스 항목 사용하지 않음 */
+			     , ''                               AS APLY_USRID                       /* 신청사용자ID */
+			     , ''                               AS APLY_DT                          /* 신청일시 */
+			     , ''                               AS APRV_USRID                       /* 승인사용자ID */
+			     , ''                               AS APRV_DT                          /* 승인일시 */
+			     , T1.RSC_APRV_SCD                  AS RSC_APRV_SCD                     /* 자원승인상태코드 */
+			     , T1.RSC_RJCT_RSN_CN               AS RSC_RJCT_RSN_CN                  /* 자원반려사유내용 */
+			     , 'N'                              AS DEL_YN                           /* 삭제여부 */
+			     , ''                               AS RSC_DEL_RSN_CD                   /* 자원삭제사유코드 - 인터페이스 항목 사용하지 않음 */
+			     , ''                               AS DEL_RSN_ETC_CN                   /* 삭제사유기타내용 */
+			     , '003'                            AS RSC_PRVSV_SHAR_RNG_CD            /* 자원제공서비스공유범위코드(003:전국) */
+			     , '005'                            AS SRV_RQST_RNG_DCD                 /* 서비스의뢰범위구분코드(005:전체) */
+			     , 'N'                              AS REGN_CARE_RSC_YN                 /* 지역돌봄자원여부 */
+			     , T1.RSC_PRVSV_CHG_RSN_CN          AS RSC_PRVSV_CHG_RSN_CN             /* 자원제공서비스변경사유내용 */
+			     , 'N'                              AS SINFO_INCL_RSC_YN                /* 민감정보포함자원여부 */
+			     , 'N'                              AS ONAP_PSBLT_YN                    /* 온라인신청가능여부 */
+			     , ''                               AS ATCFL_ID                         /* 첨부파일ID */
+			     , 'U'                              AS INST_SYS_CD                      /* 기관시스템코드 */
+			     , '1383000'                        AS REG_INFO_SHAR_INST_ID            /* 등록정보공유기관ID */
+			     , T1.RSC_PRVSV_TRGT_CRTR_DTL_CN    AS RSC_PRVSV_TRGT_CRTR_DTL_CN       /* 자원제공서비스대상기준상세내용 */
+			     , ''                               AS RSC_PRVSV_SHAR_RNG_DTL_CN        /* 자원제공서비스공유범위상세내용 */
+			     , ''                               AS RSC_TAG_CNCT_DTL_CN              /* 자원태그연결상세내용 */
+			     , ''                               AS RSC_PRVSV_HIST_SHAR_RNG_DTL_CN   /* 자원제공서비스이력공유범위상세내용 */
+			     , ''                               AS RSC_PRVSV_ETC_DTL_CN             /* 자원제공서비스기타상세내용 */
+			  FROM (
+			         /* CAB210에 처리되지 않은 대상 또는 존재하지 않았던 신규 자원번호로 생성된 대상 조회 */
+			         SELECT T1.*
+			           FROM VW_TAB T1
+			          WHERE NOT EXISTS ( SELECT *
+			                               FROM CAB210 X 
+			                              WHERE X.SRC_INST_RSC_PRVSV_ID = T1.SRC_INST_RSC_PRVSV_ID 
+			                             )
+			       ) T1
+        ]]>
+    </select>
+
+    <!-- 공유자원 제공 서비스 송신 데이터 삭제 -->
+    <delete id="deletePvsnSrv" parameterType="HashMap">
+        DELETE /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.deletePvsnSrv(공유자원 제공 서비스 송신 데이터 삭제) */
+          FROM CAB210 /* 공유자원 제공 서비스 송신 */
+         WHERE 1 = 1
+           AND ESB_STATUS != 'S'
+    </delete>
+
+    <!-- 공유자원 제공 서비스 송신 데이터 등록 -->
+    <insert id="insertPvsnSrv" parameterType="HashMap">
+        INSERT /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.insertPvsnSrv(공유자원 제공 서비스 송신 데이터 등록) */
+          INTO CAB210 /* 공유자원 제공 서비스 송신 */
+             ( RSC_PVSN_SYS_DCD                  /* 자원제공시스템구분코드 */
+			 , SRC_INST_RSC_PVSN_MBD_ID          /* 원천기관자원제공주체ID */
+			 , SRC_INST_RSC_PRVSV_ID             /* 원천기관자원제공서비스ID */
+			 , RSC_PRVSV_ID                      /* 자원제공서비스ID */
+			 , RSC_PVSN_MBD_ID                   /* 자원제공주체ID */
+			 , HBEM_SRV_ID                       /* 행복e음서비스ID */
+			 , WLRSC_PRVSV_CLS_ID                /* 복지자원제공서비스분류ID */
+			 , UP_PVSN_SRV_ID                    /* 상위제공서비스ID */
+			 , RSC_PRVSV_NM                      /* 자원제공서비스명 */
+			 , RSC_PRVSV_PGM_NM                  /* 자원제공서비스프로그램명 */
+			 , RSC_PRVSV_DC                      /* 자원제공서비스설명 */
+			 , RSC_PRVSV_BGNG_YMD                /* 자원제공서비스시작일자 */
+		 	 , RSC_PRVSV_END_YMD                 /* 자원제공서비스종료일자 */
+			 , RSC_PVSN_SRV_TCD                  /* 자원제공서비스유형코드 */
+			 , RSC_PRVSV_OTM_YN                  /* 자원제공서비스일회성여부 */
+			 , RSC_PRVSV_SCD                     /* 자원제공서비스상태코드 */
+			 , RSC_PRVSV_CHR_USRID               /* 자원제공서비스담당사용자ID */
+			 , PIC_FLNM                          /* 담당자성명 */
+			 , PIC_TELNO                         /* 담당자전화번호 */
+			 , PIC_MPNO                          /* 담당자휴대전화번호 */
+			 , PIC_EMADR                         /* 담당자이메일주소 */
+			 , HMPG_URL                          /* 홈페이지URL */
+			 , USFL_QTY_MNG_YN                   /* 가용수량관리여부 */
+			 , PVSN_QTY                          /* 제공수량 */
+			 , PVSN_AMT                          /* 제공금액 */
+			 , DPSTN_TAM                         /* 기탁총액 */
+			 , DPSTN_TTL_QTY                     /* 기탁총수량 */
+			 , DPSTN_PVSN_CYC_CD                 /* 기탁제공주기코드 */
+			 , RSC_PVSN_SRSP_UNIT_CD             /* 자원제공서비스지원단위코드 */
+			 , DPPS_FLNM                         /* 기탁자성명 */
+			 , DPPS_TELNO                        /* 기탁자전화번호 */
+			 , DPSTN_UNIT_UPRC                   /* 기탁단위단가 */
+			 , SLBNAM_AMT                        /* 본인부담금금액 */
+			 , SPRT_TMCNT                        /* 지원횟수 */
+			 , RSC_PVSN_CYC_CD                   /* 자원제공주기코드 */
+			 , UTL_FXCNT                         /* 이용정원수 */
+			 , UTL_NOPE                          /* 이용인원수 */
+			 , UTL_PSBLT_NOPE                    /* 이용가능인원수 */
+			 , UTL_WTPS_NT                       /* 이용대기자수 */
+			 , SRVC_NOPE                         /* 봉사인원수 */
+			 , SRVC_PSBLT_REGN_CN                /* 봉사가능지역내용 */
+			 , DPPS_ZIP                          /* 기탁자우편번호 */
+			 , DPPS_ADDR                         /* 기탁자주소 */
+			 , RPRSV_FLNM                        /* 대표자성명 */
+			 , DPSTN_CN                          /* 기탁내용 */
+			 , DPSTN_AMT_DPST_YMD                /* 기탁금액입금일자 */
+			 , RSC_PVSN_DPSTN_TCD                /* 자원제공기탁유형코드 */
+			 , DPPS_NO                           /* 기탁자번호 */
+			 , PLNG_BIZ_YN                       /* 기획사업여부 */
+			 , DSGN_DPSTN_DCD                    /* 지정기탁구분코드 */
+			 , WLRSC_PRVSV_ACC_ID                /* 복지자원제공서비스계좌ID */
+			 , RSC_PRVSV_TRSM_YN                 /* 자원제공서비스전송여부 */
+			 , DPST_CFDOC_TRSM_YN                /* 입금확인서전송여부 */
+			 , RSC_PRVSV_LINK_DMND_YMD           /* 자원제공서비스연계요청일자 */
+			 , RSC_PRVSV_ADRGN_CD                /* 자원제공서비스행정지역코드 */
+			 , MM_PERD_DPSTN_DPST_DAY            /* 월정기기탁입금일 */
+			 , CMCH_ITEM_DTL_CCD                 /* 공동모금회품목상세분류코드 */
+			 , APLY_USRID                        /* 신청사용자ID */
+			 , APLY_DT                           /* 신청일시 */
+			 , APRV_USRID                        /* 승인사용자ID */
+			 , APRV_DT                           /* 승인일시 */
+			 , RSC_APRV_SCD                      /* 자원승인상태코드 */
+			 , RSC_RJCT_RSN_CN                   /* 자원반려사유내용 */
+			 , DEL_YN                            /* 삭제여부 */
+			 , RSC_DEL_RSN_CD                    /* 자원삭제사유코드 */
+			 , DEL_RSN_ETC_CN                    /* 삭제사유기타내용 */
+			 , RSC_PRVSV_SHAR_RNG_CD             /* 자원제공서비스공유범위코드 */
+			 , SRV_RQST_RNG_DCD                  /* 서비스의뢰범위구분코드 */
+			 , REGN_CARE_RSC_YN                  /* 지역돌봄자원여부 */
+			 , RSC_PRVSV_CHG_RSN_CN              /* 자원제공서비스변경사유내용 */
+			 , SINFO_INCL_RSC_YN                 /* 민감정보포함자원여부 */
+			 , ONAP_PSBLT_YN                     /* 온라인신청가능여부 */
+			 , ATCFL_ID                          /* 첨부파일ID */
+			 , INST_SYS_CD                       /* 기관시스템코드 */
+			 , REG_INFO_SHAR_INST_ID             /* 등록정보공유기관ID */
+			 , RSC_PRVSV_TRGT_CRTR_DTL_CN        /* 자원제공서비스대상기준상세내용 */
+			 , RSC_PRVSV_SHAR_RNG_DTL_CN         /* 자원제공서비스공유범위상세내용 */
+			 , RSC_TAG_CNCT_DTL_CN               /* 자원태그연결상세내용 */
+			 , RSC_PRVSV_HIST_SHAR_RNG_DTL_CN    /* 자원제공서비스이력공유범위상세내용 */
+			 , RSC_PRVSV_ETC_DTL_CN              /* 자원제공서비스기타상세내용 */
+			 , ESB_TX_ID                         /* 연계트랜젝션아이디 */
+			 , ESB_SEQ                           /* 연계시퀸스 */
+			 , ESB_IF_ID                         /* 연계인터페이스ID */
+			 , SND_CD                            /* 송신기관코드 */
+			 , RCV_CD                            /* 수신기관코드 */
+			 , ESB_FILE_NAME                     /* 연계파일이름 */
+			 , CREATE_TIME                       /* 데이터생성일시 */
+			 , ESB_INIT_TIME                     /* 연계시작일시 */
+			 , ESB_COMPLITE_TIME                 /* 연계종료일시 */
+			 , ESB_STATUS                        /* 연계상태 */
+             )
+        VALUES
+             ( #{RSC_PVSN_SYS_DCD}
+			 , #{SRC_INST_RSC_PVSN_MBD_ID}
+			 , #{SRC_INST_RSC_PRVSV_ID}
+			 , #{RSC_PRVSV_ID}
+			 , #{RSC_PVSN_MBD_ID}
+			 , #{HBEM_SRV_ID}
+			 , #{WLRSC_PRVSV_CLS_ID}
+			 , #{UP_PVSN_SRV_ID}
+			 , #{RSC_PRVSV_NM}
+			 , #{RSC_PRVSV_PGM_NM}
+			 , #{RSC_PRVSV_DC}
+			 , #{RSC_PRVSV_BGNG_YMD}
+			 , #{RSC_PRVSV_END_YMD}
+			 , #{RSC_PVSN_SRV_TCD}
+			 , #{RSC_PRVSV_OTM_YN}
+			 , #{RSC_PRVSV_SCD}
+			 , #{RSC_PRVSV_CHR_USRID}
+			 , #{PIC_FLNM}
+			 , #{PIC_TELNO}
+			 , #{PIC_MPNO}
+			 , #{PIC_EMADR}
+			 , #{HMPG_URL}
+			 , #{USFL_QTY_MNG_YN}
+			 , #{PVSN_QTY}
+			 , #{PVSN_AMT}
+			 , #{DPSTN_TAM}
+			 , #{DPSTN_TTL_QTY}
+			 , #{DPSTN_PVSN_CYC_CD}
+			 , #{RSC_PVSN_SRSP_UNIT_CD}
+			 , #{DPPS_FLNM}
+			 , #{DPPS_TELNO}
+			 , #{DPSTN_UNIT_UPRC}
+			 , #{SLBNAM_AMT}
+			 , #{SPRT_TMCNT}
+			 , #{RSC_PVSN_CYC_CD}
+			 , #{UTL_FXCNT}
+			 , #{UTL_NOPE}
+			 , #{UTL_PSBLT_NOPE}
+			 , #{UTL_WTPS_NT}
+			 , #{SRVC_NOPE}
+			 , #{SRVC_PSBLT_REGN_CN}
+			 , #{DPPS_ZIP}
+			 , #{DPPS_ADDR}
+			 , #{RPRSV_FLNM}
+			 , #{DPSTN_CN}
+			 , #{DPSTN_AMT_DPST_YMD}
+			 , #{RSC_PVSN_DPSTN_TCD}
+			 , #{DPPS_NO}
+			 , #{PLNG_BIZ_YN}
+			 , #{DSGN_DPSTN_DCD}
+			 , #{WLRSC_PRVSV_ACC_ID}
+			 , #{RSC_PRVSV_TRSM_YN}
+			 , #{DPST_CFDOC_TRSM_YN}
+			 , #{RSC_PRVSV_LINK_DMND_YMD}
+			 , #{RSC_PRVSV_ADRGN_CD}
+			 , #{MM_PERD_DPSTN_DPST_DAY}
+			 , #{CMCH_ITEM_DTL_CCD}
+			 , #{APLY_USRID}
+			 , #{APLY_DT}
+			 , #{APRV_USRID}
+			 , #{APRV_DT}
+			 , #{RSC_APRV_SCD}
+			 , #{RSC_RJCT_RSN_CN}
+			 , #{DEL_YN}
+			 , #{RSC_DEL_RSN_CD}
+			 , #{DEL_RSN_ETC_CN}
+			 , #{RSC_PRVSV_SHAR_RNG_CD}
+			 , #{SRV_RQST_RNG_DCD}
+			 , #{REGN_CARE_RSC_YN}
+			 , #{RSC_PRVSV_CHG_RSN_CN}
+			 , #{SINFO_INCL_RSC_YN}
+			 , #{ONAP_PSBLT_YN}
+			 , #{ATCFL_ID}
+			 , #{INST_SYS_CD}
+			 , #{REG_INFO_SHAR_INST_ID}
+			 , #{RSC_PRVSV_TRGT_CRTR_DTL_CN}
+			 , #{RSC_PRVSV_SHAR_RNG_DTL_CN}
+			 , #{RSC_TAG_CNCT_DTL_CN}
+			 , #{RSC_PRVSV_HIST_SHAR_RNG_DTL_CN}
+			 , #{RSC_PRVSV_ETC_DTL_CN}
+			 , ''
+			 , ( SELECT /*+ INDEX_DESC(T1 INDEX1) */
+			            NVL(MAX(T1.ESB_SEQ),0) + 1                      
+                   FROM CAB210 T1 )
+             , 'INFIF_IR_SSI_FS_03'
+		     , 'MOG'
+		     , 'SSI'
+		     , ''
+		     , TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MISSFF3')
+		     , ''
+		     , ''
+		     , 'N'
+		     )
+    </insert>
+
+    <!-- 상담이력 사보정 송신 대상 목록조회 -->
+    <select id="selectDscsnHstrList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            WITH VW_TAB AS
+			(
+			  SELECT T5.RRNO_ENCPT                                  AS TRPR_RRNO        /* 대상자주민등록번호 */
+			       , REPLACE(T1.DSCSN_YMD||T1.DSCSN_BGNG_HR,':','') AS DSCSN_DT         /* 상담일시 */
+			       , T1.CONSTT_INST_NO                              AS DSCSN_EXTIF_INST_ID       /* 상담외부연계기관ID */
+			       , T3.FLNM_ENCPT                                  AS CNSLR_FLNM       /* 상담원성명 */
+			       , REGEXP_REPLACE(T1.DSCSN_CN, '[\n\r\t|]+', '')  AS DSCSN_CN         /* 상담내용 */
+			       , REPLACE(T3.WRD_TELNO,'-','')                   AS WRD_TELNO        /* 상담자유선전화번호 */
+			       , T3.MBL_TELNO_ENCPT                             AS MBL_TELNO_ENCPT  /* 상담자휴대전화번호암호화 */
+			       , TO_CHAR(T1.FRST_REG_DT, 'YYYYMMDDHH24MISS')            AS FRST_REG_PTM     /*최초등록시점*/
+			       , TO_CHAR(T1.LAST_MDFCN_DT, 'YYYYMMDDHH24MISS')          AS LAST_MDFCN_PTM   /*최종수정시점*/
+			    FROM SEA100 T1 /* 초기상담 */
+			       , SEA110 T2 /* 상담후조치 */
+			       , SCA100 T3 /* 종사자 */
+			       , SEA200 T4 /* 대상자정보 */
+			       , SCA300 T5 /* 개인정보 */
+			   WHERE 1 = 1
+			     AND T1.ERYY_DSCSN_NO     = T2.ERYY_DSCSN_NO     /* 초기상담번호 = 초기상담번호 */
+			     AND T2.DEL_YN            = 'N'                  /* 삭제여부 = 'N' */
+			     AND T1.CONSTT_NO         = T3.ENFSN_NO      (+) /* 상담자번호 = 종사자번호 */
+			     AND T2.TRPR_INFO_NO      = T4.TRPR_INFO_NO  (+) /* 대상자정보번호 = 대상자정보번호 */
+			     AND T4.INDV_IDNTFC_NO    = T5.INDV_IDNTFC_NO(+) /* 개인식별번호 = 개인식별번호 */
+			     AND T1.UNT_TASKWK_SE_CD != 'U06'                /* U06(회복지원시설) 제외 */
+                 AND T5.RRNO_ENCPT IS NOT NULL
+			)
+			SELECT T1.TRPR_RRNO         AS TRPR_RRNO        /* 대상자주민등록번호 */
+			     , T1.TRPR_RRNO         AS TRPR_RRNO_ENCPT  /* 대상자주민등록번호암호화 */
+			     , T1.DSCSN_DT          AS DSCSN_DT         /* 상담일시 */
+			     , T1.DSCSN_EXTIF_INST_ID AS DSCSN_EXTIF_INST_ID       /* 상담외부연계기관ID */
+			     , T1.CNSLR_FLNM        AS CNSLR_FLNM       /* 상담원성명 */
+			     , T1.DSCSN_CN          AS DSCSN_CN         /* 상담내용 */
+			     , T1.WRD_TELNO         AS WRD_TELNO        /* 상담자유선전화번호 */
+			     , T1.MBL_TELNO_ENCPT   AS MBL_TELNO_ENCPT  /* 상담자휴대전화번호암호화 */
+			     , T1.FRST_REG_PTM      AS FRST_REG_PTM
+			     , T1.LAST_MDFCN_PTM    AS LAST_MDFCN_PTM
+			  FROM (
+			         /* CAB300(상담이력 송신)에 처리 안된 대상 또는 신규로 생성된 대상 조회 */
+			         SELECT T1.*
+			           FROM VW_TAB T1
+			          WHERE NOT EXISTS ( SELECT *
+			                               FROM CAB300 X /* 상담이력 송신 */
+			                              WHERE X.TRPR_RRNO_ENCPT = T1.TRPR_RRNO /* 대상자주민등록번호암호화 = 대상자주민등록번호 */
+			                                AND X.DSCSN_DT        = T1.DSCSN_DT  /* 상담일시 = 상담일시 */
+			                                AND X.ESB_STATUS      = 'S'          /* 연계상태 = 'S' */ )
+			       ) T1
+        ]]>
+    </select>
+
+    <!-- 상담이력 사보정 송신 데이터 삭제 -->
+    <delete id="deleteDscsnHstr" parameterType="HashMap">
+        DELETE /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.deleteDscsnHstr(상담이력 사보정 송신 데이터 삭제) */
+          FROM CAB300 /* 상담이력 송신 */
+         WHERE 1 = 1
+           AND ESB_STATUS != 'S'
+    </delete>
+
+    <!-- 상담이력 사보정 송신 데이터 등록 -->
+    <insert id="insertDscsnHstr" parameterType="HashMap">
+        INSERT /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.insertDscsnHstr(상담이력 사보정 송신 데이터 등록) */
+          INTO CAB300 /* 상담이력 송신 */
+             ( ESB_SEQ            /* 연계시퀸스 */
+			 , TRPR_RRNO          /* 대상자주민등록번호 */
+			 , TRPR_RRNO_ENCPT    /* 대상자주민등록번호암호화 */
+			 , DSCSN_DT           /* 상담일시 */
+			 , DSCSN_CN           /* 상담내용 */
+			 , CTADR              /* 연락처 */
+			 , ESB_TX_ID          /* 연계트랜젝션아이디 */
+			 , ESB_IF_ID          /* 연계인터페이스아이디 */
+			 , SND_CD             /* 송신기관번호 */
+			 , RCV_CD             /* 수신기관번호 */
+			 , CREATE_TIME        /* 데이터생성일시 */
+			 , ESB_FILE_NAME      /* 연계파일이름 */
+			 , ESB_INIT_TIME      /* 연계시작일시 */
+			 , ESB_COMPLITE_TIME  /* 연계종료일시 */
+			 , ESB_STATUS         /* 연계상태 */
+			 /*20230311 추가*/
+			 , INTG_DSCSN_TASK_DCD		/*통합상담업무구분코드*/
+			 , DSCSN_RCPT_ROUT_CD		/*상담접수경로코드*/
+			 , DSCSN_CHNL_DCD		/*상담채널구분코드*/
+			 , DSCSN_EXTIF_INST_ID		/*상담외부연계기관ID*/
+			 , CSMG_TYP_ID		/*사례관리유형ID*/
+			 , CNSLR_FLNM		/*상담원성명*/
+			 , INFO_SHAR_USRID  /*정보공유사용자ID*/
+			 , FRST_REG_PTM		/*최초등록시점*/
+			 , LAST_MDFCN_PTM	/*최종수정시점*/
+             )
+        VALUES
+             ( ( SELECT /*+ INDEX_DESC(T1 INDEX1) */
+                    NVL(MAX(T1.ESB_SEQ),0) + 1                      
+                   FROM CAB300 T1 )
+             , #{TRPR_RRNO}
+             , #{TRPR_RRNO_ENCPT}
+			 , #{DSCSN_DT}
+			 , #{DSCSN_CN}
+			 , #{CTADR}
+			 , ''
+			 , 'INFIF_IR_SSI_FS_06'
+			 , 'MOG'
+			 , 'SSI'			 
+			 , TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MISSFF3')
+			 , ''
+			 , ''
+			 , ''
+			 , 'N'
+			 , #{INTG_DSCSN_TASK_DCD}
+			 , #{DSCSN_RCPT_ROUT_CD}
+			 , #{DSCSN_CHNL_DCD}
+			 , #{DSCSN_EXTIF_INST_ID}
+			 , #{CSMG_TYP_ID}
+			 , #{CNSLR_FLNM}
+			 , #{INFO_SHAR_USRID}
+			 , TO_DATE(#{FRST_REG_PTM},'YYYYMMDDHH24MISS')
+			 , TO_DATE(#{LAST_MDFCN_PTM},'YYYYMMDDHH24MISS')
+             )
+    </insert>
+    
+    <!-- 서비스이력 사보정 송신 연계 목록 조회 -->
+    <select id="selectSrvcHstrList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            WITH VW_TAB AS
+		    (
+		      SELECT DISTINCT A.RESRCE_NO                                                     AS PVSN_SRV_ID             --제공서비스ID_서비스제공번호
+		           , A.SRVC_PVSN_BGNG_YMD                                                     AS SRV_BGNG_YMD            --서비스시작일자_서비스제공시작일자
+		           , A.SRVC_PVSN_END_YMD                                                      AS SRV_END_YMD             --서비스종료일자_서비스제공종료일자
+		           , REGEXP_REPLACE(SUBSTRB(A.SRVC_PVSN_CN,1,1000), '[\n\r\t|]+', '')         AS SRV_BNF_CN              --서비스수혜내용_서비스제공내용
+		           , REGEXP_REPLACE(SUBSTRB(A.SRVC_PVSN_CN,1,4000), '[\n\r\t|]+', '')         AS SRV_PVSN_CN             --서비스제공내용_서비스제공내용
+		           , REGEXP_REPLACE(D.PVSN_RESRCE_NM, '[\n\r\t|]+', '')                       AS PVSN_RESRCE_NM          --자원제공명
+		           , D.RSFR_INST_NO                                                           AS PVSN_MBD_ID             --자원제공주체번호
+		           , REGEXP_REPLACE((SELECT X.INST_NM 
+					                   FROM SAA000 X /* 통합기관 */
+					                  WHERE X.INST_NO = D.RSFR_INST_NO), '[\n\r\t|]+', '')    AS PVSN_MBD_NM             --제공주체명_통합기관
+		           , D.RESRCE_SE_CD                                                           AS SRV_PVSN_DCD            --자원구분코드 
+                   
+                   /* 복지부 서비스제공주기 코드로 매핑*/
+                   , CASE WHEN D.RSFR_CYCL_SE_CD = '01' THEN '01' /* 일*/
+                          WHEN D.RSFR_CYCL_SE_CD = '02' THEN '02' /* 월*/
+                          WHEN D.RSFR_CYCL_SE_CD = '03' THEN '02' /* 일*/       
+                          WHEN D.RSFR_CYCL_SE_CD = '04' THEN '03' /* 일*/       
+                          WHEN D.RSFR_CYCL_SE_CD = '05' THEN '06' /* 일*/                    
+                          WHEN D.RSFR_CYCL_SE_CD = '06' THEN '07' /* 일*/       
+                          WHEN D.RSFR_CYCL_SE_CD = '11' THEN '09' /* 일*/                         
+                          WHEN D.RSFR_CYCL_SE_CD = '12' THEN '08' /* 일*/                                                                                                                          
+                          WHEN D.RSFR_CYCL_SE_CD = '13' THEN '09' /* 일*/                   
+                          WHEN D.RSFR_CYCL_SE_CD = '99' THEN '09' /* 일*/                                                     
+                               ELSE '09' 
+                                                END         AS RSFR_CYCL_SE_CD      --자원제공주기구분코드(복지부코드로 매핑) 		           
+		           , D.RSFR_CYCL_SE_CD                                                        AS RSFR_CYCL_SE_CD1        --자원제공주기구분코드(여가부코드)
+		           , C.TRPR_INFO_NO                                                           AS TRPR_INFO_NO            --대상자정보번호 
+		           , E.FLNM_ENCPT                                                             AS SRV_PVSN_PIC_NM         --서비스제공담당자명
+		           , REPLACE(E.WRD_TELNO,'-','')                                              AS SRV_PVSN_PIC_TEL_NO     --서비스제공담당자전화번호
+		           , E.MBL_TELNO_ENCPT                                                        AS SRV_PVSN_PIC_MBL_TELNO  --서비스제공담당자휴대전화번호
+		        FROM SEB500 A /* 서비스제공 */
+		           , SEB510 B /* 서비스제공대상자 */
+		           , SEB100 C /* 사례기본 */
+		           , SDA100 D /* 자원기본 */
+		           , SCA100 E /* 종사자 */
+		       WHERE A.SRVC_PVSN_NO      = B.SRVC_PVSN_NO
+		         AND A.RESRCE_NO         = B.RESRCE_NO
+		         AND B.CASE_MNG_NO       = C.CASE_MNG_NO
+		         AND B.CASE_MNG_ODRNO    = C.CASE_MNG_ODRNO
+		         AND A.RESRCE_NO         = D.RESRCE_NO
+		         AND A.DEL_YN           != 'Y'
+		         AND B.DEL_YN           != 'Y'
+		         AND D.USE_YN            = 'Y'
+		         AND C.UNT_TASKWK_SE_CD != 'U06' /* U06(회복지원시설) 제외 */
+		         AND A.PIC_NO            = E.ENFSN_NO(+)
+		         AND C.CASE_PRGRS_STTS_SE_CD IN ('06')    /* 사례기본 사례진행상태 사후관리*/		       
+		    )
+		    SELECT /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.selectSrvcHstrList(서비스이력 사보정 송신 연계 목록 조회) */    
+			       T1.FLNM_ENCPT                                  AS TRPR_FLNM               --대상자성명
+			     , T1.RRNO_ENCPT                                  AS TRPR_RRNO               --대상자주민번호
+			     , T1.RRNO_ENCPT                                  AS TRPR_RRNO_ENCPT         --대상자주민등록번호암호화
+			     , T3.PVSN_SRV_ID                                 AS PVSN_SRV_ID             --제공서비스ID 
+			     , T3.PVSN_RESRCE_NM                              AS PVSN_SRV_NM             --제공서비스명
+			     , T3.PVSN_MBD_ID                                 AS PVSN_MBD_ID             --제공주체ID_자원제공주체번호
+			     , CASE WHEN T3.PVSN_MBD_NM IS NULL THEN '없음'
+			            ELSE T3.PVSN_MBD_NM END                   AS PVSN_MBD_NM             --제공주체명
+			     , T3.SRV_BGNG_YMD                                AS SRV_BGNG_YMD            --서비스시작일자
+			     , T3.SRV_END_YMD                                 AS SRV_END_YMD             --서비스종료일자
+			     , T3.RSFR_CYCL_SE_CD                             AS SRV_PVSN_CYC_CD         --자원제공주기구분코드(복지부매핑)
+			     , T3.RSFR_CYCL_SE_CD1                            AS RSFR_CYCL_SE_CD1        --자원제공주기구분코드(여가부)
+			     , '002'                                          AS SRV_PVSN_DCD            --서비스제공구분코드(청소년안전망은 복지부한테 민간서비스이기 떄문에)
+			     , T3.SRV_BNF_CN                                  AS SRV_BNF_CN              --서비스수혜내용
+			     , T3.SRV_PVSN_CN                                 AS SRV_PVSN_CN             --서비스제공내용
+			     , T3.SRV_PVSN_PIC_NM                             AS SRV_PVSN_PIC_NM         --서비스제공담당자명
+	             , T3.SRV_PVSN_PIC_TEL_NO                         AS SRV_PVSN_PIC_TEL_NO     --서비스제공담당자전화번호
+	             , T3.SRV_PVSN_PIC_MBL_TELNO                      AS SRV_PVSN_PIC_MBL_TELNO  --서비스제공담당자휴대전화번호
+			  FROM SCA300 T1 /* 개인정보 */
+			     , SEA200 T2 /* 대상자정보 */
+			     , VW_TAB T3
+			 WHERE T1.INDV_IDNTFC_NO = T2.INDV_IDNTFC_NO
+			   AND T2.TRPR_INFO_NO   = T3.TRPR_INFO_NO
+               AND T1.RRNO_ENCPT IS NOT NULL
+			   AND NOT EXISTS(SELECT 1 
+					FROM CAB140 T4 
+					WHERE T4.TRPR_RRNO_ENCPT = T1.RRNO_ENCPT
+					AND T4.PVSN_SRV_ID = T3.PVSN_SRV_ID
+					AND T4.SRV_BGNG_YMD = T3.SRV_BGNG_YMD
+					AND T4.SRV_END_YMD = T3.SRV_END_YMD
+					AND T4.ESB_STATUS      = 'S'
+               )
+        ]]>
+    </select>
+
+    <!-- 서비스이력 사보정 송신 연계 데이터 삭제 -->
+    <delete id="deleteSrvcHstr" parameterType="HashMap">
+        DELETE /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.deleteSrvcHstr(서비스이력 사보정 송신 연계 데이터 삭제) */
+          FROM CAB140 /* 서비스이력 사보정 송신 */
+         WHERE 1 = 1
+           AND ESB_STATUS != 'S'
+    </delete>
+
+    <!-- 서비스이력 사보정 송신 데이터 등록 -->
+    <insert id="insertSrvcHstr" parameterType="HashMap">
+        INSERT /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.insertSrvcHstr(서비스이력 사보정 송신 데이터 등록) */
+          INTO CAB140 T1 /* 서비스이력 사보정 송신 */
+             ( TRPR_FLNM             /* 대상자성명 */
+             , TRPR_RRNO             /* 대상자주민등록번호 */
+             , TRPR_RRNO_ENCPT       /* 대상자주민등록번호암호화 */
+             , TRPR_SPCL_CN          /* 대상자특화정보 */
+             , PVSN_SRV_ID           /* 제공서비스아이디 */
+             , PVSN_SRV_NM           /* 제공서비스명 */
+             , PVSN_MBD_ID           /* 제공주체아이디 */
+             , PVSN_MBD_NM           /* 제공주체명 */
+             , SRV_BGNG_YMD          /* 서비스시작일자 */
+             , SRV_END_YMD           /* 서비스종료일자 */
+             , SRV_PVSN_DCD          /* 서비스제공구분코드 */
+             , SRV_PVSN_CYC_CD       /* 서비스제공주기코드 */
+             , SRV_PVSN_CYC_NM       /* 서비스제공주기명 */
+             , SRV_BNF_CN            /* 서비스수혜내용 */
+             , SRV_PVSN_CN           /* 서비스제공내용 */
+             , SRV_PVSN_PIC_NM       /* 서비스제공담당자명 */
+             , SRV_PVSN_PIC_CTADR    /* 서비스제공담당자연락처 */
+             , ESB_TX_ID             /* 연계트랜젝션아이디 */
+             , ESB_SEQ               /* 연계시퀸스 */
+             , ESB_IF_ID             /* 연계인터페이스아이디 */
+             , SND_CD                /* 송신기관번호 */
+             , RCV_CD                /* 수신기관번호 */
+             , ESB_FILE_NAME         /* 연계파일이름 */
+             , CREATE_TIME           /* 데이터생성일시 */
+             , ESB_INIT_TIME         /* 연계시작일시 */
+             , ESB_COMPLITE_TIME     /* 연계종료일시 */
+             , ESB_STATUS            /* 연계상태 */
+             )
+        VALUES
+             ( #{TRPR_FLNM}
+             , #{TRPR_RRNO}
+             , #{TRPR_RRNO_ENCPT}
+             , #{TRPR_SPCL_CN}
+             , #{PVSN_SRV_ID}
+             , #{PVSN_SRV_NM}
+             , #{PVSN_MBD_ID}
+             , #{PVSN_MBD_NM}
+             , #{SRV_BGNG_YMD}
+             , #{SRV_END_YMD}
+             , #{SRV_PVSN_DCD}
+             , #{SRV_PVSN_CYC_CD}
+             , #{SRV_PVSN_CYC_NM}
+             , #{SRV_BNF_CN}
+             , #{SRV_PVSN_CN}
+             , #{SRV_PVSN_PIC_NM}
+             , #{SRV_PVSN_PIC_CTADR}             
+             , ''
+             , ( SELECT /*+ INDEX_DESC(T1 INDEX1) */
+                        NVL(MAX(T1.ESB_SEQ),0) + 1                      
+                   FROM CAB140 T1 )
+             , 'INFIF_IR_SSI_FS_07'
+             , 'MOG'
+             , 'SSI'
+             , ''
+             , TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MISSFF3')
+             , ''
+             , ''
+             , 'N'       
+             )
+    </insert>
+
+    <!-- 공유자원 제공주체 사보정 송신 대상 목록조회 -->
+    <select id="selectMbyTrnsmiTrgtList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            WITH SAA000_LIST as (
+                SELECT '066'                                                AS RSC_PVSN_SYS_DCD                   /* 자원제공시스템구분코드(066 : 청소년안전망) */
+                     , T1.INST_NO                                           AS SRC_INST_RSC_PVSN_MBD_ID           /* 원천기관자원제공주체ID */
+                     , ''                                                   AS RSC_PVSN_MBD_ID                    /* 자원제공주체ID */
+                     , REGEXP_REPLACE(T1.INST_NM, '[\n\r\t|]+', '')         AS RSC_PVSN_MBD_NM                    /* 자원제공주체명 */
+                     , ''                                                   AS RSC_PVSN_BRNC_NM                   /* 자원제공지점명 */
+                     , T1.APLCN_BGNG_YMD                                    AS PVSN_BGNG_YMD                      /* 제공시작일자 */
+                     , NVL(T1.APLCN_END_YMD,'99991231')                     AS PVSN_END_YMD                       /* 제공종료일자 */
+                     , ''                                                   AS IDMB_ID                            /* 개인주체ID */
+                     , ''                                                   AS SRV_INST_ID                        /* 서비스기관ID */
+                     , REGEXP_REPLACE(T1.INST_NM, '[\n\r\t|]+', '')         AS RSC_PVSN_MBD_DC                    /* 자원제공주체설명 */
+                     , '001'                                                AS RSC_PVSN_MBD_SCD                   /* 자원제공주체상태코드-001(정상) */
+                     , '002'                                                AS RSC_PVSN_MBD_DCD                   /* 자원제공주체구분코드*/
+                     , 'K001'                                               AS SRV_RQST_INST_TYP_DTL_CD           /* 서비스의뢰기관유형상세코드 */
+                     , ''                                                   AS BZMN_DCD                           /* 사업자구분코드 */
+                     , ''                                                   AS FACL_INST_DCD                      /* 시설기관구분코드 */
+                     , ''                                                   AS WLFCL_KCD                          /* 복지시설종류코드 */
+                     , ''                                                   AS BRNO                               /* 사업자등록번호 */
+                     , T1.SGG_LINK_PBADMS_RGN_CD                            AS RGTR_OGDP_SGG_ADRGN_CD             /* TODO 등록자소속시군구행정지역코드-매칭되는게 없음 */
+                     , T1.SGG_LINK_PBADMS_RGN_CD                            AS PVSN_MBD_LOCTN_SGG_ADRGN_CD        /* 제공주체소재지시군구행정지역코드 */
+                     , T1.EMD_LINK_PBADMS_RGN_CD                            AS PVSN_MBD_LOCTN_EMD_ADRGN_CD        /* 제공주체소재지읍면동행정지역코드 */
+                     , T1.BPLC_ZIP                                          AS LOCTN_ZIP                          /* 소재지우편번호 */
+                     , '113503110009'                                       AS PVSN_MBD_LOCTN_RDNM_CD             /* TODO 제공주체소재지도로명코드 -12자리임의로 넣음 */
+                     , REGEXP_REPLACE(T1.BPLC_PST_ADDR, '[\n\r\t|]+', '')   AS LOCTN_RDNMADR                      /* 소재지도로명주소 */
+                     , REGEXP_REPLACE(T1.BPLC_DADDR, '[\n\r\t|]+', '')      AS LOCTN_RDNM_DTLADR                  /* 소재지도로명상세주소 */
+                     , T1.EMD_LINK_PBADMS_RGN_CD                            AS PVSN_MBD_LOCTN_STDG_CD             /* 제공주체소재지법정동코드 */
+                     , ''                                                   AS LOCTN_STDG_BASEADR                 /* 소재지법정동기본주소 */
+                     , REGEXP_REPLACE(T1.BPLC_DADDR, '[\n\r\t|]+', '')      AS LOCTN_STDG_DTLADR                  /* TODO 소재지법정동상세주소 */
+                     , ''                                                   AS RSC_PVSN_MBD_CHR_USRID             /* 자원제공주체담당사용자ID */
+                     , T1.PIC_NM_ENCPT                                      AS PIC_FLNM                           /* 담당자성명 */
+                     , REPLACE(T1.PIC_TELNO,'-','')                         AS PIC_TELNO                          /* 담당자전화번호 */
+                     , T1.PIC_MBL_TELNO_ENCPT                               AS PIC_MPNO                           /* 담당자휴대전화번호 */
+                     , ''                                                   AS PIC_EMADR                          /* 담당자이메일주소 */
+                     , ''                                                   AS APLY_USRID                         /* 신청사용자ID */
+                     , ''                                                   AS APLY_DT                            /* 신청일시 */
+                     , ''                                                   AS APRV_USRID                         /* 승인사용자ID */
+                     , ''                                                   AS APRV_DT                            /* 승인일시 */
+                     , '2'                                                  AS RSC_APRV_SCD                       /* 자원승인상태코드 */
+                     , ''                                                   AS RSC_RJCT_RSN_CN                    /* 자원반려사유내용 */
+                     , 'N'                                                  AS DEL_YN                             /* 삭제여부 */
+                     , ''                                                   AS RSC_DEL_RSN_CD                     /* 자원삭제사유코드 */
+                     , ''                                                   AS DEL_RSN_ETC_CN                     /* 삭제사유기타내용 */
+                     , 'N'                                                  AS RPRS_PVSN_MBD_YN                   /* 대표제공주체여부 */
+                     , 'N'                                                  AS INTG_CARE_CNTER_YN                 /* 통합돌봄창구여부 */
+                     , ''                                                   AS RSC_PVSN_MBD_CHG_RSN_CN            /* 자원제공주체변경사유내용 */
+                     , ''                                                   AS ATCFL_ID                           /* 첨부파일ID */
+                     , 'U'                                                  AS INST_SYS_CD                        /* 기관시스템코드 */
+                     , '1383000'                                            AS REG_INFO_SHAR_INST_ID              /* 등록정보공유기관ID */
+                     , 'N'                                                  AS RSC_PVSN_MBD_ADDR_MANT_YN          /* 자원제공주체주소정비여부-인터페이스항목 사용하지 않음 */
+                     , ''                                                   AS RSC_PVSN_MBD_ADDR_LO               /* 자원제공주체주소경도 */
+                     , ''                                                   AS RSC_PVSN_MBD_ADDR_LA               /* 자원제공주체주소위도 */
+                     , ''                                                   AS RSC_PVSN_MBD_MOU_DTL_CN            /* 자원제공주체MOU상세내용 */
+                     , ''                                                   AS RSC_PVSN_MBD_ETC_DTL_CN            /* 자원제공주체기타상세내용 */
+                  FROM ( 
+                         SELECT T1.*
+                           FROM SAA000 T1   
+                          WHERE T1.APRV_YN           = 'Y' 
+                            AND T1.DEL_YN            = 'N'
+                            AND T1.INST_TYPE_SE_CD NOT IN ('2','3')
+                            AND T1.INST_NM NOT IN ('경찰청','교육부')
+                            AND T1.UNT_TASKWK_SE_CD NOT IN ('U06') /* U06(회복지원시설) 제외 */
+                            AND NOT EXISTS          ( SELECT *
+                                                        FROM CAB200 X 
+                                                       WHERE X.SRC_INST_RSC_PVSN_MBD_ID = T1.INST_NO 
+                                                    )
+                       ) T1
+                WHERE 1 = 1
+            ), SDA600_LIST AS (
+                SELECT '066'                                                AS RSC_PVSN_SYS_DCD                   /* 자원제공시스템구분코드(066 : 청소년안전망) */
+                     , T1.INST_NO                                           AS SRC_INST_RSC_PVSN_MBD_ID           /* 원천기관자원제공주체ID */
+                     , ''                                                   AS RSC_PVSN_MBD_ID                    /* 자원제공주체ID */
+                     , REGEXP_REPLACE(T1.INST_NM, '[\n\r\t|]+', '')         AS RSC_PVSN_MBD_NM                    /* 자원제공주체명 */
+                     , ''                                                   AS RSC_PVSN_BRNC_NM                   /* 자원제공지점명 */
+                     , T1.APLCN_BGNG_YMD                                    AS PVSN_BGNG_YMD                      /* 제공시작일자 */
+                     , NVL(T1.APLCN_END_YMD,'99991231')                     AS PVSN_END_YMD                       /* 제공종료일자 */
+                     , ''                                                   AS IDMB_ID                            /* 개인주체ID */
+                     , ''                                                   AS SRV_INST_ID                        /* 서비스기관ID */
+                     , REGEXP_REPLACE(T1.INST_NM, '[\n\r\t|]+', '')         AS RSC_PVSN_MBD_DC                    /* 자원제공주체설명 */
+                     , '001'                                                AS RSC_PVSN_MBD_SCD                   /* 자원제공주체상태코드-001(정상) */
+                     , '002'                                                AS RSC_PVSN_MBD_DCD                   /* 자원제공주체구분코드*/
+                     , 'K001'                                               AS SRV_RQST_INST_TYP_DTL_CD           /* 서비스의뢰기관유형상세코드 */
+                     , ''                                                   AS BZMN_DCD                           /* 사업자구분코드 */
+                     , T1.FCLTY_INST_SE_CD                                  AS FACL_INST_DCD                      /* 시설기관구분코드 */
+                     , ''                                                   AS WLFCL_KCD                          /* 복지시설종류코드 */
+                     , T1.BRNO                                              AS BRNO                               /* 사업자등록번호 */
+                     , T1.SGG_LINK_PBADMS_RGN_CD                            AS RGTR_OGDP_SGG_ADRGN_CD             /* TODO 등록자소속시군구행정지역코드-매칭되는게 없음 */
+                     , T1.SGG_LINK_PBADMS_RGN_CD                            AS PVSN_MBD_LOCTN_SGG_ADRGN_CD        /* 제공주체소재지시군구행정지역코드 */
+                     , T1.EMD_LINK_PBADMS_RGN_CD                            AS PVSN_MBD_LOCTN_EMD_ADRGN_CD        /* 제공주체소재지읍면동행정지역코드 */
+                     , T1.BPLC_ZIP                                          AS LOCTN_ZIP                          /* 소재지우편번호 */
+                     , '113503110009'                                       AS PVSN_MBD_LOCTN_RDNM_CD             /* TODO 제공주체소재지도로명코드 -12자리임의로 넣음 */
+                     , REGEXP_REPLACE(T1.BPLC_PST_ADDR, '[\n\r\t|]+', '')   AS LOCTN_RDNMADR                      /* 소재지도로명주소 */
+                     , REGEXP_REPLACE(T1.BPLC_DADDR, '[\n\r\t|]+', '')      AS LOCTN_RDNM_DTLADR                  /* 소재지도로명상세주소 */
+                     , T1.EMD_LINK_PBADMS_RGN_CD                            AS PVSN_MBD_LOCTN_STDG_CD             /* 제공주체소재지법정동코드 */
+                     , ''                                                   AS LOCTN_STDG_BASEADR                 /* 소재지법정동기본주소 */
+                     , REGEXP_REPLACE(T1.BPLC_DADDR, '[\n\r\t|]+', '')      AS LOCTN_STDG_DTLADR                  /* TODO 소재지법정동상세주소 */
+                     , ''                                                   AS RSC_PVSN_MBD_CHR_USRID             /* 자원제공주체담당사용자ID */
+                     , T1.PIC_NM_ENCPT                                      AS PIC_FLNM                           /* 담당자성명 */
+                     , REPLACE(T1.PIC_TELNO,'-','')                         AS PIC_TELNO                          /* 담당자전화번호 */
+                     , T1.PIC_MBL_TELNO_ENCPT                               AS PIC_MPNO                           /* 담당자휴대전화번호 */
+                     , ''                                                   AS PIC_EMADR                          /* 담당자이메일주소 */
+                     , ''                                                   AS APLY_USRID                         /* 신청사용자ID */
+                     , ''                                                   AS APLY_DT                            /* 신청일시 */
+                     , ''                                                   AS APRV_USRID                         /* 승인사용자ID */
+                     , ''                                                   AS APRV_DT                            /* 승인일시 */
+                     , '2'                                                  AS RSC_APRV_SCD                       /* 자원승인상태코드 */
+                     , ''                                                   AS RSC_RJCT_RSN_CN                    /* 자원반려사유내용 */
+                     , 'N'                                                  AS DEL_YN                             /* 삭제여부 */
+                     , ''                                                   AS RSC_DEL_RSN_CD                     /* 자원삭제사유코드 */
+                     , ''                                                   AS DEL_RSN_ETC_CN                     /* 삭제사유기타내용 */
+                     , 'N'                                                  AS RPRS_PVSN_MBD_YN                   /* 대표제공주체여부 */
+                     , 'N'                                                  AS INTG_CARE_CNTER_YN                 /* 통합돌봄창구여부 */
+                     , ''                                                   AS RSC_PVSN_MBD_CHG_RSN_CN            /* 자원제공주체변경사유내용 */
+                     , ''                                                   AS ATCFL_ID                           /* 첨부파일ID */
+                     , 'U'                                                  AS INST_SYS_CD                        /* 기관시스템코드 */
+                     , '1383000'                                            AS REG_INFO_SHAR_INST_ID              /* 등록정보공유기관ID */
+                     , 'N'                                                  AS RSC_PVSN_MBD_ADDR_MANT_YN          /* 자원제공주체주소정비여부-인터페이스항목 사용하지 않음 */
+                     , ''                                                   AS RSC_PVSN_MBD_ADDR_LO               /* 자원제공주체주소경도 */
+                     , ''                                                   AS RSC_PVSN_MBD_ADDR_LA               /* 자원제공주체주소위도 */
+                     , ''                                                   AS RSC_PVSN_MBD_MOU_DTL_CN            /* 자원제공주체MOU상세내용 */
+                     , ''                                                   AS RSC_PVSN_MBD_ETC_DTL_CN            /* 자원제공주체기타상세내용 */
+                  FROM ( 
+                         SELECT T1.*
+                           FROM SDA600 T1   
+                          WHERE T1.APRV_YN           = 'Y' 
+                            AND T1.DEL_YN            = 'N'
+                            AND T1.UNT_TASKWK_SE_CD != 'U06' /* U06(회복지원시설) 제외 */
+                            AND NOT EXISTS          ( SELECT *
+                                                        FROM CAB200 X 
+                                                       WHERE X.SRC_INST_RSC_PVSN_MBD_ID = T1.INST_NO 
+                                                    )
+                       ) T1
+                WHERE 1 = 1         
+            ), INST_LIST AS (
+                SELECT T11.*
+                  FROM (
+                        SELECT * FROM SAA000_LIST
+                        UNION ALL
+                        SELECT * FROM SDA600_LIST
+                        ) T11
+                 WHERE 1 = 1
+            )
+                SELECT T.RSC_PVSN_SYS_DCD                                    AS RSC_PVSN_SYS_DCD                   /* 자원제공시스템구분코드(066 : 청소년안전망) */
+                     , T.SRC_INST_RSC_PVSN_MBD_ID                            AS SRC_INST_RSC_PVSN_MBD_ID           /* 원천기관자원제공주체ID */
+                     , T.RSC_PVSN_MBD_ID                                     AS RSC_PVSN_MBD_ID                    /* 자원제공주체ID */
+                     , T.RSC_PVSN_MBD_NM                                     AS RSC_PVSN_MBD_NM                    /* 자원제공주체명 */
+                     , T.RSC_PVSN_BRNC_NM                                    AS RSC_PVSN_BRNC_NM                   /* 자원제공지점명 */
+                     , T.PVSN_BGNG_YMD                                       AS PVSN_BGNG_YMD                      /* 제공시작일자 */
+                     , T.PVSN_END_YMD                                        AS PVSN_END_YMD                       /* 제공종료일자 */
+                     , T.IDMB_ID                                             AS IDMB_ID                            /* 개인주체ID */
+                     , T.SRV_INST_ID                                         AS SRV_INST_ID                        /* 서비스기관ID */
+                     , T.RSC_PVSN_MBD_DC                                     AS RSC_PVSN_MBD_DC                    /* 자원제공주체설명 */
+                     , T.RSC_PVSN_MBD_SCD                                    AS RSC_PVSN_MBD_SCD                   /* 자원제공주체상태코드-001(정상) */
+                     , T.RSC_PVSN_MBD_DCD                                    AS RSC_PVSN_MBD_DCD                   /* 자원제공주체구분코드*/
+                     , T.SRV_RQST_INST_TYP_DTL_CD                            AS SRV_RQST_INST_TYP_DTL_CD           /* 서비스의뢰기관유형상세코드 */
+                     , T.BZMN_DCD                                            AS BZMN_DCD                           /* 사업자구분코드 */
+                     , T.FACL_INST_DCD                                       AS FACL_INST_DCD                      /* 시설기관구분코드 */
+                     , T.WLFCL_KCD                                           AS WLFCL_KCD                          /* 복지시설종류코드 */
+                     , T.BRNO                                                AS BRNO                               /* 사업자등록번호 */
+                     , T.RGTR_OGDP_SGG_ADRGN_CD                              AS RGTR_OGDP_SGG_ADRGN_CD             /* TODO 등록자소속시군구행정지역코드-매칭되는게 없음 */
+                     , T.PVSN_MBD_LOCTN_SGG_ADRGN_CD                         AS PVSN_MBD_LOCTN_SGG_ADRGN_CD        /* 제공주체소재지시군구행정지역코드 */
+                     , T.PVSN_MBD_LOCTN_EMD_ADRGN_CD                         AS PVSN_MBD_LOCTN_EMD_ADRGN_CD        /* 제공주체소재지읍면동행정지역코드 */
+                     , T.LOCTN_ZIP                                           AS LOCTN_ZIP                          /* 소재지우편번호 */
+                     , T.PVSN_MBD_LOCTN_RDNM_CD                              AS PVSN_MBD_LOCTN_RDNM_CD             /* TODO 제공주체소재지도로명코드 -12자리임의로 넣음 */
+                     , T.LOCTN_RDNMADR                                       AS LOCTN_RDNMADR                      /* 소재지도로명주소 */
+                     , T.LOCTN_RDNM_DTLADR                                   AS LOCTN_RDNM_DTLADR                  /* 소재지도로명상세주소 */
+                     , T.PVSN_MBD_LOCTN_STDG_CD                              AS PVSN_MBD_LOCTN_STDG_CD             /* 제공주체소재지법정동코드 */
+                     , T.LOCTN_STDG_BASEADR                                  AS LOCTN_STDG_BASEADR                 /* 소재지법정동기본주소 */
+                     , T.LOCTN_STDG_DTLADR                                   AS LOCTN_STDG_DTLADR                  /* TODO 소재지법정동상세주소 */
+                     , T.RSC_PVSN_MBD_CHR_USRID                              AS RSC_PVSN_MBD_CHR_USRID             /* 자원제공주체담당사용자ID */
+                     , T.PIC_FLNM                                            AS PIC_FLNM                           /* 담당자성명 */
+                     , T.PIC_TELNO                                           AS PIC_TELNO                          /* 담당자전화번호 */
+                     , T.PIC_MPNO                                            AS PIC_MPNO                           /* 담당자휴대전화번호 */
+                     , T.PIC_EMADR                                           AS PIC_EMADR                          /* 담당자이메일주소 */
+                     , T.APLY_USRID                                          AS APLY_USRID                         /* 신청사용자ID */
+                     , T.APLY_DT                                             AS APLY_DT                            /* 신청일시 */
+                     , T.APRV_USRID                                          AS APRV_USRID                         /* 승인사용자ID */
+                     , T.APRV_DT                                             AS APRV_DT                            /* 승인일시 */
+                     , T.RSC_APRV_SCD                                        AS RSC_APRV_SCD                       /* 자원승인상태코드 */
+                     , T.RSC_RJCT_RSN_CN                                     AS RSC_RJCT_RSN_CN                    /* 자원반려사유내용 */
+                     , T.DEL_YN                                              AS DEL_YN                             /* 삭제여부 */
+                     , T.RSC_DEL_RSN_CD                                      AS RSC_DEL_RSN_CD                     /* 자원삭제사유코드 */
+                     , T.DEL_RSN_ETC_CN                                      AS DEL_RSN_ETC_CN                     /* 삭제사유기타내용 */
+                     , T.RPRS_PVSN_MBD_YN                                    AS RPRS_PVSN_MBD_YN                   /* 대표제공주체여부 */
+                     , T.INTG_CARE_CNTER_YN                                  AS INTG_CARE_CNTER_YN                 /* 통합돌봄창구여부 */
+                     , T.RSC_PVSN_MBD_CHG_RSN_CN                             AS RSC_PVSN_MBD_CHG_RSN_CN            /* 자원제공주체변경사유내용 */
+                     , T.ATCFL_ID                                            AS ATCFL_ID                           /* 첨부파일ID */
+                     , T.INST_SYS_CD                                         AS INST_SYS_CD                        /* 기관시스템코드 */
+                     , T.REG_INFO_SHAR_INST_ID                               AS REG_INFO_SHAR_INST_ID              /* 등록정보공유기관ID */
+                     , T.RSC_PVSN_MBD_ADDR_MANT_YN                           AS RSC_PVSN_MBD_ADDR_MANT_YN          /* 자원제공주체주소정비여부-인터페이스항목 사용하지 않음 */
+                     , T.RSC_PVSN_MBD_ADDR_LO                                AS RSC_PVSN_MBD_ADDR_LO               /* 자원제공주체주소경도 */
+                     , T.RSC_PVSN_MBD_ADDR_LA                                AS RSC_PVSN_MBD_ADDR_LA               /* 자원제공주체주소위도 */
+                     , T.RSC_PVSN_MBD_MOU_DTL_CN                             AS RSC_PVSN_MBD_MOU_DTL_CN            /* 자원제공주체MOU상세내용 */
+                     , T.RSC_PVSN_MBD_ETC_DTL_CN                             AS RSC_PVSN_MBD_ETC_DTL_CN            /* 자원제공주체기타상세내용 */
+                  FROM INST_LIST T
+                 WHERE 1 = 1
+        ]]>
+    </select>
+
+    <!-- 공유자원 제공주체 송신 데이터 삭제 -->
+    <delete id="deletePvsnMby" parameterType="HashMap">
+        DELETE /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.deletePvsnMby(공유자원 제공주체 송신 데이터 삭제) */
+          FROM CAB200 /* 공유자원 제공주체 사보정 송신 */
+         WHERE 1 = 1
+           AND ESB_STATUS != 'S'
+    </delete>
+
+    <!-- 공유자원 제공주체 송신 데이터 등록 -->
+    <insert id="insertPvsnMby" parameterType="HashMap">
+    INSERT /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.insertPvsnMby(공유자원 제공주체 사보정 송신 데이터 등록) */
+      INTO CAB200 
+	     ( RSC_PVSN_SYS_DCD             /* 자원제공시스템구분코드 */
+	     , SRC_INST_RSC_PVSN_MBD_ID     /* 원천기관자원제공주체ID */
+	     , RSC_PVSN_MBD_ID              /* 자원제공주체ID */
+	     , RSC_PVSN_MBD_NM              /* 자원제공주체명 */
+	     , RSC_PVSN_BRNC_NM             /* 자원제공지점명 */
+	     , PVSN_BGNG_YMD                /* 제공시작일자 */
+	     , PVSN_END_YMD                 /* 제공종료일자 */
+	     , IDMB_ID                      /* 개인주체ID */
+	     , SRV_INST_ID                  /* 서비스기관ID */
+	     , RSC_PVSN_MBD_DC              /* 자원제공주체설명 */
+	     , RSC_PVSN_MBD_SCD             /* 자원제공주체상태코드 */
+	     , RSC_PVSN_MBD_DCD             /* 자원제공주체구분코드 */
+	     , SRV_RQST_INST_TYP_DTL_CD     /* 서비스의뢰기관유형상세코드 */
+	     , BZMN_DCD                     /* 사업자구분코드 */
+	     , FACL_INST_DCD                /* 시설기관구분코드 */
+	     , WLFCL_KCD                    /* 복지시설종류코드 */
+	     , BRNO                         /* 사업자등록번호 */
+	     , RGTR_OGDP_SGG_ADRGN_CD       /* 등록자소속시군구행정지역코드 */
+	     , PVSN_MBD_LOCTN_SGG_ADRGN_CD  /* 제공주체소재지시군구행정지역코드 */
+	     , PVSN_MBD_LOCTN_EMD_ADRGN_CD  /* 제공주체소재지읍면동행정지역코드 */
+	     , LOCTN_ZIP                    /* 소재지우편번호 */
+	     , PVSN_MBD_LOCTN_RDNM_CD       /* 제공주체소재지도로명코드 */
+	     , LOCTN_RDNMADR                /* 소재지도로명주소 */
+	     , LOCTN_RDNM_DTLADR            /* 소재지도로명상세주소 */
+	     , PVSN_MBD_LOCTN_STDG_CD       /* 제공주체소재지법정동코드 */
+	     , LOCTN_STDG_BASEADR           /* 소재지법정동기본주소 */
+	     , LOCTN_STDG_DTLADR            /* 소재지법정동상세주소 */
+	     , RSC_PVSN_MBD_CHR_USRID       /* 자원제공주체담당사용자ID */
+	     , PIC_FLNM                     /* 담당자성명 */
+	     , PIC_TELNO                    /* 담당자전화번호 */
+	     , PIC_MPNO                     /* 담당자휴대전화번호 */
+	     , PIC_EMADR                    /* 담당자이메일주소 */
+	     , APLY_USRID                   /* 신청사용자ID */
+	     , APLY_DT                      /* 신청일시 */
+	     , APRV_USRID                   /* 승인사용자ID */
+	     , APRV_DT                      /* 승인일시 */
+	     , RSC_APRV_SCD                 /* 자원승인상태코드 */
+	     , RSC_RJCT_RSN_CN              /* 자원반려사유내용 */
+	     , DEL_YN                       /* 삭제여부 */
+	     , RSC_DEL_RSN_CD               /* 자원삭제사유코드 */
+	     , DEL_RSN_ETC_CN               /* 삭제사유기타내용 */
+	     , RPRS_PVSN_MBD_YN             /* 대표제공주체여부 */
+	     , INTG_CARE_CNTER_YN           /* 통합돌봄창구여부 */
+	     , RSC_PVSN_MBD_CHG_RSN_CN      /* 자원제공주체변경사유내용 */
+	     , ATCFL_ID                     /* 첨부파일ID */
+	     , INST_SYS_CD                  /* 기관시스템코드 */
+	     , REG_INFO_SHAR_INST_ID        /* 등록정보공유기관ID */
+	     , RSC_PVSN_MBD_ADDR_MANT_YN    /* 자원제공주체주소정비여부 */
+	     , RSC_PVSN_MBD_ADDR_LO         /* 자원제공주체주소경도 */
+	     , RSC_PVSN_MBD_ADDR_LA         /* 자원제공주체주소위도 */
+	     , RSC_PVSN_MBD_MOU_DTL_CN      /* 자원제공주체MOU상세내용 */
+	     , RSC_PVSN_MBD_ETC_DTL_CN      /* 자원제공주체기타상세내용 */
+	     , ESB_TX_ID                    /* 연계트랜젝션아이디 */
+	     , ESB_SEQ                      /* 연계시퀸스 */
+	     , ESB_IF_ID                    /* 연계인터페이스ID */
+	     , SND_CD                       /* 송신기관코드 */
+	     , RCV_CD                       /* 수신기관코드 */
+	     , ESB_FILE_NAME                /* 연계파일이름 */
+	     , CREATE_TIME                  /* 데이터생성일시 */
+	     , ESB_INIT_TIME                /* 연계시작일시 */
+	     , ESB_COMPLITE_TIME            /* 연계종료일시 */
+	     , ESB_STATUS                   /* 연계상태 */ 
+	     )
+    VALUES
+	     ( #{RSC_PVSN_SYS_DCD}
+	     , #{SRC_INST_RSC_PVSN_MBD_ID}
+	     , #{RSC_PVSN_MBD_ID}
+	     , #{RSC_PVSN_MBD_NM}
+	     , #{RSC_PVSN_BRNC_NM}
+	     , #{PVSN_BGNG_YMD}
+	     , #{PVSN_END_YMD}
+	     , #{IDMB_ID}
+	     , #{SRV_INST_ID}
+	     , #{RSC_PVSN_MBD_DC}
+	     , #{RSC_PVSN_MBD_SCD}
+	     , #{RSC_PVSN_MBD_DCD}
+	     , #{SRV_RQST_INST_TYP_DTL_CD}
+	     , #{BZMN_DCD}
+	     , #{FACL_INST_DCD}
+	     , #{WLFCL_KCD}
+	     , #{BRNO}                          
+	     , #{RGTR_OGDP_SGG_ADRGN_CD}
+	     , #{PVSN_MBD_LOCTN_SGG_ADRGN_CD}
+	     , #{PVSN_MBD_LOCTN_EMD_ADRGN_CD}
+	     , #{LOCTN_ZIP}
+	     , #{PVSN_MBD_LOCTN_RDNM_CD}
+	     , #{LOCTN_RDNMADR}
+	     , #{LOCTN_RDNM_DTLADR}
+	     , #{PVSN_MBD_LOCTN_STDG_CD}
+	     , #{LOCTN_STDG_BASEADR}
+	     , #{LOCTN_STDG_DTLADR}
+	     , #{RSC_PVSN_MBD_CHR_USRID}
+	     , #{PIC_FLNM}
+	     , #{PIC_TELNO}
+	     , #{PIC_MPNO}
+	     , #{PIC_EMADR}
+	     , #{APLY_USRID}
+	     , #{APLY_DT}
+	     , #{APRV_USRID}
+	     , #{APRV_DT}
+	     , #{RSC_APRV_SCD}
+	     , #{RSC_RJCT_RSN_CN}
+	     , #{DEL_YN}
+	     , #{RSC_DEL_RSN_CD}
+	     , #{DEL_RSN_ETC_CN}
+	     , #{RPRS_PVSN_MBD_YN}
+	     , #{INTG_CARE_CNTER_YN}
+	     , #{RSC_PVSN_MBD_CHG_RSN_CN}
+	     , #{ATCFL_ID}
+	     , #{INST_SYS_CD}
+	     , #{REG_INFO_SHAR_INST_ID}
+	     , #{RSC_PVSN_MBD_ADDR_MANT_YN}
+	     , #{RSC_PVSN_MBD_ADDR_LO}
+	     , #{RSC_PVSN_MBD_ADDR_LA}
+	     , #{RSC_PVSN_MBD_MOU_DTL_CN}
+	     , #{RSC_PVSN_MBD_ETC_DTL_CN}
+	     , ''
+	     , ( SELECT /*+ INDEX_DESC(T1 INDEX1) */
+	                NVL(MAX(T1.ESB_SEQ),0) + 1                      
+	           FROM CAB200 T1 )
+	     , 'INFIF_IR_SSI_FS_04'
+	     , 'MOG'
+	     , 'SSI'
+	     , ''
+	     , TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MISSFF3')
+	     , ''
+	     , ''
+	     , 'N'
+         )
+    </insert>
+
+    <!-- 사례관리 사보정 송신 대상 목록조회 -->
+    <select id="selectCaseMngList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.selectCaseMngList(사례관리 사보정 송신 대상 목록조회) */
+            SELECT DISTINCT T1.TRPR_RRNO AS TRPR_RRNO        /* 대상자주민등록번호 */
+			     , T1.TRPR_RRNO          AS TRPR_RRNO_ENCPT  /* 대상자주민등록번호암호화 */
+			     , T1.CSMG_NO            AS CSMG_NO          /* 사례관리번호 */
+			     , T1.CSMG_EXTIF_INST_ID AS CSMG_EXTIF_INST_ID      /* 사례관리외부연계기관ID */
+			     , T1.CSMG_PIC_FLNM                AS CSMG_PIC_FLNM              /* 사례관리담당자성명 */
+			     , T1.WRD_TELNO          AS WRD_TELNO        /* 유선전화번호 */
+			     , T1.MBL_TELNO_ENCPT    AS MBL_TELNO_ENCPT  /* 휴대전화번호암호화 */
+			     , T1.CSMG_STD_TSKPRC_ID AS CSMG_STD_TSKPRC_ID /*사례관리표준업무처리ID*/
+			     , T1.CSMG_DGR           AS CSMG_DGR         /*사례관리차수*/
+			     , T1.CHR_USRID          AS CHR_USRID        /*담당사용자ID*/
+			     , T1.CSMG_BGNG_YMD      AS CSMG_BGNG_YMD      /*사례관리시작일자*/
+			     , T1.CSMG_END_YMD       AS CSMG_END_YMD        /*사례관리종료일자*/
+			     , T1.FRST_REG_PTM       AS FRST_REG_PTM		/*최초등록시점*/
+			     , T1.LAST_MDFCN_PTM     AS LAST_MDFCN_PTM		/*최종수정시점*/
+			  FROM (
+			         SELECT T3.RRNO_ENCPT                                   AS TRPR_RRNO        /* 대상자주민등록번호 */
+			              , T1.CASE_MNG_NO || LPAD(T1.CASE_MNG_ODRNO,5,'0') AS CSMG_NO          /* 사례관리번호(사례관리번호+사례관리차수) */
+			              , T1.CASE_MNG_ODRNO AS CSMG_DGR          /* 사례관리차수 */
+			              , T1.PIC_INST_NO                                  AS CSMG_EXTIF_INST_ID      /* 담당기관 */
+			              , T4.FLNM_ENCPT                                   AS CSMG_PIC_FLNM              /* 담당자명 */
+			              , REPLACE(T4.WRD_TELNO,'-','')                    AS WRD_TELNO        /* 유선전화번호 */
+			              , T4.MBL_TELNO_ENCPT                              AS MBL_TELNO_ENCPT  /* 휴대전화번호암호화 */
+			              , CASE WHEN T1.CASE_PRGRS_STTS_SE_CD = '01' THEN '220'
+			                     WHEN T1.CASE_PRGRS_STTS_SE_CD = '02' THEN '300'
+			                     WHEN T1.CASE_PRGRS_STTS_SE_CD = '03' THEN '310'
+			                     WHEN T1.CASE_PRGRS_STTS_SE_CD = '12' THEN '390'
+			                     WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('04','08') THEN '400'
+			                     WHEN T1.CASE_PRGRS_STTS_SE_CD = '06' THEN '500'
+			                     ELSE ''
+			                 END AS CSMG_STD_TSKPRC_ID /*사례관리표준업무처리ID*/
+			              , (SELECT T5.USER_ID FROM SAA200 T5 WHERE T5.ENFSN_NO = T4.ENFSN_NO AND ROWNUM = 1) AS CHR_USRID
+			              , T6.CASE_BGNG_YMD AS CSMG_BGNG_YMD
+			              , T6.CASE_TRMN_YMD AS CSMG_END_YMD
+			              , TO_CHAR(T6.FRST_REG_DT,'YYYYMMDDHH24MISS') AS FRST_REG_PTM
+			              , TO_CHAR(T6.LAST_MDFCN_DT,'YYYYMMDDHH24MISS') AS LAST_MDFCN_PTM
+			           FROM SEB110 T1 /* 사례관리이력 */
+			              , SEA200 T2 /* 대상자정보 */
+			              , SCA300 T3 /* 개인정보 */
+			              , SCA100 T4 /* 종사자 */
+			              , SEB100 T6 /* 사례기본 */
+			          WHERE T1.TRPR_INFO_NO      = T2.TRPR_INFO_NO
+			            AND T2.INDV_IDNTFC_NO    = T3.INDV_IDNTFC_NO(+)
+			            AND T1.CASE_PIC_NO       = T4.ENFSN_NO      (+)
+			            AND T1.UNT_TASKWK_SE_CD != 'U06' /* U06(회복지원시설) 제외 */
+			            AND T3.RRNO_ENCPT IS NOT NULL
+			            AND T1.CASE_MNG_NO = T6.CASE_MNG_NO
+			            AND T1.CASE_MNG_ODRNO = T6.CASE_MNG_ODRNO
+			       ) T1
+			 WHERE NOT EXISTS ( SELECT *
+			                      FROM CAB400 X /* 사례관리 송신 */
+			                     WHERE X.TRPR_RRNO_ENCPT = T1.TRPR_RRNO /* 대상자주민등록번호암호화 = 대상자주민등록번호 */
+			                       AND X.CSMG_NO         = T1.CSMG_NO   /* 사례관리 번호 = 사례관리 번호 */
+			                       AND X.ESB_STATUS      = 'S'          /* 연계상태 = 'S' */
+			                       AND X.CSMG_STD_TSKPRC_ID = X.CSMG_STD_TSKPRC_ID)
+        ]]>
+    </select>
+    
+    <!-- 사례관리 사보정 송신 데이터 삭제 -->
+    <delete id="deleteCaseMng" parameterType="HashMap">
+        DELETE /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.deleteCaseMng(사례관리 사보정 송신 데이터 삭제) */
+          FROM CAB400 /* 사례관리 송신 */
+         WHERE 1 = 1
+           AND ESB_STATUS != 'S'
+    </delete>
+
+<!-- 사례관리 사보정 송신 데이터 등록 -->
+    <insert id="insertCaseMng" parameterType="HashMap">
+        INSERT /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.insertCaseMng(사례관리 사보정 송신 데이터 등록) */
+          INTO CAB400 /* 사례관리 송신 */
+             ( ESB_SEQ            /* 연계시퀸스 */
+             , TRPR_RRNO          /* 대상자주민등록번호 */
+             , TRPR_RRNO_ENCPT    /* 대상자주민등록번호암호화 */
+             , CSMG_NO            /* 사례관리 번호 */
+             , ESB_TX_ID          /* 연계트랜젝션아이디 */
+             , ESB_IF_ID          /* 연계인터페이스아이디 */
+             , SND_CD             /* 송신기관번호 */
+             , RCV_CD             /* 수신기관번호 */
+             , CREATE_TIME        /* 데이터생성일시 */
+             , ESB_FILE_NAME      /* 연계파일이름 */
+             , ESB_INIT_TIME      /* 연계시작일시 */
+             , ESB_COMPLITE_TIME  /* 연계종료일시 */
+             , ESB_STATUS         /* 연계상태 */
+             /*20230310 추가*/
+             , CSMG_DGR    /*사례관리차수*/
+             , CSMG_TYP_ID /*사례관리유형ID*/
+             , CSMG_TRGT_DCD   /*사례관리대상구분코드*/
+             , CSMG_STD_TSKPRC_ID  /*사례관리표준업무처리ID*/
+             , CSMG_EXTIF_INST_ID  /*사례관리외부연계기관ID*/
+             , CHR_USRID   /*담당사용자ID*/
+             , CTADR   /*연락처*/
+             , CSMG_PIC_FLNM   /*사례관리담당자성명*/
+             , CSMG_BGNG_YMD   /*사례관리시작일자*/
+             , CSMG_END_YMD    /*사례관리종료일자*/
+             , CSMG_DTL_DCD    /*사례관리상세구분코드*/
+             , FRST_REG_PTM    /*최초등록시점*/
+             , LAST_MDFCN_PTM  /*최종수정시점*/
+             )
+        VALUES
+             (CAB400_SQ01.NEXTVAL
+             , #{TRPR_RRNO}
+             , #{TRPR_RRNO_ENCPT}
+             , #{CSMG_NO}
+             , ''
+             , 'INFIF_IR_SSI_FS_05'
+             , 'MOG'
+             , 'SSI'
+             , TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MISSFF3')
+             , ''
+             , ''
+             , ''
+             , 'N'
+             /*20230310 추가*/
+             , #{CSMG_DGR}
+             , #{CSMG_TYP_ID}
+             , #{CSMG_TRGT_DCD}
+             , #{CSMG_STD_TSKPRC_ID}
+             , #{CSMG_EXTIF_INST_ID}
+             , #{CHR_USRID}
+             , #{CTADR}
+             , #{CSMG_PIC_FLNM}
+             , #{CSMG_BGNG_YMD}
+             , #{CSMG_END_YMD}
+             , #{CSMG_DTL_DCD}
+             , TO_DATE(#{FRST_REG_PTM},'YYYYMMDDHH24MISS')
+             , TO_DATE(#{LAST_MDFCN_PTM},'YYYYMMDDHH24MISS')
+             )
+    </insert>
+    
+    <!-- 보건복지부 서비스의뢰 접수 연계 목록조회 -->
+    <select id="selectMohwSrvcRqstRcptList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.selectMohwSrvcRqstRcptList(보건복지부 서비스의뢰 접수 연계 목록조회) */
+	        SELECT SRV_RQST_LINK_DCD                                         AS SRV_RQST_LINK_DCD            /* 서비스의뢰연계구분코드 */
+			     , SRV_RQST_APLY_DCD                                         AS SRV_RQST_APLY_DCD            /* 서비스의뢰신청구분코드 */
+			     , SRV_RQST_APLY_TCD                                         AS SRV_RQST_APLY_TCD            /* 서비스의뢰신청유형코드 */
+			     , SRV_CNSRQ_ID                                              AS SRV_CNSRQ_ID                 /* 서비스상담의뢰ID */
+			     , RQST_INST_TYP_DTL_CD                                      AS RQST_INST_TYP_DTL_CD         /* 의뢰기관유형상세코드 */
+			     , REGEXP_REPLACE(RQST_INST_TYP_DTL_NM, '[\n\r\t|]+', '')    AS RQST_INST_TYP_DTL_NM         /* 의뢰기관유형상세명 */
+			     , RQST_SRV_INST_ID                                          AS RQST_SRV_INST_ID             /* 의뢰서비스기관ID */
+			     , REGEXP_REPLACE(RQST_SRV_INST_NM, '[\n\r\t|]+', '')        AS RQST_SRV_INST_NM             /* 의뢰서비스기관명 */
+			     , DSCSN_YMD                                                 AS DSCSN_YMD                    /* 상담일자 */
+			     , RQST_YMD                                                  AS RQST_YMD                     /* 의뢰일자 */
+			     , RQST_INST_PIC_FLNM                                        AS RQST_INST_PIC_FLNM           /* 의뢰기관담당자성명 */
+			     , RQST_INST_PIC_TELNO                                       AS RQST_INST_PIC_TELNO          /* 의뢰기관담당자전화번호 */
+			     , RQST_INST_PIC_MPNO                                        AS RQST_INST_PIC_MPNO           /* 의뢰기관담당자휴대전화번호 */
+			     , REGEXP_REPLACE(CLNT_DSCSN_OPIN_CN, '[\n\r\t|]+', '')      AS CLNT_DSCSN_OPIN_CN           /* 의뢰인상담소견내용 */
+			     , REGEXP_REPLACE(RQST_INST_PIC_SPCL_CN, '[\n\r\t|]+', '')   AS RQST_INST_PIC_SPCL_CN        /* 의뢰기관담당자특화내용 */   
+			     , RQST_INST_PIC_NTCE_USE_YN                                 AS RQST_INST_PIC_NTCE_USE_YN    /* 의뢰기관담당자알림사용여부 */
+			     , TRPR_FLNM                                                 AS TRPR_FLNM                    /* 대상자성명 */
+			     , TRPR_RRNO                                                 AS TRPR_RRNO                    /* 대상자주민등록번호 */
+			     , TRPR_RRNO_ENCPT                                           AS TRPR_RRNO_ENCPT              /* 대상자주민등록번호암호화 */
+			     , TRPR_BRDT                                                 AS TRPR_BRDT                    /* 대상자생년월일 */
+			     , TRPR_RRNO_SEX_CD                                          AS TRPR_RRNO_SEX_CD             /* 대상자주민등록번호성별코드 */
+			     , TRPR_MGEMD_DEPT_CD                                        AS TRPR_MGEMD_DEPT_CD           /* 대상자관리읍면동부서코드 */
+			     , TRPR_TELNO                                                AS TRPR_TELNO                   /* 대상자전화번호 */
+			     , TRPR_MPNO                                                 AS TRPR_MPNO                    /* 대상자휴대전화번호 */
+			     , TRPR_RDNM_ZIP                                             AS TRPR_RDNM_ZIP                /* 대상자도로명우편번호 */
+			     , REGEXP_REPLACE(TRPR_RDNMADR, '[\n\r\t|]+', '')            AS TRPR_RDNMADR                 /* 대상자도로명주소 */
+			     , REGEXP_REPLACE(TRPR_RDNM_DTLADR, '[\n\r\t|]+', '')        AS TRPR_RDNM_DTLADR             /* 대상자도로명상세주소 */
+			     , REGEXP_REPLACE(HOPE_SPRT_CD_LST, '[\n\r\t|]+', '')        AS HOPE_SPRT_CD_LST             /* 희망지원코드목록 */
+			     , REGEXP_REPLACE(HOPE_SPRT_ETC_CN, '[\n\r\t|]+', '')        AS HOPE_SPRT_ETC_CN             /* 희망지원기타내용 */
+			     , TRPR_PRVC_PVAGR_YN                                        AS TRPR_PRVC_PVAGR_YN           /* 대상자개인정보제공동의여부 */
+			     , TRPR_OVL_DSDGR_CD                                         AS TRPR_OVL_DSDGR_CD            /* 대상자종합장애정도코드 */
+			     , PRCS_RQST_INST_TYP_DTL_CD                                 AS PRCS_RQST_INST_TYP_DTL_CD    /* 처리의뢰기관유형상세코드 */
+			     , RQST_PRCS_SRV_INST_ID                                     AS RQST_PRCS_SRV_INST_ID        /* 의뢰처리서비스기관ID */
+			     , REGEXP_REPLACE(RQST_PRCS_SRV_INST_NM, '[\n\r\t|]+', '')   AS RQST_PRCS_SRV_INST_NM        /* 의뢰처리서비스기관명 */
+			     , ''                                                        AS RQST_RSC_PRVSV_ID            /* 의뢰자원제공서비스ID */
+			     , REGEXP_REPLACE(RQST_RSC_PRVSV_NM, '[\n\r\t|]+', '')       AS RQST_RSC_PRVSV_NM            /* 의뢰자원제공서비스명 */
+			     , RQST_APLY_SRV_BGNG_YMD                                    AS RQST_APLY_SRV_BGNG_YMD       /* 의뢰신청서비스시작일자 */
+			     , RQST_APLY_SRV_END_YMD                                     AS RQST_APLY_SRV_END_YMD        /* 의뢰신청서비스종료일자 */
+			     , RQST_ATCFL_NM                                             AS RQST_ATCFL_NM                /* 의뢰첨부파일명 */
+			     , ESB_TX_ID                                                 AS ESB_TX_ID                    /* 연계트랜젝션아이디 */
+			     , ESB_SEQ                                                   AS ESB_SEQ                      /* 연계시퀸스 */
+			     , ESB_IF_ID                                                 AS ESB_IF_ID                    /* 연계인터페이스ID */
+			     , SND_CD                                                    AS SND_CD                       /* 송신기관코드 */
+			     , RCV_CD                                                    AS RCV_CD                       /* 수신기관코드 */
+			     , ESB_FILE_NAME                                             AS ESB_FILE_NAME                /* 연계파일이름 */
+			     , CREATE_TIME                                               AS CREATE_TIME                  /* 데이터생성일시 */
+			     , ESB_INIT_TIME                                             AS ESB_INIT_TIME                /* 연계시작일시 */
+			     , ESB_COMPLITE_TIME                                         AS ESB_COMPLITE_TIME            /* 연계종료일시 */
+			     , ESB_STATUS                                                AS ESB_STATUS                   /* 연계상태 */
+			  FROM CAB100 /* 서비스의뢰접수 */
+			 WHERE 1 = 1
+			   AND ESB_STATUS = 'N'
+        ]]>
+    </select>
+    
+    <!-- 대상자주민번호로 개인식별번호 구하기 -->
+    <select id="selectIndvIdntfcNo" parameterType="String" resultType="HashMap">
+        <![CDATA[
+            /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.selectIndvIdntfcNo(대상자주민번호로 개인식별번호 구하기) */
+            SELECT INDV_IDNTFC_NO   AS INDV_IDNTFC_NO
+                  ,MRG_YN           AS MRG_YN
+                  ,RRNO_ENCPT       AS RRNO_ENCPT
+            FROM SCA300 /* 개인정보 */
+            WHERE 1=1
+              AND RRNO_ENCPT = #{RRNO_ENCPT}
+        ]]>
+    </select>
+    
+    <!-- 개인식별번호로  접수기관번호 구하기 -->
+    <select id="selectRcptInstNo" parameterType="String" resultType="String">
+        <![CDATA[
+            /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.selectRcptInstNo(개인식별번호로  접수기관번호 구하기) */
+            SELECT RCPT_INST_NO   AS RCPT_INST_NO               
+            FROM SEA200 /* 대상자정보 */
+            WHERE 1=1
+              AND INDV_IDNTFC_NO = #{INDV_IDNTFC_NO}
+        ]]>
+    </select>
+    
+     <!-- 접수기관번호로  단위업무구분코드 구하기 -->
+    <select id="selectUntTaskwkSecd" parameterType="String" resultType="String">
+        <![CDATA[
+            /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.selectUntTaskwkSecd(접수기관번호로  단위업무구분코드 구하기) */
+            SELECT UNT_TASKWK_SE_CD   AS UNT_TASKWK_SE_CD               
+            FROM SAA000 /* 통합기관 */
+            WHERE 1=1
+              AND INST_NO = #{sRqstSrvInstId}
+        ]]>
+    </select>
+    
+    <!-- CAB100(서비스의뢰접수) ESB_SEQ(연계시퀸스) 'Y' update -->
+    <delete id="updateSrvcRqstRcpt" parameterType="HashMap">
+        UPDATE /* isry.itgcm.linkmng.outsd.mapper.LinkMohwJobMapper.updateSrvcRqstRcpt(CAB100(서비스의뢰접수) ESB_SEQ(연계시퀸스) 'Y' update) */
+               CAB100 /* 서비스의뢰접수 */
+           SET ESB_SEQ = 'Y'
+         WHERE ESB_SEQ = 'N'   
+    </delete>
+    
+</mapper>

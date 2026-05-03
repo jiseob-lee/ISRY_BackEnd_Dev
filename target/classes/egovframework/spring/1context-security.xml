@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd"
+        >
+-->
+<b:beans xmlns="http://www.springframework.org/schema/security"
+		 xmlns:b="http://www.springframework.org/schema/beans"
+         xmlns:p="http://www.springframework.org/schema/p"		 
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		                           http://www.springframework.org/schema/beans/spring-beans.xsd
+						           http://www.springframework.org/schema/security 
+			            		   http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <http auto-config="true" use-expressions="true">
+    
+        <intercept-url pattern="/**" access="permitAll" />
+        <!--
+        <intercept-url pattern="/login.jsp" access="permitAll" />
+        <intercept-url pattern="/tobe/**" access="permitAll" />
+        <intercept-url pattern="/rg/**" access="hasRole('USER')" />
+        <intercept-url pattern="/dba**" access="hasRole('SUPER') and hasRole('DBA')" />
+        <intercept-url pattern="/nexacro/**" access="hasRole('SUPER')" />
+        -->
+        
+        <csrf disabled="true" />
+        
+		<headers>
+			<frame-options disabled="true" />
+		</headers>
+
+        <form-login
+          login-page='/login.do'
+          login-processing-url='/loginProcess.do'
+          default-target-url="/"
+          authentication-failure-url="/login.do?error=true"
+          username-parameter="userId"
+          password-parameter="userPw"
+          always-use-default-target="true"
+          authentication-success-handler-ref="loginSuccessHandler"
+          authentication-failure-handler-ref="loginFailureHandler"
+          />
+ 
+        <logout 
+        	logout-url="/logoutProcess.do"
+        	logout-success-url="/login.do" 
+        	delete-cookies="ISRY_JSESSIONID" 
+        	invalidate-session="true"
+        	/>
+        
+        <session-management session-fixation-protection="none">
+            <concurrency-control max-sessions="1" error-if-maximum-exceeded="false" expired-url="/login.do"/>
+        </session-management>
+
+    </http>
+
+	<authentication-manager>
+		<authentication-provider ref="customAuthenticationProvider" />
+	</authentication-manager>
+
+	<b:bean id="customAuthenticationProvider" class="isry.itgcms.sysmgmt.userlogin.web.CustomAuthenticationProvider" />
+	
+	<!-- 로그인 실패시 핸들러 -->
+    <b:bean id="loginFailureHandler" class="isry.itgcms.sysmgmt.userlogin.web.LoginFailureHandler" />
+
+    <!-- 로그인 성공시 핸들러 -->
+    <b:bean id="loginSuccessHandler" class="isry.itgcms.sysmgmt.userlogin.web.LoginSuccessHandler" />
+	
+</b:beans>

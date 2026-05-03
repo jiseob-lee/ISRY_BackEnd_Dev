@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : EmrgIntrvnMapper.xml
+* @Description : 긴급개입 SQL Mapper
+*
+* @author  : Kwon.Min.Seo
+* @since   : 2022. 06. 14.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 06. 14.  Kwon.Min.Seo    최초작성
+* (@ TODO : 암복호화 해서 가져와야 함)
+* </pre>
+-->
+<mapper namespace="isry.itgcm.casemng.uneart.mapper.EmrgIntrvnMapper">
+
+    <!-- 긴급개입 상세조회 -->
+    <select id="selectEmrgIntrvnDetail" parameterType="HashMap" resultType="HashMap">
+          SELECT T1.EMRG_INTRVN_NO                  AS              EMRG_INTRVN_NO                  /* 긴급개입번호*/
+               , T1.UNT_TASKWK_SE_CD                AS              UNT_TASKWK_SE_CD                /* 단위업무구분코드*/
+               , T1.TRPR_INFO_NO                    AS              TRPR_INFO_NO                    /* 대상자정보번호*/
+               , T1.INDV_IDNTFC_NO                  AS              INDV_IDNTFC_NO                  /* 개인식별번호*/
+               , T1.CONSTT_NO                       AS              CONSTT_NO                       /* 상담자번호*/
+               , ( SELECT C##RG.DEC_B64(X.FLNM_ENCPT) FROM SCA100 X WHERE X.ENFSN_NO = T1.CONSTT_NO ) AS  CONSTT_NM   /* 상담자명*/
+               , T1.CONSTT_INST_NO                  AS              CONSTT_INST_NO                  /* 상담기관번호*/
+               , ( SELECT X.INST_NM FROM SAA000 X WHERE X.INST_NO = T1.CONSTT_INST_NO ) AS CONSTT_INST_NM /* 상담기관명*/
+               , T1.DCLR_TTL_NM                     AS              DCLR_TTL_NM                     /* 신고제목명*/
+               , T1.DCLR_CN                         AS              DCLR_CN                         /* 신고내용*/
+               , T1.OUTSD_LINK_ETC_CN               AS              OUTSD_LINK_ETC_CN               /* 외부연계기타내용*/
+               , T1.PROBM_STTS_LCLAS_SE_CD          AS              PROBM_STTS_LCLAS_SE_CD          /* 문제상태대분류구분코드*/
+               , T1.PROBM_STTS_MLSFC_SE_CD          AS              PROBM_STTS_MLSFC_SE_CD          /* 문제상태중분류구분코드*/
+               , T1.PROBM_STTS_SCLAS_SE_CD          AS              PROBM_STTS_SCLAS_SE_CD          /* 문제상태소분류구분코드*/
+               , T1.RCPT_YMD                        AS              RCPT_YMD                        /* 접수일자*/
+               , T1.RCPT_HR                         AS              RCPT_HR                         /* 접수시간*/
+               , T1.ATFINO                          AS              ATFINO                          /* 첨부파일번호*/
+               , T1.DEL_YN                          AS              DEL_YN                          /* 삭제여부*/
+               , T1.FRST_RGTR_ID                    AS              FRST_RGTR_ID                    /* 최초등록자아이디*/
+               , T1.FRST_REG_DT                     AS              FRST_REG_DT                     /* 최초등록일시*/
+               , T1.LAST_MDFR_ID                    AS              LAST_MDFR_ID                    /* 최종수정자아이디*/
+               , T1.LAST_MDFCN_DT                   AS              LAST_MDFCN_DT                   /* 최종수정일시*/ 
+               
+               , ( SELECT C##RG.DEC_B64(X.RRNO_ENCPT)   FROM SCA300 X WHERE X.INDV_IDNTFC_NO = T1.INDV_IDNTFC_NO) AS RRNO      /* 주민등록번호*/
+               
+               , C##RG.DEC_B64(T2.TRPR_NM_ENCPT) AS              TRPR_NM                   /* 대상자명*/
+               , T2.TRPR_BRTH_YMD                   AS              TRPR_BRTH_YMD                   /* 출생일자*/
+               , T2.SXDC_SE_CD                      AS              SXDC_SE_CD                      /* 성별*/
+               , T2.TRPR_TELNO                      AS              TRPR_TELNO                      /* 전화번호*/
+               , C##RG.DEC_B64(T2.MBL_TELNO_ENCPT)  AS           MBL_TELNO                /* 휴대전화번호*/
+               , C##RG.DEC_B64(T2.EML_ADDR_ENCPT)   AS           EML_ADDR                  /* 이메일주소*/
+               , T2.PST_ADDR                        AS              PST_ADDR                        /* 우편주소*/
+               , T2.DADDR                           AS              DADDR                           /* 상세주소*/
+        FROM SEA220 T1 /* 긴급개입*/
+           , SEA200 T2 /* 대상자정보*/
+       WHERE 1 = 1
+         AND T1.DEL_YN          =   'N'                         /* 삭제여부*/     
+         AND T1.EMRG_INTRVN_NO  =   #{EMRG_INTRVN_NO}           /* 긴급개입번호(ER)*/
+         AND T1.TRPR_INFO_NO    =   T2.TRPR_INFO_NO(+)          /* 대상자번호(TR)*/
+   </select> 
+   
+    <!-- 긴급개입 상세등록 -->
+    <insert id="insertEmrgIntrvn" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.insertEmrgIntrvn(긴급개입등록) */
+          INTO SEA220 T1 /* 긴급개입 */
+             ( T1.EMRG_INTRVN_NO                 /* 긴급개입번호*/
+             , T1.UNT_TASKWK_SE_CD               /* 단위업무구분코드*/
+             , T1.TRPR_INFO_NO                   /* 대상자정보번호*/
+             , T1.INDV_IDNTFC_NO                 /* 개인식별번호*/
+             , T1.CONSTT_NO                      /* 상담자번호*/
+             , T1.CONSTT_INST_NO                 /* 상담기관번호*/
+             , T1.DCLR_TTL_NM                    /* 신고제목명*/
+             , T1.DCLR_CN                        /* 신고내용*/
+             , T1.PROBM_STTS_LCLAS_SE_CD         /* 문제상태대분류구분코드*/
+             , T1.PROBM_STTS_MLSFC_SE_CD         /* 문제상태중분류구분코드*/
+             , T1.PROBM_STTS_SCLAS_SE_CD         /* 문제상태소분류구분코드*/
+             , T1.AFDI_ACTN_CN                   /* 상담후조치내용*/
+             , T1.RCPT_YMD                       /* 접수일자*/
+             , T1.RCPT_HR                        /* 접수시간*/
+             , T1.ATFINO                         /* 첨부파일번호*/             
+             , T1.DEL_YN                         /* 삭제여부*/
+             , T1.FRST_RGTR_ID                   /* 최초등록자아이디*/
+             , T1.FRST_REG_DT                    /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                   /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                  /* 최종수정일시*/
+             )
+        VALUES
+             ( #{EMRG_INTRVN_NO}                /* 긴급개입번호*/
+             , #{UNT_TASKWK_SE_CD}              /* 단위업무구분코드*/
+             , #{TRPR_INFO_NO}                  /* 대상자정보번호*/
+             , #{INDV_IDNTFC_NO}                /* 개인식별번호*/
+             , #{CONSTT_NO}                     /* 상담자번호*/
+             , #{CONSTT_INST_NO}                /* 상담기관번호*/
+             , #{DCLR_TTL_NM}                   /* 신고제목명*/
+             , #{DCLR_CN}                       /* 신고내용*/
+             , #{PROBM_STTS_LCLAS_SE_CD}        /* 문제상태대분류구분코드*/
+             , #{PROBM_STTS_MLSFC_SE_CD}        /* 문제상태중분류구분코드*/
+             , #{PROBM_STTS_SCLAS_SE_CD}        /* 문제상태소분류구분코드*/
+             , #{AFDI_ACTN_CN}                  /* 상담후조치내용*/
+             , #{RCPT_YMD}                      /* 접수일자*/
+             , #{RCPT_HR}                       /* 접수시간*/
+             , #{ATFINO}                        /* 첨부파일번호*/             
+             , NVL(#{DEL_YN}, 'N')              /* 삭제여부*/
+             , #{FRST_RGTR_ID}                  /* 최초등록자아이디*/
+             , SYSDATE                          /* 최초등록일시*/
+             , #{LAST_MDFR_ID}                  /* 최종수정자아이디*/
+             , SYSDATE                          /* 최종수정일시*/
+             )
+    </insert>   
+
+    <!-- 긴급개입 이력등록 -->
+    <insert id="insertEmrgIntrvnHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.insertEmrgIntrvnHistory(긴급개입이력) */
+          INTO SEA221 T1 /* 긴급개입이력 */
+             ( T1.EMRG_INTRVN_NO                 /* 긴급개입번호*/
+             , T1.MDFCN_DT                       /* 수정일시*/
+             , T1.DATAA_CHG_SE_CD                /* 데이터변경구분코드*/
+             , T1.UNT_TASKWK_SE_CD               /* 단위업무구분코드*/
+             , T1.TRPR_INFO_NO                   /* 대상자정보번호*/
+             , T1.INDV_IDNTFC_NO                 /* 개인식별번호*/
+             , T1.CONSTT_NO                      /* 상담자번호*/
+             , T1.CONSTT_INST_NO                 /* 상담기관번호*/
+             , T1.DCLR_TTL_NM                    /* 신고제목명*/
+             , T1.DCLR_CN                        /* 신고내용*/
+             , T1.PROBM_STTS_LCLAS_SE_CD         /* 문제상태대분류구분코드*/
+             , T1.PROBM_STTS_MLSFC_SE_CD         /* 문제상태중분류구분코드*/
+             , T1.PROBM_STTS_SCLAS_SE_CD         /* 문제상태소분류구분코드*/
+             , T1.AFDI_ACTN_CN                   /* 상담후조치내용*/
+             , T1.RCPT_YMD                       /* 접수일자*/
+             , T1.RCPT_HR                        /* 접수시간*/
+             , T1.ATFINO                         /* 첨부파일번호*/             
+             , T1.DEL_YN                         /* 삭제여부*/
+             , T1.FRST_RGTR_ID                   /* 최초등록자아이디*/
+             , T1.FRST_REG_DT                    /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                   /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                  /* 최종수정일시*/
+             )
+        VALUES
+             ( #{EMRG_INTRVN_NO}                /* 긴급개입번호*/
+             , SYSDATE                          /* 수정일시*/
+             , #{DATAA_CHG_SE_CD}               /* 데이터변경구분코드*/           
+             , #{UNT_TASKWK_SE_CD}              /* 단위업무구분코드*/
+             , #{TRPR_INFO_NO}                  /* 대상자정보번호*/
+             , #{INDV_IDNTFC_NO}                /* 개인식별번호*/
+             , #{CONSTT_NO}                     /* 상담자번호*/
+             , #{CONSTT_INST_NO}                /* 상담기관번호*/
+             , #{DCLR_TTL_NM}                   /* 신고제목명*/
+             , #{DCLR_CN}                       /* 신고내용*/
+             , #{PROBM_STTS_LCLAS_SE_CD}        /* 문제상태대분류구분코드*/
+             , #{PROBM_STTS_MLSFC_SE_CD}        /* 문제상태중분류구분코드*/
+             , #{PROBM_STTS_SCLAS_SE_CD}        /* 문제상태소분류구분코드*/
+             , #{AFDI_ACTN_CN}                  /* 상담후조치내용*/
+             , #{RCPT_YMD}                      /* 접수일자*/
+             , #{RCPT_HR}                       /* 접수시간*/
+             , #{ATFINO}                        /* 첨부파일번호*/             
+             , NVL(#{DEL_YN}, 'N')              /* 삭제여부*/
+             , #{FRST_RGTR_ID}                  /* 최초등록자아이디*/
+             , SYSDATE                          /* 최초등록일시*/
+             , #{LAST_MDFR_ID}                  /* 최종수정자아이디*/
+             , SYSDATE                          /* 최종수정일시*/
+             )
+    </insert>
+                 
+    <!-- 긴급개입 상세수정 -->
+    <update id="updateEmrgIntrvn" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.updateEmrgIntrvn(긴급개입상세수정) */       
+               SEA220 T1 /* 긴급개입 */
+           SET T1.TRPR_INFO_NO                  = #{TRPR_INFO_NO}                  /* 대상자정보번호*/
+             , T1.INDV_IDNTFC_NO                = #{INDV_IDNTFC_NO}                /* 개인식별번호*/
+             , T1.CONSTT_NO                     = #{CONSTT_NO}                     /* 상담자번호*/
+             , T1.CONSTT_INST_NO                = #{CONSTT_INST_NO}                /* 상담자기관번호*/
+             , T1.DCLR_TTL_NM                   = #{DCLR_TTL_NM}                   /* 신고제목명*/
+             , T1.DCLR_CN                       = #{DCLR_CN}                       /* 신고내용*/
+             , T1.PROBM_STTS_LCLAS_SE_CD        = #{PROBM_STTS_LCLAS_SE_CD}        /* 문제상태대분류구분코드*/
+             , T1.PROBM_STTS_MLSFC_SE_CD        = #{PROBM_STTS_MLSFC_SE_CD}        /* 문제상태중분류구분코드*/
+             , T1.PROBM_STTS_SCLAS_SE_CD        = #{PROBM_STTS_SCLAS_SE_CD}        /* 문제상태소분류구분코드*/ 
+             , T1.AFDI_ACTN_CN                  = #{AFDI_ACTN_CN}                  /* 상담후조치내용*/
+             , T1.RCPT_YMD                      = #{RCPT_YMD}                      /* 접수일자*/
+             , T1.RCPT_HR                       = #{RCPT_HR}                       /* 접수시간*/
+             , T1.ATFINO                        = #{ATFINO}                        /* 첨부파일번호*/             
+             , T1.DEL_YN                        = NVL(#{DEL_YN},'N')               /* 삭제여부*/
+             , T1.LAST_MDFR_ID                  = #{LAST_MDFR_ID}                  /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                 = SYSDATE                          /* 최종수정일시*/
+         WHERE T1.EMRG_INTRVN_NO                = #{EMRG_INTRVN_NO}                /* 긴급개입번호(ER)*/     
+    </update>       
+
+    <!-- 긴급개입 상세삭제 -->
+    <update id="deleteEmrgIntrvn" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.deleteEmrgIntrvnl(긴급개입삭제) */
+               SEA220 T1 /* 긴급개입 */
+           SET T1.DEL_YN                        = 'Y'                              /* 삭제여부*/
+             , T1.LAST_MDFR_ID                  = #{LAST_MDFR_ID}                  /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                 = SYSDATE                          /* 최종수정일시*/
+         WHERE T1.EMRG_INTRVN_NO                = #{EMRG_INTRVN_NO}                /* 긴급개입번호(ER)*/ 
+    </update>
+    
+    <!-- 긴급개입조치사항 조회 -->
+    <select id="selectEmrgIntrvnActnMatter" parameterType="HashMap" resultType="HashMap">
+          /* selectEmrgIntrvnActnMatter YOO.CHI.HOON */
+          SELECT /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.selectEmrgIntrvnActnMatter(긴급개입조치사항 조회) */   
+                 T1.EMRG_INTRVN_NO                  AS              EMRG_INTRVN_NO                  /* 긴급개입번호(EM)*/
+               , T1.MNG_SN                          AS              MNG_SN                          /* 관리일련번호*/
+               , T1.ACTN_YMD                        AS              ACTN_YMD                        /* 조치일자*/
+               , T1.ACTN_HR                         AS              ACTN_HR                         /* 조치시간*/
+               , T1.AFTFCT_ACMA_NO                  AS              AFTFCT_ACMA_NO                  /* 사후조치자번호*/
+               , T1.AFTFCT_ACMA_INST_NO             AS              AFTFCT_ACMA_INST_NO             /* 사후조치자기관번호*/
+               , T1.EMRG_INTRVN_ACTN_SE_CD          AS              EMRG_INTRVN_ACTN_SE_CD          /* 긴급개입조치구분코드*/
+               , T1.EMRG_INTRVN_OUTSD_LINK_SE_CD    AS              EMRG_INTRVN_OUTSD_LINK_SE_CD    /* 긴급개입외부연계구분*/
+               , T1.OUTSD_LINK_ETC_CN               AS              OUTSD_LINK_ETC_CN               /* 외부연계기타내용*/
+               , T1.ACTN_ETC_CN                     AS              ACTN_ETC_CN                     /* 조치기타내용*/
+               , C##RG.DEC_B64(T1.AFTFCT_ACMA_NM_ENCPT)          AS              AFTFCT_ACMA_NM            /* 사후조치자명암호화*/    
+               , T1.AFTFCT_ACMA_INST_NM             AS              AFTFCT_ACMA_INST_NM             /* 사후조치자기관명*/               
+               , T1.ATFINO                          AS              ATFINO                          /* 첨부파일번호*/
+               , T1.DEL_YN                          AS              DEL_YN                          /* 삭제여부*/
+               , T1.FRST_RGTR_ID                    AS              FRST_RGTR_ID                    /* 최초등록자아이디*/
+               , T1.FRST_REG_DT                     AS              FRST_REG_DT                     /* 최초등록일시*/
+               , T1.LAST_MDFR_ID                    AS              LAST_MDFR_ID                    /* 최종수정자아이디*/
+               , T1.LAST_MDFCN_DT                   AS              LAST_MDFCN_DT                   /* 최종수정일시*/            
+        FROM SEA270 T1 /* 긴급개입조치사항*/      
+       WHERE 1 = 1   
+         AND T1.EMRG_INTRVN_NO      =   #{EMRG_INTRVN_NO}               /* 긴급개입번호(EM)*/
+         AND T1.DEL_YN              =   'N'                             /* 삭제여부*/
+       ORDER BY T1.ACTN_YMD, T1.ACTN_HR 
+   </select>
+   
+
+    <!-- 긴급개입조치사항 등록 -->
+    <insert id="insertEmrgIntrvnActnMatter" parameterType="HashMap">
+    
+        <selectKey resultType="Integer" keyProperty="MNG_SN" order="BEFORE">
+        
+            SELECT SEA270_SQ01.NEXTVAL AS CONT_SEQ FROM DUAL
+        
+        </selectKey>    
+    
+        INSERT /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.insertEmrgIntrvnActnMatter(긴급개입조치사항 등록) */
+          INTO SEA270 T1 /* 긴급개입조치사항 */
+             ( T1.EMRG_INTRVN_NO                 /* 긴급개입번호(EM)*/
+             , T1.MNG_SN                         /* 관리일련번호*/
+             , T1.ACTN_YMD                       /* 조치일자*/
+             , T1.ACTN_HR                        /* 조치시간*/
+             , T1.AFTFCT_ACMA_NO                 /* 사후조치자번호*/
+             , T1.AFTFCT_ACMA_INST_NO            /* 사후조치자기관번호*/
+             , T1.EMRG_INTRVN_ACTN_SE_CD         /* 긴급개입조치구분코드*/
+             , T1.EMRG_INTRVN_OUTSD_LINK_SE_CD   /* 긴급개입외부연계구분*/
+             , T1.OUTSD_LINK_ETC_CN              /* 외부연계기타내용*/
+             , T1.ACTN_ETC_CN                    /* 조치기타내용*/
+             , T1.AFTFCT_ACMA_NM_ENCPT           /* 사후조치자명암호화*/    
+             , T1.AFTFCT_ACMA_INST_NM            /* 사후조치자기관명*/
+             , T1.ATFINO                         /* 첨부파일번호*/
+             , T1.DEL_YN                         /* 삭제여부*/
+             , T1.FRST_RGTR_ID                   /* 최초등록자아이디*/
+             , T1.FRST_REG_DT                    /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                   /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                  /* 최종수정일시*/
+             )
+        VALUES
+             ( #{EMRG_INTRVN_NO}                 /* 긴급개입번호*/
+             , #{MNG_SN}                         /* 관리일련번호*/
+             , #{ACTN_YMD}                       /* 조치일자*/
+             , #{ACTN_HR}                        /* 조치시간*/
+             , #{AFTFCT_ACMA_NO}                 /* 사후조치자번호*/
+             , #{AFTFCT_ACMA_INST_NO}            /* 사후조치자기관번호*/
+             , #{EMRG_INTRVN_ACTN_SE_CD}         /* 긴급개입조치구분코드*/
+             , #{EMRG_INTRVN_OUTSD_LINK_SE_CD}   /* 긴급개입외부연계구분*/
+             , #{OUTSD_LINK_ETC_CN}              /* 외부연계기타내용*/
+             , #{ACTN_ETC_CN}                    /* 조치기타내용*/
+             , C##RG.ENC_B64(#{AFTFCT_ACMA_NM_ENCPT})  /* 사후조치자명암호화*/
+             , #{AFTFCT_ACMA_INST_NM}            /* 사후조치자기관명*/
+             , #{ATFINO}                         /* 첨부파일번호*/
+             , NVL(#{DEL_YN},'N')                /* 삭제여부*/
+             , #{FRST_RGTR_ID}                   /* 최초등록자아이디*/
+             , SYSDATE                           /* 최초등록일시*/
+             , #{LAST_MDFR_ID}                   /* 최종수정자아이디*/
+             , SYSDATE                           /* 최종수정일시*/
+             )
+    </insert>
+
+    <!-- 긴급개입조치사항 이력등록 -->
+    <insert id="insertEmrgIntrvnActnMatterHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.insertEmrgIntrvnActnMatterHistory(긴급개입조치사항 이력등록) */
+          INTO SEA271 T1 /* 긴급개입조치사항 이력 */
+             ( T1.EMRG_INTRVN_NO                 /* 긴급개입번호(EM)*/
+             , T1.MNG_SN                         /* 관리일련번호*/
+             , T1.MDFCN_DT                       /* 수정일시*/
+             , T1.DATAA_CHG_SE_CD                /* 데이터변경구분코드*/
+             , T1.ACTN_YMD                       /* 조치일자*/
+             , T1.ACTN_HR                        /* 조치시간*/
+             , T1.AFTFCT_ACMA_NO                 /* 사후조치자번호*/
+             , T1.AFTFCT_ACMA_INST_NO            /* 사후조치자기관번호*/
+             , T1.EMRG_INTRVN_ACTN_SE_CD         /* 긴급개입조치구분코드*/
+             , T1.EMRG_INTRVN_OUTSD_LINK_SE_CD   /* 긴급개입외부연계구분*/
+             , T1.OUTSD_LINK_ETC_CN              /* 외부연계기타내용*/
+             , T1.ACTN_ETC_CN                    /* 조치기타내용*/
+             , T1.AFTFCT_ACMA_NM_ENCPT           /* 사후조치자명암호화*/    
+             , T1.AFTFCT_ACMA_INST_NM            /* 사후조치자기관명*/             
+             , T1.ATFINO                         /* 첨부파일번호*/
+             , T1.DEL_YN                         /* 삭제여부*/
+             , T1.FRST_RGTR_ID                   /* 최초등록자아이디*/
+             , T1.FRST_REG_DT                    /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                   /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                  /* 최종수정일시*/
+             )
+        VALUES
+             ( #{EMRG_INTRVN_NO}                 /* 긴급개입번호*/
+             , #{MNG_SN}                         /* 관리일련번호*/
+             , SYSDATE                           /* 수정일시*/
+             , #{DATAA_CHG_SE_CD}                /* 데이터변경구분코드*/
+             , #{ACTN_YMD}                       /* 조치일자*/
+             , #{ACTN_HR}                        /* 조치시간*/
+             , #{AFTFCT_ACMA_NO}                 /* 사후조치자번호*/
+             , #{AFTFCT_ACMA_INST_NO}            /* 사후조치자기관번호*/
+             , #{EMRG_INTRVN_ACTN_SE_CD}         /* 긴급개입조치구분코드*/
+             , #{EMRG_INTRVN_OUTSD_LINK_SE_CD}   /* 긴급개입외부연계구분*/
+             , #{OUTSD_LINK_ETC_CN}              /* 외부연계기타내용*/
+             , #{ACTN_ETC_CN}                    /* 조치기타내용*/
+             , C##RG.ENC_B64(#{AFTFCT_ACMA_NM_ENCPT})           /* 사후조치자명암호화*/
+             , #{AFTFCT_ACMA_INST_NM}            /* 사후조치자기관명*/             
+             , #{ATFINO}                         /* 첨부파일번호*/
+             , NVL(#{DEL_YN},'N')                /* 삭제여부*/
+             , #{FRST_RGTR_ID}                   /* 최초등록자아이디*/
+             , SYSDATE                           /* 최초등록일시*/
+             , #{LAST_MDFR_ID}                   /* 최종수정자아이디*/
+             , SYSDATE                           /* 최종수정일시*/
+             )     
+    </insert>   
+
+    <!-- 긴급개입조치사항 상세수정 -->
+    <update id="updateEmrgIntrvnActnMatter" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.updateEmrgIntrvnActnMatter(긴급개입조치사항 수정) */      
+               SEA270 T1 /* 긴급개입조치사항 */
+           SET T1.EMRG_INTRVN_NO                = #{EMRG_INTRVN_NO}                 /* 긴급개입번호(EM)*/
+             , T1.ACTN_YMD                      = #{ACTN_YMD}                       /* 조치일자*/
+             , T1.ACTN_HR                       = #{ACTN_HR}                        /* 조치시간*/
+             , T1.AFTFCT_ACMA_NO                = #{AFTFCT_ACMA_NO}                 /* 사후조치자번호*/
+             , T1.AFTFCT_ACMA_INST_NO           = #{AFTFCT_ACMA_INST_NO}            /* 사후조치자기관번호*/
+             , T1.EMRG_INTRVN_ACTN_SE_CD        = #{EMRG_INTRVN_ACTN_SE_CD}         /* 긴급개입조치구분코드*/
+             , T1.EMRG_INTRVN_OUTSD_LINK_SE_CD  = #{EMRG_INTRVN_OUTSD_LINK_SE_CD}   /* 긴급개입외부연계구분*/
+             , T1.OUTSD_LINK_ETC_CN             = #{OUTSD_LINK_ETC_CN}              /* 외부연계기타내용*/
+             , T1.ACTN_ETC_CN                   = #{ACTN_ETC_CN}                    /* 조치내용기타*/
+             , T1.AFTFCT_ACMA_NM_ENCPT          = C##RG.ENC_B64(#{AFTFCT_ACMA_NM_ENCPT})           /* 사후조치자명암호화*/
+             , T1.AFTFCT_ACMA_INST_NM           = #{AFTFCT_ACMA_INST_NM}            /* 사후조치자기관명*/ 
+             , T1.ATFINO                        = #{ATFINO}                         /* 첨부파일번호*/
+             , T1.DEL_YN                        = NVL(#{DEL_YN},'N')                /* 삭제여부*/
+             , T1.LAST_MDFR_ID                  = #{LAST_MDFR_ID}                   /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                 = SYSDATE                           /* 최종수정일시*/
+         WHERE T1.EMRG_INTRVN_NO       = #{EMRG_INTRVN_NO}   /* 긴급개입번호(ER)*/
+           AND T1.MNG_SN               = #{MNG_SN}           /* 관리일련번호*/
+    </update>
+    
+    <!-- 긴급개입조치사항 삭제 -->
+    <update id="deleteEmrgIntrvnActnMatter" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.EmrgIntrvnMapper.deleteEmrgIntrvnActnMatter(긴급개입조치사항 삭제) */
+               SEA270 T1 /* 긴급개입조치사항 */
+           SET T1.DEL_YN                        = 'Y'                              /* 삭제여부*/
+             , T1.LAST_MDFR_ID                  = #{LAST_MDFR_ID}                  /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                 = SYSDATE                          /* 최종수정일시*/
+         WHERE T1.EMRG_INTRVN_NO       = #{EMRG_INTRVN_NO}   /* 긴급개입번호(ER)*/
+           AND T1.MNG_SN               = #{MNG_SN}           /* 관리일련번호*/
+    </update>     
+    
+</mapper>

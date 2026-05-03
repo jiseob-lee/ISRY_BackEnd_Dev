@@ -1,0 +1,826 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.itgcms.itgBrd.mapper.ItgBrdCmnMapper">
+
+	<select id="selectCtgrySeCdList" parameterType="HashMap"
+		resultType="HashMap">
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectCtgrySeCdList 공통팀 유민상
+		*/
+        <![CDATA[
+        SELECT A.CMMNS_CD_ID
+             , A.CMMNS_CD_VALUE
+             , A.CMMNS_CD_VALUE_NM
+             , A.UP_CMMNS_CD_VALUE
+             , B.UNT_TASKWK_SE_CD
+         FROM SAC100 A, SAC110 B
+        WHERE 1=1
+          AND A.CMMNS_CD_ID = 'UNITY_BBSCTT_CTGRYB_SE_CD'
+          AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE(+)
+          AND A.UP_CMMNS_CD_VALUE = #{UNITY_BBSCTT_TYPE_SE_CD}
+          AND A.USE_YN = 'Y'
+          ]]>
+		<if test='UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ""'>
+			AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+		</if>
+
+		ORDER BY SRTNG_SQNCE
+	</select>
+
+	<select id="selectSysCtgtybInstList" resultType="HashMap">
+        /* isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectSysCtgtybInstList 응용3팀 이상훈 */
+        <![CDATA[
+        SELECT A.CMMNS_CD_ID
+             , A.CMMNS_CD_VALUE
+             , A.CMMNS_CD_VALUE_NM
+             , A.UP_CMMNS_CD_VALUE
+         FROM SAC100 A
+        WHERE 1=1
+          AND A.CMMNS_CD_ID = 'UNITY_BBSCTT_CTGRYB_SE_CD'
+          AND A.UP_CMMNS_CD_VALUE = #{UNITY_BBSCTT_TYPE_SE_CD}
+          AND A.USE_YN = 'Y'
+
+        ORDER BY SRTNG_SQNCE
+        ]]>
+	</select>
+
+	<select id="selectAllCtgrySeCdList" parameterType="HashMap"
+		resultType="HashMap">
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectCtgrySeCdList 공통팀 유민상
+		*/
+        <![CDATA[
+        SELECT A.CMMNS_CD_ID
+             , A.CMMNS_CD_VALUE
+             , A.CMMNS_CD_VALUE_NM
+             , A.UP_CMMNS_CD_VALUE
+         FROM SAC100 A
+        WHERE 1=1
+          AND A.CMMNS_CD_ID = 'UNITY_BBSCTT_CTGRYB_SE_CD'
+          AND A.UP_CMMNS_CD_VALUE = #{UNITY_BBSCTT_TYPE_SE_CD}
+          AND A.USE_YN = 'Y'
+          ]]>
+		ORDER BY SRTNG_SQNCE
+	</select>
+
+	<select id="selectCtgtybInstList" parameterType="HashMap"
+		resultType="HashMap">
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectCtgtybInstList 공통팀 유민상
+		*/
+        <![CDATA[
+	       SELECT  A.UNT_TASKWK_SE_CD
+	             , (SELECT B.CMMNS_CD_VALUE_NM FROM SAC100 B WHERE B.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND B.CMMNS_CD_VALUE = A.UNT_TASKWK_SE_CD) AS UNT_TASKWK_SE_NM
+	         FROM SAC110 A
+	        WHERE 1=1
+	          AND A.CMMNS_CD_ID = 'UNITY_BBSCTT_CTGRYB_SE_CD'
+	          AND A.CMMNS_CD_VALUE = #{UNITY_BBSCTT_CTGRYB_SE_CD}
+	     ORDER BY A.UNT_TASKWK_SE_CD
+         ]]>
+	</select>
+
+	<select id="selectInstCode" parameterType="Integer" resultType="HashMap">
+	   <![CDATA[
+	       SELECT  INST_NO  AS CMMNS_CD_VALUE
+	             , INST_NM  AS CMMNS_CD_VALUE_NM
+	             , UP_INST_NO
+	             , RGN_CD
+			 FROM SAA000
+			WHERE 1=1
+			AND  DEL_YN  = 'N'
+			AND  APRV_YN = 'Y'
+			AND  INST_NO = #{instNo}
+        ]]>
+	</select>
+
+
+	<select id="selectDeptCodeList" parameterType="HashMap"
+		resultType="HashMap">
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectDeptCodeList 공통팀 유민상
+		*/
+        <![CDATA[
+           SELECT  INST_NO  AS PARENT_CD
+                 , DEPT_CD  AS CMMNS_CD_VALUE
+                 , DEPT_NM  AS CMMNS_CD_VALUE_NM
+             FROM SAA300
+            WHERE 1=1
+         ORDER BY INST_NO
+        ]]>
+	</select>
+
+	<select id="selectCtpvCodeList" parameterType="HashMap"
+		resultType="HashMap">
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectCtpvCodeList 공통팀 유민상
+		*/
+        <![CDATA[
+           SELECT   CTPV_SE_CD
+		          , CTPV_NM
+		    FROM SAA020
+		WHERE 1=1
+		AND NVL(DEL_YN, 'N') != 'Y'
+		GROUP BY CTPV_SE_CD, CTPV_NM
+		ORDER BY CTPV_SE_CD
+        ]]>
+	</select>
+
+	<select id="selectSggCodeList" parameterType="HashMap"
+		resultType="HashMap">
+		/* 공통팀 유민상 isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectSggCodeList
+		공통팀 유민상 */
+        <![CDATA[
+           SELECT  CTPV_SE_CD
+		         , SGG_CD
+		         , SGG_NM
+		    FROM SAA020
+		   WHERE 1=1
+		     AND NVL(DEL_YN, 'N') != 'Y'
+		ORDER BY SRTNG_SQNCE
+        ]]>
+	</select>
+
+    <select id="getTotalCount" parameterType="HashMap"
+        resultType="int">
+        /* 공통팀 유민상 isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.getTotalCount 공통팀
+        유민상 */
+        <![CDATA[
+         SELECT COUNT(*)
+         FROM SBA130 A
+             LEFT JOIN
+                 (
+                 SELECT SBA131.*
+                 ,   ROW_NUMBER() OVER(PARTITION BY UNITY_BBSCTT_ESNTAL_NO ORDER BY FRST_REG_DT DESC) AS ROW_NUMBER
+                 FROM SBA131
+                 WHERE DEL_YN != 'Y'
+                 ) B
+                 ON B.ROW_NUMBER = 1
+                 AND B.UNITY_BBSCTT_ESNTAL_NO = A.UNITY_BBSCTT_ESNTAL_NO
+            WHERE 1=1
+              AND NVL(A.DEL_YN, 'N') != 'Y'
+              AND A.UNITY_BBSCTT_TYPE_SE_CD = #{UNITY_BBSCTT_TYPE_SE_CD}
+        ]]>
+        <if test='ITG_SEARCH_YN != "Y"'>
+              AND #{UNT_TASKWK_SE_CD} IN (
+                                        SELECT B.UNT_TASKWK_SE_CD
+                                          FROM SBA132 B
+                                         WHERE B.UNITY_BBSCTT_ESNTAL_NO = A.UNITY_BBSCTT_ESNTAL_NO
+                                    )
+        </if>
+        <if test='strUNT_TASKWK_SE_CD != null and strUNT_TASKWK_SE_CD != ""'>
+              AND #{strUNT_TASKWK_SE_CD} IN (
+                                        SELECT B.UNT_TASKWK_SE_CD
+                                          FROM SBA132 B
+                                         WHERE B.UNITY_BBSCTT_ESNTAL_NO = A.UNITY_BBSCTT_ESNTAL_NO
+                                    )
+        </if>
+        <choose>
+            <when
+                test='UNITY_BBSCTT_CTGRYB_SE_CD != null and UNITY_BBSCTT_CTGRYB_SE_CD != ""'>
+                AND A.UNITY_BBSCTT_CTGRYB_SE_CD = #{UNITY_BBSCTT_CTGRYB_SE_CD}
+            </when>
+
+            <otherwise>
+                AND A.UNITY_BBSCTT_CTGRYB_SE_CD IN (
+                SELECT C.CMMNS_CD_VALUE
+                FROM SAC100 C, SAC110 D
+                WHERE 1=1
+                AND C.CMMNS_CD_ID = 'UNITY_BBSCTT_CTGRYB_SE_CD'
+                AND C.CMMNS_CD_VALUE = D.CMMNS_CD_VALUE(+)
+                AND C.USE_YN = 'Y'
+                AND C.UP_CMMNS_CD_VALUE = #{UNITY_BBSCTT_TYPE_SE_CD}
+                <if test='UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ""'>
+                AND D.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+                </if>
+                )
+            </otherwise>
+        </choose>
+        <if test='PSTG_OPEN_YN == "BEF"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') < A.PSTG_BGNG_YMD)
+        ]]>
+        </if>
+        <if test='PSTG_OPEN_YN == "ING"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A.PSTG_BGNG_YMD AND A.PSTG_END_YMD)
+        ]]>
+        </if>
+        <if test='PSTG_OPEN_YN == "AFT"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') > A.PSTG_END_YMD)
+        ]]>
+        </if>
+        <if
+            test='SEARCH_KEY == "3" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            AND (UNITY_BBSCTT_TTL_NM LIKE '%' || #{SEARCH_DATA} || '%'
+            OR UNITY_BBSCTT_CN LIKE '%' || #{SEARCH_DATA} || '%')
+        </if>
+        <if
+            test='SEARCH_KEY == "1" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            AND UNITY_BBSCTT_TTL_NM LIKE '%'|| #{SEARCH_DATA} || '%'
+        </if>
+        <if
+            test='SEARCH_KEY == "2" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            AND UNITY_BBSCTT_CN LIKE '%' || #{SEARCH_DATA} || '%'
+        </if>
+        <if
+            test='SEARCH_KEY == "4" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            AND C##RG.SA_FN_GET_NAME(A.FRST_RGTR_ID) = ENC_B64(#{SEARCH_DATA})
+        </if>
+        <if
+            test='SEARCH_KEY == "5" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            AND UNITY_BBSCTT_TYPE_SN = #{SEARCH_DATA}
+        </if>
+        <if
+            test='SEARCH_KEY == "6" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            AND ENC_B64(#{SEARCH_DATA}) IN
+                (SELECT T3.FLNM_ENCPT
+                FROM SBA131 T1
+                JOIN SAA200 T2
+                    ON T2.USER_ID = T1.FRST_RGTR_ID
+                JOIN SCA100 T3
+                    ON T3.ENFSN_NO = T2.ENFSN_NO
+                WHERE T1.UNITY_BBSCTT_ESNTAL_NO = A.UNITY_BBSCTT_ESNTAL_NO)
+        </if>
+        <if
+            test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+            AND (A.FRST_REG_DT BETWEEN #{START_DATE} AND #{END_DATE})
+        </if>
+        <if
+            test="PR_START_DATE != null and PR_START_DATE != '' and PR_END_DATE != null and PR_END_DATE != ''">
+            <![CDATA[
+            AND A.PSTG_BGNG_YMD <= #{PR_END_DATE} AND A.PSTG_END_YMD >= #{PR_START_DATE}
+            ]]>
+        </if>
+        <if test='ADMIN_YN == "Y"'>
+            AND A.OGDP_INST_NO IN (SELECT INST_NO FROM SAA000 WHERE INST_NO = #{USER_INST_NO} OR UP_INST_NO = #{USER_INST_NO})
+        </if>
+        <if test='ADMIN_YN == "N"'>
+            AND A.OGDP_INST_NO = #{USER_INST_NO}
+        </if>
+        <if test='CLLR_REG_YN != null and CLLR_REG_YN != ""'>
+            AND CLLR_REG_YN = #{CLLR_REG_YN}
+        </if>
+        <if test='TASKWK_PRCS_SE_CD != null and TASKWK_PRCS_SE_CD != ""'>
+            AND
+            <foreach collection="TASKWK_PRCS_SE_CD" item="arr" open="(" close=")" separator="OR">
+                <choose>
+                <when test='arr == "1"'>
+                B.UNITY_BBSCTT_ESNTAL_NO IS NULL
+                </when>
+                <otherwise>
+                B.TASKWK_PRCS_SE_CD = #{arr}
+                </otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <if test='TASKWK_TASKFO_SE_CD != null and TASKWK_TASKFO_SE_CD != ""'>
+            AND B.TASKWK_TASKFO_SE_CD = #{TASKWK_TASKFO_SE_CD}
+        </if>
+        <if test='ONLY_MY_REG == "true"'>
+            AND A.FRST_RGTR_ID = #{USER_ID}
+        </if>
+        <if test='OVER_24_HR == "true"'>
+            AND SYSDATE - A.FRST_REG_DT > 1
+        </if>
+        ORDER BY A.FRST_REG_DT DESC
+    </select>
+
+	<select id="selectItgCmnBrdImprtnList" parameterType="HashMap"
+		resultType="HashMap">
+
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectItgCmnBrdImprtnList
+		공통팀 유민상 */
+        <![CDATA[
+        WITH TEMP AS (
+		        SELECT  A.UNITY_BBSCTT_ESNTAL_NO
+		                , A.UNITY_BBSCTT_TYPE_SE_CD
+		                , A.UNITY_BBSCTT_TYPE_SN
+		                , A.UNITY_BBSCTT_CTGRYB_SE_CD
+		                , A.IMPRTN_NTC_YN AS HIGH_LIGHT_YN
+		                , A.OGDP_INST_NO
+		                , A.OGDP_DEPT_CD
+		                , A.PSTG_BGNG_YMD
+		                , A.PSTG_END_YMD
+		                , A.UNITY_BBSCTT_TTL_NM
+		                , A.UNITY_BBSCTT_CN
+		                , A.RLS_YN
+		                , A.RDCNT_NOCS
+		                , A.ATFINO
+		                , (SELECT COUNT(MNG_SN) FROM SAB821 WHERE ATFINO = A.ATFINO AND FILE_STTS_SE_CD != 'D' AND ATCMFL_CL_NM = '0') AS ATFI_CNT
+		                , DEC_B64(SA_FN_GET_NAME(A.FRST_RGTR_ID)) AS FRST_RGTR_NM
+		                , A.FRST_RGTR_ID
+		                , TO_CHAR(TO_DATE(A.PSTG_BGNG_YMD,'YYYYMMDD'), 'YYYY-MM-DD') || ' ~ ' || TO_CHAR(TO_DATE(A.PSTG_END_YMD,'YYYYMMDD'), 'YYYY-MM-DD') AS PSTG_BGNG_END_YMD
+		                , TO_CHAR(A.FRST_REG_DT, 'YYYYMMDD') AS FRST_REG_DT
+		                , CASE WHEN TRUNC(SYSDATE - A.FRST_REG_DT) > 3 THEN 'N' ELSE 'Y' END AS NEW_BBSCTT
+		                , (SELECT COUNT(*) FROM SBA131 C WHERE NVL(C.DEL_YN, 'N') != 'Y' AND C.UNITY_BBSCTT_ESNTAL_NO =  A.UNITY_BBSCTT_ESNTAL_NO) AS CMNT_CNT
+		         FROM SBA130 A
+		        WHERE 1=1
+		          AND NVL(A.DEL_YN, 'N') != 'Y'
+		          AND A.UNITY_BBSCTT_TYPE_SE_CD = #{UNITY_BBSCTT_TYPE_SE_CD}
+		          AND #{UNT_TASKWK_SE_CD} IN (
+                                            SELECT B.UNT_TASKWK_SE_CD
+                                              FROM SBA132 B
+                                             WHERE B.UNITY_BBSCTT_ESNTAL_NO = A.UNITY_BBSCTT_ESNTAL_NO
+                                        )
+		          ]]>
+		<choose>
+			<when
+				test='UNITY_BBSCTT_CTGRYB_SE_CD != null and UNITY_BBSCTT_CTGRYB_SE_CD != ""'>
+				AND A.UNITY_BBSCTT_CTGRYB_SE_CD = #{UNITY_BBSCTT_CTGRYB_SE_CD}
+			</when>
+
+			<otherwise>
+				AND A.UNITY_BBSCTT_CTGRYB_SE_CD IN (
+				SELECT C.CMMNS_CD_VALUE
+				FROM SAC100 C, SAC110 D
+				WHERE 1=1
+				AND C.CMMNS_CD_ID = 'UNITY_BBSCTT_CTGRYB_SE_CD'
+				AND C.CMMNS_CD_VALUE = D.CMMNS_CD_VALUE(+)
+				AND C.USE_YN = 'Y'
+				AND C.UP_CMMNS_CD_VALUE = #{UNITY_BBSCTT_TYPE_SE_CD}
+				AND D.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+				)
+			</otherwise>
+		</choose>
+        <if test='PSTG_OPEN_YN == "BEF"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') < A.PSTG_BGNG_YMD)
+        ]]>
+        </if>
+        <if test='PSTG_OPEN_YN == "ING"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A.PSTG_BGNG_YMD AND A.PSTG_END_YMD)
+        ]]>
+        </if>
+        <if test='PSTG_OPEN_YN == "AFT"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') > A.PSTG_END_YMD)
+        ]]>
+        </if>
+		<if test='OGDP_INST_NO != null and OGDP_INST_NO != ""'>
+			AND A.OGDP_INST_NO = #{OGDP_INST_NO}
+		</if>
+		<if test='OGDP_INST_NM != null and OGDP_INST_NM != ""'>
+            AND EXISTS (SELECT 1 FROM SAA000 B WHERE A.OGDP_INST_NO = B.INST_NO AND B.INST_NM LIKE '%'||#{OGDP_INST_NM}||'%')
+        </if>
+		<if test='OGDP_DEPT_CD != null and OGDP_DEPT_CD != ""'>
+			AND A.OGDP_DEPT_CD = #{OGDP_DEPT_CD}
+		</if>
+		/*2023.08.30 운영팀 정현진 학교밖 요청사항으로 작성일 대신 게시기간으로 정렬조건 변경*/
+		ORDER BY A.IMPRTN_NTC_YN DESC,A.PSTG_BGNG_YMD DESC
+		/*ORDER BY A.IMPRTN_NTC_YN DESC,A.FRST_REG_DT DESC*/
+		)
+        <![CDATA[
+        SELECT T1.*
+           , (SELECT B.INST_NM FROM SAA000 B WHERE T1.OGDP_INST_NO = B.INST_NO) OGDP_INST_NM
+          FROM TEMP T1
+       	 WHERE 1=1
+        ]]>
+
+		<if
+			test='SEARCH_KEY == "3" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND (T1.UNITY_BBSCTT_TTL_NM LIKE '%' || #{SEARCH_DATA} || '%'
+			OR T1.UNITY_BBSCTT_CN LIKE '%' || #{SEARCH_DATA} || '%')
+		</if>
+		<if
+			test='SEARCH_KEY == "1" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND T1.UNITY_BBSCTT_TTL_NM LIKE '%'|| #{SEARCH_DATA} || '%'
+		</if>
+		<if
+			test='SEARCH_KEY == "2" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND T1.UNITY_BBSCTT_CN LIKE '%' || #{SEARCH_DATA} || '%'
+		</if>
+		<if
+			test='SEARCH_KEY == "4" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND C##RG.SA_FN_GET_NAME(T1.FRST_RGTR_ID) = ENC_B64(#{SEARCH_DATA})
+		</if>
+		<if
+			test='SEARCH_KEY == "5" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND UNITY_BBSCTT_TYPE_SN = #{SEARCH_DATA}
+		</if>
+		<if
+			test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+			AND (T1.FRST_REG_DT BETWEEN #{START_DATE} AND #{END_DATE})
+		</if>
+		OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+	</select>
+
+	<select id="selectItgCmnBrdList" parameterType="HashMap" resultType="HashMap">
+
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectItgCmnBrdList 공통팀 유민상
+		*/
+
+        <![CDATA[
+
+	        SELECT  A.UNITY_BBSCTT_ESNTAL_NO
+	                , A.UNITY_BBSCTT_TYPE_SE_CD
+	                , A.UNITY_BBSCTT_TYPE_SN
+	                , A.UNITY_BBSCTT_CTGRYB_SE_CD
+	                , A.IMPRTN_NTC_YN
+	                , A.OGDP_INST_NO
+	                , A.OGDP_DEPT_CD
+        ]]>
+        <choose>
+            <when test='UNITY_BBSCTT_TYPE_SE_CD == "003"'>
+        <![CDATA[
+                    , SUBSTR(A.PSTG_BGNG_YMD, 1, 4) || '.' || SUBSTR(A.PSTG_BGNG_YMD, 5, 2) || '.' || SUBSTR(A.PSTG_BGNG_YMD, 7, 2) AS PSTG_BGNG_YMD
+        ]]>
+            </when>
+            <otherwise>
+        <![CDATA[
+	                , A.PSTG_BGNG_YMD
+        ]]>
+            </otherwise>
+        </choose>
+        <![CDATA[
+	                , A.PSTG_END_YMD
+	                , A.UNITY_BBSCTT_TTL_NM
+	                , A.UNITY_BBSCTT_CN
+	                , A.RLS_YN
+	                , A.RDCNT_NOCS
+	                , A.ATFINO
+                    , (SELECT COUNT(MNG_SN) FROM SAB821 WHERE ATFINO = A.ATFINO AND FILE_STTS_SE_CD != 'D' AND ATCMFL_CL_NM = '0') AS ATFI_CNT
+	                , DEC_B64(SA_FN_GET_NAME(A.FRST_RGTR_ID)) AS FRST_RGTR_NM
+	                , A.FRST_RGTR_ID
+	                , TO_CHAR(TO_DATE(A.PSTG_BGNG_YMD,'YYYYMMDD'), 'YYYY-MM-DD') || ' ~ ' || TO_CHAR(TO_DATE(A.PSTG_END_YMD,'YYYYMMDD'), 'YYYY-MM-DD') AS PSTG_BGNG_END_YMD
+	                , TO_CHAR(A.FRST_REG_DT, 'YYYYMMDD') AS FRST_REG_DT
+	                , CASE WHEN TRUNC(SYSDATE - A.FRST_REG_DT) > 3 THEN 'N' ELSE 'Y' END AS NEW_BBSCTT
+	                , SUBSTR(B.RGN_CD, 1, 2) AS CTPV_SE_CD
+                    , B.RGN_CD
+                    , B.INST_NM AS OGDP_INST_NM
+	         FROM SBA130 A, SAA000 B
+	        WHERE 1=1
+	          AND NVL(A.DEL_YN, 'N') != 'Y'
+	          AND A.UNITY_BBSCTT_TYPE_SE_CD = #{UNITY_BBSCTT_TYPE_SE_CD}
+	          AND A.OGDP_INST_NO = B.INST_NO
+
+	          AND A.PSTG_BGNG_YMD <= TO_CHAR(SYSDATE, 'YYYYMMDD')
+
+	          ]]>
+		<if test='ITG_SEARCH_YN != "Y"'>
+			AND #{UNT_TASKWK_SE_CD} IN (
+			SELECT B.UNT_TASKWK_SE_CD
+			FROM SBA132 B
+			WHERE B.UNITY_BBSCTT_ESNTAL_NO = A.UNITY_BBSCTT_ESNTAL_NO
+			)
+		</if>
+		<choose>
+			<when
+				test='UNITY_BBSCTT_CTGRYB_SE_CD != null and UNITY_BBSCTT_CTGRYB_SE_CD != ""'>
+				AND A.UNITY_BBSCTT_CTGRYB_SE_CD = #{UNITY_BBSCTT_CTGRYB_SE_CD}
+			</when>
+
+			<otherwise>
+				AND A.UNITY_BBSCTT_CTGRYB_SE_CD IN (
+				SELECT C.CMMNS_CD_VALUE
+				FROM SAC100 C, SAC110 D
+				WHERE 1=1
+				AND C.CMMNS_CD_ID = 'UNITY_BBSCTT_CTGRYB_SE_CD'
+				AND C.CMMNS_CD_VALUE = D.CMMNS_CD_VALUE(+)
+				AND C.USE_YN = 'Y'
+				AND C.UP_CMMNS_CD_VALUE = #{UNITY_BBSCTT_TYPE_SE_CD}
+				AND D.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+				)
+			</otherwise>
+		</choose>
+        <if test='PSTG_OPEN_YN == "BEF"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') < A.PSTG_BGNG_YMD)
+        ]]>
+        </if>
+        <if test='PSTG_OPEN_YN == "ING"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A.PSTG_BGNG_YMD AND A.PSTG_END_YMD)
+        ]]>
+        </if>
+        <if test='PSTG_OPEN_YN == "AFT"'>
+        <![CDATA[
+            AND (TO_CHAR(SYSDATE, 'YYYYMMDD') > A.PSTG_END_YMD)
+        ]]>
+        </if>
+		<if test='CTPV_SE_CD != null and CTPV_SE_CD != ""'>
+			AND SUBSTR(B.RGN_CD, 1, 2) = #{CTPV_SE_CD}
+		</if>
+		<if test='SGG_CD != null and SGG_CD != ""'>
+			AND B.RGN_CD = #{SGG_CD}
+		</if>
+		<if test='OGDP_INST_NO != null and OGDP_INST_NO != ""'>
+			AND A.OGDP_INST_NO = #{OGDP_INST_NO}
+		</if>
+		<if test='OGDP_INST_NM != null and OGDP_INST_NM != ""'>
+            AND B.INST_NM LIKE '%' || #{OGDP_INST_NM} || '%'
+        </if>
+		<if test='OGDP_DEPT_CD != null and OGDP_DEPT_CD != ""'>
+			AND A.OGDP_DEPT_CD = #{OGDP_DEPT_CD}
+		</if>
+		<if
+			test='SEARCH_KEY == "3" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND (UNITY_BBSCTT_TTL_NM LIKE '%' || #{SEARCH_DATA} || '%'
+			OR UNITY_BBSCTT_CN LIKE '%' || #{SEARCH_DATA} || '%')
+		</if>
+		<if
+			test='SEARCH_KEY == "1" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND UNITY_BBSCTT_TTL_NM LIKE '%'|| #{SEARCH_DATA} || '%'
+		</if>
+		<if
+			test='SEARCH_KEY == "2" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND UNITY_BBSCTT_CN LIKE '%' || #{SEARCH_DATA} || '%'
+		</if>
+		<if
+			test='SEARCH_KEY == "4" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND C##RG.SA_FN_GET_NAME(FRST_RGTR_ID) = #{SEARCH_DATA}
+		</if>
+		<if
+			test='SEARCH_KEY == "5" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+			AND UNITY_BBSCTT_TYPE_SN = #{SEARCH_DATA}
+		</if>
+		<if
+			test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+			AND (TO_CHAR(A.FRST_REG_DT,'YYYYMMDD') BETWEEN #{START_DATE} AND
+			#{END_DATE})
+		</if>
+        <if
+            test="PR_START_DATE != null and PR_START_DATE != '' and PR_END_DATE != null and PR_END_DATE != ''">
+            <![CDATA[
+            AND A.PSTG_BGNG_YMD <= #{PR_END_DATE} AND A.PSTG_END_YMD >= #{PR_START_DATE}
+            ]]>
+        </if>
+        <if test='ADMIN_YN == "Y"'>
+            AND A.OGDP_INST_NO IN (SELECT INST_NO FROM SAA000 WHERE INST_NO = #{USER_INST_NO} OR UP_INST_NO = #{USER_INST_NO})
+        </if>
+        <if test='ADMIN_YN == "N"'>
+            AND A.OGDP_INST_NO = #{USER_INST_NO}
+        </if>
+		ORDER BY A.FRST_REG_DT DESC
+		OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+
+	</select>
+
+	<update id="deleteItgNtcBrd" parameterType="HashMap">
+
+		/* isry.itgcms.itgBrd.mapper.itgBrdCmnMapper."deleteItgNtcBrd" 공통팀 유민상
+		*/
+		UPDATE SBA130 SET
+		DEL_YN = 'Y'
+		, LAST_MDFCN_DT = SYSDATE
+		, LAST_MDFR_ID = #{LAST_MDFR_ID}
+		WHERE 1=1
+		AND UNITY_BBSCTT_ESNTAL_NO = #{UNITY_BBSCTT_ESNTAL_NO__origin}
+	</update>
+
+	<select id="selectItgBrdDtlList" parameterType="HashMap"
+		resultType="HashMap">
+        <![CDATA[
+        /* 게시글 상세조회 isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectItgBrdDtlList 공통팀 유민상 */
+        SELECT  UNITY_BBSCTT_ESNTAL_NO
+                , UNITY_BBSCTT_TYPE_SE_CD
+                , UNITY_BBSCTT_TYPE_SN
+                , UNITY_BBSCTT_CTGRYB_SE_CD
+                , CD_PRVSON_ETC_NM
+                , IMPRTN_NTC_YN
+                , OGDP_INST_NO
+                , (SELECT INST_NM FROM SAA000 WHERE INST_NO = OGDP_INST_NO) AS OGDP_INST_NM
+                , OGDP_DEPT_CD
+                , PSTG_BGNG_YMD
+                , PSTG_END_YMD
+                , UNITY_BBSCTT_TTL_NM
+                , UNITY_BBSCTT_CN
+                , RLS_YN
+                , RDCNT_NOCS
+                , DEC_B64(CTTPC_ENCPT) AS CTTPC_ENCPT
+                , ATFINO
+                , CLLR_REG_YN
+                , ACTVT_NOCS
+                , DEC_B64(SA_FN_GET_NAME(FRST_RGTR_ID)) AS FRST_RGTR_NM
+                , FRST_RGTR_ID
+                , TO_CHAR(FRST_REG_DT, 'YYYYMMDDHH24MISS') AS FRST_REG_DT
+         FROM SBA130
+        WHERE 1=1
+          AND UNITY_BBSCTT_ESNTAL_NO  = #{UNITY_BBSCTT_ESNTAL_NO}
+        ]]>
+	</select>
+
+	<select id="selectItgBrdDtlTaskSysCdList"
+		parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* 게시글 출력 시스템 조회 isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.selectItgBrdDtlList 공통팀 유민상 */
+        SELECT  A.UNITY_BBSCTT_ESNTAL_NO
+                , A.UNT_TASKWK_SE_CD
+                , (SELECT B.CMMNS_CD_VALUE_NM FROM SAC100 B WHERE B.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND B.CMMNS_CD_VALUE = A.UNT_TASKWK_SE_CD)  AS UNT_TASKWK_SE_NM
+         FROM SBA132 A
+        WHERE 1=1
+          AND A.UNITY_BBSCTT_ESNTAL_NO  = #{UNITY_BBSCTT_ESNTAL_NO}
+        ]]>
+	</select>
+
+	<insert id="insertItgBrdCmnList" parameterType="HashMap"
+		useGeneratedKeys="true" keyProperty="UNITY_BBSCTT_ESNTAL_NO">
+
+		<selectKey resultType="String"
+			keyProperty="UNITY_BBSCTT_ESNTAL_NO" order="BEFORE">
+			<![CDATA[
+			  SELECT SBA130_SQ01.NEXTVAL AS UNITY_BBSCTT_ESNTAL_NO
+                FROM DUAL
+			]]>
+		</selectKey>
+
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.insertItgBrdCmnList 공통팀 유민상
+		*/
+		INSERT INTO SBA130(
+		UNITY_BBSCTT_ESNTAL_NO
+		, UNITY_BBSCTT_TYPE_SE_CD
+		, UNITY_BBSCTT_TYPE_SN
+		, UNITY_BBSCTT_CTGRYB_SE_CD
+        <if test="CD_PRVSON_ETC_NM != null and CD_PRVSON_ETC_NM != ''">
+            , CD_PRVSON_ETC_NM
+        </if>
+		, OGDP_INST_NO
+		, OGDP_DEPT_CD
+		, IMPRTN_NTC_YN
+		, PSTG_BGNG_YMD
+		, PSTG_END_YMD
+		, UNITY_BBSCTT_TTL_NM
+		<if test="UNITY_BBSCTT_CN != null and UNITY_BBSCTT_CN != ''">
+			, UNITY_BBSCTT_CN
+		</if>
+		<if test="ATFINO != null and ATFINO != ''">
+			, ATFINO
+		</if>
+		<if test="CTTPC_ENCPT != null and CTTPC_ENCPT != ''">
+			, CTTPC_ENCPT
+		</if>
+		<if test="RLS_YN != null and RLS_YN != ''">
+			, RLS_YN
+		</if>
+		<if test="CLLR_REG_YN != null and CLLR_REG_YN != ''">
+            , CLLR_REG_YN
+        </if>
+        <if test="ACTVT_NOCS != null and ACTVT_NOCS != ''">
+            , ACTVT_NOCS
+        </if>
+		, RDCNT_NOCS
+		, CNTN_IP_ADDR
+		, DEL_YN
+		, FRST_RGTR_ID
+		, FRST_REG_DT
+		, LAST_MDFR_ID
+		, LAST_MDFCN_DT
+		)VALUES(
+		#{UNITY_BBSCTT_ESNTAL_NO}
+		, #{UNITY_BBSCTT_TYPE_SE_CD}
+		, (SELECT NVL(MAX(UNITY_BBSCTT_TYPE_SN), 0) +1 AS UNITY_BBSCTT_TYPE_SN
+		FROM SBA130 WHERE UNITY_BBSCTT_TYPE_SE_CD =
+		#{UNITY_BBSCTT_TYPE_SE_CD})
+		, #{UNITY_BBSCTT_CTGRYB_SE_CD}
+        <if test="CD_PRVSON_ETC_NM != null and CD_PRVSON_ETC_NM != ''">
+            , #{CD_PRVSON_ETC_NM}
+        </if>
+		, #{OGDP_INST_NO}
+		, #{OGDP_DEPT_CD}
+		, #{IMPRTN_NTC_YN}
+		, #{PSTG_BGNG_YMD}
+		, #{PSTG_END_YMD}
+		, #{UNITY_BBSCTT_TTL_NM}
+		<if test="UNITY_BBSCTT_CN != null and UNITY_BBSCTT_CN != ''">
+			, #{UNITY_BBSCTT_CN}
+		</if>
+		<if test="ATFINO != null and ATFINO != ''">
+			, #{ATFINO}
+		</if>
+		<if test="CTTPC_ENCPT != null and CTTPC_ENCPT != ''">
+			, ENC_B64(#{CTTPC_ENCPT})
+		</if>
+		<if test="RLS_YN != null and RLS_YN != ''">
+			, #{RLS_YN}
+		</if>
+		<if test="CLLR_REG_YN != null and CLLR_REG_YN != ''">
+            , #{CLLR_REG_YN}
+        </if>
+        <if test="ACTVT_NOCS != null and ACTVT_NOCS != ''">
+            , #{ACTVT_NOCS}
+        </if>
+		, #{RDCNT_NOCS}
+		, #{CNTN_IP_ADDR}
+		, 'N'
+		, #{FRST_RGTR_ID}
+		, SYSDATE
+		, #{LAST_MDFR_ID}
+		, SYSDATE
+		)
+	</insert>
+
+	<update id="updateRdcntItgBrdDtlList" parameterType="HashMap">
+        <![CDATA[
+        /*  isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.updateRdcntItgBrdDtlList 공통팀 유민상 */
+        UPDATE SBA130 SET
+
+            RDCNT_NOCS = NVL(TO_NUMBER(RDCNT_NOCS), 0) +1
+
+        WHERE 1=1
+        AND UNITY_BBSCTT_ESNTAL_NO = #{UNITY_BBSCTT_ESNTAL_NO}
+        ]]>
+	</update>
+
+	<update id="updateItgBrdCmnList" parameterType="HashMap">
+
+		/* isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.updateItgBrdCmnList 공통팀
+		유민상 */
+		UPDATE SBA130 SET
+		LAST_MDFCN_DT = SYSDATE
+		, LAST_MDFR_ID = #{LAST_MDFR_ID}
+		<if
+			test="UNITY_BBSCTT_CTGRYB_SE_CD != null and UNITY_BBSCTT_CTGRYB_SE_CD != ''">
+			, UNITY_BBSCTT_CTGRYB_SE_CD = #{UNITY_BBSCTT_CTGRYB_SE_CD}
+		</if>
+        <if test="CD_PRVSON_ETC_NM != null and CD_PRVSON_ETC_NM != ''">
+            , CD_PRVSON_ETC_NM = #{CD_PRVSON_ETC_NM}
+        </if>
+		<if test="IMPRTN_NTC_YN != null and IMPRTN_NTC_YN != ''">
+			, IMPRTN_NTC_YN = #{IMPRTN_NTC_YN}
+		</if>
+		<if test="PSTG_BGNG_YMD != null and PSTG_BGNG_YMD != ''">
+			, PSTG_BGNG_YMD = #{PSTG_BGNG_YMD}
+		</if>
+		<if test="PSTG_END_YMD != null and PSTG_END_YMD != ''">
+			, PSTG_END_YMD = #{PSTG_END_YMD}
+		</if>
+		<if
+			test="UNITY_BBSCTT_TTL_NM != null and UNITY_BBSCTT_TTL_NM != ''">
+			, UNITY_BBSCTT_TTL_NM = #{UNITY_BBSCTT_TTL_NM}
+		</if>
+		<if test="UNITY_BBSCTT_CN != null and UNITY_BBSCTT_CN != ''">
+			, UNITY_BBSCTT_CN = #{UNITY_BBSCTT_CN}
+		</if>
+		<if test="ATFINO != null and ATFINO != ''">
+			, ATFINO = #{ATFINO}
+		</if>
+		<if test="CTTPC_ENCPT != null and CTTPC_ENCPT != ''">
+			, CTTPC_ENCPT = ENC_B64(#{CTTPC_ENCPT})
+		</if>
+		<if test="RLS_YN != null and RLS_YN != ''">
+			, RLS_YN = #{RLS_YN}
+		</if>
+		<if test="CLLR_REG_YN != null and CLLR_REG_YN != ''">
+            , CLLR_REG_YN = #{CLLR_REG_YN}
+        </if>
+        <if test="ACTVT_NOCS != null and ACTVT_NOCS != ''">
+            , ACTVT_NOCS = #{ACTVT_NOCS}
+        </if>
+		WHERE 1=1
+		AND UNITY_BBSCTT_ESNTAL_NO =
+		#{UNITY_BBSCTT_ESNTAL_NO__origin}
+	</update>
+
+	<update id="deleteItgBrdCmnList" parameterType="HashMap">
+
+		/*
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.deleteItgBrdCmnList 공통팀 유민상
+		*/
+		UPDATE SBA130 SET
+		DEL_YN = 'Y'
+		, LAST_MDFCN_DT = SYSDATE
+		, LAST_MDFR_ID = #{LAST_MDFR_ID}
+		WHERE 1=1
+		AND UNITY_BBSCTT_ESNTAL_NO =
+		#{UNITY_BBSCTT_ESNTAL_NO__origin}
+	</update>
+
+	<insert id="insertItgBrdCmnTaskSysSeCdList"
+		parameterType="HashMap">
+
+		/* 공통팀 유민상
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.insertItgBrdCmnTaskSysSeCdList
+		공통팀 유민상 */
+		INSERT INTO SBA132(
+		UNITY_BBSCTT_ESNTAL_NO
+		, UNT_TASKWK_SE_CD
+		, FRST_RGTR_ID
+		, FRST_REG_DT
+		, LAST_MDFR_ID
+		, LAST_MDFCN_DT
+		)VALUES(
+		#{UNITY_BBSCTT_ESNTAL_NO}
+		, #{UNT_TASKWK_SE_CD}
+		, #{FRST_RGTR_ID}
+		, SYSDATE
+		, #{LAST_MDFR_ID}
+		, SYSDATE
+		)
+	</insert>
+
+	<delete id="deleteItgBrdCmnTaskSysSeCdList"
+		parameterType="HashMap">
+
+		/*
+		isry.itgcms.itgBrd.mapper.itgBrdCmnMapper.deleteItgBrdCmnTaskSysSeCdList
+		공통팀 유민상 */
+		DELETE FROM SBA132
+		WHERE 1=1
+		AND UNITY_BBSCTT_ESNTAL_NO = #{UNITY_BBSCTT_ESNTAL_NO}
+	</delete>
+</mapper>

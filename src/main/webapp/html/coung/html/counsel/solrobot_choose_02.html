@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="사이버1388, 사이버 상담, 1388, 청소년 상담, 사이버 상담, 웹 심리검사, 온라인 부모교육, 게시판 상담, 고민 상담">
+	<meta name="author" content="KYCI">
+
+	<title>사이버1388 청소년상담센터</title>
+
+	<link rel="stylesheet" href="../../css/xeicon.min.css">
+	<link rel="stylesheet" href="../../css/common.css">
+	<link rel="stylesheet" href="../../css/style.css">
+
+	<script type="text/javascript" src="../../js/jquery/jquery-3.5.1.min.js"></script>
+	<script type="text/javascript" src="../../js/common.js"></script>
+	<script type="text/javascript" src="../../js/depth.js"></script>
+
+	<script>
+		$(function(){
+			$("#l-lnb").load("../../inc/inc_lnb.html", function(){depthLnb(3,1);});
+			$("#l-title").load("../../inc/inc_title.html", function(){
+				depthTitle(3,1);
+				extraTitle("bold","취업할 나이가 되었는데, 무슨일을 하고 살지 못 정하겠어요.");
+			});
+		});
+	</script>
+</head>
+<body>
+<div class="wrap">
+
+	<!-- Skip to content-->
+	<div id="skip">
+		<!-- /inc/inc_skip.html -->
+	</div>
+	<!--// Skip to content -->
+
+	<!-- header -->
+	<header id="l-header">
+		<!-- /inc/inc_header.html -->
+	</header>
+	<!--// header -->
+
+	<!-- l-container -->
+	<div id="l-container">
+		<div class="l-container--inner">
+
+			<div id="l-lnb">
+				<!-- /inc/inc_lnb.html -->
+			</div>
+			<!-- //lnb -->
+
+			<div id="l-contents">
+
+				<div id="l-title">
+					<!-- /inc/inc_title.html -->
+
+				</div>
+				<!-- //l-title -->
+
+				<div class="l-contents">
+
+					<div class="c-title__sub">
+						<h4 class="title__sub">캐릭터 설정</h4>
+					</div>
+					<!-- //c-title__sub -->
+
+					<ul class="c-list__char-list">
+						<li><label><input type="radio" name="char-choose" checked><span><img src="../../images/contents/solrobot/intro_t/univ_charac_f1.png" alt=""></span></label></li>
+						<li><label><input type="radio" name="char-choose"><span><img src="../../images/contents/solrobot/intro_t/univ_charac_f2.png" alt=""></span></label></li>
+						<li><label><input type="radio" name="char-choose"><span><img src="../../images/contents/solrobot/intro_t/univ_charac_m1.png" alt=""></span></label></li>
+						<li><label><input type="radio" name="char-choose"><span><img src="../../images/contents/solrobot/intro_t/univ_charac_m2.png" alt=""></span></label></li>
+					</ul>
+					<!-- //c-title__sub -->
+
+					<div class="c-board__write-02">
+
+						<div class="form__group">
+							<div class="form__tr">
+								<div class="form__th"><label for="form-name">닉네임</label></div>
+								<div class="form__td"><input type="text" id="form-name" class="txt w-300" placeholder="닉네임을 입력해주세요."></div>
+							</div>
+							<!-- //form__tr -->
+						</div>
+						<!-- //form__group -->
+
+						<div class="form__group">
+							<div class="form__tr">
+								<div class="form__th"><label for="form-number">숫자 4자리</label></div>
+								<div class="form__td">
+									<input type="text" id="form-number" class="txt w-300" placeholder="숫자 4자리">
+									<span class="txt__desc">* 핸드폰 뒷자리 4자리 등 외우기 쉬운번호로 입력해주세요.</span>
+								</div>
+							</div>
+							<!-- //form__tr -->
+						</div>
+						<!-- //form__group -->
+
+						<div class="form__group">
+							<div class="form__tr">
+								<div class="form__th"><label for="form-password">비밀번호</label></div>
+								<div class="form__td">
+									<input type="text" id="form-password" class="txt w-300" placeholder="비밀번호를 입력해주세요.">
+									<span class="txt__desc">* 영문, 숫자, 특수기호 !@#$%^&* 사용가능</span>
+								</div>
+							</div>
+							<!-- //form__tr -->
+						</div>
+						<!-- //form__group -->
+
+						<div class="c-btns__txt">
+							<p class="color--blue">※ 닉네임, 숫자4자리, 비밀번호는 솔로봇상담 후 상담선생님의 답글을 확인하실 때 사용됩니다. 반드시 기억해주세요!</p>
+							<p class="align-right">
+								<button type="button" class="c-btn__small btn--nor bdr-4"><strong>중복확인</strong></button>
+							</p>
+							<!-- //align-right -->
+						</div>
+						<!-- //c-btns__txt -->
+
+						<div class="form__group form__flex row-2">
+							<div class="form__tr">
+								<div class="form__th"><label for="form-age">나이</label></div>
+								<div class="form__td"><input type="text" id="form-age" class="txt w-300" placeholder="닉네임을 입력해주세요."></div>
+							</div>
+							<!-- //form__tr -->
+							<div class="form__tr">
+								<div class="form__th"><label for="form-state">청소년 상태</label></div>
+								<div class="form__td">
+									<div class="c-set__radio--txt">
+										<label><input type="radio" id="form-state" name="form-state"><span>재학생</span></label>
+										<label><input type="radio" id="form-state-02" name="form-state"><span>학교밖</span></label>
+									</div>
+									<!-- //c-set__radio--txt -->
+								</div>
+							</div>
+							<!-- //form__tr -->
+						</div>
+						<!-- //form__group -->
+
+						<div class="form__group">
+							<div class="form__tr">
+								<div class="form__th"><label for="form-sms">답변 알림 <br>문자서비스</label></div>
+								<div class="form__td w-same colspan">
+									<div class="c-set__radio--txt">
+										<label><input type="radio" id="form-sms" name="form-sms"><span>재학생</span></label>
+										<label><input type="radio" id="form-sms-02" name="form-sms"><span>학교밖</span></label>
+									</div>
+								</div>
+								<!-- //form__td -->
+								<div class="form__td td-2nd">
+									<input type="text" id="form-sms-03" class="txt w-300" placeholder="핸드폰번호">
+									<!-- //c-set__radio--txt -->
+								</div>
+								<!-- //form__td -->
+							</div>
+							<!-- //form__tr -->
+						</div>
+						<!-- //form__group -->
+
+						<div class="c-btns__txt">
+							<p class="color--blue">※ 이야기 도중 설정값을 바꾸시려면 그림위 설정변경 버튼을 눌러주세요.</p>
+							<p class="align-right">
+								<button type="button" class="c-btn__small btn--bd-bk bdr-4"><strong>다음</strong></button>							</p>
+							<!-- //align-right -->
+
+						</div>
+						<!-- //c-btns__txt -->
+
+					</div>
+					<!-- //c-board__write-02 -->
+
+				</div>
+				<!-- //l-contents -->
+
+			</div>
+			<!-- //contents -->
+
+		</div>
+		<!-- //l-container--inner -->
+	</div>
+	<!-- //l-container -->
+
+	<!-- footer -->
+	<footer id="footer">
+		<!-- /inc/inc_footer.html -->
+	</footer>
+	<!-- //footer -->
+
+</div>
+<!-- //wrap -->
+</body>
+</html>

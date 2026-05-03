@@ -1,0 +1,1100 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : DscsnOutrcMapper.xml
+* @Description : 아웃리치정보 SQL Mapper
+*
+* @author  : Seo.Hae.Seok
+* @since   : 2022. 05. 23.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 05. 23.  Seo.Hae.Seok    최초작성
+* (@ TODO : 암복호화 해서 가져와야 함)
+* </pre>
+-->
+<mapper namespace="isry.itgcm.casemng.uneart.mapper.DscsnOutrcMapper">
+
+    <!-- 발굴(아웃리치) 상세조회 -->
+    <select id="selectDscsnOutrcDetail" parameterType="HashMap" resultType="HashMap">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcDetail(아웃리치상세조회) */
+            V_GR_DSCSN_MAP AS (
+            SELECT /* 아웃리치(집단상담) 내역 */
+                   T21.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T21.UNT_TASKWK_SE_CD             AS UNT_TASKWK_SE_CD             -- 단위업무구분코드
+                 , T21.CONSTT_NO                    AS CONSTT_NO                    -- 상담자번호
+                 , (  SELECT X.FLNM_ENCPT FROM SCA100 X WHERE X.ENFSN_NO = T21.CONSTT_NO )           AS CONSTT_NM_ENCPT          -- 상담자명
+                 , T21.DSCSN_YMD                    AS DSCSN_YMD                    -- 상담일자
+                 , T21.DSCSN_BGNG_HR                AS DSCSN_BGNG_HR                -- 상담시작시간
+                 , T21.DSCSN_END_HR                 AS DSCSN_END_HR                 -- 상담종료시간
+                 , T21.UNEART_ACTVT_MTHD_SE_CD      AS UNEART_ACTVT_MTHD_SE_CD      -- 발굴활동방법구분코드
+                 , T21.UNEART_ACTVT_SE_ETC_CN       AS UNEART_ACTVT_SE_ETC_CN       -- 발굴활동구분기타내용
+                 , T21.ACTVT_TRGT_RGN_SGG_CD        AS ACTVT_TRGT_RGN_SGG_CD        -- 활동대상지역시군구코드
+                 , ( SELECT X.CTPV_NM || ' ' || X.SGG_NM
+                       FROM SAA020 X  /* 시군구코드 */
+                      WHERE X.SGG_CD = T21.ACTVT_TRGT_RGN_SGG_CD )        AS ACTVT_TRGT_RGN_SGG_NM        -- 활동대상지역시군구명
+                 , T21.ACTVT_TRGT_RGN_DTL_PLACE_NM  AS ACTVT_TRGT_RGN_DTL_PLACE_NM  -- 활동대상지역상세장소명
+                 , T21.ERYY_DSCSN_MALE_NOPE         AS ERYY_DSCSN_MALE_NOPE         -- 초기상담남성인원수
+                 , T21.ERYY_DSCSN_FEMALE_NOPE       AS ERYY_DSCSN_FEMALE_NOPE       -- 초기상담여성인원수
+                 , T21.DSCSN_TTL_NM                 AS DSCSN_TTL_NM                 -- 상담제목명
+                 , T21.DSCSN_CN                     AS DSCSN_CN                     -- 상담내용
+                 , T21.RGTR_INST_NO                 AS RGTR_INST_NO                 -- 등록자기관번호
+                 , ( SELECT X.INST_NM FROM SAA000 X WHERE X.INST_NO = T21.RGTR_INST_NO )    AS RGTR_INST_NM     -- 등록자기관명
+                 , (
+                      SELECT T31.TRPR_INFO_NO AS TRPR_INFO_NO
+                        FROM SEA130 T31 /* 집단상담후조치 */
+                       WHERE T31.ERYY_GR_DSCSN_NO = T21.ERYY_GR_DSCSN_NO
+                         AND T31.DEL_YN           = 'N'
+                         AND ROWNUM               = 1
+                   )                                AS TRPR_INFO_NO                 -- 대상자정보번호(TR)
+                 , T21.FRST_RGTR_ID                 AS FRST_RGTR_ID                 -- 최초등록자아이디
+                 , T21.FRST_REG_DT                  AS FRST_REG_DT                  -- 최초등록일시
+                 , T21.LAST_MDFR_ID                 AS LAST_MDFR_ID                 -- 최종수정자아이디
+                 , T21.LAST_MDFCN_DT                AS LAST_MDFCN_DT                -- 최종수정일시
+              FROM SEA120 T21 /* 초기집단상담 */
+             WHERE 1 = 1
+               AND T21.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+        )
+            SELECT T11.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T11.UNT_TASKWK_SE_CD             AS UNT_TASKWK_SE_CD             -- 단위업무구분코드
+                 , T11.CONSTT_NO                    AS CONSTT_NO                    -- 상담자번호
+                 , C##RG.DEC_B64(T11.CONSTT_NM_ENCPT)  AS CONSTT_NM                    -- 상담자명
+                 , T11.DSCSN_YMD                    AS DSCSN_YMD                    -- 상담일자
+                 , T11.DSCSN_BGNG_HR                AS DSCSN_BGNG_HR                -- 상담시작시간
+                 , T11.DSCSN_END_HR                 AS DSCSN_END_HR                 -- 상담종료시간
+                 , T11.UNEART_ACTVT_MTHD_SE_CD      AS UNEART_ACTVT_MTHD_SE_CD      -- 발굴활동방법구분코드
+                 , T11.UNEART_ACTVT_SE_ETC_CN       AS UNEART_ACTVT_SE_ETC_CN       -- 발굴활동구분기타내용
+                 , T11.ACTVT_TRGT_RGN_SGG_CD        AS ACTVT_TRGT_RGN_SGG_CD        -- 활동대상지역시군구코드
+                 , T11.ACTVT_TRGT_RGN_SGG_NM        AS ACTVT_TRGT_RGN_SGG_NM        -- 활동대상지역시군구명
+                 , T11.ACTVT_TRGT_RGN_DTL_PLACE_NM  AS ACTVT_TRGT_RGN_DTL_PLACE_NM  -- 활동대상지역상세장소명
+                 , T11.ERYY_DSCSN_MALE_NOPE         AS ERYY_DSCSN_MALE_NOPE         -- 초기상담남성인원수
+                 , T11.ERYY_DSCSN_FEMALE_NOPE       AS ERYY_DSCSN_FEMALE_NOPE       -- 초기상담여성인원수
+                 , T11.ERYY_DSCSN_MALE_NOPE + T11.ERYY_DSCSN_FEMALE_NOPE  AS SUM_NOPE_CNT   -- 소계(인원수)
+                 , T11.DSCSN_TTL_NM                 AS DSCSN_TTL_NM                 -- 상담제목명
+                 , T11.DSCSN_CN                     AS DSCSN_CN                     -- 상담내용
+                 , T11.RGTR_INST_NO                 AS RGTR_INST_NO                 -- 등록자기관번호
+                 , T11.RGTR_INST_NM                 AS RGTR_INST_NM                 -- 등록자기관명
+                 , T11.TRPR_INFO_NO                 AS TRPR_INFO_NO                 -- 대상자정보번호(TR)
+                 , T11.FRST_RGTR_ID                 AS FRST_RGTR_ID                 -- 최초등록자아이디
+                 , T11.FRST_REG_DT                  AS FRST_REG_DT                  -- 최초등록일시
+                 , T11.LAST_MDFR_ID                 AS LAST_MDFR_ID                 -- 최종수정자아이디
+                 , T11.LAST_MDFCN_DT                AS LAST_MDFCN_DT                -- 최종수정일시
+              FROM V_GR_DSCSN_MAP T11 /* 초기집단상담내역 */
+                 , SEA200         T12 /* 대상자정보 */
+             WHERE 1 = 1
+               AND T11.TRPR_INFO_NO = T12.TRPR_INFO_NO(+)
+    </select>
+    
+    <!-- 발굴(아웃리치) 연합거리상담조회 -->
+    <select id="selectDscsnOutrcUniteList" parameterType="HashMap" resultType="HashMap">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcUniteList(연합거리상담조회) */
+            V_ACTVT_LIST AS (
+            SELECT /* 발굴활동구분 내역 */
+                   T21.CMMNS_CD_VALUE               AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드     
+                 , T21.CMMNS_CD_VALUE_NM            AS UNEART_ACTVT_SE_NM           -- 발굴활동구분명
+                 , T21.UP_CMMNS_CD_VALUE            AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드     
+                 , T21.SRTNG_SQNCE                  AS SRTNG_SQNCE                  -- 정렬순서
+              FROM SAC100 T21 /* 공통코드 값 */
+             WHERE 1 = 1
+               AND T21.CMMNS_CD_ID       = 'UNEART_ACTVT_SE_CD'
+               AND T21.UP_CMMNS_CD_VALUE = '1'
+               AND T21.USE_YN            = 'Y'
+          ORDER BY T21.SRTNG_SQNCE
+        ) , V_UNITE_LIST AS (
+            SELECT /* 연합거리상담 내역 */
+                   T21.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T21.UNEART_ACTVT_SE_CD           AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드
+                 , T21.UNEART_ACTVT_CL_SE_CD        AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드
+                 , T21.UNEART_ACTVT_PIC_CNT         AS UNEART_ACTVT_PIC_CNT         -- 발굴활동담당자수
+              FROM SEA140 T21  /* 초기집단상담담당자 */
+             WHERE 1 = 1
+               AND T21.DEL_YN                = 'N'
+               AND T21.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+               AND T21.UNEART_ACTVT_CL_SE_CD = '1'                   -- 발굴활동분류구분코드(1:연합거리상담, 2:쉼터자체활동)
+        )
+            SELECT T11.UNEART_ACTVT_SE_CD           AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드
+                 , T11.UNEART_ACTVT_SE_NM           AS UNEART_ACTVT_SE_NM           -- 발굴활동구분명
+                 , NVL(T12.UNEART_ACTVT_PIC_CNT,0)  AS UNEART_ACTVT_PIC_CNT         -- 발굴활동담당자수
+                 , T11.UNEART_ACTVT_CL_SE_CD        AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드
+                 , T12.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+              FROM V_ACTVT_LIST T11  /* 발굴활동구분 내역 */
+                 , V_UNITE_LIST T12  /* 연합거리상담 내역 */
+             WHERE 1 = 1
+               AND T11.UNEART_ACTVT_SE_CD    = T12.UNEART_ACTVT_SE_CD
+          ORDER BY T11.SRTNG_SQNCE
+    </select>
+
+    <!-- 발굴(아웃리치) 쉼터자체활동조회 -->
+    <select id="selectDscsnOutrcSheltrList" parameterType="HashMap" resultType="HashMap">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcSheltrList(쉼터자체활동조회) */
+            V_ACTVT_LIST AS (
+            SELECT /* 발굴활동구분 내역 */
+                   T21.CMMNS_CD_VALUE               AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드     
+                 , T21.CMMNS_CD_VALUE_NM            AS UNEART_ACTVT_SE_NM           -- 발굴활동구분명
+                 , T21.UP_CMMNS_CD_VALUE            AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드     
+                 , T21.SRTNG_SQNCE                  AS SRTNG_SQNCE                  -- 정렬순서
+              FROM SAC100 T21 /* 공통코드 값 */
+             WHERE 1 = 1
+               AND T21.CMMNS_CD_ID       = 'UNEART_ACTVT_SE_CD'
+               AND T21.UP_CMMNS_CD_VALUE = '2'
+               AND T21.USE_YN            = 'Y'
+          ORDER BY T21.SRTNG_SQNCE
+        ) , V_SHELTR_LIST AS (
+            SELECT /* 쉼터자체활동 내역 */
+                   T21.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T21.UNEART_ACTVT_SE_CD           AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드
+                 , T21.UNEART_ACTVT_CL_SE_CD        AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드
+                 , T21.UNEART_ACTVT_PIC_CNT         AS UNEART_ACTVT_PIC_CNT         -- 발굴활동담당자수
+              FROM SEA140 T21  /* 초기집단상담담당자 */
+             WHERE 1 = 1
+               AND T21.DEL_YN                = 'N'
+               AND T21.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+               AND T21.UNEART_ACTVT_CL_SE_CD = '2'                   -- 발굴활동분류구분코드(1:연합거리상담, 2:쉼터자체활동)
+        )
+            SELECT T11.UNEART_ACTVT_SE_CD           AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드
+                 , T11.UNEART_ACTVT_SE_NM           AS UNEART_ACTVT_SE_NM           -- 발굴활동구분명
+                 , NVL(T12.UNEART_ACTVT_PIC_CNT,0)  AS UNEART_ACTVT_PIC_CNT         -- 발굴활동담당자수
+                 , T11.UNEART_ACTVT_CL_SE_CD        AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드
+                 , T12.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+              FROM V_ACTVT_LIST T11   /* 발굴활동구분 내역 */
+                 , V_SHELTR_LIST T12  /* 쉼터자체활동 내역 */
+             WHERE 1 = 1
+               AND T11.UNEART_ACTVT_SE_CD    = T12.UNEART_ACTVT_SE_CD
+          ORDER BY T11.SRTNG_SQNCE
+    </select>
+    
+    <!-- 아웃리치 활동구분 저장데이터로 조회 변환 -->
+    <select id="selectUneartActvtSeCd" parameterType="HashMap" resultType="HashMap">
+        WITH V_UNEART_ACTVT_LIST1 AS (
+            SELECT /* 연합거리상담 내역*/
+                   T21.CMMNS_CD_VALUE               AS UNEART_ACTVT_SE_CD              -- 발굴활동구분     
+                 , T21.CMMNS_CD_VALUE_NM            AS UNEART_ACTVT_SE_NM              -- 발굴활동구분명
+                 , CASE WHEN T21.CMMNS_CD_VALUE = '101' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT1}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '102' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT2}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '103' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT3}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '104' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT4}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '105' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT5}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '106' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT6}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '107' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT7}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '108' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT8}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '109' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT9}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '199' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT10}),0) 
+                        ELSE 0
+                    END AS UNEART_ACTVT_PIC_CNT
+                 , T21.SRTNG_SQNCE                  AS SRTNG_SQNCE                     -- 정렬순서
+                 , '1'                              AS UNEART_ACTVT_CL_SE_CD           -- 발굴활동분류구분코드
+                 , #{TYPE}                          AS TYPE
+              FROM SAC100 T21 /* 공통코드 값 */
+             WHERE 1 = 1
+               AND T21.CMMNS_CD_ID       = 'UNEART_ACTVT_SE_CD'
+               AND T21.CMMNS_CD_VALUE IN ('101','102','103','104','105','106','107','108','109','199')
+               AND T21.UP_CMMNS_CD_VALUE = #{UNEART_ACTVT_CL_SE_CD}
+               AND T21.USE_YN            = 'Y'
+            ), V_UNEART_ACTVT_LIST2 AS (
+            SELECT /* 쉼터자체활동 내역 */
+                   T21.CMMNS_CD_VALUE               AS UNEART_ACTVT_SE_CD              -- 발굴활동구분     
+                 , T21.CMMNS_CD_VALUE_NM            AS UNEART_ACTVT_SE_NM              -- 발굴활동구분명
+                 , CASE WHEN T21.CMMNS_CD_VALUE = '201' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT11}),0) 
+                        WHEN T21.CMMNS_CD_VALUE = '202' THEN NVL(TO_NUMBER(#{UNEART_ACTVT_PIC_CNT12}),0) 
+                        ELSE 0
+                    END AS UNEART_ACTVT_PIC_CNT
+                 , T21.SRTNG_SQNCE                  AS SRTNG_SQNCE                     -- 정렬순서
+                 , '2'                              AS UNEART_ACTVT_CL_SE_CD           -- 발굴활동분류구분코드
+                 , #{TYPE}                          AS TYPE
+              FROM SAC100 T21 /* 공통코드 값 */
+             WHERE 1 = 1
+               AND T21.CMMNS_CD_ID       = 'UNEART_ACTVT_SE_CD'
+               AND T21.UP_CMMNS_CD_VALUE = #{UNEART_ACTVT_CL_SE_CD}
+               AND T21.CMMNS_CD_VALUE IN ('201','202')
+               AND T21.USE_YN            = 'Y'          
+            ), V_UNEART_ACTVT_LIST AS (
+                SELECT T21.* FROM V_UNEART_ACTVT_LIST1 T21 
+                 WHERE T21.UNEART_ACTVT_CL_SE_CD = #{UNEART_ACTVT_CL_SE_CD}
+                 UNION ALL
+                SELECT T21.* FROM V_UNEART_ACTVT_LIST2 T21 
+                 WHERE T21.UNEART_ACTVT_CL_SE_CD = #{UNEART_ACTVT_CL_SE_CD}               
+            )
+                SELECT T.UNEART_ACTVT_SE_CD     AS UNEART_ACTVT_SE_CD       /* 발굴활동구분*/
+                     , T.UNEART_ACTVT_SE_NM     AS UNEART_ACTVT_SE_NM       /* 발굴활동구분명*/
+                     , T.UNEART_ACTVT_PIC_CNT   AS UNEART_ACTVT_PIC_CNT     /* 발굴활동담당자수*/
+                     , T.SRTNG_SQNCE            AS SRTNG_SQNCE              /* 정렬순서*/
+                     , T.UNEART_ACTVT_CL_SE_CD  AS UNEART_ACTVT_CL_SE_CD    /* 발굴활동분류구분코드*/
+                     , T.TYPE                   AS TYPE                     /* 상태*/
+                  FROM V_UNEART_ACTVT_LIST T    
+    </select>
+    
+    <!-- 발굴(아웃리치) 연합거리상담조회/쉼터자체활동 내역 -->
+    <select id="selectUneartActbtClList" parameterType="HashMap" resultType="HashMap">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectUneartActbtClList(연합거리상담조회) */
+            V_ACTVT_LIST1 AS (
+            SELECT /* 발굴활동구분 내역 */
+                   T21.CMMNS_CD_VALUE               AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드     
+                 , T21.CMMNS_CD_VALUE_NM            AS UNEART_ACTVT_SE_NM           -- 발굴활동구분명
+                 , T21.UP_CMMNS_CD_VALUE            AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드     
+                 , T21.SRTNG_SQNCE                  AS SRTNG_SQNCE                  -- 정렬순서
+              FROM SAC100 T21 /* 공통코드 값 */
+             WHERE 1 = 1
+               AND T21.CMMNS_CD_ID       = 'UNEART_ACTVT_SE_CD'
+               AND T21.UP_CMMNS_CD_VALUE = '1'
+               AND T21.USE_YN            = 'Y'
+          ORDER BY T21.SRTNG_SQNCE
+        ) , V_UNITE_LIST1 AS (
+            SELECT /* 연합거리상담 내역 */
+                   T21.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T21.UNEART_ACTVT_SE_CD           AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드
+                 , T21.UNEART_ACTVT_CL_SE_CD        AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드
+                 , T21.UNEART_ACTVT_PIC_CNT         AS UNEART_ACTVT_PIC_CNT         -- 발굴활동담당자수
+                 , T21.DEL_YN                       AS DEL_YN                                
+              FROM SEA140 T21  /* 초기집단상담담당자 */
+             WHERE 1 = 1
+               AND T21.DEL_YN                = 'N'
+               AND T21.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+               AND T21.UNEART_ACTVT_CL_SE_CD = '1'                   -- 발굴활동분류구분코드(1:연합거리상담, 2:쉼터자체활동)
+        ) , V_LIST1 AS (
+            SELECT T11.UNEART_ACTVT_SE_CD           AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드
+                 , T11.UNEART_ACTVT_SE_NM           AS UNEART_ACTVT_SE_NM           -- 발굴활동구분명
+                 , NVL(T12.UNEART_ACTVT_PIC_CNT,0)  AS UNEART_ACTVT_PIC_CNT         -- 발굴활동담당자수
+                 , T11.UNEART_ACTVT_CL_SE_CD        AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드
+                 , T12.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T12.DEL_YN                       AS DEL_YN                
+              FROM V_ACTVT_LIST1 T11  /* 발굴활동구분 내역 */
+                 , V_UNITE_LIST1 T12  /* 연합거리상담 내역 */
+             WHERE 1 = 1
+               AND T11.UNEART_ACTVT_SE_CD    = T12.UNEART_ACTVT_SE_CD
+          ORDER BY T11.SRTNG_SQNCE
+        ) , V_ACTVT_LIST2 AS (
+            SELECT /* 발굴활동구분 내역 */
+                   T21.CMMNS_CD_VALUE               AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드     
+                 , T21.CMMNS_CD_VALUE_NM            AS UNEART_ACTVT_SE_NM           -- 발굴활동구분명
+                 , T21.UP_CMMNS_CD_VALUE            AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드     
+                 , T21.SRTNG_SQNCE                  AS SRTNG_SQNCE                  -- 정렬순서
+              FROM SAC100 T21 /* 공통코드 값 */
+             WHERE 1 = 1
+               AND T21.CMMNS_CD_ID       = 'UNEART_ACTVT_SE_CD'
+               AND T21.UP_CMMNS_CD_VALUE = '2'
+               AND T21.USE_YN            = 'Y'
+          ORDER BY T21.SRTNG_SQNCE
+        ) , V_SHELTR_LIST2 AS (
+            SELECT /* 쉼터자체활동 내역 */
+                   T21.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T21.UNEART_ACTVT_SE_CD           AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드
+                 , T21.UNEART_ACTVT_CL_SE_CD        AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드
+                 , T21.UNEART_ACTVT_PIC_CNT         AS UNEART_ACTVT_PIC_CNT         -- 발굴활동담당자수
+                 , T21.DEL_YN                       AS DEL_YN
+              FROM SEA140 T21  /* 초기집단상담담당자 */
+             WHERE 1 = 1
+               AND T21.DEL_YN                = 'N'
+               AND T21.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+               AND T21.UNEART_ACTVT_CL_SE_CD = '2'                   -- 발굴활동분류구분코드(1:연합거리상담, 2:쉼터자체활동)
+        ), V_LIST2 AS (
+            SELECT T11.UNEART_ACTVT_SE_CD           AS UNEART_ACTVT_SE_CD           -- 발굴활동구분코드
+                 , T11.UNEART_ACTVT_SE_NM           AS UNEART_ACTVT_SE_NM           -- 발굴활동구분명
+                 , NVL(T12.UNEART_ACTVT_PIC_CNT,0)  AS UNEART_ACTVT_PIC_CNT         -- 발굴활동담당자수
+                 , T11.UNEART_ACTVT_CL_SE_CD        AS UNEART_ACTVT_CL_SE_CD        -- 발굴활동분류구분코드
+                 , T12.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T12.DEL_YN                       AS DEL_YN
+              FROM V_ACTVT_LIST2 T11   /* 발굴활동구분 내역 */
+                 , V_SHELTR_LIST2 T12  /* 쉼터자체활동 내역 */
+             WHERE 1 = 1
+               AND T11.UNEART_ACTVT_SE_CD    = T12.UNEART_ACTVT_SE_CD
+          ORDER BY T11.SRTNG_SQNCE
+        ), V_LIST3 AS (
+            SELECT T.* 
+                 , (SELECT SUM(UNEART_ACTVT_PIC_CNT) FROM  V_LIST1 X WHERE X.UNEART_ACTVT_CL_SE_CD = '1') AS SUM_UNEART_ACTVT_PIC_CNT
+              FROM V_LIST1 T
+            UNION ALL
+            SELECT T.*
+                 ,(SELECT SUM(UNEART_ACTVT_PIC_CNT) FROM  V_LIST2 X WHERE X.UNEART_ACTVT_CL_SE_CD = '2') AS SUM_UNEART_ACTVT_PIC_CNT
+              FROM V_LIST2 T
+         ) 
+          SELECT *
+            FROM (
+            SELECT T.ERYY_GR_DSCSN_NO
+                 , T.UNEART_ACTVT_CL_SE_CD
+                 , T.UNEART_ACTVT_SE_CD
+                 , T.UNEART_ACTVT_PIC_CNT
+                 , T.SUM_UNEART_ACTVT_PIC_CNT
+              FROM V_LIST3 T
+            )
+            PIVOT (
+                SUM(UNEART_ACTVT_PIC_CNT)
+                FOR UNEART_ACTVT_SE_CD IN ('101','102','103','104','105','106','107','108','109','199','201','202')
+            )
+    </select>  
+      
+    
+    <!-- 발굴(아웃리치) 지원서비스실적 -->
+    <select id="selectDscsnOutrcPrfmncDetail" parameterType="HashMap" resultType="HashMap">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcPrfmncDetail(지원서비스실적) */
+            V_DSCSN_NOPE AS (
+            SELECT /* 접촉청소년수 */
+                   T21.ERYY_GR_DSCSN_NO                 AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , NVL(T21.ERYY_DSCSN_MALE_NOPE,0)      AS ERYY_DSCSN_MALE_NOPE         -- 남성인원수
+                 , NVL(T21.ERYY_DSCSN_FEMALE_NOPE,0)    AS ERYY_DSCSN_FEMALE_NOPE       -- 여성인원수
+                 , 0                                    AS HOUSEK_DSCSN_CNT             -- 가정밖청소년상담수
+                 , 0                                    AS ETC_DSCSN_CNT                -- 그외상담수
+                 , 0                                    AS NOPE_01_CNT                  -- 인원수(01:심리검사)
+                 , 0                                    AS NOPE_02_CNT                  -- 인원수(02:진료 및 치료지원)
+                 , 0                                    AS NOPE_03_CNT                  -- 인원수(03:의약품, 의약외품지원)
+                 , 0                                    AS NOPE_04_CNT                  -- 인원수(04:의복지원)
+                 , 0                                    AS NOPE_05_CNT                  -- 인원수(05:위생지원)
+                 , 0                                    AS NOPE_06_CNT                  -- 인원수(06:먹거리지원)
+                 , 0                                    AS NOPE_07_CNT                  -- 인원수(07:교통(이동지원))
+                 , 0                                    AS NOPE_08_CNT                  -- 인원수(08:휴식 및 놀이지원)
+                 , 0                                    AS NOPE_09_CNT                  -- 인원수(09:생활용품 지원)
+                 , 0                                    AS NOPE_10_CNT                  -- 인원수(10:홍보 및 정보제공)
+                 , 0                                    AS NOPE_99_CNT                  -- 인원수(99:기타)
+              FROM SEA120 T21 /* 초기집단상담 */
+             WHERE 1 = 1
+               AND T21.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+        ) , V_DSCSN_SPRT AS (
+            SELECT /* 거리상담 지원횟수 */
+                   T21.ERYY_GR_DSCSN_NO                 AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , 0                                    AS ERYY_DSCSN_MALE_NOPE         -- 남성인원수
+                 , 0                                    AS ERYY_DSCSN_FEMALE_NOPE       -- 여성인원수
+                 , COUNT(T21.ACTN_SN)                   AS HOUSEK_DSCSN_CNT             -- 가정밖청소년상담수
+                 , 0                                    AS ETC_DSCSN_CNT                -- 그외상담수
+                 , 0                                    AS NOPE_01_CNT                  -- 인원수(01:심리검사)
+                 , 0                                    AS NOPE_02_CNT                  -- 인원수(02:진료 및 치료지원)
+                 , 0                                    AS NOPE_03_CNT                  -- 인원수(03:의약품, 의약외품지원)
+                 , 0                                    AS NOPE_04_CNT                  -- 인원수(04:의복지원)
+                 , 0                                    AS NOPE_05_CNT                  -- 인원수(05:위생지원)
+                 , 0                                    AS NOPE_06_CNT                  -- 인원수(06:먹거리지원)
+                 , 0                                    AS NOPE_07_CNT                  -- 인원수(07:교통(이동지원))
+                 , 0                                    AS NOPE_08_CNT                  -- 인원수(08:휴식 및 놀이지원)
+                 , 0                                    AS NOPE_09_CNT                  -- 인원수(09:생활용품 지원)
+                 , 0                                    AS NOPE_10_CNT                  -- 인원수(10:홍보 및 정보제공)
+                 , 0                                    AS NOPE_99_CNT                  -- 인원수(99:기타)
+              FROM SEA130 T21 /* 집단상담후조치 */
+             WHERE 1 = 1
+               AND T21.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+               AND NVL(T21.DEL_YN,'N')  = 'N'
+          GROUP BY T21.ERYY_GR_DSCSN_NO
+        ) , V_DSCSN_SRVC AS (
+            SELECT /* 서비스 지원횟수 */
+                   T21.ERYY_GR_DSCSN_NO                 AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , 0                                    AS ERYY_DSCSN_MALE_NOPE         -- 남성인원수
+                 , 0                                    AS ERYY_DSCSN_FEMALE_NOPE       -- 여성인원수
+                 , 0                                    AS HOUSEK_DSCSN_CNT             -- 가정밖청소년상담수
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '98' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS ETC_DSCSN_CNT      -- 그외상담수
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '01' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_01_CNT   -- 인원수(01:심리검사)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '02' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_02_CNT   -- 인원수(02:진료 및 치료지원)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '03' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_03_CNT   -- 인원수(03:의약품, 의약외품지원)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '04' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_04_CNT   -- 인원수(04:의복지원)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '05' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_05_CNT   -- 인원수(05:위생지원)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '06' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_06_CNT   -- 인원수(06:먹거리지원)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '07' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_07_CNT   -- 인원수(07:교통(이동지원))
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '08' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_08_CNT   -- 인원수(08:휴식 및 놀이지원)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '09' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_09_CNT   -- 인원수(09:생활용품 지원)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '10' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_10_CNT   -- 인원수(10:홍보 및 정보제공)
+                 , SUM(CASE WHEN T21.SPRT_SRVC_SE_CD = '99' THEN NVL(T21.SPRT_SRVC_TRGT_NOPE,0) ELSE 0 END)  AS NOPE_99_CNT   -- 인원수(99:기타)
+              FROM SEA150 T21 /* 집단상담후지원서비스 */
+             WHERE 1 = 1
+               AND T21.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+               AND T21.SPRT_SRVC_SE_CD  IN ('01','02','03','04','05','06','07','08','09','10','97','98','99')
+          GROUP BY T21.ERYY_GR_DSCSN_NO
+        ) , V_CNT_MAP AS (
+            SELECT T11.ERYY_GR_DSCSN_NO                   AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , NVL(SUM(T11.ERYY_DSCSN_MALE_NOPE),0)   AS ERYY_DSCSN_MALE_NOPE         -- 남성인원수
+                 , NVL(SUM(T11.ERYY_DSCSN_FEMALE_NOPE),0) AS ERYY_DSCSN_FEMALE_NOPE       -- 여성인원수
+                 , NVL(SUM(T11.HOUSEK_DSCSN_CNT),0)       AS HOUSEK_DSCSN_CNT             -- 가정밖청소년상담수
+                 , NVL(SUM(T11.ETC_DSCSN_CNT),0)          AS ETC_DSCSN_CNT                -- 그외상담수
+                 , NVL(SUM(T11.NOPE_01_CNT),0)            AS NOPE_01_CNT                  -- 인원수(01:심리검사)
+                 , NVL(SUM(T11.NOPE_02_CNT),0)            AS NOPE_02_CNT                  -- 인원수(02:진료 및 치료지원)
+                 , NVL(SUM(T11.NOPE_03_CNT),0)            AS NOPE_03_CNT                  -- 인원수(03:의약품, 의약외품지원)
+                 , NVL(SUM(T11.NOPE_04_CNT),0)            AS NOPE_04_CNT                  -- 인원수(04:의복지원)
+                 , NVL(SUM(T11.NOPE_05_CNT),0)            AS NOPE_05_CNT                  -- 인원수(05:위생지원)
+                 , NVL(SUM(T11.NOPE_06_CNT),0)            AS NOPE_06_CNT                  -- 인원수(06:먹거리지원)
+                 , NVL(SUM(T11.NOPE_07_CNT),0)            AS NOPE_07_CNT                  -- 인원수(07:교통(이동지원))
+                 , NVL(SUM(T11.NOPE_08_CNT),0)            AS NOPE_08_CNT                  -- 인원수(08:휴식 및 놀이지원)
+                 , NVL(SUM(T11.NOPE_09_CNT),0)            AS NOPE_09_CNT                  -- 인원수(09:생활용품 지원)
+                 , NVL(SUM(T11.NOPE_10_CNT),0)            AS NOPE_10_CNT                  -- 인원수(10:홍보 및 정보제공)
+                 , NVL(SUM(T11.NOPE_99_CNT),0)            AS NOPE_99_CNT                  -- 인원수(99:기타)
+              FROM 
+                   (    SELECT T21.* FROM V_DSCSN_NOPE T21 WHERE 1 = 1  /* 접촉청소년수 */
+                    UNION ALL
+                        SELECT T21.* FROM V_DSCSN_SPRT T21 WHERE 1 = 1  /* 거리상담 지원횟수 */
+                    UNION ALL
+                        SELECT T21.* FROM V_DSCSN_SRVC T21 WHERE 1 = 1  /* 거리상담,서비스 지원횟수 */
+                   )       T11
+             WHERE 1 = 1
+          GROUP BY T11.ERYY_GR_DSCSN_NO
+        )
+            SELECT T.ERYY_GR_DSCSN_NO                   AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T.ERYY_DSCSN_MALE_NOPE               AS ERYY_DSCSN_MALE_NOPE         -- 남성인원수
+                 , T.ERYY_DSCSN_FEMALE_NOPE             AS ERYY_DSCSN_FEMALE_NOPE       -- 여성인원수
+                 , T.ERYY_DSCSN_MALE_NOPE + T.ERYY_DSCSN_FEMALE_NOPE  AS SUM_NOPE_CNT   -- 소계(인원수)
+                 , T.HOUSEK_DSCSN_CNT                   AS HOUSEK_DSCSN_CNT             -- 가정밖청소년상담수
+                 , T.ETC_DSCSN_CNT                      AS ETC_DSCSN_CNT                -- 그외상담수
+                 , T.HOUSEK_DSCSN_CNT + T.ETC_DSCSN_CNT AS SUM_DSCSN_CNT                -- 소계(상담수)
+                 , T.NOPE_01_CNT                        AS NOPE_01_CNT                  -- 인원수(01:심리검사)
+                 , T.NOPE_02_CNT                        AS NOPE_02_CNT                  -- 인원수(02:진료 및 치료지원)
+                 , T.NOPE_03_CNT                        AS NOPE_03_CNT                  -- 인원수(03:의약품, 의약외품지원)
+                 , T.NOPE_04_CNT                        AS NOPE_04_CNT                  -- 인원수(04:의복지원)
+                 , T.NOPE_05_CNT                        AS NOPE_05_CNT                  -- 인원수(05:위생지원)
+                 , T.NOPE_06_CNT                        AS NOPE_06_CNT                  -- 인원수(06:먹거리지원)
+                 , T.NOPE_07_CNT                        AS NOPE_07_CNT                  -- 인원수(07:교통(이동지원))
+                 , T.NOPE_08_CNT                        AS NOPE_08_CNT                  -- 인원수(08:휴식 및 놀이지원)
+                 , T.NOPE_09_CNT                        AS NOPE_09_CNT                  -- 인원수(09:생활용품 지원)
+                 , T.NOPE_10_CNT                        AS NOPE_10_CNT                  -- 인원수(10:홍보 및 정보제공)
+                 , T.NOPE_99_CNT                        AS NOPE_99_CNT                  -- 인원수(99:기타)
+                 , T.NOPE_01_CNT + T.NOPE_02_CNT + T.NOPE_03_CNT + T.NOPE_04_CNT + T.NOPE_05_CNT + 
+                   T.NOPE_06_CNT + T.NOPE_07_CNT + T.NOPE_08_CNT + T.NOPE_09_CNT + T.NOPE_10_CNT + 
+                   T.NOPE_99_CNT                        AS NOPE_SUM_CNT                 -- 인원수(소계) 
+                 , (SELECT SPRT_SRVC_DTL_CN FROM SEA150 X WHERE X.ERYY_GR_DSCSN_NO  = #{ERYY_GR_DSCSN_NO} AND X.SPRT_SRVC_SE_CD IN ('99')) AS NOPE_99_NM    
+              FROM V_CNT_MAP T /* 지원서비스실적 */
+             WHERE 1      = 1
+               AND ROWNUM = 1
+    </select>
+
+    <!-- 발굴(아웃리치) 조치현황 -->
+    <select id="selectDscsnOutrcActnList" parameterType="HashMap" resultType="HashMap">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcActnList(아웃리치발굴조치현황) */
+            V_GR_ACTN_LIST AS (
+            SELECT /* 아웃리치(집단상담) 조치내역 */
+                   T21.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T21.ACTN_SN                      AS ACTN_SN                      -- 조치일련번호
+                 , T21.ACTN_TYPE_SE_CD              AS ACTN_TYPE_SE_CD              -- 조치유형구분코드
+                 , T21.ACTN_TYPE_DTL_SE_CD          AS ACTN_TYPE_DTL_SE_CD          -- 조치유형상세구분코드
+                 , T21.ACTN_ETC_CN                  AS ACTN_ETC_CN                  -- 조치기타내용
+                 , T21.MKCTT_PLACE_SE_CD            AS MKCTT_PLACE_SE_CD            -- 접촉장소구분코드
+                 , T21.MKCTT_PLACE_ETC_NM           AS MKCTT_PLACE_ETC_NM           -- 접촉장소기타명
+                 , T21.RUAW_LVING_PLACE_SE_CD       AS RUAW_LVING_PLACE_SE_CD       -- 가출중생활장소구분코드
+                 , T21.RUAW_LVING_PLACE_ETC_NM      AS RUAW_LVING_PLACE_ETC_NM      -- 가출중생활장소기타명
+                 , T21.RUNAWS_SE_CD                 AS RUNAWS_SE_CD                 -- 가출팸구분코드
+                 , NVL(T21.AVRG_LVM_CONT,0)         AS AVRG_LVM_CONT                -- 평균가출횟수
+                 , T21.TRPR_INFO_NO                 AS TRPR_INFO_NO                 -- 대상자정보번호
+                 , CASE WHEN T22.INDV_IDNTFC_NO IS NOT NULL THEN NVL(T23.FLNM_ENCPT, T22.TRPR_NM_ENCPT)
+                        ELSE T22.TRPR_NM_ENCPT
+                   END                              AS TRPR_NM_ENCPT                -- 대상자명암호화
+                 , CASE WHEN T22.INDV_IDNTFC_NO IS NOT NULL THEN NVL(T23.SXDC_SE_CD, T22.SXDC_SE_CD)
+                        ELSE T22.SXDC_SE_CD
+                   END                              AS SXDC_SE_CD                   -- 성별구분코드
+                 , CASE WHEN T22.INDV_IDNTFC_NO IS NOT NULL THEN
+                             CASE WHEN T23.RRNO_ENCPT IS NULL THEN T22.TRPR_BRTH_YMD
+                                  ELSE DECODE(SUBSTR(T23.RRNO_ENCPT,7,1),'1','19','2','19','5','19','6','19','20') || SUBSTR(T23.RRNO_ENCPT,1,6)
+                             END
+                        ELSE T22.TRPR_BRTH_YMD
+                   END                              AS BRTH_YMD                     -- 출생일자
+                 , CASE WHEN T22.INDV_IDNTFC_NO IS NOT NULL THEN NVL(T23.LAST_ACBG_SE_CD, T22.ACBG_SE_CD)
+                        ELSE T22.ACBG_SE_CD
+                   END                              AS ACBG_SE_CD                   -- 학력구분코드
+                 , T22.GRDTN_STTS_SE_CD             AS GRDTN_STTS_SE_CD             -- 졸업상태구분코드
+                 , CASE WHEN T22.INDV_IDNTFC_NO IS NOT NULL THEN NVL(T23.WRD_TELNO, T22.TRPR_TELNO) 
+                        ELSE T22.TRPR_TELNO 
+                   END                              AS TRPR_TELNO                   /* 대상자전화번호 */
+                 , CASE WHEN T22.INDV_IDNTFC_NO IS NOT NULL THEN NVL(T23.MBL_TELNO_ENCPT, T22.MBL_TELNO_ENCPT)
+                        ELSE T22.MBL_TELNO_ENCPT
+                   END                              AS MBL_TELNO_ENCPT              -- 휴대전화번호암호화
+                 , T21.RCPT_APLY_YN                 AS RCPT_APLY_YN                 -- 접수신청여부
+                 , T21.DEL_YN                       AS DEL_YN                       -- 삭제여부
+                 , T21.FRST_RGTR_ID                 AS FRST_RGTR_ID                 -- 최초등록자아이디
+                 , T21.FRST_REG_DT                  AS FRST_REG_DT                  -- 최초등록일시
+                 , T21.LAST_MDFR_ID                 AS LAST_MDFR_ID                 -- 최종수정자아이디
+                 , T21.LAST_MDFCN_DT                AS LAST_MDFCN_DT                -- 최종수정일시
+              FROM SEA130 T21 /* 집단상담후조치 */
+                 , SEA200 T22 /* 대상자정보 */
+                 , SCA300 T23 /* 개인정보 */ 
+             WHERE 1 = 1
+               AND T21.DEL_YN           = 'N'
+               AND T21.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+               AND T21.TRPR_INFO_NO     = T22.TRPR_INFO_NO   (+)
+               AND T22.INDV_IDNTFC_NO   = T23.INDV_IDNTFC_NO (+) -- 개인식별번호
+        )
+            SELECT T11.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T11.ACTN_SN                      AS ACTN_SN                      -- 조치일련번호
+                 , T11.ACTN_TYPE_SE_CD              AS ACTN_TYPE_SE_CD              -- 조치유형구분코드
+                 , T11.ACTN_TYPE_DTL_SE_CD          AS ACTN_TYPE_DTL_SE_CD          -- 조치유형상세구분코드
+                 , T11.ACTN_ETC_CN                  AS ACTN_ETC_CN                  -- 조치기타내용
+                 , T11.MKCTT_PLACE_SE_CD            AS MKCTT_PLACE_SE_CD            -- 접촉장소구분코드
+                 , T11.MKCTT_PLACE_ETC_NM           AS MKCTT_PLACE_ETC_NM           -- 접촉장소기타명
+                 , T11.RUAW_LVING_PLACE_SE_CD       AS RUAW_LVING_PLACE_SE_CD       -- 가출중생활장소구분코드
+                 , T11.RUAW_LVING_PLACE_ETC_NM      AS RUAW_LVING_PLACE_ETC_NM      -- 가출중생활장소기타명
+                 , T11.RUNAWS_SE_CD                 AS RUNAWS_SE_CD                 -- 가출팸구분코드
+                 , T11.AVRG_LVM_CONT                AS AVRG_LVM_CONT                -- 평균가출횟수
+                 , T11.TRPR_INFO_NO                 AS TRPR_INFO_NO                 -- 대상자정보번호
+                 , C##RG.DEC_B64(T11.TRPR_NM_ENCPT )                AS TRPR_NM                -- 대상자명암호화
+                 , T11.SXDC_SE_CD                   AS SXDC_SE_CD                   -- 성별구분코드
+                 , CASE WHEN LENGTH(T11.BRTH_YMD) = 8  THEN SUBSTR(T11.BRTH_YMD,1,4) ||'-'|| SUBSTR(T11.BRTH_YMD,5,2) ||'-'|| SUBSTR(T11.BRTH_YMD,7,2)
+                        WHEN LENGTH(T11.BRTH_YMD) = 10 THEN T11.BRTH_YMD
+                        ELSE NULL 
+                   END                              AS BRTH_YMD                     -- 출생일자
+                 , T11.ACBG_SE_CD                   AS ACBG_SE_CD                   -- 학력구분코드
+                 , T11.GRDTN_STTS_SE_CD             AS GRDTN_STTS_SE_CD             -- 졸업상태구분코드
+                 , T11.TRPR_TELNO                   AS TRPR_TELNO                   /* 대상자전화번호 */
+                 , T11.MBL_TELNO_ENCPT              AS MBL_TELNO_ENCPT              -- 휴대전화번호암호화
+                 , T11.RCPT_APLY_YN                 AS RCPT_APLY_YN                 -- 접수신청여부
+                 , T11.DEL_YN                       AS DEL_YN                       -- 삭제여부
+                 , T11.FRST_RGTR_ID                 AS FRST_RGTR_ID                 -- 최초등록자아이디
+                 , T11.FRST_REG_DT                  AS FRST_REG_DT                  -- 최초등록일시
+                 , T11.LAST_MDFR_ID                 AS LAST_MDFR_ID                 -- 최종수정자아이디
+                 , T11.LAST_MDFCN_DT                AS LAST_MDFCN_DT                -- 최종수정일시
+              FROM V_GR_ACTN_LIST T11 /* 조치내역내역 */
+             WHERE 1 = 1
+      ORDER BY T11.TRPR_INFO_NO
+    </select>
+
+
+    <!-- 발굴(아웃리치) 상세변경체크 -->
+    <select id="selectDscsnOutrcDetailModChk" parameterType="HashMap" resultType="String">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcDetailModChk(아웃리치발굴상세변경체크) */
+            V_GR_MODI_CHK AS (
+            SELECT /* 아웃리치(집단상담) 내역 */
+                   T21.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , CASE WHEN NVL(T21.UNT_TASKWK_SE_CD,'X')            <![CDATA[ <> ]]> NVL(#{UNT_TASKWK_SE_CD},'X')            THEN 1
+                        WHEN NVL(T21.CONSTT_NO,'0')                   <![CDATA[ <> ]]> NVL(#{CONSTT_NO},'0')                   THEN 1
+                        WHEN NVL(T21.DSCSN_YMD,'X')                   <![CDATA[ <> ]]> NVL(#{DSCSN_YMD},'X')                   THEN 1
+                        WHEN NVL(T21.DSCSN_BGNG_HR,'X')               <![CDATA[ <> ]]> NVL(#{DSCSN_BGNG_HR},'X')               THEN 1
+                        WHEN NVL(T21.DSCSN_END_HR,'X')                <![CDATA[ <> ]]> NVL(#{DSCSN_END_HR},'X')                THEN 1
+                        WHEN NVL(T21.UNEART_ACTVT_MTHD_SE_CD,'X')     <![CDATA[ <> ]]> NVL(#{UNEART_ACTVT_MTHD_SE_CD},'X')     THEN 1
+                        WHEN NVL(T21.UNEART_ACTVT_SE_ETC_CN,'X')      <![CDATA[ <> ]]> NVL(#{UNEART_ACTVT_SE_ETC_CN},'X')      THEN 1
+                        WHEN NVL(T21.ACTVT_TRGT_RGN_SGG_CD,'X')       <![CDATA[ <> ]]> NVL(#{ACTVT_TRGT_RGN_SGG_CD},'X')       THEN 1
+                        WHEN NVL(T21.ACTVT_TRGT_RGN_DTL_PLACE_NM,'X') <![CDATA[ <> ]]> NVL(#{ACTVT_TRGT_RGN_DTL_PLACE_NM},'X') THEN 1
+                        WHEN NVL(T21.ERYY_DSCSN_MALE_NOPE,'0')        <![CDATA[ <> ]]> NVL(#{ERYY_DSCSN_MALE_NOPE},'0')        THEN 1
+                        WHEN NVL(T21.ERYY_DSCSN_FEMALE_NOPE,'0')      <![CDATA[ <> ]]> NVL(#{ERYY_DSCSN_FEMALE_NOPE},'0')      THEN 1
+                        WHEN NVL(T21.DSCSN_TTL_NM,'X')                <![CDATA[ <> ]]> NVL(#{DSCSN_TTL_NM},'X')                THEN 1
+                        WHEN NVL(T21.DSCSN_CN,'X')                    <![CDATA[ <> ]]> NVL(#{DSCSN_CN},'X')                    THEN 1
+                        WHEN NVL(T21.RGTR_INST_NO,'0')                <![CDATA[ <> ]]> NVL(#{RGTR_INST_NO},'0')                THEN 1
+                        ELSE 0
+                   END                              AS MODI_CHK                     -- 데이타 변경여부
+              FROM SEA120 T21 /* 초기집단상담 */
+             WHERE 1 = 1
+               AND T21.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+        )
+            SELECT CASE WHEN SUM(T11.MODI_CHK) = 0 THEN 'N' ELSE 'Y' END  AS MODI_YN       -- 데이타 변경여부
+              FROM V_GR_MODI_CHK T11
+             WHERE 1 = 1
+    </select>
+
+    <!-- 발굴(아웃리치) 인원수변경체크 -->
+    <select id="selectDscsnOutrcNopeModChk" parameterType="HashMap" resultType="String">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcNopeModChk(아웃리치발굴인원수변경체크) */
+            V_GR_MODI_CHK AS (
+            SELECT /* 아웃리치(집단상담) 내역 */
+                   CASE WHEN NVL(T21.ERYY_DSCSN_MALE_NOPE,'0')   <![CDATA[ <> ]]> NVL(#{ERYY_DSCSN_MALE_NOPE},'0')   THEN 1
+                        WHEN NVL(T21.ERYY_DSCSN_FEMALE_NOPE,'0') <![CDATA[ <> ]]> NVL(#{ERYY_DSCSN_FEMALE_NOPE},'0') THEN 1
+                        ELSE 0
+                   END                              AS MODI_CHK                     -- 데이타 변경여부
+              FROM SEA120 T21 /* 초기집단상담 */
+             WHERE 1 = 1
+               AND T21.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+        )
+            SELECT CASE WHEN SUM(T11.MODI_CHK) = 0 THEN 'N' ELSE 'Y' END  AS MODI_YN       -- 데이타 변경여부
+              FROM V_GR_MODI_CHK T11
+             WHERE 1 = 1
+    </select>
+
+    <!-- 발굴(아웃리치) 서비스지원횟수 저장데이터 조회 -->
+    <select id="selectDscsnOutrcPrfmncList" parameterType="HashMap" resultType="HashMap">
+        WITH /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcPrfmncList(서비스지원횟수조회) */
+            V_SRVC_LIST AS (
+            SELECT /* 지원서비스구분 내역 */
+                   T21.CMMNS_CD_VALUE               AS SPRT_SRVC_SE_CD              -- 지원서비스구분코드     
+                 , T21.CMMNS_CD_VALUE_NM            AS SPRT_SRVC_SE_NM              -- 지원서비스구분명
+                 , CASE WHEN T21.CMMNS_CD_VALUE = '99' THEN #{NOPE_99_NM}
+                        ELSE NULL
+                   END                              AS SPRT_SRVC_DTL_CN             -- 지원서비스상세내용
+                 , CASE WHEN T21.CMMNS_CD_VALUE = '01' THEN NVL(TO_NUMBER(#{NOPE_01_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '02' THEN NVL(TO_NUMBER(#{NOPE_02_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '03' THEN NVL(TO_NUMBER(#{NOPE_03_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '04' THEN NVL(TO_NUMBER(#{NOPE_04_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '05' THEN NVL(TO_NUMBER(#{NOPE_05_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '06' THEN NVL(TO_NUMBER(#{NOPE_06_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '07' THEN NVL(TO_NUMBER(#{NOPE_07_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '08' THEN NVL(TO_NUMBER(#{NOPE_08_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '09' THEN NVL(TO_NUMBER(#{NOPE_09_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '10' THEN NVL(TO_NUMBER(#{NOPE_10_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '97' THEN (
+                                                                 SELECT COUNT(T31.ACTN_SN)  AS HOUSEK_DSCSN_CNT  -- 가정밖청소년상담수
+                                                                   FROM SEA130 T31 /* 집단상담후조치 */
+                                                                  WHERE NVL(T31.DEL_YN,'N')  = 'N'
+                                                                    AND T31.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}
+                                                               GROUP BY T31.ERYY_GR_DSCSN_NO
+                                                            )
+                        WHEN T21.CMMNS_CD_VALUE = '98' THEN NVL(TO_NUMBER(#{ETC_DSCSN_CNT}),0)
+                        WHEN T21.CMMNS_CD_VALUE = '99' THEN NVL(TO_NUMBER(#{NOPE_99_CNT}),0)
+                        ELSE 0
+                   END                              AS SPRT_SRVC_TRGT_NOPE          -- 지원서비스대상인원수
+                 , T21.SRTNG_SQNCE                  AS SRTNG_SQNCE                  -- 정렬순서
+              FROM SAC100 T21 /* 공통코드 값 */
+             WHERE 1 = 1
+               AND T21.CMMNS_CD_ID    = 'SPRT_SRVC_SE_CD'
+               AND T21.CMMNS_CD_VALUE IN ('01','02','03','04','05','06','07','08','09','10','97','98','99')
+               AND T21.USE_YN         = 'Y'
+          ORDER BY T21.SRTNG_SQNCE
+        ) , V_PRFMNC_LIST AS (
+            SELECT /* 집단상담후지원서비스 내역 */
+                   T21.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , T21.SPRT_SRVC_SE_CD              AS SPRT_SRVC_SE_CD              -- 지원서비스구분코드
+                 , T21.SPRT_SRVC_DTL_CN             AS SPRT_SRVC_DTL_CN             -- 지원서비스상세내용
+                 , NVL(T21.SPRT_SRVC_TRGT_NOPE,0)   AS SPRT_SRVC_TRGT_NOPE          -- 지원서비스대상인원수
+              FROM SEA150 T21  /* 집단상담후지원서비스 */
+             WHERE 1 = 1
+               AND T21.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+        )
+            SELECT T11.SPRT_SRVC_SE_CD              AS SPRT_SRVC_SE_CD              -- 지원서비스구분코드
+                 , T11.SPRT_SRVC_SE_NM              AS SPRT_SRVC_SE_NM              -- 지원서비스구분명
+                 , T11.SPRT_SRVC_DTL_CN             AS SPRT_SRVC_DTL_CN             -- 지원서비스상세내용
+                 , NVL(T11.SPRT_SRVC_TRGT_NOPE,0)   AS SPRT_SRVC_TRGT_NOPE          -- 지원서비스대상인원수
+                 , T12.ERYY_GR_DSCSN_NO             AS ERYY_GR_DSCSN_NO             -- 초기집단상담번호(EG)
+                 , CASE WHEN T12.ERYY_GR_DSCSN_NO IS NULL THEN
+                             CASE WHEN NVL(T11.SPRT_SRVC_TRGT_NOPE,0) <![CDATA[ <> ]]> 0 THEN 'I' ELSE 'S' END
+                        ELSE CASE WHEN NVL(T11.SPRT_SRVC_TRGT_NOPE,0) <![CDATA[ <> ]]> NVL(T12.SPRT_SRVC_TRGT_NOPE,0) THEN 'U' ELSE 'S' END
+                   END                              AS TYPE                         -- 상태코드
+              FROM V_SRVC_LIST   T11  /* 지원서비스구분 내역 */
+                 , V_PRFMNC_LIST T12  /* 집단상담후지원서비스 내역 */
+             WHERE 1 = 1
+               AND T11.SPRT_SRVC_SE_CD = T12.SPRT_SRVC_SE_CD (+)
+          ORDER BY T11.SRTNG_SQNCE
+    </select>
+
+
+    <!-- 발굴(아웃리치) 상세등록 -->
+    <insert id="insertDscsnOutrcDetail" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.insertDscsnOutrcDetail(아웃리치상세등록) */
+          INTO SEA120 T1 /* 초기집단상담 */
+             ( T1.ERYY_GR_DSCSN_NO              -- 초기집단상담번호(EG)
+             , T1.UNT_TASKWK_SE_CD              -- 단위업무구분코드
+             , T1.CONSTT_NO                     -- 상담자번호
+             , T1.DSCSN_YMD                     -- 상담일자
+             , T1.DSCSN_BGNG_HR                 -- 상담시작시간
+             , T1.DSCSN_END_HR                  -- 상담종료시간
+             , T1.UNEART_ACTVT_MTHD_SE_CD       -- 발굴활동방법구분코드
+             , T1.UNEART_ACTVT_SE_ETC_CN        -- 발굴활동구분기타내용
+             , T1.ACTVT_TRGT_RGN_SGG_CD         -- 활동대상지역시군구코드
+             , T1.ACTVT_TRGT_RGN_DTL_PLACE_NM   -- 활동대상지역상세장소명
+             , T1.ERYY_DSCSN_MALE_NOPE          -- 초기상담남성인원수
+             , T1.ERYY_DSCSN_FEMALE_NOPE        -- 초기상담여성인원수
+             , T1.DSCSN_TTL_NM                  -- 상담제목명
+             , T1.DSCSN_CN                      -- 상담내용
+             , T1.RGTR_INST_NO                  -- 등록자기관번호
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{ERYY_GR_DSCSN_NO}              -- 초기집단상담번호(EG)
+             , #{UNT_TASKWK_SE_CD}              -- 단위업무구분코드
+             , NVL(#{CONSTT_NO},'15')           -- 상담자번호
+             , #{DSCSN_YMD}                     -- 상담일자
+             , #{DSCSN_BGNG_HR}                 -- 상담시작시간
+             , #{DSCSN_END_HR}                  -- 상담종료시간
+             , #{UNEART_ACTVT_MTHD_SE_CD}       -- 발굴활동방법구분코드
+             , #{UNEART_ACTVT_SE_ETC_CN}        -- 발굴활동구분기타내용
+             , #{ACTVT_TRGT_RGN_SGG_CD}         -- 활동대상지역시군구코드
+             , #{ACTVT_TRGT_RGN_DTL_PLACE_NM}   -- 활동대상지역상세장소명
+             , NVL(#{ERYY_DSCSN_MALE_NOPE},0)   -- 초기상담남성인원수
+             , NVL(#{ERYY_DSCSN_FEMALE_NOPE},0) -- 초기상담여성인원수
+             , #{DSCSN_TTL_NM}                  -- 상담제목명
+             , #{DSCSN_CN}                      -- 상담내용
+             , NVL(#{RGTR_INST_NO},'195')       -- 등록자기관번호
+             , #{SESS_USER_ID}                  -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{SESS_USER_ID}                  -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+    <!-- 발굴(아웃리치) 상세수정 -->
+    <update id="updateDscsnOutrcDetail" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.updateDscsnOutrcDetail(아웃리치상세수정) */
+               SEA120 T1 /* 초기집단상담 */
+           SET T1.UNT_TASKWK_SE_CD              = #{UNT_TASKWK_SE_CD}              -- 단위업무구분코드
+             , T1.CONSTT_NO                     = NVL(#{CONSTT_NO},'15')           -- 상담자번호
+             , T1.DSCSN_YMD                     = #{DSCSN_YMD}                     -- 상담일자
+             , T1.DSCSN_BGNG_HR                 = #{DSCSN_BGNG_HR}                 -- 상담시작시간
+             , T1.DSCSN_END_HR                  = #{DSCSN_END_HR}                  -- 상담종료시간
+             , T1.UNEART_ACTVT_MTHD_SE_CD       = #{UNEART_ACTVT_MTHD_SE_CD}       -- 발굴활동방법구분코드
+             , T1.UNEART_ACTVT_SE_ETC_CN        = #{UNEART_ACTVT_SE_ETC_CN}        -- 발굴활동구분기타내용
+             , T1.ACTVT_TRGT_RGN_SGG_CD         = #{ACTVT_TRGT_RGN_SGG_CD}         -- 활동대상지역시군구코드
+             , T1.ACTVT_TRGT_RGN_DTL_PLACE_NM   = #{ACTVT_TRGT_RGN_DTL_PLACE_NM}   -- 활동대상지역상세장소명
+             , T1.ERYY_DSCSN_MALE_NOPE          = NVL(#{ERYY_DSCSN_MALE_NOPE},0)   -- 초기상담남성인원수
+             , T1.ERYY_DSCSN_FEMALE_NOPE        = NVL(#{ERYY_DSCSN_FEMALE_NOPE},0) -- 초기상담여성인원수
+             , T1.DSCSN_TTL_NM                  = #{DSCSN_TTL_NM}                  -- 상담제목명
+             , T1.DSCSN_CN                      = #{DSCSN_CN}                      -- 상담내용
+             , T1.RGTR_INST_NO                  = NVL(#{RGTR_INST_NO},'195')       -- 등록자기관번호
+             , T1.LAST_MDFR_ID                  = #{SESS_USER_ID}                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 = SYSDATE                          -- 최종수정일시
+         WHERE T1.ERYY_GR_DSCSN_NO       = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+    </update>
+
+    <!-- 발굴(아웃리치) 상세인원수수정 -->
+    <update id="updateDscsnOutrcDetailNope" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.updateDscsnOutrcDetailNope(아웃리치상세인원수수정) */
+               SEA120 T1 /* 초기집단상담 */
+           SET T1.ERYY_DSCSN_MALE_NOPE          = #{ERYY_DSCSN_MALE_NOPE}          -- 초기상담남성인원수
+             , T1.ERYY_DSCSN_FEMALE_NOPE        = #{ERYY_DSCSN_FEMALE_NOPE}        -- 초기상담여성인원수
+             , T1.LAST_MDFR_ID                  = #{SESS_USER_ID}                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 = SYSDATE                          -- 최종수정일시
+         WHERE T1.ERYY_GR_DSCSN_NO       = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+    </update>
+
+    <!-- 발굴(아웃리치) 상세삭제 -->
+    <delete id="deleteDscsnOutrcDetail" parameterType="HashMap">
+        DELETE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.deleteDscsnOutrcDetail(아웃리치상세삭제) */
+          FROM SEA120 T1 /* 초기집단상담 */
+         WHERE T1.ERYY_GR_DSCSN_NO       = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+    </delete>
+
+    <!-- 발굴(아웃리치) 이력등록 -->
+    <insert id="insertDscsnOutrcHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.insertDscsnOutrcDetail(아웃리치이력등록) */
+          INTO SEA121 T1 /* 초기집단상담이력 */
+             ( T1.ERYY_GR_DSCSN_NO              -- 초기집단상담번호(EG)
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.UNT_TASKWK_SE_CD              -- 단위업무구분코드
+             , T1.CONSTT_NO                     -- 상담자번호
+             , T1.DSCSN_YMD                     -- 상담일자
+             , T1.DSCSN_BGNG_HR                 -- 상담시작시간
+             , T1.DSCSN_END_HR                  -- 상담종료시간
+             , T1.UNEART_ACTVT_MTHD_SE_CD       -- 발굴활동방법구분코드
+             , T1.UNEART_ACTVT_SE_ETC_CN        -- 발굴활동구분기타내용
+             , T1.ACTVT_TRGT_RGN_SGG_CD         -- 활동대상지역시군구코드
+             , T1.ACTVT_TRGT_RGN_DTL_PLACE_NM   -- 활동대상지역상세장소명
+             , T1.ERYY_DSCSN_MALE_NOPE          -- 초기상담남성인원수
+             , T1.ERYY_DSCSN_FEMALE_NOPE        -- 초기상담여성인원수
+             , T1.DSCSN_TTL_NM                  -- 상담제목명
+             , T1.DSCSN_CN                      -- 상담내용
+             , T1.RGTR_INST_NO                  -- 등록자기관번호
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{ERYY_GR_DSCSN_NO}              -- 초기집단상담번호(EG)
+             , SYSDATE                          -- 수정일시
+             , UPPER(#{DATAA_CHG_SE_CD})        -- 데이터변경구분코드
+             , #{UNT_TASKWK_SE_CD}              -- 단위업무구분코드
+             , NVL(#{CONSTT_NO},'15')           -- 상담자번호
+             , #{DSCSN_YMD}                     -- 상담일자
+             , #{DSCSN_BGNG_HR}                 -- 상담시작시간
+             , #{DSCSN_END_HR}                  -- 상담종료시간
+             , #{UNEART_ACTVT_MTHD_SE_CD}       -- 발굴활동방법구분코드
+             , #{UNEART_ACTVT_SE_ETC_CN}        -- 발굴활동구분기타내용
+             , #{ACTVT_TRGT_RGN_SGG_CD}         -- 활동대상지역시군구코드
+             , #{ACTVT_TRGT_RGN_DTL_PLACE_NM}   -- 활동대상지역상세장소명
+             , NVL(#{ERYY_DSCSN_MALE_NOPE},0)   -- 초기상담남성인원수
+             , NVL(#{ERYY_DSCSN_FEMALE_NOPE},0) -- 초기상담여성인원수
+             , #{DSCSN_TTL_NM}                  -- 상담제목명
+             , #{DSCSN_CN}                      -- 상담내용
+             , NVL(#{RGTR_INST_NO},'195')       -- 등록자기관번호
+             , #{SESS_USER_ID}                  -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{SESS_USER_ID}                  -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+
+    <!-- 발굴(아웃리치) 연합거리상담,쉼터자체활동 등록 -->
+    <insert id="insertDscsnOutrcActvt" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.insertDscsnOutrcActvt(연합거리상담등록,쉼터자체활동) */
+          INTO SEA140 T1 /* 초기집단상담담당자 */
+             ( T1.ERYY_GR_DSCSN_NO              -- 초기집단상담번호(EG)
+             , T1.UNEART_ACTVT_SE_CD            -- 발굴활동구분코드
+             , T1.UNEART_ACTVT_CL_SE_CD         -- 발굴활동분류구분코드
+             , T1.UNEART_ACTVT_PIC_CNT          -- 발굴활동담당자수
+             , T1.DEL_YN                        -- 삭제여부
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{ERYY_GR_DSCSN_NO}              -- 초기집단상담번호(EG)
+             , #{UNEART_ACTVT_SE_CD}            -- 발굴활동구분코드
+             , #{UNEART_ACTVT_CL_SE_CD}         -- 발굴활동분류구분코드
+             , NVL(#{UNEART_ACTVT_PIC_CNT},0)   -- 발굴활동담당자수
+             , 'N'                              -- 삭제여부
+             , #{SESS_USER_ID}                  -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{SESS_USER_ID}                  -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+    <!-- 발굴(아웃리치) 연합거리상담,쉼터자체활동 수정 -->
+    <update id="updateDscsnOutrcActvt" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.updateDscsnOutrcActvt(연합거리상담,쉼터자체활동수정) */
+               SEA140 T1 /* 초기집단상담담당자 */
+           SET T1.UNEART_ACTVT_PIC_CNT          = #{UNEART_ACTVT_PIC_CNT}           -- 발굴활동담당자수
+             , T1.DEL_YN                        = NVL(#{DEL_YN}, 'N')               -- 삭제여부
+             , T1.LAST_MDFR_ID                  = #{SESS_USER_ID}                   -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 = SYSDATE                           -- 최종수정일시
+         WHERE T1.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}       -- 초기집단상담번호(EG)
+           AND T1.UNEART_ACTVT_SE_CD    = #{UNEART_ACTVT_SE_CD}     -- 발굴활동구분코드
+           AND T1.UNEART_ACTVT_CL_SE_CD = #{UNEART_ACTVT_CL_SE_CD}  -- 발굴활동분류구분코드
+    </update>
+
+    <!-- 발굴(아웃리치) 연합거리상담,쉼터자체활동 삭제 -->
+    <update id="deleteDscsnOutrcActvt" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.deleteDscsnOutrcActvt(연합거리상담,쉼터자체활동삭제) */
+               SEA140 T1 /* 초기집단상담담당자 */
+           SET T1.DEL_YN                        = 'Y'                              -- 삭제여부
+             , T1.LAST_MDFR_ID                  = #{SESS_USER_ID}                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 = SYSDATE                          -- 최종수정일시
+         WHERE T1.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}       -- 초기집단상담번호(EG)
+           AND T1.UNEART_ACTVT_SE_CD    = #{UNEART_ACTVT_SE_CD}     -- 발굴활동구분코드
+           AND T1.UNEART_ACTVT_CL_SE_CD = #{UNEART_ACTVT_CL_SE_CD}  -- 발굴활동분류구분코드
+    </update>
+    
+    <!-- 발굴(아웃리치) 연합거리상담,쉼터자체활동 삭제 -->
+    <delete id="deleteUneartActvt" parameterType="HashMap">
+        DELETE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.deleteUneartActvt(연합거리상담,쉼터자체활동삭제) */
+               SEA140 T1 /* 초기집단상담담당자 */
+         WHERE T1.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}       -- 초기집단상담번호(EG)
+           AND T1.UNEART_ACTVT_CL_SE_CD = #{UNEART_ACTVT_CL_SE_CD}  -- 발굴활동분류구분코드
+    </delete>    
+
+    <!-- 발굴(아웃리치) 연합거리상담,쉼터자체활동 이력등록 -->
+    <insert id="insertDscsnOutrcActvtHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.insertDscsnOutrcActvtHistory(연합거리상담등록,쉼터자체활동이력등록) */
+          INTO SEA141 T1 /* 초기집단상담담당자이력 */
+             ( T1.ERYY_GR_DSCSN_NO              -- 초기집단상담번호(EG)
+             , T1.UNEART_ACTVT_SE_CD            -- 발굴활동구분코드
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.UNEART_ACTVT_CL_SE_CD         -- 발굴활동분류구분코드
+             , T1.UNEART_ACTVT_PIC_CNT          -- 발굴활동담당자수
+             , T1.DEL_YN                        -- 삭제여부
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{ERYY_GR_DSCSN_NO}              -- 초기집단상담번호(EG)
+             , #{UNEART_ACTVT_SE_CD}            -- 발굴활동구분코드
+             , SYSDATE                          -- 수정일시
+             , UPPER(#{DATAA_CHG_SE_CD})        -- 데이터변경구분코드
+             , #{UNEART_ACTVT_CL_SE_CD}         -- 발굴활동분류구분코드
+             , NVL(#{UNEART_ACTVT_PIC_CNT},0)   -- 발굴활동담당자수
+             , 'N'                              -- 삭제여부
+             , #{SESS_USER_ID}                  -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{SESS_USER_ID}                  -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+
+    <!-- 발굴(아웃리치) 서비스지원횟수 등록 -->
+    <insert id="insertDscsnOutrcPrfmnc" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.insertDscsnOutrcPrfmnc(서비스지원횟수등록) */
+          INTO SEA150 T1 /* 집단상담후지원서비스 */
+             ( T1.ERYY_GR_DSCSN_NO              -- 초기집단상담번호(EG)
+             , T1.SPRT_SRVC_SE_CD               -- 지원서비스구분코드
+             , T1.SPRT_SRVC_DTL_CN              -- 지원서비스상세내용
+             , T1.SPRT_SRVC_TRGT_NOPE           -- 지원서비스대상인원수
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{ERYY_GR_DSCSN_NO}              -- 초기집단상담번호(EG)
+             , #{SPRT_SRVC_SE_CD}               -- 지원서비스구분코드
+             , #{SPRT_SRVC_DTL_CN}              -- 지원서비스상세내용
+             , NVL(#{SPRT_SRVC_TRGT_NOPE},0)    -- 지원서비스대상인원수
+             , #{SESS_USER_ID}                  -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{SESS_USER_ID}                  -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+    <!-- 발굴(아웃리치) 서비스지원횟수 수정 -->
+    <update id="updateDscsnOutrcPrfmnc" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.updateDscsnOutrcPrfmnc(서비스지원횟수수정) */
+               SEA150 T1 /* 집단상담후지원서비스 */
+           SET T1.SPRT_SRVC_TRGT_NOPE           = NVL(#{SPRT_SRVC_TRGT_NOPE},0)    -- 지원서비스대상인원수
+             , T1.SPRT_SRVC_DTL_CN              = #{SPRT_SRVC_DTL_CN}               -- 지원서비스상세내용
+             , T1.LAST_MDFR_ID                  = #{SESS_USER_ID}                   -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 = SYSDATE                           -- 최종수정일시
+         WHERE T1.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}       -- 초기집단상담번호(EG)
+           AND T1.SPRT_SRVC_SE_CD       = #{SPRT_SRVC_SE_CD}        -- 발굴활동구분코드
+    </update>
+
+    <!-- 발굴(아웃리치) 서비스지원횟수 삭제 -->
+    <update id="deleteDscsnOutrcPrfmnc" parameterType="HashMap">
+        DELETE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.deleteDscsnOutrcPrfmnc(서비스지원횟수삭제) */
+          FROM SEA150 T1 /* 집단상담후지원서비스 */
+         WHERE T1.ERYY_GR_DSCSN_NO      = #{ERYY_GR_DSCSN_NO}       -- 초기집단상담번호(EG)
+           AND T1.SPRT_SRVC_SE_CD       = #{SPRT_SRVC_SE_CD}        -- 발굴활동구분코드
+    </update>
+
+    <!-- 발굴(아웃리치) 서비스지원횟수 이력등록 -->
+    <insert id="insertDscsnOutrcPrfmncHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.insertDscsnOutrcPrfmncHistory(서비스지원횟수이력등록) */
+          INTO SEA151 T1 /* 집단상담후지원서비스이력 */
+             ( T1.ERYY_GR_DSCSN_NO              -- 초기집단상담번호(EG)
+             , T1.SPRT_SRVC_SE_CD               -- 지원서비스구분코드
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.SPRT_SRVC_DTL_CN              -- 지원서비스상세내용
+             , T1.SPRT_SRVC_TRGT_NOPE           -- 지원서비스대상인원수
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{ERYY_GR_DSCSN_NO}              -- 초기집단상담번호(EG)
+             , #{SPRT_SRVC_SE_CD}               -- 지원서비스구분코드
+             , SYSDATE                          -- 수정일시
+             , UPPER(#{DATAA_CHG_SE_CD})        -- 데이터변경구분코드
+             , #{SPRT_SRVC_DTL_CN}              -- 지원서비스상세내용
+             , NVL(#{SPRT_SRVC_TRGT_NOPE},0)    -- 지원서비스대상인원수
+             , #{SESS_USER_ID}                  -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{SESS_USER_ID}                  -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+
+    <!-- 발굴(아웃리치) 조치일련번호 발번 -->
+    <select id="selectDscsnOutrcActnSn" parameterType="HashMap" resultType="Integer">
+        SELECT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.selectDscsnOutrcActnSn(조치일련번호발번) */
+               NVL(MAX(ACTN_SN) + 1, 1)   AS ACTN_SN
+          FROM SEA130 T /* 집단상담후조치 */
+         WHERE T.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+    </select>
+
+    <!-- 발굴(아웃리치) 조치현황 등록 -->
+    <insert id="insertDscsnOutrcActn" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.insertDscsnOutrcActn(집단상담후조치등록) */
+          INTO SEA130 T1 /* 집단상담후조치 */
+             ( T1.ERYY_GR_DSCSN_NO              -- 초기집단상담번호(EG)
+             , T1.ACTN_SN                       -- 조치일련번호
+             , T1.ACTN_TYPE_SE_CD               -- 조치유형구분코드
+             , T1.ACTN_TYPE_DTL_SE_CD           -- 조치유형상세구분코드
+             , T1.ACTN_ETC_CN                   -- 조치기타내용
+             , T1.MKCTT_PLACE_SE_CD             -- 접촉장소구분코드
+             , T1.MKCTT_PLACE_ETC_NM            -- 접촉장소기타명
+             , T1.RUAW_LVING_PLACE_SE_CD        -- 가출중생활장소구분코드
+             , T1.RUAW_LVING_PLACE_ETC_NM       -- 가출중생활장소기타명
+             , T1.RUNAWS_SE_CD                  -- 가출팸구분코드
+             , T1.AVRG_LVM_CONT                 -- 평균가출횟수
+             , T1.TRPR_INFO_NO                  -- 대상자정보번호
+             , T1.RCPT_APLY_YN                  -- 접수신청여부
+             , T1.DEL_YN                        -- 삭제여부
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{ERYY_GR_DSCSN_NO}              -- 초기집단상담번호(EG)
+             , #{ACTN_SN}                       -- 조치일련번호
+             , #{ACTN_TYPE_SE_CD}               -- 조치유형구분코드
+             , #{ACTN_TYPE_DTL_SE_CD}           -- 조치유형상세구분코드
+             , #{ACTN_ETC_CN}                   -- 조치기타내용
+             , #{MKCTT_PLACE_SE_CD}             -- 접촉장소구분코드
+             , #{MKCTT_PLACE_ETC_NM}            -- 접촉장소기타명
+             , #{RUAW_LVING_PLACE_SE_CD}        -- 가출중생활장소구분코드
+             , #{RUAW_LVING_PLACE_ETC_NM}       -- 가출중생활장소기타명
+             , #{RUNAWS_SE_CD}                  -- 가출팸구분코드
+             , #{AVRG_LVM_CONT}                 -- 평균가출횟수
+             , #{TRPR_INFO_NO}                  -- 대상자정보번호
+             , NVL(#{RCPT_APLY_YN},'N')         -- 접수신청여부
+             , 'N'                              -- 삭제여부
+             , #{SESS_USER_ID}                  -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{SESS_USER_ID}                  -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+    <!-- 발굴(아웃리치) 조치현황 수정 -->
+    <update id="updateDscsnOutrcActn" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.updateDscsnOutrcActn(집단상담후조치수정) */
+               SEA130 T1 /* 집단상담후조치 */
+           SET T1.ACTN_TYPE_SE_CD               = #{ACTN_TYPE_SE_CD}                -- 조치유형구분코드
+             , T1.ACTN_TYPE_DTL_SE_CD           = #{ACTN_TYPE_DTL_SE_CD}            -- 조치유형상세구분코드
+             , T1.ACTN_ETC_CN                   = #{ACTN_ETC_CN}                    -- 조치기타내용
+             , T1.MKCTT_PLACE_SE_CD             = #{MKCTT_PLACE_SE_CD}              -- 접촉장소구분코드
+             , T1.MKCTT_PLACE_ETC_NM            = #{MKCTT_PLACE_ETC_NM}             -- 접촉장소기타명
+             , T1.RUAW_LVING_PLACE_SE_CD        = #{RUAW_LVING_PLACE_SE_CD}         -- 가출중생활장소구분코드
+             , T1.RUAW_LVING_PLACE_ETC_NM       = #{RUAW_LVING_PLACE_ETC_NM}        -- 가출중생활장소기타명
+             , T1.RUNAWS_SE_CD                  = #{RUNAWS_SE_CD}                   -- 가출팸구분코드
+             , T1.AVRG_LVM_CONT                 = #{AVRG_LVM_CONT}                  -- 평균가출횟수
+             , T1.TRPR_INFO_NO                  = #{TRPR_INFO_NO}                   -- 대상자정보번호
+             , T1.RCPT_APLY_YN                  = NVL(#{RCPT_APLY_YN},'N')          -- 접수신청여부
+             , T1.DEL_YN                        = NVL(#{DEL_YN},'N')                -- 삭제여부
+             , T1.LAST_MDFR_ID                  = #{SESS_USER_ID}                   -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 = SYSDATE                           -- 최종수정일시
+         WHERE T1.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+           AND T1.ACTN_SN          = #{ACTN_SN}            -- 조치일련번호
+    </update>
+
+    <!-- 발굴(아웃리치) 조치현황 삭제 -->
+    <update id="deleteDscsnOutrcActn" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.deleteDscsnOutrcActn(집단상담후조치삭제) */
+               SEA130 T1 /* 집단상담후조치 */
+           SET T1.DEL_YN                        = 'Y'                              -- 삭제여부
+             , T1.LAST_MDFR_ID                  = #{SESS_USER_ID}                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 = SYSDATE                          -- 최종수정일시
+         WHERE T1.ERYY_GR_DSCSN_NO = #{ERYY_GR_DSCSN_NO}   -- 초기집단상담번호(EG)
+           AND T1.ACTN_SN          = #{ACTN_SN}            -- 조치일련번호
+    </update>
+
+    <!-- 발굴(아웃리치) 조치현황 이력등록 -->
+    <insert id="insertDscsnOutrcActnHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.uneart.DscsnOutrcMapper.insertDscsnOutrcActnHistory(집단상담후조치이력등록) */
+          INTO SEA131 T1 /* 집단상담후조치 */
+             ( T1.ERYY_GR_DSCSN_NO              -- 초기집단상담번호(EG)
+             , T1.ACTN_SN                       -- 조치일련번호
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.ACTN_TYPE_SE_CD               -- 조치유형구분코드
+             , T1.ACTN_TYPE_DTL_SE_CD           -- 조치유형상세구분코드
+             , T1.ACTN_ETC_CN                   -- 조치기타내용
+             , T1.MKCTT_PLACE_SE_CD             -- 접촉장소구분코드
+             , T1.MKCTT_PLACE_ETC_NM            -- 접촉장소기타명
+             , T1.RUAW_LVING_PLACE_SE_CD        -- 가출중생활장소구분코드
+             , T1.RUAW_LVING_PLACE_ETC_NM       -- 가출중생활장소기타명
+             , T1.RUNAWS_SE_CD                  -- 가출팸구분코드
+             , T1.AVRG_LVM_CONT                 -- 평균가출횟수
+             , T1.TRPR_INFO_NO                  -- 대상자정보번호
+             , T1.RCPT_APLY_YN                  -- 접수신청여부
+             , T1.DEL_YN                        -- 삭제여부
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{ERYY_GR_DSCSN_NO}              -- 초기집단상담번호(EG)
+             , #{ACTN_SN}                       -- 조치일련번호
+             , SYSDATE                          -- 수정일시
+             , UPPER(#{DATAA_CHG_SE_CD})        -- 데이터변경구분코드
+             , #{ACTN_TYPE_SE_CD}               -- 조치유형구분코드
+             , #{ACTN_TYPE_DTL_SE_CD}           -- 조치유형상세구분코드
+             , #{ACTN_ETC_CN}                   -- 조치기타내용
+             , #{MKCTT_PLACE_SE_CD}             -- 접촉장소구분코드
+             , #{MKCTT_PLACE_ETC_NM}            -- 접촉장소기타명
+             , #{RUAW_LVING_PLACE_SE_CD}        -- 가출중생활장소구분코드
+             , #{RUAW_LVING_PLACE_ETC_NM}       -- 가출중생활장소기타명
+             , #{RUNAWS_SE_CD}                  -- 가출팸구분코드
+             , #{AVRG_LVM_CONT}                 -- 평균가출횟수
+             , #{TRPR_INFO_NO}                  -- 대상자정보번호
+             , NVL(#{RCPT_APLY_YN},'N')         -- 접수신청여부
+             , 'N'                              -- 삭제여부
+             , #{SESS_USER_ID}                  -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{SESS_USER_ID}                  -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+            
+</mapper>

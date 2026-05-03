@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.quartz.mapper.LongTermNotConnectedMapper">
+
+    <update id="updateCutOffLongTermNotConnected" parameterType="String">
+    <![CDATA[
+        /* updateCutOffLongTermNotConnected - Lee JiSeob */
+        
+        UPDATE SAA200 /* 사용자 */
+        
+        SET 
+            USER_CNTN_INTRCP_YN = 'Y',
+            USER_CNTN_INTRCP_SE_CD = '01'
+            
+        WHERE USER_ID = #{USER_ID}
+
+    ]]>
+    </update>
+
+
+
+    <select id="selectLongTermNotConnected" resultType="String">
+    <![CDATA[
+        
+        /* selectLongTermNotConnected - Lee JiSeob */
+
+        SELECT
+            X1.USER_ID
+        FROM
+        (
+        SELECT
+            X.USER_ID,
+            CASE WHEN X.FRST_REG_DT IS NULL THEN X.JOIN_DT ELSE X.FRST_REG_DT END AS LAST_LOGIN_DT
+        FROM
+        (
+        SELECT
+            AA.USER_ID,
+            TO_DATE(AA.JOIN_APRV_YMD || '235959', 'YYYYMMDDHH24MISS') AS JOIN_DT,
+            G.FRST_REG_DT
+        
+        FROM SAA200 AA /* 사용자 */
+        
+        LEFT JOIN 
+            (SELECT 
+				T.FRST_RGTR_ID,
+				T.FRST_REG_DT,
+                ROW_NUMBER() OVER(PARTITION BY T.FRST_RGTR_ID ORDER BY T.FRST_REG_DT DESC) AS RN
+            FROM SAB930 T /* 접속 로그 */
+            WHERE T.LGN_LGT_SE_CD = 'I'
+            AND T.LGN_SCS_YN = 'S'
+            ) G 
+            ON G.FRST_RGTR_ID = AA.USER_ID AND G.RN = 1
+        
+        WHERE 
+            AA.JOIN_APRV_YMD IS NOT NULL
+            AND AA.USER_ID_USE_SE_CD = '2'
+            AND AA.USER_CNTN_INTRCP_YN = 'N'
+            AND AA.ENFSN_NO IS NOT NULL
+            
+        ) X
+        ) X1
+        
+        WHERE X1.LAST_LOGIN_DT < SYSDATE - (
+            SELECT TO_NUMBER(STNG_PARA_VALUE1) 
+            FROM SAB710 /* 환경설정 */
+            WHERE STNG_ID = 'SYSTEM_ENV'
+        )
+        
+    ]]>
+    </select>
+
+</mapper>

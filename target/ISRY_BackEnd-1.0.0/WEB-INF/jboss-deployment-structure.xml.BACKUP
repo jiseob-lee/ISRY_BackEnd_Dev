@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<jboss-deployment-structure>
+
+
+<!-- 
+    .JBoss EAP 실행시 ClassLoader 구조의 차이로 어플리케이션의 로그가 출력되지 않는다. 
+     로그가 출력되도록 설정한다.
+ -->
+  
+    <deployment>
+         <dependencies>  
+              <module name="org.springframework" slot="4.3.25" export="true" meta-inf="export"/> 
+        </dependencies>
+        
+		<exclusions>
+			<module name="org.apache.commons.logging" />
+			<module name="org.apache.log4j" />
+			<module name="org.jboss.logging" />
+			<module name="org.jboss.logging.jul-to-slf4j-stub" />
+			<module name="org.slf4j" />
+		</exclusions>
+	        
+          
+    </deployment>  
+</jboss-deployment-structure>  

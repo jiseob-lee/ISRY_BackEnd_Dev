@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.drmgs.stdnt.mapper.YouthLifeRecodeMapper">
+
+    <select id="selectYouthLifeRecodeMainList" parameterType="HashMap" resultType="HashMap">
+        <!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" />
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.YouthLifeRecodeMapper.selectYouthLifeRecodeMainList - 청소년생활기록부관리-응용2팀 강화영  */
+        
+                TT10.*
+          FROM ( SELECT DISTINCT T2.CASE_MNG_NO   AS INDV_DSCSN_REQSTD_NO /* 사례관리번호 */
+		              , T2.CASE_MNG_ODRNO         AS CASE_MNG_ODRNO       /* 사례관리차수 */
+		              , T2.CASE_BGNG_YMD          AS CASE_BGNG_YMD        /* 사례시작일자 */
+				      , C##RG.DEC_B64(T3.TRPR_NM_ENCPT)          AS YNGBGS               /* 이름 */
+				      , T3.SXDC_SE_CD             AS SXDC                 /* 성별 */
+				      , C##RG.DEC_B64(T3.MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT /* 대상자휴대폰 */
+				      , (SELECT COUNT(1) 
+				           FROM AKA390 X /* 생활기록부 담당자 */ 
+				          WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				            AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				        )                         AS OGDP                 /* 소속 */  
+				      , (SELECT COUNT(1)
+				           FROM AKA370 X /* 출석현황 */
+				          WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				            AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				            AND X.USE_YN         = 'Y'
+				        )                         AS ATNC                 /* 출결 */   
+				      , (SELECT COUNT(1)
+				           FROM AKA340 X /* 수상경력 */ 
+				         WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				           AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				           AND X.USE_YN         = 'Y'
+				        )                         AS AWARDS               /* 수상 */ 
+				      , (SELECT COUNT(1)
+				           FROM AKA350 X /* 자격증현황*/ 
+				          WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				            AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				            AND X.USE_YN         = 'Y'
+				        )                         AS ACQS                 /* 취득 */    
+				      , (SELECT COUNT(1)
+				           FROM AKA360 X /* 창의적 체험활동상황 */ 
+				          WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				            AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				            AND X.USE_YN         = 'Y'
+				        )                         AS EXPRN                /* 체험 */                       
+				      , (SELECT COUNT(1)
+				           FROM AKA330 X /* 봉사황동 현황 */
+				          WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				            AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				            AND X.USE_YN         = 'Y'
+				        )                        AS SVCB                  /* 봉사 */   
+				      , (SELECT COUNT(1)
+				           FROM AKA320 X /* 학업노력 현황*/
+				          WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				            AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				            AND X.USE_YN         = 'Y'
+				        )                        AS SCHULW                /* 학업 */   
+				      , (SELECT COUNT(1)
+				           FROM AKA310 X /* 독서활동 현황 */ 
+				          WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				            AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				            AND X.USE_YN         = 'Y'
+				        )                        AS READ                  /* 독서 */   
+				      , (SELECT COUNT(1)
+				           FROM AKA380 X /* 종합의견 */ 
+				          WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+				            AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+				            AND X.USE_YN         = 'Y'
+				        )                        AS OPPN                  /* 의견 */        
+				      , T6.INST_NM               AS CNTER_NM              /* 센터명 */   
+				      , (SELECT COUNT(1)
+			               FROM AKA300 X /* 생활기록부 */ 
+			               WHERE X.CASE_MNG_NO    = T2.CASE_MNG_NO
+			                 AND X.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+			                 AND X.DEL_YN         = 'N'
+		                 )                       AS WRITE_CNT             /*생활기록부작성건수*/
+		              , T4.CNSTN_YR              AS CNSTN_YR              /* 컨설팅연도 */
+		              , T4.DEL_YN                AS DEL_YN                /* 삭제여부 */
+		              , TO_CHAR(T2.FRST_REG_DT, 'YYYYMMDD') AS FRST_REG_DT /* 등록일자 */
+		              , T2.TRPR_INFO_NO
+		              /* 2022.08.22 Lee SeungYeon - 권한적용을 위한 항목 추가 */
+				      , T5.CASE_PIC_NO           AS ENFSN_NO              /* 사례담당자번호(종사자번호) */
+				      , T5.PIC_INST_NO           AS INST_NO               /* 담당자기관번호(기관번호) */
+				      , T7.CRTF_ISSU_MNG_NO                               /* 증명서발급관리번호 */
+				      , T7.CRTF_ISSU_SN                                   /* 증명서발급일련번호 */
+				      , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100 WHERE ENFSN_NO = T5.CASE_PIC_NO) AS FLNM_ENCPT /* 종사자명 */
+				      , T8.STRG_COURS_NM || T8.STRG_FILE_NM AS FILE_INFO  /*사진*/
+				   FROM SEB100 T2 /* 사례기본 */
+				      , SEA200 T3 /* 대상자정보 */
+				      , AKA300 T4 /* 생활기록부 */
+				      , SEB150 T5 /* 사례담당자 */
+				      , SAA000 T6 /* 통합기관 */
+				      , AKA301 T7 /* 생활기록부출력 */
+				      , SAB881 T8 /* 첨부파일상세 */
+				  WHERE 1 = 1
+				    AND T2.TRPR_INFO_NO     = T3.TRPR_INFO_NO
+				    AND T2.CASE_MNG_NO      = T4.CASE_MNG_NO(+)
+				    AND T2.CASE_MNG_ODRNO   = T4.CASE_MNG_ODRNO(+)
+				    AND 'N'                 = T4.DEL_YN(+)
+				    AND T2.CASE_MNG_NO      = T5.CASE_MNG_NO
+				    AND T2.CASE_MNG_ODRNO   = T5.CASE_MNG_ODRNO
+				    AND T5.PIC_INST_NO      = T6.INST_NO
+				    AND T2.CASE_MNG_NO      = T7.CASE_MNG_NO(+)
+                    AND T2.CASE_MNG_ODRNO   = T7.CASE_MNG_ODRNO(+)
+				    AND 'Y'                 = T5.PCHPRS_YN
+				    AND T2.UNT_TASKWK_SE_CD = 'U03' /* 연계단위업무구분코드(U03:학교밖청소년지원센터) */
+				    AND T4.ATFINO = T8.ATFINO(+)
+                    AND 'N' = T8.FILE_STTS_SE_CD(+)
+                    AND (T8.ATCMFL_CL_NM ='0' OR T8.ATCMFL_CL_NM IS null) 
+                    ]]>
+                    /* 20230228_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작*/                               
+	                <include refid="GroupAuthrtMapper.youthLifeRecodeMainGropuAuthrt"/>                                   
+	                /* 20230228_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/   
+
+			   ) TT10
+		   WHERE 1=1
+		
+		<if test='WRITE_YN != null and WRITE_YN != ""'>
+		  <choose>
+		      <when test='WRITE_YN == "Y"'>
+		          AND TT10.WRITE_CNT > 0
+		      </when>
+		      <when test='WRITE_YN == "N"'>
+                  AND TT10.WRITE_CNT = 0
+              </when>
+		  </choose>
+		</if>
+		<if test="TRPR_NM != null and TRPR_NM != ''">
+		  AND TT10.YNGBGS = #{TRPR_NM}
+		</if>
+		<if test="CASE_MNG_NO != null and CASE_MNG_NO != ''">
+          AND TT10.INDV_DSCSN_REQSTD_NO = #{CASE_MNG_NO}
+        </if>
+		<if test="START_CASE_YMD != null and START_CASE_YMD != '' and END_CASE_YMD != null and END_CASE_YMD != ''">
+		    <![CDATA[
+		    AND TT10.CASE_BGNG_YMD BETWEEN #{START_CASE_YMD} AND #{END_CASE_YMD}
+            ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+	      <![CDATA[
+	           AND TT10.FRST_REG_DT BETWEEN #{START_DATE} AND #{END_DATE}
+	      ]]>
+	    </if>
+		<if test="INST_NM != null and INST_NM != ''">
+		    <![CDATA[
+		    AND TT10.CNTER_NM like '%' || #{INST_NM} || '%'
+		    ]]>
+		</if>
+		<if test="CNSTN_YR != null and CNSTN_YR != ''">
+            <![CDATA[
+            AND TT10.CNSTN_YR = #{CNSTN_YR}
+            ]]>
+        </if>
+        <!-- 페이지 인덱서 OFFSET 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <update id="deleteYouthLifeRecode" parameterType="HashMap">
+        <![CDATA[        
+        /* isry.drmgs.stdnt.mapper.YouthLifeRecodeMapper.deleteYouthLifeRecode - 응용2팀 강화영  */
+        
+        UPDATE AKA300 /* 생활기록부 */
+           SET DEL_YN         = 'Y'
+             , LAST_MDFR_ID   = #{LAST_MDFR_ID}
+             , LAST_MDFCN_DT  = SYSDATE
+         WHERE CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+        ]]>
+    </update>
+
+    <select id="selectOtptList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.YouthLifeRecodeMapper.selectOtptList - Hee Sung Yoon  */
+        SELECT A.CRTF_ISSU_MNG_NO
+			 , A.CRTF_ISSU_SN
+			 , A.CASE_MNG_NO
+			 , A.CASE_MNG_ODRNO
+			 , A.OTPT_PIC_NO
+			 , A.OTPT_DT
+			 , A.UNIVA_MTCLTN_YR
+		     , A.OTPT_KND_SE_CD
+		     , C##RG.DEC_B64(B.FLNM_ENCPT) AS FLNM_ENCPT
+			 , A.FRST_REG_DT
+	    FROM AKA301 A
+	       , SCA100 B
+	    WHERE A.CASE_MNG_NO    = #{CASE_MNG_NO}
+          AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+          AND A.OTPT_PIC_NO = B.ENFSN_NO(+)
+        ]]>
+    </select>
+</mapper>

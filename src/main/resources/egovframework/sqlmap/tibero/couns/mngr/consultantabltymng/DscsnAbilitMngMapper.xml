@@ -1,0 +1,3180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper">
+
+    <select id="selectEvlCnsttnList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlCnsttnList - 개발지원팀 이태호  */
+        
+        SELECT T1.RLVT_YR                   AS RLVT_YR		   
+              ,T1.EVL_TME_SE_CD             AS EVL_CD
+              ,T1.EVL_GROUP_SE_CD           AS EVL_GROUP    
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드
+		      ,T1.RGTR_ID                   AS RGTR_ID
+		      ,T1.CRT_DT                    AS CRT_DT
+		      ,T1.CFMTN_YN                  AS CFMTN_YN		     
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_GROUP_SE_CD) AS EVL_GROUP_SE_CD   --평가그룹구분코드
+		      ,T1.CHTT_WGHTVA_VALUE * 100         AS CHTT_WGHTVA_VALUE
+		      ,T1.NTABRD_WGHTVA_VALUE * 100       AS NTABRD_WGHTVA_VALUE
+		      ,T1.MSNGR_WGHTVA_VALUE * 100         AS MSNGR_WGHTVA_VALUE
+		      ,T1.PRFMNC_WGHTVA_VALUE * 100      AS PRFMNC_WGHTVA_VALUE
+		      ,CASE WHEN T1.CHTT_WGHTVA_VALUE IS NOT NULL THEN '채팅상담'
+                    WHEN T1.NTABRD_WGHTVA_VALUE IS NOT NULL THEN '게시판상담'
+                    WHEN T1.MSNGR_WGHTVA_VALUE IS NOT NULL THEN '메신저상담'
+                    WHEN T1.PRFMNC_WGHTVA_VALUE IS NOT NULL THEN '실적상담'
+               END                          AS EVL_PRVSON
+              ,CASE WHEN T1.CHTT_WGHTVA_VALUE IS NOT NULL THEN T1.CHTT_WGHTVA_VALUE  || '%'
+                    WHEN T1.NTABRD_WGHTVA_VALUE IS NOT NULL THEN T1.NTABRD_WGHTVA_VALUE  || '%'
+                    WHEN T1.MSNGR_WGHTVA_VALUE IS NOT NULL THEN T1.MSNGR_WGHTVA_VALUE  || '%'
+                    WHEN T1.PRFMNC_WGHTVA_VALUE IS NOT NULL THEN T1.PRFMNC_WGHTVA_VALUE  || '%' 
+               END                          AS RFLT_RATE
+		      ,T1.CHTT_BGNG_YMD             AS CHTT_BGNG_YMD
+		      ,T1.CHTT_END_YMD              AS CHTT_END_YMD
+		      ,T1.NTABRD_BGNG_YMD           AS NTABRD_BGNG_YMD
+		      ,T1.NTABRD_END_YMD            AS NTABRD_END_YMD
+		      ,T1.MSNGR_BGNG_YMD            AS MSNGR_BGNG_YMD
+		      ,T1.MSNGR_END_YMD             AS MSNGR_END_YMD
+		      ,T1.BGNG_YMD                  AS BGNG_YMD
+		      ,T1.END_YMD                   AS END_YMD
+		      ,T1.PRVSON_NM                 AS PRVSON_NM
+		      ,DECODE(T1.BGNG_YMD,NULL,'',SUBSTR(T1.BGNG_YMD,0,4) || '-' || SUBSTR(T1.BGNG_YMD,5,2) || '-' || SUBSTR(T1.BGNG_YMD,7,2) || '~' || SUBSTR(T1.END_YMD,0,4) || '-' || SUBSTR(T1.END_YMD,5,2) || '-' || SUBSTR(T1.END_YMD,7,2)) AS EVL_PRD
+		      ,T1.EVFO_MNG_SN               AS EVFO_MNG_SN
+		FROM AYC200 T1 /* 평가지관리 */
+		WHERE 1=1
+		 AND T1.DEL_YN = 'N'      
+          ]]>
+          <if test="RLVT_YR != null and RLVT_YR != ''">
+              <![CDATA[
+                   AND T1.RLVT_YR = #{RLVT_YR} 
+              ]]>
+          </if>          
+          <if test="EVL_GROUP_SE_CD != null and EVL_GROUP_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_GROUP_SE_CD = #{EVL_GROUP_SE_CD} 
+              ]]>
+          </if>
+          <if test="EVL_TME_SE_CD != null and EVL_TME_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_TME_SE_CD = #{EVL_TME_SE_CD} 
+              ]]>
+          </if>
+
+    </select>
+    
+    <insert id="InsertEvlCnsttn" parameterType="HashMap" useGeneratedKeys="true" keyProperty="MNG_SN">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.InsertEvlCnsttn - 개발지원팀 이태호  */
+        <selectKey keyProperty="MNG_SN" resultType="int" order="BEFORE">            
+            SELECT NVL(MAX(EVFO_MNG_SN)+1 ,1) FROM AYC200            
+        </selectKey>
+        INSERT INTO AYC200 /* 평가지관리 */
+		    (EVFO_MNG_SN
+		    , RLVT_YR
+		    , EVL_TME_SE_CD
+		    , RGTR_ID
+		    , CRT_DT
+		    , CFMTN_YN
+		    , EVL_GROUP_SE_CD
+		    , CHTT_WGHTVA_VALUE
+		    , NTABRD_WGHTVA_VALUE
+		    , MSNGR_WGHTVA_VALUE
+		    , PRFMNC_WGHTVA_VALUE
+		    , CHTT_BGNG_YMD
+		    , CHTT_END_YMD
+		    , NTABRD_BGNG_YMD
+		    , NTABRD_END_YMD
+		    , MSNGR_BGNG_YMD
+		    , MSNGR_END_YMD
+		    , BGNG_YMD
+		    , END_YMD
+		    , PRVSON_NM
+		    , SRVY_KND_SE_CD1
+		    , SRVY_KND_SE_CD2
+		    , SRVY_KND_SE_CD3
+		    , SRVY_KND_SE_CD4
+		    , DEL_YN		    
+		    , FRST_RGTR_ID
+		    , FRST_REG_DT
+		    , LAST_MDFR_ID
+		    , LAST_MDFCN_DT
+		    )
+		VALUES
+		    (#{MNG_SN}
+		    , #{RLVT_YR}
+		    , #{EVL_TME_SE_CD}
+		    , #{RGTR_ID}
+		    , SYSDATE
+		    , NVL(#{CFMTN_YN},'N')
+		    , #{EVL_GROUP_SE_CD}
+		    , NVL(#{CHTT_WGHTVA_VALUE},0) / 100
+		    , NVL(#{NTABRD_WGHTVA_VALUE},0) / 100
+		    , NVL(#{MSNGR_WGHTVA_VALUE},0) / 100
+		    , NVL(#{PRFMNC_WGHTVA_VALUE},0) / 100
+		    , #{CHTT_BGNG_YMD}
+		    , #{CHTT_END_YMD}
+		    , #{NTABRD_BGNG_YMD}
+		    , #{NTABRD_END_YMD}
+		    , #{MSNGR_BGNG_YMD}
+		    , #{MSNGR_END_YMD}
+		    , #{BGNG_YMD}
+		    , #{END_YMD}
+		    , #{PRVSON_NM}
+		    , #{SRVY_KND_SE_CD1}
+		    , #{SRVY_KND_SE_CD2}
+		    , #{SRVY_KND_SE_CD3}
+		    , #{SRVY_KND_SE_CD4}
+		    , NVL(#{DEL_YN},'N')
+		    , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+		    )
+		     
+    </insert>
+    
+    <insert id="InsertEvlCnsttnDtl" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.InsertEvlCnsttnDtl - 개발지원팀 이태호  */        
+        INSERT INTO AYC210 /* 평가자관리상세 */
+            (EVFO_MNG_SN
+			, APRAI_MNG_DTL_SN
+			, APRAI_ID
+			, APRAI_NM_ENCPT
+			, CHTT_EVL_BGNG_YMD
+			, CHTT_EVL_END_YMD
+			, NTABRD_EVL_BGNG_YMD
+			, NTABRD_EVL_END_YMD			
+			, CRT_YMD
+			, MSNGR_EVL_BGNG_YMD
+			, MSNGR_EVL_END_YMD
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT
+			)
+        VALUES
+            (#{MNG_SN}
+            , AYC210_SQ01.NEXTVAL
+            , #{APRAI_ID}
+            , #{APRAI_NM_ENCPT}
+            , #{CHTT_EVL_BGNG_YMD}
+            , #{CHTT_EVL_END_YMD}
+            , #{NTABRD_EVL_BGNG_YMD}
+            , #{NTABRD_EVL_END_YMD}            
+            , #{CRT_YMD}            
+            , #{MSNGR_EVL_BGNG_YMD}
+            , #{MSNGR_EVL_END_YMD}
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )
+             
+    </insert>
+    
+    <!-- 종사자명 구하기 -->
+    <select id="selectEnfsnNm" parameterType="String" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEnfsnNm - 개발지원팀 이태호  */  
+        SELECT FLNM_ENCPT AS FLNM_ENCPT
+		  FROM SCA100 /* 종사자 */
+		 WHERE 1=1
+		   AND ENFSN_NO = #{ENFSN_NO}        
+    </select>
+    
+    <select id="selectEvlCnsttnUpdate" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlCnsttnUpdate - 개발지원팀 이태호  */  
+        SELECT RLVT_YR                    AS RLVT_YR
+		      ,EVL_GROUP_SE_CD            AS EVL_GROUP_SE_CD
+		      ,EVL_TME_SE_CD              AS EVL_TME_SE_CD
+		      ,BGNG_YMD                   AS BGNG_YMD
+		      ,END_YMD                    AS END_YMD
+		      ,PRVSON_NM                  AS PRVSON_NM
+		      ,CHTT_WGHTVA_VALUE *100     AS CHTT_WGHTVA_VALUE
+		      ,NTABRD_WGHTVA_VALUE *100   AS NTABRD_WGHTVA_VALUE
+		      ,MSNGR_WGHTVA_VALUE *100    AS MSNGR_WGHTVA_VALUE
+		      ,PRFMNC_WGHTVA_VALUE *100   AS PRFMNC_WGHTVA_VALUE 
+		      ,EVFO_MNG_SN                AS EVFO_MNG_SN
+		FROM AYC200 /* 평가지관리 */
+		WHERE 1=1
+		AND DEL_YN            = 'N'
+		AND EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+<!-- 		AND RLVT_YR           = #{RLVT_YR}  -->
+<!-- 		AND EVL_GROUP_SE_CD   = #{EVL_GROUP_SE_CD}    -->
+<!-- 		AND EVL_TME_SE_CD     = #{EVL_TME_SE_CD}          -->
+    </select>
+    
+    <update id="UpdateEvlCnsttn" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEvlCnsttn - 개발지원팀 이태호  */
+        UPDATE AYC200 /* 평가지관리 */
+			SET RLVT_YR              = #{RLVT_YR}
+			  , EVL_TME_SE_CD        = #{EVL_TME_SE_CD}
+			  , EVL_GROUP_SE_CD      = #{EVL_GROUP_SE_CD}
+			  , BGNG_YMD             = #{BGNG_YMD}
+			  , END_YMD              = #{END_YMD}
+			  , PRVSON_NM            = #{PRVSON_NM}
+			  , CHTT_WGHTVA_VALUE    = NVL(#{CHTT_WGHTVA_VALUE},0) /100
+			  , NTABRD_WGHTVA_VALUE  = NVL(#{NTABRD_WGHTVA_VALUE},0) /100
+			  , MSNGR_WGHTVA_VALUE   = NVL(#{MSNGR_WGHTVA_VALUE},0) /100
+			  , PRFMNC_WGHTVA_VALUE  = NVL(#{PRFMNC_WGHTVA_VALUE},0) /100
+			  , SRVY_KND_SE_CD1     = #{SRVY_KND_SE_CD1}
+			  , SRVY_KND_SE_CD2     = #{SRVY_KND_SE_CD2}
+			  , SRVY_KND_SE_CD3     = #{SRVY_KND_SE_CD3}
+			  , SRVY_KND_SE_CD4     = #{SRVY_KND_SE_CD4}
+			  , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+			  , LAST_MDFCN_DT        = SYSDATE
+	   WHERE EVFO_MNG_SN = #{EVFO_MNG_SN}
+    </update>
+    
+     <update id="UpdateCfmtnYn" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateCfmtnYn - 개발지원팀 이태호  */
+        UPDATE AYC200 /* 평가지관리 */
+            SET CFMTN_YN             = 'Y'              
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE EVFO_MNG_SN = #{EVFO_MNG_SN}
+    </update>
+    
+    <update id="UpdateExclncCaseRow" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateExclncCaseRow - 개발지원팀 이태호  */
+        UPDATE AYC290 /* 우수사례 */
+            SET DEL_YN               = 'Y'              
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE EXCLNC_CASE_SN = #{EXCLNC_CASE_SN}
+         AND CNSLTNT_ID     = #{CNSLTNT_ID}
+         AND RLVT_YR        = #{RLVT_YR}
+         AND DEL_YN         = 'N'
+    </update>
+    
+    <!-- <update id="UpdateSuperVisionAll" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateSuperVisionAll - 개발지원팀 이태호  */
+        UPDATE AYC295 /* 수퍼비전 */
+            SET DEL_YN               = 'Y'              
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE RLVT_YR = #{RLVT_YR}
+    </update> -->
+    
+    <update id="UpdateSuperVisionAll" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateSuperVisionAll - 응용2팀 정원제  */
+        UPDATE AYC295 
+        SET    DEL_YN               =      'Y'              
+               , LAST_MDFR_ID       =      #{LAST_MDFR_ID}
+               , LAST_MDFCN_DT      =      SYSDATE
+        WHERE  RLVT_YR                  =       #{RLVT_YR}
+        AND    TASKWK_TYPE_DEPT_CD      =       #{DEPT_CD}
+        AND    DEL_YN                   =       'N'
+        <!-- AND    CNSLTNT_ID     IN  (SELECT T1.CNSLTNT_ID
+                                   FROM   AYC295  T1
+                                          , SAA200    T2
+                                          , SCA100    T3
+                                   WHERE  T1.CNSLTNT_ID   =   T2.USER_ID
+                                   AND    T2.ENFSN_NO     =   T3.ENFSN_NO
+                                   AND    T3.OGDP_DEPT_CD =   #{DEPT_CD}
+                                   ) -->
+    </update>
+    
+    <!-- <update id="UpdateExclncCaseAll" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateExclncCaseAll - 개발지원팀 이태호  */
+        UPDATE AYC290 /* 우수사례 */
+            SET DEL_YN               = 'Y'              
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE RLVT_YR = #{RLVT_YR}
+    </update> -->
+    
+    <update id="UpdateExclncCaseAll" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateExclncCaseAll - 응용2팀 정원제  */
+        UPDATE AYC290 
+	    SET    DEL_YN               =      'Y'              
+	           , LAST_MDFR_ID       =      #{LAST_MDFR_ID}
+	           , LAST_MDFCN_DT      =      SYSDATE
+		WHERE  RLVT_YR                  =       #{RLVT_YR}
+		AND    TASKWK_TYPE_DEPT_CD      =       #{DEPT_CD}
+		AND    DEL_YN                   =       'N'
+		<!-- AND    CNSLTNT_ID     IN  (SELECT T1.CNSLTNT_ID
+			                       FROM   AYC290  T1
+			                              , SAA200    T2
+			                              , SCA100    T3
+			                       WHERE  T1.CNSLTNT_ID   =   T2.USER_ID
+			                       AND    T2.ENFSN_NO     =   T3.ENFSN_NO
+			                       AND    T3.OGDP_DEPT_CD =   #{DEPT_CD}
+			                       ) -->
+    </update>
+    
+    <update id="UpdateSuperVisionRow" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateSuperVisionRow - 개발지원팀 이태호  */
+        UPDATE AYC295 /* 수퍼비전 */
+            SET DEL_YN               = 'Y'              
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE SUPERV_CASE_SN = #{SUPERV_CASE_SN}
+         AND CNSLTNT_ID     = #{CNSLTNT_ID}
+         AND RLVT_YR        = #{RLVT_YR}
+    </update>
+    
+    <update id="UpdateCfmtnRtrcnYn" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateCfmtnRtrcnYn - 개발지원팀 이태호  */
+        UPDATE AYC200 /* 평가지관리 */
+            SET CFMTN_YN             = 'N'              
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE EVFO_MNG_SN = #{EVFO_MNG_SN}
+    </update>
+    
+    <select id="selectEvfoMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoMngList - 개발지원팀 이태호  */
+        
+        SELECT T1.RLVT_YR                   AS RLVT_YR            
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드
+              ,T1.RGTR_ID                   AS RGTR_ID
+              ,T1.CRT_DT                    AS CRT_DT
+              ,T1.CFMTN_YN                  AS CFMTN_YN          
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_GROUP_SE_CD) AS EVL_GROUP_SE_CD   --평가그룹구분코드
+              ,T1.CHTT_WGHTVA_VALUE         AS CHTT_WGHTVA_VALUE
+              ,T1.NTABRD_WGHTVA_VALUE       AS NTABRD_WGHTVA_VALUE
+              ,T1.MSNGR_WGHTVA_VALUE        AS MSNGR_WGHTVA_VALUE
+              ,T1.PRFMNC_WGHTVA_VALUE       AS PRFMNC_WGHTVA_VALUE
+              ,CASE WHEN T1.CHTT_WGHTVA_VALUE IS NOT NULL THEN '채팅상담'
+                    WHEN T1.NTABRD_WGHTVA_VALUE IS NOT NULL THEN '게시판상담'
+                    WHEN T1.MSNGR_WGHTVA_VALUE IS NOT NULL THEN '메신저상담'
+                    WHEN T1.PRFMNC_WGHTVA_VALUE IS NOT NULL THEN '실적상담'
+               END                          AS EVL_PRVSON
+              ,CASE WHEN T1.CHTT_WGHTVA_VALUE IS NOT NULL THEN T1.CHTT_WGHTVA_VALUE  || '%'
+                    WHEN T1.NTABRD_WGHTVA_VALUE IS NOT NULL THEN T1.NTABRD_WGHTVA_VALUE  || '%'
+                    WHEN T1.MSNGR_WGHTVA_VALUE IS NOT NULL THEN T1.MSNGR_WGHTVA_VALUE  || '%'
+                    WHEN T1.PRFMNC_WGHTVA_VALUE IS NOT NULL THEN T1.PRFMNC_WGHTVA_VALUE  || '%' 
+               END                          AS RFLT_RATE
+              ,T1.CHTT_BGNG_YMD             AS CHTT_BGNG_YMD
+              ,T1.CHTT_END_YMD              AS CHTT_END_YMD
+              ,T1.NTABRD_BGNG_YMD           AS NTABRD_BGNG_YMD
+              ,T1.NTABRD_END_YMD            AS NTABRD_END_YMD
+              ,T1.MSNGR_BGNG_YMD            AS MSNGR_BGNG_YMD
+              ,T1.MSNGR_END_YMD             AS MSNGR_END_YMD
+              ,T1.BGNG_YMD                  AS BGNG_YMD
+              ,T1.END_YMD                   AS END_YMD
+              ,T1.PRVSON_NM                 AS PRVSON_NM
+              ,DECODE(T1.BGNG_YMD,NULL,'',SUBSTR(T1.BGNG_YMD,0,4) || '-' || SUBSTR(T1.BGNG_YMD,5,2) || '-' || SUBSTR(T1.BGNG_YMD,7,2) || '~' || SUBSTR(T1.END_YMD,0,4) || '-' || SUBSTR(T1.END_YMD,5,2) || '-' || SUBSTR(T1.END_YMD,7,2)) AS EVL_PRD
+              ,T1.EVFO_MNG_SN               AS EVFO_MNG_SN
+        FROM AYC200 T1 /* 평가지관리 */
+        WHERE 1=1
+         AND T1.DEL_YN = 'N'      
+          ]]>
+          <if test="RLVT_YR != null and RLVT_YR != ''">
+              <![CDATA[
+                   AND T1.RLVT_YR = #{RLVT_YR} 
+              ]]>
+          </if>          
+          <if test="EVL_GROUP_SE_CD != null and EVL_GROUP_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_GROUP_SE_CD = #{EVL_GROUP_SE_CD} 
+              ]]>
+          </if>
+          <if test="EVL_TME_SE_CD != null and EVL_TME_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_TME_SE_CD = #{EVL_TME_SE_CD} 
+              ]]>
+          </if>
+
+    </select>
+    
+    <select id="selectEvfoMngBassInfo" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoMngBassInfo - 개발지원팀 이태호  */  
+        SELECT RLVT_YR                    AS RLVT_YR              
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_SE_CD' AND x.CMMNS_CD_VALUE = EVL_GROUP_SE_CD) AS EVL_GROUP_SE_CD   --평가그룹구분코드              
+              ,BGNG_YMD                   AS BGNG_YMD
+              ,END_YMD                    AS END_YMD
+              ,PRVSON_NM                  AS PRVSON_NM
+              ,CHTT_WGHTVA_VALUE          AS CHTT_WGHTVA_VALUE
+              ,NTABRD_WGHTVA_VALUE        AS NTABRD_WGHTVA_VALUE
+              ,MSNGR_WGHTVA_VALUE         AS MSNGR_WGHTVA_VALUE
+              ,PRFMNC_WGHTVA_VALUE        AS PRFMNC_WGHTVA_VALUE 
+              ,EVFO_MNG_SN                AS EVFO_MNG_SN
+        FROM AYC200 /* 평가지관리 */
+        WHERE 1=1
+        AND DEL_YN            = 'N'
+        AND EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+    </select>
+    
+    <select id="selectEvfoMngInfoList" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoMngInfoList - 개발지원팀 이태호  */  
+        WITH TMP AS  
+		(
+		SELECT T1.PRVSON_NM 
+		      ,T1.CHTT_BGNG_YMD 
+		      ,T1.CHTT_END_YMD 
+		      ,T1.NTABRD_BGNG_YMD
+		      ,T1.NTABRD_END_YMD
+		      ,T1.MSNGR_BGNG_YMD
+		      ,T1.MSNGR_END_YMD 
+		      ,T1.EVFO_MNG_SN 
+		      ,T1.RLVT_YR 		      
+		FROM AYC200 T1		    
+		WHERE T1.EVFO_MNG_SN  = #{EVFO_MNG_SN} 
+		  AND T1.DEL_YN       = 'N'
+		)
+		SELECT CASE WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '01' THEN '채팅'
+		            WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '02' THEN '게시판'         
+		            WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '03' THEN '메신저'
+		            WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '04' THEN '실적'
+		       END                                          AS EVL_PRVSON       
+		      ,CASE WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '01' THEN DECODE(CHTT_BGNG_YMD,NULL,'',SUBSTR(CHTT_BGNG_YMD,0,4) || '-' || SUBSTR(CHTT_BGNG_YMD,5,2) || '-' || SUBSTR(CHTT_BGNG_YMD,7,2) || '~' || SUBSTR(CHTT_END_YMD,0,4) || '-' || SUBSTR(CHTT_END_YMD,5,2) || '-' || SUBSTR(CHTT_END_YMD,7,2))
+		            WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '02' THEN DECODE(NTABRD_BGNG_YMD,NULL,'',SUBSTR(NTABRD_BGNG_YMD,0,4) || '-' || SUBSTR(NTABRD_BGNG_YMD,5,2) || '-' || SUBSTR(NTABRD_BGNG_YMD,7,2) || '~' || SUBSTR(NTABRD_END_YMD,0,4) || '-' || SUBSTR(NTABRD_END_YMD,5,2) || '-' || SUBSTR(NTABRD_END_YMD,7,2))          
+		            WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '03' THEN DECODE(MSNGR_BGNG_YMD,NULL,'',SUBSTR(MSNGR_BGNG_YMD,0,4) || '-' || SUBSTR(MSNGR_BGNG_YMD,5,2) || '-' || SUBSTR(MSNGR_BGNG_YMD,7,2) || '~' || SUBSTR(MSNGR_END_YMD,0,4) || '-' || SUBSTR(MSNGR_END_YMD,5,2) || '-' || SUBSTR(MSNGR_END_YMD,7,2))
+		            WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '04' THEN '실적'
+		       END                                          AS EVL_PRD
+		      ,REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) AS PIVOT_COL
+		      ,CHTT_BGNG_YMD                                AS CHTT_BGNG_YMD
+		      ,CHTT_END_YMD                                 AS CHTT_END_YMD
+		      ,NTABRD_BGNG_YMD                              AS NTABRD_BGNG_YMD
+		      ,NTABRD_END_YMD                               AS NTABRD_END_YMD
+		      ,MSNGR_BGNG_YMD                               AS MSNGR_BGNG_YMD
+		      ,MSNGR_END_YMD                                AS MSNGR_END_YMD
+		      ,EVFO_MNG_SN                                  AS EVFO_MNG_SN
+		      ,RLVT_YR                                      AS RLVT_YR		      
+		FROM DUAL,TMP
+		WHERE REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) != '04'
+		CONNECT BY REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) IS NOT NULL 
+    </select>
+    
+    <update id="UpdateEvfoAdding" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEvfoAdding - 개발지원팀 이태호  */
+        UPDATE AYC200 /* 평가지관리 */
+            SET CHTT_BGNG_YMD       = #{CHTT_BGNG_YMD}
+              , CHTT_END_YMD        = #{CHTT_END_YMD}
+              , NTABRD_BGNG_YMD     = #{NTABRD_BGNG_YMD}
+              , NTABRD_END_YMD      = #{NTABRD_END_YMD}
+              , MSNGR_BGNG_YMD      = #{MSNGR_BGNG_YMD}
+              , MSNGR_END_YMD       = #{MSNGR_END_YMD}
+              , PRVSON_NM           = #{PRVSON_NM}
+              , SRVY_KND_SE_CD1    = #{SRVY_KND_SE_CD1}
+              , SRVY_KND_SE_CD2    = #{SRVY_KND_SE_CD2}
+              , SRVY_KND_SE_CD3    = #{SRVY_KND_SE_CD3}
+              , LAST_MDFR_ID        = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT       = SYSDATE
+       WHERE EVFO_MNG_SN = #{EVFO_MNG_SN}
+    </update>
+    
+    <select id="selectEvfoAdding" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoAdding - 개발지원팀 이태호  */  
+        SELECT CHTT_BGNG_YMD    AS CHTT_BGNG_YMD
+              ,CHTT_END_YMD     AS CHTT_END_YMD
+              ,NTABRD_BGNG_YMD  AS NTABRD_BGNG_YMD
+              ,NTABRD_END_YMD   AS NTABRD_END_YMD
+              ,MSNGR_BGNG_YMD   AS MSNGR_BGNG_YMD
+              ,MSNGR_END_YMD    AS MSNGR_END_YMD
+              ,PRVSON_NM        AS PRVSON_NM
+		      ,DECODE(CHTT_BGNG_YMD,NULL,'','Y')    AS chk1
+		      ,DECODE(NTABRD_BGNG_YMD,NULL,'','Y')  AS chk2
+		      ,DECODE(MSNGR_BGNG_YMD,NULL,'','Y')   AS chk3
+        FROM AYC200 /* 평가지관리 */
+        WHERE 1=1
+        AND EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+    </select>
+    
+    <select id="selectEvfoAbilitMngBassInfo" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoAbilitMngBassInfo - 개발지원팀 이태호  */  
+        SELECT RLVT_YR                    AS RLVT_YR              
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_SE_CD' AND x.CMMNS_CD_VALUE = EVL_GROUP_SE_CD) AS EVL_GROUP_SE_CD   --평가그룹구분코드              
+              ,PRVSON_NM                  AS PRVSON_NM              
+              ,EVFO_MNG_SN                AS EVFO_MNG_SN
+        FROM AYC200 /* 평가지관리 */
+        WHERE 1=1
+        AND DEL_YN            = 'N'
+        AND EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+    </select>
+    
+    <select id="selectEvfoCrtrMngBassInfo" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoCrtrMngBassInfo - 개발지원팀 이태호  */  
+        SELECT RLVT_YR                    AS RLVT_YR              
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_SE_CD' AND x.CMMNS_CD_VALUE = EVL_GROUP_SE_CD) AS EVL_GROUP_SE_CD   --평가그룹구분코드              
+              ,PRVSON_NM                  AS PRVSON_NM              
+              ,EVFO_MNG_SN                AS EVFO_MNG_SN
+        FROM AYC200 /* 평가지관리 */
+        WHERE 1=1
+        AND DEL_YN            = 'N'
+        AND EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+    </select>
+    
+    <select id="selectEvfoAbilitMngList" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoAbilitMngList - 개발지원팀 이태호  */  
+        SELECT T1.CHKLST_MNG_SN         AS CHKLST_MNG_SN
+              ,T1.EVFO_MNG_SN           AS EVFO_MNG_SN
+              ,T1.PRVSON_NM             AS PRVSON_NM
+              ,T2.CHKLST_GROUP_SN       AS CHKLST_GROUP_SN
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CHKLST_SE_CD' AND x.CMMNS_CD_VALUE = T2.CHKLST_SE_CD) AS CHKLST_SE_CD   --체크리스트구분코드
+              ,T2.ABILIT_CN             AS ABILIT_CN --역량내용
+              ,T2.ABILIT_ALLOT_SCORE    AS ABILIT_ALLOT_SCORE --역량배점점수
+              ,T2.CRT_DT                AS CRT_DT
+              ,T2.CRT_ID                AS CRT_ID      
+              ,T2.MDFCN_DT              AS MDFCN_DT
+              ,T2.MDFR_ID               AS MDFR_ID
+              ,T2.ADSBTR_SE_YN          AS ADSBTR_SE_YN
+              ,T2.SRTNG_SQNCE           AS SRTNG_SQNCE
+		FROM AYC250 T1 /* 체크리스트관리 */
+            ,AYC255 T2 /* 체크리스트그룹 */
+            ,AYC200 T3 /* 평가지관리 */  
+		WHERE 1=1
+          AND T1.CHKLST_MNG_SN    = T2.CHKLST_MNG_SN
+          AND T1.EVFO_MNG_SN      = T3.EVFO_MNG_SN
+          AND T1.DEL_YN           = 'N'
+          AND T2.DEL_YN           = 'N'
+          AND T3.DEL_YN           = 'N'
+		  AND T3.EVFO_MNG_SN      = #{EVFO_MNG_SN}
+		  AND T1.PRVSON_NM        = #{PIVOT_COL}  
+		  ORDER BY T2.CHKLST_GROUP_SN
+    </select>
+        
+    <select id="selectEvfoCrtrMngList" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoCrtrMngList - 개발지원팀 이태호  */  
+        SELECT     T1.CHKLST_MNG_SN         AS CHKLST_MNG_SN        /* 체크리스트관리일련번호 */
+	              ,T1.EVFO_MNG_SN           AS EVFO_MNG_SN
+	              ,T2.ABILIT_CN             AS ABILIT_CN --역량내용
+	              ,T4.CHKLST_SCORE          AS CHKLST_SCORE
+	              ,T4.CHKLST_CN             AS CHKLST_CN
+	              ,T4.QUEST_NO              AS QUEST_NO
+	              ,T4.CHKLST_QUEST_SN       AS CHKLST_QUEST_SN      /* 체크리스트질의일련번호 */
+                  ,T4.CHKLST_GROUP_SN       AS CHKLST_GROUP_SN      /* 체크리스트그룹일련번호 */
+        FROM AYC250 T1 /* 체크리스트관리 */
+            ,AYC255 T2 /* 체크리스트그룹 */
+            ,AYC200 T3 /* 평가지관리 */  
+            ,AYC260 T4 /* 체크리스트질의 */
+        WHERE 1=1
+          AND T1.CHKLST_MNG_SN    = T2.CHKLST_MNG_SN
+          AND T1.EVFO_MNG_SN      = T3.EVFO_MNG_SN
+          AND T2.CHKLST_GROUP_SN= T4.CHKLST_GROUP_SN
+          AND T1.DEL_YN           = 'N'
+          AND T2.DEL_YN           = 'N'
+          AND T3.DEL_YN           = 'N'
+          AND T3.EVFO_MNG_SN      = #{EVFO_MNG_SN}
+          AND T1.PRVSON_NM        = #{PIVOT_COL}          
+         GROUP BY T1.CHKLST_MNG_SN,T1.EVFO_MNG_SN,T2.ABILIT_CN,T4.CHKLST_SCORE,T4.CHKLST_CN,T4.QUEST_NO,T4.CHKLST_QUEST_SN,T4.CHKLST_GROUP_SN
+         ORDER BY T1.CHKLST_MNG_SN, T4.CHKLST_GROUP_SN ASC, T4.CHKLST_SCORE DESC
+    </select>
+    
+    <insert id="InsertEvfoAbilitMng" parameterType="HashMap" useGeneratedKeys="true" keyProperty="MNG_SN">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.InsertEvfoAbilitMng - 개발지원팀 이태호  */
+        <selectKey keyProperty="MNG_SN" resultType="int" order="BEFORE">            
+            SELECT NVL(MAX(CHKLST_MNG_SN)+1 ,1) FROM AYC250            
+        </selectKey>
+        INSERT INTO AYC250 /* 체크리스트관리 */
+			(CHKLST_MNG_SN
+			, EVFO_MNG_SN
+			, PRVSON_NM
+			, CRT_DT
+			, CRT_ID
+			, MDFCN_DT
+			, MDFR_ID
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT)
+        VALUES
+            (#{MNG_SN}
+            , #{EVFO_MNG_SN}
+            , #{PRVSON_NM}           
+            , SYSDATE
+            , #{CRT_ID} 
+            , SYSDATE  
+            , #{MDFR_ID}
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )             
+    </insert>
+    
+    <insert id="InsertEvfoAbilitMngGroup" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.InsertEvfoAbilitMngGroup - 개발지원팀 이태호  */        
+        INSERT INTO AYC255 /* 체크리스트그룹 */
+            (CHKLST_MNG_SN
+			, CHKLST_GROUP_SN
+			, CHKLST_SE_CD
+			, ABILIT_CN
+			, ABILIT_ALLOT_SCORE
+			, CRT_DT
+			, CRT_ID
+			, MDFCN_DT
+			, MDFR_ID
+			, ADSBTR_SE_YN
+			, SRTNG_SQNCE
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT)
+        VALUES
+            (#{MNG_SN}
+            , AYC255_SQ01.NEXTVAL
+            , #{CHKLST_SE_CD}
+            , #{ABILIT_CN}
+            , #{ABILIT_ALLOT_SCORE}
+            , SYSDATE
+            , #{CRT_ID}
+            , SYSDATE
+            , #{MDFR_ID}            
+            , NVL(#{ADSBTR_SE_YN},'N')            
+            , #{SRTNG_SQNCE}            
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )
+             
+    </insert>
+    
+    <select id="selectApraiMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectApraiMngList - 개발지원팀 이태호  */
+        
+        SELECT T1.RLVT_YR                   AS RLVT_YR            
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드
+              ,T1.RGTR_ID                   AS RGTR_ID
+              ,T1.CRT_DT                    AS CRT_DT
+              ,T1.CFMTN_YN                  AS CFMTN_YN          
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_GROUP_SE_CD) AS EVL_GROUP_SE_CD   --평가그룹구분코드
+              ,T1.CHTT_WGHTVA_VALUE         AS CHTT_WGHTVA_VALUE
+              ,T1.NTABRD_WGHTVA_VALUE       AS NTABRD_WGHTVA_VALUE
+              ,T1.MSNGR_WGHTVA_VALUE        AS MSNGR_WGHTVA_VALUE
+              ,T1.PRFMNC_WGHTVA_VALUE       AS PRFMNC_WGHTVA_VALUE
+              ,CASE WHEN T1.CHTT_WGHTVA_VALUE IS NOT NULL THEN '채팅상담'
+                    WHEN T1.NTABRD_WGHTVA_VALUE IS NOT NULL THEN '게시판상담'
+                    WHEN T1.MSNGR_WGHTVA_VALUE IS NOT NULL THEN '메신저상담'
+                    WHEN T1.PRFMNC_WGHTVA_VALUE IS NOT NULL THEN '실적상담'
+               END                          AS EVL_PRVSON
+              ,CASE WHEN T1.CHTT_WGHTVA_VALUE IS NOT NULL THEN T1.CHTT_WGHTVA_VALUE  || '%'
+                    WHEN T1.NTABRD_WGHTVA_VALUE IS NOT NULL THEN T1.NTABRD_WGHTVA_VALUE  || '%'
+                    WHEN T1.MSNGR_WGHTVA_VALUE IS NOT NULL THEN T1.MSNGR_WGHTVA_VALUE  || '%'
+                    WHEN T1.PRFMNC_WGHTVA_VALUE IS NOT NULL THEN T1.PRFMNC_WGHTVA_VALUE  || '%' 
+               END                          AS RFLT_RATE
+              ,T1.CHTT_BGNG_YMD             AS CHTT_BGNG_YMD
+              ,T1.CHTT_END_YMD              AS CHTT_END_YMD
+              ,T1.NTABRD_BGNG_YMD           AS NTABRD_BGNG_YMD
+              ,T1.NTABRD_END_YMD            AS NTABRD_END_YMD
+              ,T1.MSNGR_BGNG_YMD            AS MSNGR_BGNG_YMD
+              ,T1.MSNGR_END_YMD             AS MSNGR_END_YMD
+              ,T1.BGNG_YMD                  AS BGNG_YMD
+              ,T1.END_YMD                   AS END_YMD
+              ,T1.PRVSON_NM                 AS PRVSON_NM
+              ,DECODE(T1.BGNG_YMD,NULL,'',SUBSTR(T1.BGNG_YMD,0,4) || '-' || SUBSTR(T1.BGNG_YMD,5,2) || '-' || SUBSTR(T1.BGNG_YMD,7,2) || '~' || SUBSTR(T1.END_YMD,0,4) || '-' || SUBSTR(T1.END_YMD,5,2) || '-' || SUBSTR(T1.END_YMD,7,2)) AS EVL_PRD
+              ,T1.EVFO_MNG_SN               AS EVFO_MNG_SN
+        FROM AYC200 T1 /* 평가지관리 */
+        WHERE 1=1
+         AND T1.DEL_YN = 'N'      
+          ]]>
+          <if test="RLVT_YR != null and RLVT_YR != ''">
+              <![CDATA[
+                   AND T1.RLVT_YR = #{RLVT_YR} 
+              ]]>
+          </if>          
+          <if test="EVL_GROUP_SE_CD != null and EVL_GROUP_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_GROUP_SE_CD = #{EVL_GROUP_SE_CD} 
+              ]]>
+          </if>
+          <if test="EVL_TME_SE_CD != null and EVL_TME_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_TME_SE_CD = #{EVL_TME_SE_CD} 
+              ]]>
+          </if>
+
+    </select>
+    
+    <select id="selectEvlTrprMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlTrprMngList - 개발지원팀 이태호  */
+        
+        SELECT T1.RLVT_YR                   AS RLVT_YR            
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_GROUP_SE_CD) AS EVL_GROUP_SE_CD   --평가그룹구분코드		      
+		      ,T1.EVFO_MNG_SN               AS EVFO_MNG_SN
+		FROM AYC200 T1 /* 평가지관리 */    		    
+        WHERE 1=1
+         AND T1.DEL_YN = 'N'                             
+          ]]>
+          <if test="RLVT_YR != null and RLVT_YR != ''">
+              <![CDATA[
+                   AND T1.RLVT_YR = #{RLVT_YR} 
+              ]]>
+          </if>          
+          <if test="EVL_GROUP_SE_CD != null and EVL_GROUP_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_GROUP_SE_CD = #{EVL_GROUP_SE_CD} 
+              ]]>
+          </if>
+          <if test="EVL_TME_SE_CD != null and EVL_TME_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_TME_SE_CD = #{EVL_TME_SE_CD} 
+              ]]>
+          </if>
+
+    </select>
+    
+    <select id="selectEvlTrprSlctnList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlTrprSlctnList - 개발지원팀 이태호  */
+        
+        SELECT a.USER_ID                            AS USER_ID 
+		      ,C##RG.DEC_B64(b.FLNM_ENCPT)       AS FLNM_ENCPT  
+		      ,DECODE((SELECT COUNT(1)
+                  FROM AYC240 x
+                 WHERE x.EVFO_MNG_SN = #{EVFO_MNG_SN} 
+                   AND x.DEL_YN = 'N'
+                   AND x.CONSTT_ID = a.USER_ID ),1,'true','false') AS CHK
+		FROM SAA200 a /* 사용자 */
+		    ,SCA100 b /* 종사자 */       
+		WHERE 1=1
+		AND a.ENFSN_NO            = b.ENFSN_NO
+		<include refid="isry.couns.cmmn.mapper.CounsMapper.cyber_dept_all">
+            <property name="alias" value="b"/>
+		</include>	
+		GROUP BY a.USER_ID, b.FLNM_ENCPT
+		ORDER BY a.USER_ID	
+    </select>
+    
+    <select id="selectEvlTrprMatchingList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlTrprMatchingList - 개발지원팀 이태호  */
+        
+        WITH VW_TAB AS
+		 ( SELECT LISTAGG(C##RG.DEC_B64(T1.CONSTT_NM_ENCPT),',') WITHIN GROUP (ORDER BY T1.APRAI_MNG_DTL_SN)         AS CONSTT_NM_ENCPT
+		           ,T1.DEL_YN                                                   AS DEL_YN
+		           ,T1.EVFO_MNG_SN                                              AS EVFO_MNG_SN
+		           ,T1.APRAI_MNG_DTL_SN                                         AS APRAI_MNG_DTL_SN
+		        FROM AYC230 T1 /* 평가대상관리 */
+		    WHERE T1.DEL_YN = 'N'
+		    GROUP BY T1.DEL_YN,T1.EVFO_MNG_SN,T1.APRAI_MNG_DTL_SN
+		 )
+		SELECT a.EVFO_MNG_SN                              AS EVFO_MNG_SN
+		      ,a.APRAI_MNG_DTL_SN                         AS APRAI_MNG_DTL_SN
+		      ,a.APRAI_ID                                 AS APRAI_ID
+		      ,C##RG.DEC_B64(a.APRAI_NM_ENCPT)         AS APRAI_NM_ENCPT
+		      ,a.EVL_GROUP_TYPE_SE_CD                     AS EVL_GROUP_TYPE_SE_CD
+		      ,b.CONSTT_NM_ENCPT                          AS CONSTT_NM_ENCPT
+		FROM AYC210 a /* 평가자관리상세 */
+		    ,VW_TAB b /* 평가대상관리 */
+		WHERE 1=1
+		AND a.EVFO_MNG_SN        = b.EVFO_MNG_SN(+)
+		AND a.APRAI_MNG_DTL_SN   = b.APRAI_MNG_DTL_SN(+)
+		AND a.EVFO_MNG_SN        = #{EVFO_MNG_SN} 
+		AND a.DEL_YN             = 'N'
+		ORDER BY a.EVL_GROUP_TYPE_SE_CD,a.APRAI_ID
+        ]]>              
+    </select>
+    
+    <select id="selectEvlTrprChcList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlTrprChcList - 개발지원팀 이태호  */
+        
+        SELECT a.EVL_TRPR_SLCTN_SN    AS EVL_TRPR_SLCTN_SN
+		      ,a.EVFO_MNG_SN          AS EVFO_MNG_SN
+		      ,a.CONSTT_ID            AS CONSTT_ID
+		      ,C##RG.DEC_B64(c.FLNM_ENCPT)           AS FLNM_ENCPT
+		      ,d.EVL_GROUP_TYPE_SE_CD AS EVL_GROUP_TYPE_SE_CD
+              ,d.APRAI_MNG_DTL_SN       AS APRAI_MNG_DTL_SN
+              ,DECODE((SELECT COUNT(1)
+                  FROM AYC230 x
+                 WHERE x.EVFO_MNG_SN = #{EVFO_MNG_SN} 
+                   AND x.APRAI_MNG_DTL_SN = #{APRAI_MNG_DTL_SN} 
+                   AND x.DEL_YN = 'N'
+                   AND x.CONSTT_ID = b.USER_ID ),1,'true','false') AS CHK
+		FROM AYC240 a /* 평가대상자선정 */
+		    ,SAA200 b /* 사용자 */ 
+		    ,SCA100 c /* 종사자 */ 
+		    ,AYC210 d
+		WHERE 1=1
+		  AND a.CONSTT_ID     = b.USER_ID
+		  AND b.ENFSN_NO      = c.ENFSN_NO
+		  AND a.EVFO_MNG_SN   = d.EVFO_MNG_SN
+		  AND a.DEL_YN        = 'N'
+		  AND c.DEL_YN        = 'N'  
+		  AND d.DEL_YN        = 'N'
+		  AND d.EVL_GROUP_TYPE_SE_CD IS NOT NULL
+		  AND d.APRAI_MNG_DTL_SN = #{APRAI_MNG_DTL_SN}
+        ]]>              
+    </select>
+    
+    <insert id="insertEvlTrprSlctn" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.insertEvlTrprSlctn - 개발지원팀 이태호  */        
+        INSERT INTO AYC240
+			(EVL_TRPR_SLCTN_SN
+			, EVFO_MNG_SN
+			, CONSTT_ID
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT
+			)
+        VALUES
+            (#{EVL_TRPR_SLCTN_SN}
+            , #{EVFO_MNG_SN}
+            , #{CONSTT_ID}
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )
+             
+    </insert>
+    
+    <insert id="insertEvlTrprChc" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.insertEvlTrprChc - 개발지원팀 이태호  */        
+        INSERT INTO AYC230
+            (EVL_TRGT_SN
+            , EVL_GROUP_TYPE_SE_CD
+            , CONSTT_ID
+            , CONSTT_NM_ENCPT  
+            , EVFO_MNG_SN 
+            , APRAI_MNG_DTL_SN         
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT
+            )
+        VALUES
+            (#{EVL_TRGT_SN}
+            , #{EVL_GROUP_TYPE_SE_CD}
+            , #{CONSTT_ID}
+            , C##RG.ENC_B64(#{CONSTT_NM_ENCPT})
+            , #{EVFO_MNG_SN}   
+            , #{APRAI_MNG_DTL_SN}              
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )
+             
+    </insert>
+    
+    <select id="selectEvlSeMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlSeMngList - 개발지원팀 이태호  */
+        
+        SELECT T1.RLVT_YR                   AS RLVT_YR            
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드
+              ,T1.RGTR_ID                   AS RGTR_ID
+              ,T1.CRT_DT                    AS CRT_DT
+              ,T1.CFMTN_YN                  AS CFMTN_YN          
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_SE_CD' AND x.CMMNS_CD_VALUE = T1.EVL_GROUP_SE_CD) AS EVL_GROUP_SE_CD   --평가그룹구분코드
+              ,T1.CHTT_WGHTVA_VALUE         AS CHTT_WGHTVA_VALUE
+              ,T1.NTABRD_WGHTVA_VALUE       AS NTABRD_WGHTVA_VALUE
+              ,T1.MSNGR_WGHTVA_VALUE        AS MSNGR_WGHTVA_VALUE
+              ,T1.PRFMNC_WGHTVA_VALUE       AS PRFMNC_WGHTVA_VALUE
+              ,CASE WHEN T1.CHTT_WGHTVA_VALUE IS NOT NULL THEN '채팅상담'
+                    WHEN T1.NTABRD_WGHTVA_VALUE IS NOT NULL THEN '게시판상담'
+                    WHEN T1.MSNGR_WGHTVA_VALUE IS NOT NULL THEN '메신저상담'
+                    WHEN T1.PRFMNC_WGHTVA_VALUE IS NOT NULL THEN '실적상담'
+               END                          AS EVL_PRVSON
+              ,CASE WHEN T1.CHTT_WGHTVA_VALUE IS NOT NULL THEN T1.CHTT_WGHTVA_VALUE  || '%'
+                    WHEN T1.NTABRD_WGHTVA_VALUE IS NOT NULL THEN T1.NTABRD_WGHTVA_VALUE  || '%'
+                    WHEN T1.MSNGR_WGHTVA_VALUE IS NOT NULL THEN T1.MSNGR_WGHTVA_VALUE  || '%'
+                    WHEN T1.PRFMNC_WGHTVA_VALUE IS NOT NULL THEN T1.PRFMNC_WGHTVA_VALUE  || '%' 
+               END                          AS RFLT_RATE
+              ,T1.CHTT_BGNG_YMD             AS CHTT_BGNG_YMD
+              ,T1.CHTT_END_YMD              AS CHTT_END_YMD
+              ,T1.NTABRD_BGNG_YMD           AS NTABRD_BGNG_YMD
+              ,T1.NTABRD_END_YMD            AS NTABRD_END_YMD
+              ,T1.MSNGR_BGNG_YMD            AS MSNGR_BGNG_YMD
+              ,T1.MSNGR_END_YMD             AS MSNGR_END_YMD
+              ,T1.BGNG_YMD                  AS BGNG_YMD
+              ,T1.END_YMD                   AS END_YMD
+              ,T1.PRVSON_NM                 AS PRVSON_NM
+              ,DECODE(T1.BGNG_YMD,NULL,'',SUBSTR(T1.BGNG_YMD,0,4) || '-' || SUBSTR(T1.BGNG_YMD,5,2) || '-' || SUBSTR(T1.BGNG_YMD,7,2) || '~' || SUBSTR(T1.END_YMD,0,4) || '-' || SUBSTR(T1.END_YMD,5,2) || '-' || SUBSTR(T1.END_YMD,7,2)) AS EVL_PRD
+              ,T1.EVFO_MNG_SN               AS EVFO_MNG_SN
+        FROM AYC200 T1 /* 평가지관리 */
+        WHERE 1=1
+         AND T1.DEL_YN = 'N'      
+          ]]>
+          <if test="RLVT_YR != null and RLVT_YR != ''">
+              <![CDATA[
+                   AND T1.RLVT_YR = #{RLVT_YR} 
+              ]]>
+          </if>          
+          <if test="EVL_GROUP_SE_CD != null and EVL_GROUP_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_GROUP_SE_CD = #{EVL_GROUP_SE_CD} 
+              ]]>
+          </if>
+          <if test="EVL_TME_SE_CD != null and EVL_TME_SE_CD != ''">
+              <![CDATA[
+                   AND T1.EVL_TME_SE_CD = #{EVL_TME_SE_CD} 
+              ]]>
+          </if>
+
+    </select>
+    
+    <select id="selectEvlSeMngInqList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlSeMngInqList - 개발지원팀 이태호  */
+        
+        SELECT a.EVFO_MNG_SN                            AS EVFO_MNG_SN
+		      ,a.RLVT_YR                                AS RLVT_YR
+		      ,a.EVL_TME_SE_CD                          AS EVL_TME_SE_CD
+		      ,b.EVL_GROUP_TYPE_SE_CD                   AS EVL_GROUP_TYPE_SE_CD
+		      ,b.APRAI_ID                               AS APRAI_ID
+		      ,C##RG.DEC_B64(b.APRAI_NM_ENCPT)       AS APRAI_NM_ENCPT
+		      ,b.APRAI_MNG_DTL_SN	                    AS APRAI_MNG_DTL_SN
+		      ,(SELECT count(1)
+                  FROM AYC230 x                   
+               WHERE x.APRAI_MNG_DTL_SN = b.APRAI_MNG_DTL_SN  
+                 AND x.DEL_YN = 'N')                    AS NMPR
+              ,(SELECT count(1)
+                  FROM AYC230 x
+                      ,AYC280 y
+               WHERE x.APRAI_MNG_DTL_SN = b.APRAI_MNG_DTL_SN
+                 AND x.EVL_TRGT_SN = y.EVL_TRGT_SN
+                 AND y.SRVY_KND_SE_CD = '01'
+                 AND x.DEL_YN = 'N'
+                 AND y.DEL_YN = 'N')                    AS OCNT1
+               ,(SELECT count(1)
+                  FROM AYC230 x
+                      ,AYC280 y
+               WHERE x.APRAI_MNG_DTL_SN = b.APRAI_MNG_DTL_SN
+                 AND x.EVL_TRGT_SN = y.EVL_TRGT_SN
+                 AND y.SRVY_KND_SE_CD = '02'
+                 AND x.DEL_YN = 'N'
+                 AND y.DEL_YN = 'N')                    AS OCNT2  
+               ,(SELECT count(1)
+                  FROM AYC230 x
+                      ,AYC280 y
+               WHERE x.APRAI_MNG_DTL_SN = b.APRAI_MNG_DTL_SN
+                 AND x.EVL_TRGT_SN = y.EVL_TRGT_SN
+                 AND y.SRVY_KND_SE_CD = '03'
+                 AND x.DEL_YN = 'N'
+                 AND y.DEL_YN = 'N')                    AS OCNT3      
+		FROM AYC200 a /* 평가지관리 */
+		    ,AYC210 b /* 평가자관리상세 */		    
+		WHERE 1=1
+		  AND a.EVFO_MNG_SN           = b.EVFO_MNG_SN		  
+		  AND a.EVFO_MNG_SN           = #{EVFO_MNG_SN} 
+		  AND a.DEL_YN = 'N'
+		  AND b.DEL_YN = 'N'		  		  		      
+		ORDER BY b.APRAI_NM_ENCPT
+        ]]>
+    </select>
+    
+    <select id="selectEvfoAbilitUpdate" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoAbilitUpdate - 개발지원팀 이태호  */  
+        SELECT T1.CHKLST_MNG_SN         AS CHKLST_MNG_SN
+              ,T1.EVFO_MNG_SN           AS EVFO_MNG_SN
+              ,T1.PRVSON_NM             AS PRVSON_NM
+              ,T2.CHKLST_GROUP_SN       AS CHKLST_GROUP_SN              
+              ,T2.CHKLST_SE_CD          AS CHKLST_SE_CD   --체크리스트구분코드
+              ,T2.ABILIT_CN             AS ABILIT_CN --역량내용
+              ,T2.ABILIT_ALLOT_SCORE    AS ABILIT_ALLOT_SCORE --역량배점점수
+              ,T2.CRT_DT                AS CRT_DT
+              ,T2.CRT_ID                AS CRT_ID      
+              ,T2.MDFCN_DT              AS MDFCN_DT
+              ,T2.MDFR_ID               AS MDFR_ID
+              ,T2.ADSBTR_SE_YN          AS ADSBTR_SE_YN
+              ,T2.SRTNG_SQNCE           AS SRTNG_SQNCE
+              ,T1.CHKLST_MNG_SN         AS CHKLST_MNG_SN
+        FROM AYC250 T1 /* 체크리스트관리 */
+            ,AYC255 T2 /* 체크리스트그룹 */
+            ,AYC200 T3 /* 평가지관리 */  
+        WHERE 1=1
+          AND T1.CHKLST_MNG_SN    = T2.CHKLST_MNG_SN
+          AND T1.EVFO_MNG_SN      = T3.EVFO_MNG_SN
+          AND T1.DEL_YN           = 'N'
+          AND T2.DEL_YN           = 'N'
+          AND T3.DEL_YN           = 'N'
+          AND T3.EVFO_MNG_SN      = #{EVFO_MNG_SN}  
+          AND T1.CHKLST_MNG_SN    = #{CHKLST_MNG_SN}
+    </select>
+    
+    <update id="UpdateEvfoAbilit" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEvfoAbilit - 개발지원팀 이태호  */
+        UPDATE AYC255 /* 체크리스트그룹 */
+            SET ABILIT_CN            = #{ABILIT_CN}
+              , ADSBTR_SE_YN         = #{ADSBTR_SE_YN}
+              , ABILIT_ALLOT_SCORE   = #{ABILIT_ALLOT_SCORE}
+              , CHKLST_SE_CD         = #{CHKLST_SE_CD}
+              , SRTNG_SQNCE          = #{SRTNG_SQNCE}              
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE CHKLST_MNG_SN = #{CHKLST_MNG_SN}
+    </update>
+    
+    <update id="DeleteEvfoAbilitMng" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.DeleteEvfoAbilitMng - 개발지원팀 이태호  */
+        UPDATE AYC255 /* 체크리스트그룹 */
+            SET DEL_YN               = 'Y'             
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE CHKLST_MNG_SN = #{CHKLST_MNG_SN}
+    </update>
+    
+    <select id="selectEvfoCrtrAddingIngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoCrtrAddingIngList - 개발지원팀 이태호  */
+        
+        SELECT a.ABILIT_CN             AS ABILIT_CN --역량내용  
+              ,a.CHKLST_GROUP_SN       AS CHKLST_GROUP_SN 
+			FROM AYC255 a /* 체크리스트그룹 */
+			    ,AYC250 b /* 체크리스트관리 */
+			    ,AYC200 c /* 평가지관리 */  
+			WHERE 1=1
+			  AND a.CHKLST_MNG_SN    = b.CHKLST_MNG_SN
+			  AND b.EVFO_MNG_SN      = c.EVFO_MNG_SN
+			  AND a.DEL_YN           = 'N'
+			  AND b.DEL_YN           = 'N'
+			  AND b.DEL_YN           = 'N'
+			  AND b.PRVSON_NM        = #{PIVOT_COL}
+			  AND c.EVFO_MNG_SN      = #{EVFO_MNG_SN}
+    ]]>
+    </select>
+    
+    <insert id="InsertEvfoCrtrAdding" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.InsertEvfoCrtrAdding - 개발지원팀 이태호  */
+        INSERT INTO AYC260 /* 체크리스트그룹 */
+			(CHKLST_QUEST_SN
+			, CHKLST_GROUP_SN
+			, QUEST_NO
+			, CHKLST_SCORE
+			, CHKLST_CN
+			, ADDTNG_SCORE_YN
+			, CRT_DT
+			, CRT_ID
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT)
+			VALUES(
+			 AYC260_SQ01.NEXTVAL
+			, #{CHKLST_GROUP_SN}
+		    , #{QUEST_NO}
+		    , #{CHKLST_SCORE}
+		    , #{CHKLST_CN}		    
+		    , NVL(#{ADDTNG_SCORE_YN},'N')
+		    , SYSDATE
+		    , #{CRT_ID}
+		    , NVL(#{DEL_YN},'N')
+		    , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+			)
+    </insert>
+    
+    <select id="selectEvfoCrtrUpdate" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvfoCrtrUpdate - 개발지원팀 이태호  */  
+        SELECT a.ABILIT_CN          AS ABILIT_CN
+		      ,b.CHKLST_SCORE       AS CHKLST_SCORE
+		      ,b.CHKLST_CN          AS CHKLST_CN
+		      ,b.ADDTNG_SCORE_YN    AS ADDTNG_SCORE_YN
+		      ,b.CHKLST_QUEST_SN    AS CHKLST_QUEST_SN
+		      ,b.CHKLST_GROUP_SN    AS CHKLST_GROUP_SN
+		FROM AYC255 a /* 체크리스트그룹 */
+		    ,AYC260 b /* 체크리스트질의 */
+		WHERE 1=1
+		AND a.CHKLST_GROUP_SN  = b.CHKLST_GROUP_SN
+		AND b.CHKLST_QUEST_SN  = #{CHKLST_QUEST_SN}
+		AND b.CHKLST_GROUP_SN  = #{CHKLST_GROUP_SN}
+		AND a.DEL_YN           = 'N'
+		AND b.DEL_YN           = 'N'
+    </select>
+    
+    <update id="UpdateEvfoCrtr" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEvfoCrtr - 개발지원팀 이태호  */
+        UPDATE AYC260 /* 체크리스트질의 */
+            SET CHKLST_SCORE     = #{CHKLST_SCORE}
+              , CHKLST_CN        = #{CHKLST_CN}              
+              , ADDTNG_SCORE_YN  = #{ADDTNG_SCORE_YN}             
+              , LAST_MDFR_ID     = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT    = SYSDATE
+       WHERE CHKLST_QUEST_SN = #{CHKLST_QUEST_SN}
+         AND CHKLST_GROUP_SN = #{CHKLST_GROUP_SN}
+    </update>
+    
+    <update id="DeleteEvfoCrtrMng" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.DeleteEvfoCrtrMng - 개발지원팀 이태호  */
+        UPDATE AYC260 /* 체크리스트질의 */
+            SET DEL_YN               = 'Y'             
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE CHKLST_QUEST_SN = #{CHKLST_QUEST_SN}
+         AND CHKLST_GROUP_SN = #{CHKLST_GROUP_SN}
+    </update>
+    
+    <select id="selectMngrApraiMngBassInfo" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMngrApraiMngBassInfo - 개발지원팀 이태호  */  
+        SELECT RLVT_YR                    AS RLVT_YR              
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_TME_SE_CD' AND x.CMMNS_CD_VALUE = EVL_TME_SE_CD) AS EVL_TME_SE_CD   --평가회차그룹코드                           
+              ,EVFO_MNG_SN                AS EVFO_MNG_SN
+        FROM AYC200 /* 평가지관리 */
+        WHERE 1=1
+        AND DEL_YN            = 'N'
+        AND EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+    </select>
+    
+    <select id="selectMngrApraiMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMngrApraiMngList - 개발지원팀 이태호  */
+        
+        SELECT a.EVFO_MNG_SN                          AS EVFO_MNG_SN
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = b.EVL_GROUP_TYPE_SE_CD) AS EVL_GROUP_TYPE_SE_CD   --평가그룹유형구분코드
+		      ,b.APRAI_ID                             AS APRAI_ID
+		      ,C##RG.DEC_B64(b.APRAI_NM_ENCPT)     AS APRAI_NM_ENCPT
+		      ,b.CHTT_EVL_BGNG_YMD                    AS CHTT_EVL_BGNG_YMD
+		      ,b.CHTT_EVL_END_YMD                     AS CHTT_EVL_END_YMD
+		      ,b.NTABRD_EVL_BGNG_YMD                  AS NTABRD_EVL_BGNG_YMD
+		      ,b.NTABRD_EVL_END_YMD                   AS NTABRD_EVL_END_YMD
+		      ,b.MSNGR_EVL_BGNG_YMD                   AS MSNGR_EVL_BGNG_YMD
+		      ,b.MSNGR_EVL_END_YMD                    AS MSNGR_EVL_END_YMD
+		      ,b.APRAI_MNG_DTL_SN                     AS APRAI_MNG_DTL_SN
+		      ,DECODE(b.CHTT_EVL_BGNG_YMD,NULL,'',SUBSTR(b.CHTT_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.CHTT_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.CHTT_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.CHTT_EVL_END_YMD,0,4) || '-' || SUBSTR(b.CHTT_EVL_END_YMD,5,2) || '-' || SUBSTR(b.CHTT_EVL_END_YMD,7,2)) AS CHTT_PRD
+		      ,DECODE(b.NTABRD_EVL_BGNG_YMD,NULL,'',SUBSTR(b.NTABRD_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.NTABRD_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.NTABRD_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.NTABRD_EVL_END_YMD,0,4) || '-' || SUBSTR(b.NTABRD_EVL_END_YMD,5,2) || '-' || SUBSTR(b.NTABRD_EVL_END_YMD,7,2)) AS NTABRD_PRD
+		      ,DECODE(b.MSNGR_EVL_BGNG_YMD,NULL,'',SUBSTR(b.MSNGR_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.MSNGR_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.MSNGR_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.MSNGR_EVL_END_YMD,0,4) || '-' || SUBSTR(b.MSNGR_EVL_END_YMD,5,2) || '-' || SUBSTR(b.MSNGR_EVL_END_YMD,7,2)) AS MSNGR_PRD
+		FROM AYC200 a /* 평가지관리 */
+		    ,AYC210 b /* 평가자관리상세 */
+		WHERE 1=1
+		  AND a.EVFO_MNG_SN = b.EVFO_MNG_SN
+		  AND a.DEL_YN            = 'N'
+		  AND b.DEL_YN            = 'N'
+		  AND a.EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+        ]]>
+    </select>
+    
+    <select id="selectMngrApraiMngCoList" parameterType="HashMap" resultType="HashMap">
+    /* 
+     * isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMngrApraiMngCoList - 개발지원팀 이태호
+     * 종사자 테이블의 단위업무구분코드 삭제로 인한 수정
+     * 2023.07.26 수정 - Jeong.Won.Je
+     * 평가지에 대한 조건이 추가되어야할거 같다.
+     */
+    <![CDATA[
+        SELECT a.USER_ID                            AS CONSTT_ID
+		      ,C##RG.DEC_B64(b.FLNM_ENCPT)       AS CONSTT_NM   
+		      ,c.APRAI_ID                           AS APRAI_ID
+              ,c.EVL_GROUP_TYPE_SE_CD               AS EVL_CD  
+              ,c.EVFO_MNG_SN                        AS EVFO_MNG_SN
+              ,c.APRAI_MNG_DTL_SN                   AS APRAI_MNG_DTL_SN
+		  FROM  SAA200    a /* 사용자테이블 */
+		      , SCA100    b /* 개인종사자 */
+		      , AYC210    c /* 평가자관리상세 */
+		      , SAB230    d
+		 WHERE 1=1 
+		   AND b.OGDP_INST_NO         = '1000000947'
+		   AND b.DEL_YN               = 'N'
+		   AND a.ENFSN_NO             = b.ENFSN_NO
+		   AND d.USER_ID              = a.USER_ID
+		   AND d.GROUP_AUTHRT_SE_CD   = '340'
+		   AND a.USER_ID              = c.APRAI_ID(+)
+		 ORDER BY a.USER_ID     
+        ]]>
+    </select>
+    
+    <select id="selectMngrApraiMngCoResultList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMngrApraiMngCoResultList - 개발지원팀 이태호  */
+        
+        SELECT LISTAGG(C##RG.DEC_B64(a.APRAI_NM_ENCPT), ',') WITHIN GROUP (ORDER BY a.EVFO_MNG_SN) AS APRAI_NM_ENCPT
+		      ,a.EVL_GROUP_TYPE_SE_CD             AS EVL_GROUP_TYPE_SE_CD
+		FROM AYC210 a /* 평가자관리상세 */
+		WHERE 1=1
+		  AND a.EVFO_MNG_SN = #{EVFO_MNG_SN}
+		  AND a.DEL_YN      = 'N'
+		GROUP BY a.EVL_GROUP_TYPE_SE_CD 
+		ORDER BY a.EVL_GROUP_TYPE_SE_CD 
+        ]]>
+    </select>
+    
+    <select id="selectApraiList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectApraiList - 개발지원팀 이태호  */
+        
+        SELECT  T2.USER_ID                         AS APRAI_ID
+		       , C##RG.DEC_B64(T1.FLNM_ENCPT)   AS APRAI_NM_ENCPT
+		FROM   SCA100      T1      /* 종사자 */
+		       , SAA200    T2      /* 사용자 */
+		WHERE  1=1
+		AND    T1.ABILIT_MNG_MNGR_YN       =       'Y'
+		AND    T1.ENFSN_NO                 =       T2.ENFSN_NO
+        ]]>
+    </select>
+    
+    <insert id="InsertArai" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.InsertArai - 개발지원팀 이태호  */        
+        INSERT INTO AYC210 /* 평가자관리상세 */
+            (EVFO_MNG_SN
+            , APRAI_MNG_DTL_SN
+            , APRAI_ID
+            , APRAI_NM_ENCPT
+            , CHTT_EVL_BGNG_YMD
+            , CHTT_EVL_END_YMD
+            , NTABRD_EVL_BGNG_YMD
+            , NTABRD_EVL_END_YMD  
+            , EVL_GROUP_TYPE_SE_CD                      
+            , MSNGR_EVL_BGNG_YMD
+            , MSNGR_EVL_END_YMD
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT
+            )
+        VALUES
+            (#{EVFO_MNG_SN}
+            , AYC210_SQ01.NEXTVAL
+            , #{APRAI_ID}
+            , C##RG.ENC_B64(#{APRAI_NM_ENCPT})
+            , #{CHTT_EVL_BGNG_YMD}
+            , #{CHTT_EVL_END_YMD}
+            , #{NTABRD_EVL_BGNG_YMD}
+            , #{NTABRD_EVL_END_YMD}
+            , #{EVL_GROUP_TYPE_SE_CD}                     
+            , #{MSNGR_EVL_BGNG_YMD}
+            , #{MSNGR_EVL_END_YMD}
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )
+             
+    </insert>
+    
+    <update id="DeleteMngrAprai" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.DeleteMngrAprai - 개발지원팀 이태호  */
+        UPDATE AYC210 /* 평가자관리상세 */
+            SET DEL_YN               = 'Y'             
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE EVFO_MNG_SN      = #{EVFO_MNG_SN}
+         AND APRAI_MNG_DTL_SN = #{APRAI_MNG_DTL_SN}
+    </update>
+    
+    <select id="selectMngrApraiUpdate" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMngrApraiUpdate - 개발지원팀 이태호  */  
+        SELECT EVFO_MNG_SN              AS EVFO_MNG_SN
+		     , APRAI_MNG_DTL_SN         AS APRAI_MNG_DTL_SN
+		     , APRAI_ID                 AS APRAI_ID
+		     , APRAI_NM_ENCPT           AS APRAI_NM_ENCPT
+		     , CHTT_EVL_BGNG_YMD        AS CHTT_EVL_BGNG_YMD
+		     , CHTT_EVL_END_YMD         AS CHTT_EVL_END_YMD
+		     , NTABRD_EVL_BGNG_YMD      AS NTABRD_EVL_BGNG_YMD
+		     , NTABRD_EVL_END_YMD       AS NTABRD_EVL_END_YMD
+		     , EVL_GROUP_TYPE_SE_CD     AS EVL_GROUP_TYPE_SE_CD      
+		     , MSNGR_EVL_BGNG_YMD       AS MSNGR_EVL_BGNG_YMD
+		     , MSNGR_EVL_END_YMD        AS MSNGR_EVL_END_YMD  
+		FROM AYC210 /* 평가자관리상세 */
+		WHERE 1=1
+		  AND EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+		  AND APRAI_MNG_DTL_SN  = #{APRAI_MNG_DTL_SN}
+    </select>
+    
+    <update id="UpdateMngrAprai" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateMngrAprai - 개발지원팀 이태호  */
+        UPDATE AYC210 /* 평가자관리상세 */
+            SET EVL_GROUP_TYPE_SE_CD    = #{EVL_GROUP_TYPE_SE_CD}
+              , APRAI_ID                = #{APRAI_ID}              
+              , APRAI_NM_ENCPT          = #{APRAI_NM_ENCPT}
+              , CHTT_EVL_BGNG_YMD       = #{CHTT_EVL_BGNG_YMD}
+              , CHTT_EVL_END_YMD        = #{CHTT_EVL_END_YMD}
+              , NTABRD_EVL_BGNG_YMD     = #{NTABRD_EVL_BGNG_YMD}
+              , NTABRD_EVL_END_YMD      = #{NTABRD_EVL_END_YMD}
+              , MSNGR_EVL_BGNG_YMD      = #{MSNGR_EVL_BGNG_YMD}
+              , MSNGR_EVL_END_YMD       = #{MSNGR_EVL_END_YMD}
+              , LAST_MDFR_ID            = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT           = SYSDATE
+       WHERE EVFO_MNG_SN        = #{EVFO_MNG_SN}
+         AND APRAI_MNG_DTL_SN   = #{APRAI_MNG_DTL_SN}
+    </update>
+    
+    <select id="selectEvlMfcmmApraiMngBassInfo" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+		/* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlMfcmmApraiMngBassInfo - 개발지원팀 이태호  */  
+		SELECT    RLVT_YR                     AS RLVT_YR              
+		          , (
+		              SELECT  CMMNS_CD_VALUE_NM 
+		              FROM    SAC100 x 
+		              WHERE   x.CMMNS_CD_ID       =   'EVL_TME_SE_CD' 
+		              AND     x.CMMNS_CD_VALUE    =   EVL_TME_SE_CD
+		              )                       AS EVL_TME_SE_CD   --평가회차그룹코드                           
+		          , EVFO_MNG_SN               AS EVFO_MNG_SN
+		FROM      AYC200 /* 평가지관리 */ 
+		WHERE     1=1
+		AND       DEL_YN            =         'N'
+		AND       EVFO_MNG_SN       =         #{EVFO_MNG_SN}
+    ]]> 
+    </select>
+    
+    <select id="selectEvlMfcmmApraiMngBassInfoList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlMfcmmApraiMngBassInfoList - 개발지원팀 이태호  */
+        
+        SELECT a.EVFO_MNG_SN            AS EVFO_MNG_SN
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EVL_GROUP_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = b.EVL_GROUP_TYPE_SE_CD) AS EVL_GROUP_TYPE_SE_CD   --평가그룹유형구분코드
+              ,b.APRAI_ID               AS APRAI_ID
+              ,C##RG.DEC_B64(b.APRAI_NM_ENCPT)         AS APRAI_NM_ENCPT
+              ,b.CHTT_EVL_BGNG_YMD      AS CHTT_EVL_BGNG_YMD
+              ,b.CHTT_EVL_END_YMD       AS CHTT_EVL_END_YMD
+              ,b.NTABRD_EVL_BGNG_YMD    AS NTABRD_EVL_BGNG_YMD
+              ,b.NTABRD_EVL_END_YMD     AS NTABRD_EVL_END_YMD
+              ,b.MSNGR_EVL_BGNG_YMD     AS MSNGR_EVL_BGNG_YMD
+              ,b.MSNGR_EVL_END_YMD      AS MSNGR_EVL_END_YMD
+              ,b.APRAI_MNG_DTL_SN       AS APRAI_MNG_DTL_SN
+              ,DECODE(b.CHTT_EVL_BGNG_YMD,NULL,'',SUBSTR(b.CHTT_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.CHTT_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.CHTT_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.CHTT_EVL_END_YMD,0,4) || '-' || SUBSTR(b.CHTT_EVL_END_YMD,5,2) || '-' || SUBSTR(b.CHTT_EVL_END_YMD,7,2)) AS CHTT_PRD
+              ,DECODE(b.NTABRD_EVL_BGNG_YMD,NULL,'',SUBSTR(b.NTABRD_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.NTABRD_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.NTABRD_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.NTABRD_EVL_END_YMD,0,4) || '-' || SUBSTR(b.NTABRD_EVL_END_YMD,5,2) || '-' || SUBSTR(b.NTABRD_EVL_END_YMD,7,2)) AS NTABRD_PRD
+              ,DECODE(b.MSNGR_EVL_BGNG_YMD,NULL,'',SUBSTR(b.MSNGR_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.MSNGR_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.MSNGR_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.MSNGR_EVL_END_YMD,0,4) || '-' || SUBSTR(b.MSNGR_EVL_END_YMD,5,2) || '-' || SUBSTR(b.MSNGR_EVL_END_YMD,7,2)) AS MSNGR_PRD
+        FROM AYC200 a /* 평가지관리 */
+            ,AYC210 b /* 평가자관리상세 */
+        WHERE 1=1
+          AND a.EVFO_MNG_SN = b.EVFO_MNG_SN
+          AND a.DEL_YN            = 'N'
+          AND b.DEL_YN            = 'N'
+          AND a.EVFO_MNG_SN       = #{EVFO_MNG_SN} 
+          ORDER BY b.EVL_GROUP_TYPE_SE_CD
+        ]]>
+    </select>
+    
+    <select id="selectEvlSeMngInq" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlSeMngInq - 개발지원팀 이태호  */
+        
+        SELECT a.EVFO_MNG_SN                          AS EVFO_MNG_SN
+		      ,a.RLVT_YR                              AS RLVT_YR
+		      ,a.EVL_TME_SE_CD                        AS EVL_TME_SE_CD
+		      ,b.EVL_GROUP_TYPE_SE_CD                 AS EVL_GROUP_TYPE_SE_CD
+		      ,b.APRAI_ID                             AS APRAI_ID
+		      ,C##RG.DEC_B64(b.APRAI_NM_ENCPT)     AS APRAI_NM_ENCPT
+		      ,c.APRAI_MNG_DTL_SN                     AS APRAI_MNG_DTL_SN
+		      ,DECODE(b.CHTT_EVL_BGNG_YMD,NULL,'',SUBSTR(b.CHTT_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.CHTT_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.CHTT_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.CHTT_EVL_END_YMD,0,4) || '-' || SUBSTR(b.CHTT_EVL_END_YMD,5,2) || '-' || SUBSTR(b.CHTT_EVL_END_YMD,7,2))                 AS CHTT_PRD
+              ,DECODE(b.NTABRD_EVL_BGNG_YMD,NULL,'',SUBSTR(b.NTABRD_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.NTABRD_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.NTABRD_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.NTABRD_EVL_END_YMD,0,4) || '-' || SUBSTR(b.NTABRD_EVL_END_YMD,5,2) || '-' || SUBSTR(b.NTABRD_EVL_END_YMD,7,2))   AS NTABRD_PRD
+              ,DECODE(b.MSNGR_EVL_BGNG_YMD,NULL,'',SUBSTR(b.MSNGR_EVL_BGNG_YMD,0,4) || '-' || SUBSTR(b.MSNGR_EVL_BGNG_YMD,5,2) || '-' || SUBSTR(b.MSNGR_EVL_BGNG_YMD,7,2) || '~' || SUBSTR(b.MSNGR_EVL_END_YMD,0,4) || '-' || SUBSTR(b.MSNGR_EVL_END_YMD,5,2) || '-' || SUBSTR(b.MSNGR_EVL_END_YMD,7,2))          AS MSNGR_PRD
+              ,a.CFMTN_YN                             AS CFMTN_YN  
+		FROM AYC200 a /* 평가지관리 */
+		    ,AYC210 b /* 평가자관리상세 */
+		    ,AYC230 c /* 평가대상관리 */
+		WHERE 1=1
+		  AND a.EVFO_MNG_SN           = b.EVFO_MNG_SN
+		  AND b.APRAI_MNG_DTL_SN      = c.APRAI_MNG_DTL_SN		  
+		  AND a.EVFO_MNG_SN           = #{EVFO_MNG_SN} 
+		  AND b.APRAI_MNG_DTL_SN      = #{APRAI_MNG_DTL_SN}
+		  AND a.DEL_YN = 'N'
+		  AND b.DEL_YN = 'N'
+		  AND c.DEL_YN = 'N'
+		GROUP BY a.EVFO_MNG_SN                
+		      ,a.RLVT_YR                    
+		      ,a.EVL_TME_SE_CD              
+		      ,b.EVL_GROUP_TYPE_SE_CD       
+		      ,b.APRAI_ID                   
+		      ,b.APRAI_NM_ENCPT   
+		      ,c.APRAI_MNG_DTL_SN
+		      ,b.CHTT_EVL_BGNG_YMD,b.CHTT_EVL_END_YMD,b.NTABRD_EVL_BGNG_YMD,b.NTABRD_EVL_END_YMD,b.MSNGR_EVL_BGNG_YMD,b.MSNGR_EVL_END_YMD,a.CFMTN_YN
+		ORDER BY b.APRAI_NM_ENCPT
+        ]]>
+    </select>
+    
+    <select id="selectEvlSeMngSeInq" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlSeMngSeInq - 개발지원팀 이태호  */
+        
+        WITH TMP AS  
+        (
+        SELECT a.PRVSON_NM            
+              ,a.EVFO_MNG_SN 
+              ,b.APRAI_MNG_DTL_SN 
+              ,c.EVL_TRGT_SN      
+              ,c.EVL_GROUP_TYPE_SE_CD
+              ,c.CONSTT_ID           
+              ,c.CONSTT_NM_ENCPT                  
+              ,d.EVL_SUM_SCORE    
+              ,c.APRAI_ID
+              ,d.SRVY_KND_SE_CD            
+        FROM AYC200 a /* 평가지관리 */
+            ,AYC210 b /* 평가관리 */
+            ,AYC230 c /* 평가대상관리 */
+            ,AYC280 d /* 평가관리 */
+        WHERE 1=1
+          AND a.EVFO_MNG_SN             = b.EVFO_MNG_SN
+          AND b.APRAI_MNG_DTL_SN        = c.APRAI_MNG_DTL_SN    
+          AND c.EVL_TRGT_SN             = d.EVL_TRGT_SN(+)
+          AND a.EVFO_MNG_SN             = #{EVFO_MNG_SN}  
+          AND c.APRAI_MNG_DTL_SN        = #{APRAI_MNG_DTL_SN}  
+          AND c.EVL_GROUP_TYPE_SE_CD    = #{EVL_GROUP_TYPE_SE_CD}  
+          AND a.DEL_YN                  = 'N'
+          AND b.DEL_YN                  = 'N'
+          AND c.DEL_YN                  = 'N'                             
+        )
+        SELECT CASE WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '01' THEN '채팅'
+                    WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '02' THEN '게시판'         
+                    WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '03' THEN '메신저'
+                    WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '04' THEN '실적'
+               END                                          AS SRVY_KND_SE_CD                     
+              ,REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) AS PIVOT_COL
+              ,TMP.EVFO_MNG_SN                              AS EVFO_MNG_SN
+              ,TMP.APRAI_MNG_DTL_SN                         AS APRAI_MNG_DTL_SN
+              ,TMP.EVL_TRGT_SN                              AS EVL_TRGT_SN
+              ,TMP.EVL_GROUP_TYPE_SE_CD                     AS EVL_GROUP_TYPE_SE_CD
+              ,TMP.CONSTT_ID                                AS CONSTT_ID
+              ,C##RG.DEC_B64(TMP.CONSTT_NM_ENCPT)        AS CONSTT_NM_ENCPT              
+              ,TMP.APRAI_ID                                 AS APRAI_ID
+              ,CASE WHEN TMP.SRVY_KND_SE_CD = REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) THEN TMP.EVL_SUM_SCORE
+               ELSE 0
+               END                                          AS EVL_SUM_SCORE
+        FROM DUAL,TMP
+        WHERE REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) != '04'
+        CONNECT BY REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) IS NOT NULL
+        GROUP BY CASE WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '01' THEN '채팅'
+                    WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '02' THEN '게시판'         
+                    WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '03' THEN '메신저'
+                    WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '04' THEN '실적'
+                 END                  
+                 ,TMP.EVFO_MNG_SN,TMP.APRAI_MNG_DTL_SN,TMP.EVL_TRGT_SN,TMP.EVL_GROUP_TYPE_SE_CD,TMP.CONSTT_ID,TMP.CONSTT_NM_ENCPT,TMP.APRAI_ID
+                 ,CASE WHEN TMP.SRVY_KND_SE_CD = REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) THEN TMP.EVL_SUM_SCORE
+                  ELSE 0
+                  END
+                 ,REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) 
+       ORDER BY TMP.CONSTT_NM_ENCPT            
+        ]]>
+    </select>
+    
+    <!-- <select id="selectEvlSeMngSeInq" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        WITH TEST AS
+		(
+		    WITH TMP AS  
+		    (
+		    SELECT a.PRVSON_NM            
+		          ,a.EVFO_MNG_SN 
+		          ,b.APRAI_MNG_DTL_SN 
+		          ,c.EVL_TRGT_SN      
+		          ,c.EVL_GROUP_TYPE_SE_CD
+		          ,c.CONSTT_ID           
+		          ,c.CONSTT_NM_ENCPT                  
+		          ,d.EVL_SUM_SCORE    
+		          ,c.APRAI_ID     
+		          ,d.SRVY_KND_SE_CD            
+		    FROM AYC200 a /* 평가지관리 */
+		        ,AYC210 b /* 평가관리 */
+		        ,AYC230 c /* 평가대상관리 */
+		        ,AYC280 d /* 평가관리 */
+		    WHERE 1=1
+		      AND a.EVFO_MNG_SN             = b.EVFO_MNG_SN
+		      AND b.APRAI_MNG_DTL_SN        = c.APRAI_MNG_DTL_SN    
+		      AND c.EVL_TRGT_SN             = d.EVL_TRGT_SN(+)
+		      AND a.EVFO_MNG_SN             = '3'  
+		      AND c.APRAI_MNG_DTL_SN        = '120'  
+		      AND c.EVL_GROUP_TYPE_SE_CD    = 'A'  
+		      AND a.DEL_YN                  = 'N'
+		      AND b.DEL_YN                  = 'N'
+		      AND c.DEL_YN                  = 'N'                             
+		    )
+		    SELECT CASE WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '01' THEN '채팅'
+		                WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '02' THEN '게시판'         
+		                WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '03' THEN '메신저'
+		                WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '04' THEN '실적'
+		           END                                          AS SRVY_KND_SE_CD
+		          ,REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) AS PIVOT_COL                     
+		          ,TMP.CONSTT_NM_ENCPT                          AS CONSTT_NM_ENCPT              
+		          ,CASE WHEN TMP.SRVY_KND_SE_CD = REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) THEN TMP.EVL_SUM_SCORE
+		           ELSE 0
+		           END                                          AS EVL_SUM_SCORE
+		    FROM DUAL,TMP
+		    WHERE REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) != '04'
+		    CONNECT BY REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) IS NOT NULL
+		    GROUP BY CASE WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '01' THEN '채팅'
+		                WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '02' THEN '게시판'         
+		                WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '03' THEN '메신저'
+		                WHEN REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) = '04' THEN '실적'
+		             END                  
+		             ,TMP.EVFO_MNG_SN,TMP.APRAI_MNG_DTL_SN,TMP.EVL_TRGT_SN,TMP.EVL_GROUP_TYPE_SE_CD,TMP.CONSTT_ID,TMP.CONSTT_NM_ENCPT,TMP.APRAI_ID
+		             ,CASE WHEN TMP.SRVY_KND_SE_CD = REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) THEN TMP.EVL_SUM_SCORE
+		              ELSE 0
+		              END
+		             ,REGEXP_SUBSTR(TMP.PRVSON_NM,'[^,]+',1,LEVEL) 
+		    ORDER BY TMP.CONSTT_NM_ENCPT
+		)
+		SELECT * FROM TEST
+		PIVOT (
+		        MAX(EVL_SUM_SCORE) FOR CONSTT_NM_ENCPT IN ('민현홍' AS NM1, '박기라' AS NM2, '심하늬' AS NM3)
+		      )
+		ORDER BY PIVOT_COL ASC
+        ]]>
+    </select> -->
+    
+    <select id="selectEvlExisteYn" resultType="String">
+        <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlExisteYn - 응용2팀 지원 - 정원제  */
+        SELECT  EVFO_MNG_SN
+        FROM    AYC200
+        WHERE   EVL_GROUP_SE_CD                     =           '02'
+        AND     DEL_YN                              =           'N'
+        AND     TO_CHAR(SYSDATE, 'YYYYMMDD')        BETWEEN     BGNG_YMD
+                                                    AND         END_YMD     
+        ]]>
+    </select>
+    
+    <select id="selectApraiTrgtYn" parameterType="HashMap" resultType="String">
+        <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectApraiTrgtYn - 응용2팀 지원 - 정원제  */
+		SELECT  APRAI_MNG_DTL_SN
+		FROM    AYC210
+		WHERE   EVFO_MNG_SN       =       #{EVFO_MNG_SN}
+		AND     DEL_YN            =       'N'
+		AND     APRAI_ID          =       #{loginId}
+        ]]>
+    </select>
+    
+    <select id="selectEvlTrgtCnt" parameterType="HashMap" resultType="int">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectBassEvlWrtList - 응용2팀 지원 - 정원제  */ 
+        SELECT  
+                COUNT(*)
+        FROM    AYC200      T1  /* 평가지관리 */
+                , AYC210    T2  /* 평가자관리상세 */
+                , AYC230    T3  /* 평가대상관리 */
+        WHERE   1=1
+        AND     T1.EVFO_MNG_SN          =           T2.EVFO_MNG_SN
+        AND     T2.APRAI_MNG_DTL_SN     =           T3.APRAI_MNG_DTL_SN
+        AND     T1.DEL_YN               =           'N'
+        AND     T2.DEL_YN               =           'N'
+        AND     T3.DEL_YN               =           'N'
+        AND     T2.APRAI_MNG_DTL_SN     =           #{APRAI_MNG_DTL_SN}
+    </select>
+    
+    <select id="selectBassEvlWrtList" parameterType="HashMap" resultType="HashMap">
+	    /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectBassEvlWrtList - 응용2팀 지원 - 정원제  */ 
+	    SELECT  
+		        T1.PRVSON_NM
+		        , T3.CONSTT_ID
+		        , C##RG.DEC_B64(T3.CONSTT_NM_ENCPT)        AS  CONSTT_NM_ENCPT
+		        , T3.EVL_TRGT_SN
+		FROM    AYC200      T1  /* 평가지관리 */
+		        , AYC210    T2  /* 평가자관리상세 */
+		        , AYC230    T3  /* 평가대상관리 */
+		WHERE   1=1
+		AND     T1.EVFO_MNG_SN          =           T2.EVFO_MNG_SN
+		AND     T2.APRAI_MNG_DTL_SN     =           T3.APRAI_MNG_DTL_SN
+		AND     T1.DEL_YN               =           'N'
+		AND     T2.DEL_YN               =           'N'
+		AND     T3.DEL_YN               =           'N'
+		AND     T2.APRAI_MNG_DTL_SN     =           #{APRAI_MNG_DTL_SN}
+    </select>
+    
+    <select id="selectDtlEvlWrtList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectDtlEvlWrtList - 응용2팀 지원 - 정원제  */
+        WITH TMP AS
+        (
+            SELECT
+                    #{CONSTT_ID}            AS  CONSTT_ID
+                    , #{CONSTT_NM_ENCPT}    AS  CONSTT_NM_ENCPT
+                    , #{PRVSON_NM}          AS  PRVSON_NM
+                    , #{EVL_TRGT_SN}        AS  EVL_TRGT_SN
+                    , #{SRVY_KND_SE_CD}     AS  SRVY_KND_SE_CD
+            FROM
+                    DUAL
+        )
+        SELECT
+                TMP.PRVSON_NM                AS  PRVSON_NM
+                , T1.EVL_MNG_SN              AS  EVL_MNG_SN
+                , TMP.EVL_TRGT_SN            AS  EVL_TRGT_SN
+                , TMP.SRVY_KND_SE_CD         AS  SRVY_KND_SE_CD
+                , TMP.CONSTT_ID              AS  CONSTT_ID
+                , TMP.CONSTT_NM_ENCPT        AS  CONSTT_NM_ENCPT
+                , T1.EVL_SUM_SCORE           AS  EVL_SUM_SCORE
+        FROM    (
+                 SELECT *
+                 FROM   AYC280      
+                 WHERE  1=1
+                 AND    DEL_YN              =       'N'
+                 )                      T1  /* 평가관리 */
+                , TMP
+        WHERE   1=1
+        AND     T1.EVL_TRGT_SN(+)           =       TMP.EVL_TRGT_SN
+        AND     T1.SRVY_KND_SE_CD(+)        =       TMP.SRVY_KND_SE_CD
+    </select>
+    
+    <select id="selectRelevaEvlBassInfo" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectRelevaEvlBassInfo - 개발지원팀 이태호  */  
+        SELECT a.CFMTN_YN           AS CFMTN_YN		      
+		      , (SELECT C##RG.DEC_B64(FLNM_ENCPT)
+                   FROM SAA200 x
+                        , SCA100 y
+                   WHERE x.USER_ID = b.APRAI_ID
+                     AND x.ENFSN_NO = y.ENFSN_NO
+                     AND ROWNUM =1) AS APRAI_NM_ENCPT
+              , (SELECT C##RG.DEC_B64(FLNM_ENCPT)
+                   FROM SAA200 x
+                        , SCA100 y
+                   WHERE x.USER_ID = c.CONSTT_ID
+                     AND x.ENFSN_NO = y.ENFSN_NO
+                     AND ROWNUM =1) AS CONSTT_NM_ENCPT       
+		      ,d.CRT_DT             AS CRT_DT   --생성일시
+		      ,d.DSCSN_DT           AS DSCSN_DT --상담일시
+		      ,d.DSCSN_YMD          AS DSCSN_YMD
+		      ,d.DSCSN_HR           AS DSCSN_TIME  
+		      ,c.EVL_TRGT_SN        AS EVL_TRGT_SN
+		      ,c.CONSTT_ID          AS CONSTT_ID
+              ,b.APRAI_ID           AS APRAI_ID 
+              ,d.CCH_SPRT_CN        AS CCH_SPRT_CN
+              ,d.EVL_SUM_SCORE      AS EVL_SUM_SCORE
+              ,d.EVL_MNG_SN         AS EVL_MNG_SN
+              ,a.EVFO_MNG_SN        AS EVFO_MNG_SN
+		FROM AYC200 a /* 평가지관리 */
+		    ,AYC210 b /* 평가자관리상세 */
+		    ,AYC230 c /* 평가대상관리 */
+		    ,AYC280 d /* 평가관리 */
+		WHERE 1=1
+		  AND a.EVFO_MNG_SN            = b.EVFO_MNG_SN
+		  AND b.APRAI_MNG_DTL_SN       = c.APRAI_MNG_DTL_SN
+		  AND b.EVL_GROUP_TYPE_SE_CD   = c.EVL_GROUP_TYPE_SE_CD		  
+		  AND c.EVL_TRGT_SN            = d.EVL_TRGT_SN(+)
+		  AND a.EVFO_MNG_SN            = #{EVFO_MNG_SN} 
+		  AND b.APRAI_MNG_DTL_SN       = #{APRAI_MNG_DTL_SN}		   
+		  AND c.CONSTT_ID              = #{CONSTT_ID} 
+		  AND a.DEL_YN                 = 'N'
+		  AND b.DEL_YN                 = 'N'
+		  AND c.DEL_YN                 = 'N'
+		  <if test='EVL_MNG_SN != null and EVL_MNG_SN != ""'>
+		  AND d.EVL_MNG_SN             = #{EVL_MNG_SN}
+		  </if>		
+    </select>
+    
+    <select id="selectRelevaEvlList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectRelevaEvlList - 개발지원팀 이태호  */
+        
+        SELECT a.CHKLST_GROUP_SN    AS CHKLST_GROUP_SN
+		      ,a.CHKLST_MNG_SN      AS CHKLST_MNG_SN
+		      ,b.CHKLST_QUEST_SN    AS CHKLST_QUEST_SN
+		      ,e.EVL_TRGT_SN        AS EVL_TRGT_SN
+		      ,c.EVFO_MNG_SN        AS EVFO_MNG_SN
+		      ,a.ABILIT_CN          AS ABILIT_CN
+		      ,b.CHKLST_SCORE       AS CHKLST_SCORE
+		      ,b.CHKLST_CN          AS CHKLST_CN
+		      ,DECODE((SELECT COUNT(1)
+                  FROM AYC265 x
+                 WHERE x.CHKLST_QUEST_SN = b.CHKLST_QUEST_SN
+                   AND x.EVL_TRGT_SN     =  e.EVL_TRGT_SN
+                   AND x.DEL_YN = 'N'),1,'true','false') AS CHK
+              ,(SELECT y.CHKLST_RSPNS_SN
+                  FROM AYC265 y
+                 WHERE y.CHKLST_QUEST_SN = b.CHKLST_QUEST_SN
+                   AND y.EVL_TRGT_SN     =  e.EVL_TRGT_SN
+                   AND y.DEL_YN = 'N')                  AS CHKLST_RSPNS_SN     
+              ,d.CHKLST_RSPNS_SN    AS CHKLST_RSPNS_SN           		      
+		FROM AYC255 a /* 체크리스트그룹 */
+		    ,AYC260 b /* 체크리스트질의 */
+		    ,AYC250 c /* 체크리스트관리 */
+		    ,(SELECT *
+		      FROM  AYC265 
+		      WHERE EVL_TRGT_SN   =   #{EVL_TRGT_SN}
+		      AND   DEL_YN        =   'N' ) d /* 체크리스트응답 */       
+		    ,AYC230 e /* 평가대상관리 */
+		    ,AYC280 f /* 평가관리 */
+		WHERE 1=1
+		AND a.CHKLST_GROUP_SN     = b.CHKLST_GROUP_SN 
+		AND a.CHKLST_MNG_SN       = c.CHKLST_MNG_SN 
+		AND b.CHKLST_QUEST_SN     = d.CHKLST_QUEST_SN(+)		
+		AND e.EVL_TRGT_SN         = f.EVL_TRGT_SN(+)
+		AND c.EVFO_MNG_SN         = #{EVFO_MNG_SN}  
+		AND c.PRVSON_NM           = #{PRVSON_NM}
+		AND e.EVL_TRGT_SN         = #{EVL_TRGT_SN}
+		GROUP BY a.CHKLST_GROUP_SN,a.CHKLST_MNG_SN,b.CHKLST_QUEST_SN,d.EVL_TRGT_SN,c.EVFO_MNG_SN,a.ABILIT_CN,b.CHKLST_SCORE,b.CHKLST_CN,d.CHKLST_RSPNS_SN,e.EVL_TRGT_SN
+		ORDER BY a.CHKLST_MNG_SN, a.CHKLST_GROUP_SN ASC, b.CHKLST_SCORE DESC
+        ]]>
+    </select>
+    
+    <update id="UpdateEvlMng" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEvlMng - 개발지원팀 이태호  */
+        MERGE INTO
+        AYC280 a /* 평가관리 */      
+		USING   DUAL
+		    ON
+		    (
+		        a.EVL_TRGT_SN         =       #{EVL_TRGT_SN}
+		        AND a.SRVY_KND_SE_CD    =       #{SRVY_KND_SE_CD}
+		    )
+		WHEN MATCHED THEN
+		    UPDATE SET        
+		        a.APRAI_ID        = #{APRAI_ID}
+		        , a.APRAI_NM_ENCPT  = #{APRAI_NM_ENCPT}
+		        , a.CONSTT_ID       = #{CONSTT_ID}
+		        , a.CONSTT_NM_ENCPT = #{CONSTT_NM_ENCPT}        
+		        , a.DSCSN_DT        = to_date(#{DSCSN_DT}, 'YYYYMMDD HH24MISS')
+		        , a.DSCSN_YMD       = #{DSCSN_YMD}
+		        , a.DSCSN_HR        = #{DSCSN_TIME}
+		        , a.CCH_SPRT_CN     = #{CCH_SPRT_CN}    
+		        , a.CRT_DT          = SYSDATE
+		        , a.EVL_SUM_SCORE   = #{EVL_SUM_SCORE} 
+		        , a.EVFO_MNG_SN     = #{EVFO_MNG_SN} 
+		        , a.DEL_YN          = NVL(#{DEL_YN} , 'N')
+		        , a.LAST_MDFR_ID    = #{LAST_MDFR_ID}
+		        , a.LAST_MDFCN_DT   = SYSDATE
+		WHEN NOT MATCHED THEN 
+		    INSERT
+		        (EVL_MNG_SN
+		        , EVL_TRGT_SN
+		        , SRVY_KND_SE_CD
+		        , APRAI_ID
+		        , APRAI_NM_ENCPT
+		        , CONSTT_ID
+		        , CONSTT_NM_ENCPT       
+		        , DSCSN_DT
+		        , DSCSN_YMD
+		        , DSCSN_HR
+		        , QESTN_ALLOT_SCORE1
+		        , QESTN_ALLOT_SCORE2
+		        , QESTN_ALLOT_SCORE3
+		        , QESTN_ALLOT_SCORE4
+		        , QESTN_ALLOT_SCORE5
+		        , QESTN_ALLOT_SCORE6
+		        , QESTN_ALLOT_SCORE7
+		        , QESTN_ALLOT_SCORE8
+		        , QESTN_ALLOT_SCORE9
+		        , QESTN_ALLOT_SCORE10
+		        , QESTN_ALLOT_SCORE11
+		        , QESTN_ALLOT_SCORE12
+		        , QESTN_ALLOT_SCORE13
+		        , QESTN_ALLOT_SCORE14
+		        , CCH_SPRT_CN
+		        , CRT_DT        
+		        , EVL_SUM_SCORE
+		        , EVFO_MNG_SN
+		        , DEL_YN
+		        , FRST_RGTR_ID
+		        , FRST_REG_DT
+		        , LAST_MDFR_ID
+		        , LAST_MDFCN_DT)
+		    VALUES
+		        (AYC280_SQ01.NEXTVAL
+		        , #{EVL_TRGT_SN}
+		        , #{SRVY_KND_SE_CD}
+		        , #{APRAI_ID}
+		        , #{APRAI_NM_ENCPT}
+		        , #{CONSTT_ID}
+		        , #{CONSTT_NM_ENCPT}
+		        , to_date(#{DSCSN_DT}, 'YYYYMMDD HH24MISS')
+		        , #{DSCSN_YMD}
+		        , #{DSCSN_TIME}
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , '0'
+		        , #{CCH_SPRT_CN}
+		        , SYSDATE
+		        , #{EVL_SUM_SCORE}
+		        , #{EVFO_MNG_SN}
+		        , NVL(#{DEL_YN} , 'N')
+		        , #{FRST_RGTR_ID}
+		        , SYSDATE
+		        , #{LAST_MDFR_ID}
+		        , SYSDATE
+		        )
+    </update>
+    
+    <update id="UpdateEvlMngList" parameterType="HashMap">      
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEvlMngList - 개발지원팀 이태호  */
+        MERGE INTO
+        AYC265 a /* 체크리스트응답 */
+		USING   DUAL
+		    ON
+		    (
+		        a.CHKLST_RSPNS_SN   = #{CHKLST_RSPNS_SN}
+		    and a.EVL_TRGT_SN       = #{EVL_TRGT_SN}      
+		    )
+		WHEN MATCHED THEN
+		    UPDATE SET
+		          a.CHKLST_GROUP_SN = #{CHKLST_GROUP_SN}
+		        , a.CHKLST_SCORE    = #{CHKLST_SCORE}
+		        , a.CHKLST_QUEST_SN = #{CHKLST_QUEST_SN}
+		        , a.MDFCN_DT        = SYSDATE
+		        , a.MDFR_ID         = #{LAST_MDFR_ID}
+		        , a.DEL_YN          =  NVL(#{DEL_YN} , 'N')
+		        , a.LAST_MDFR_ID    = #{LAST_MDFR_ID}
+		        , a.LAST_MDFCN_DT   = SYSDATE
+		     WHERE 1=1
+		     AND   a.EVL_TRGT_SN     = #{EVL_TRGT_SN}
+		     AND   a.CHKLST_RSPNS_SN   = #{CHKLST_RSPNS_SN}
+		WHEN NOT MATCHED THEN 
+		    INSERT
+		        (a.CHKLST_RSPNS_SN
+		        , a.CHKLST_GROUP_SN
+		        , a.EVL_TRGT_SN
+		        , a.CHKLST_SCORE
+		        , a.CHKLST_QUEST_SN
+		        , a.EVL_MNG_SN
+		        , a.CRT_DT
+		        , a.CRT_ID
+		        , a.MDFCN_DT
+		        , a.MDFR_ID
+		        , a.DEL_YN		        
+		        , a.FRST_RGTR_ID
+		        , a.FRST_REG_DT
+		        , a.LAST_MDFR_ID
+		        , a.LAST_MDFCN_DT)
+		    VALUES
+		        (AYC265_SQ01.NEXTVAL
+		        , #{CHKLST_GROUP_SN}
+		        , #{EVL_TRGT_SN}
+		        , #{CHKLST_SCORE}
+		        , #{CHKLST_QUEST_SN}
+		        , #{EVL_MNG_SN}
+		        , SYSDATE
+		        , #{FRST_RGTR_ID}
+		        , SYSDATE
+		        , #{LAST_MDFR_ID}
+		        , NVL(#{DEL_YN} , 'N')		        
+		        , #{FRST_RGTR_ID}
+		        , SYSDATE
+		        , #{LAST_MDFR_ID}
+		        , SYSDATE
+		        )
+    </update>
+    
+    <update id="UpdateEvlMngListDelYn" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEvlMngListDelYn - 개발지원팀 이태호  */
+        UPDATE AYC265 /* 체크리스트응답 */
+            SET DEL_YN               = 'Y'             
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE CHKLST_QUEST_SN = #{CHKLST_QUEST_SN}
+         and CHKLST_RSPNS_SN = #{CHKLST_RSPNS_SN}
+    </update>
+    
+    <select id="selectEvlScoreMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlScoreMngList - 개발지원팀 이태호  */
+        
+        SELECT a.EVL_SCORE_SN               AS EVL_SCORE_SN
+		     , a.RLVT_YR                    AS RLVT_YR
+		     , a.EVL_TME_SE_CD              AS EVL_TME_SE_CD
+		     --, a.CONSTT_ID                  AS CONSTT_ID
+		     --, a.CONSTT_NM_ENCPT            AS CONSTT_NM_ENCPT
+		     , (SELECT C##RG.DEC_B64(y.FLNM_ENCPT)
+                  FROM SAA200 x,
+                       SCA100 y
+                 WHERE x.ENFSN_NO = y.ENFSN_NO
+                   AND x.USER_ID = a.CONSTT_ID)  AS CONSTT_NM_ENCPT
+		     , a.DCLZ_SCORE                 AS DCLZ_SCORE
+		     , a.NTABRD_DSCSN_ACHIV_RATE    AS NTABRD_DSCSN_ACHIV_RATE
+		     , a.CHTT_DSCSN_FLFMT_SCORE     AS CHTT_DSCSN_FLFMT_SCORE
+		     , a.NTABRD_DSCSN_FLFMT_SCORE   AS NTABRD_DSCSN_FLFMT_SCORE
+		     , a.CYBER_DSCSN_DGSTFN_SCORE   AS CYBER_DSCSN_DGSTFN_SCORE
+		     , a.EXCLNC_CASE_SCORE          AS EXCLNC_CASE_SCORE
+		     --, a.CRT_YMD                    AS CRT_YMD
+		     --, a.MDFCN_YMD                  AS MDFCN_YMD
+		     --, a.RGTR_ID                    AS RGTR_ID
+		     , a.EVL_SCORE_SUM_SCORE        AS EVL_SCORE_SUM_SCORE
+		     , a.CHTT_DSCSN_EVL_SCORE       AS CHTT_DSCSN_EVL_SCORE 
+		     , a.NTABRD_DSCSN_EVL_SCORE     AS NTABRD_DSCSN_EVL_SCORE
+		     , a.DCLZ_SCORE_CORETO_VALUE    AS DCLZ_SCORE_CORETO_VALUE
+		     , a.EVL_GROUP_SE_CD            AS EVL_GROUP_SE_CD
+		     , a.MSNGR_DSCSN_EVL_SCORE      AS MSNGR_DSCSN_EVL_SCORE
+		     , b.CCH_SPRT_CN                AS CCH_SPRT_CN
+		FROM AYC270 a /* 평가점수관리 */
+		    ,AYC280 b /* 평가관리 */    
+		WHERE 1=1
+		  AND a.CONSTT_ID = b.CONSTT_ID
+		  AND a.DEL_YN = 'N'
+		  AND b.DEL_YN = 'N'  
+		  ]]>
+          <if test="RLVT_YR != null and RLVT_YR != ''">
+              <![CDATA[
+                   AND a.RLVT_YR = #{RLVT_YR} 
+              ]]>
+          </if>          
+          <if test="EVL_GROUP_SE_CD != null and EVL_GROUP_SE_CD != ''">
+              <![CDATA[
+                   AND a.EVL_GROUP_SE_CD = #{EVL_GROUP_SE_CD} 
+              ]]>
+          </if>
+          <if test="EVL_TME_SE_CD != null and EVL_TME_SE_CD != ''">
+              <![CDATA[
+                   AND a.EVL_TME_SE_CD = #{EVL_TME_SE_CD} 
+              ]]>
+          </if>
+          <if test='IS_ADMIN == "N"'>
+                   AND a.CONSTT_ID = #{loginId}
+          </if>
+    </select>
+    
+    <select id="selectCfmtnInfo" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectCfmtnInfo - 개발지원팀 이태호  */
+        
+        SELECT  RLVT_YR  
+		       ,EVL_TME_SE_CD
+		       ,EVL_GROUP_SE_CD
+		       ,SRVY_KND_SE_CD
+		       ,CONSTT_ID
+		       ,EVL_SUM_SCORE / CNT AS EVL_SUM_SCORE       
+		FROM(       
+		SELECT a.RLVT_YR            AS RLVT_YR
+		      ,a.EVL_TME_SE_CD      AS EVL_TME_SE_CD
+		      ,a.EVL_GROUP_SE_CD    AS EVL_GROUP_SE_CD
+		      ,b.SRVY_KND_SE_CD     AS SRVY_KND_SE_CD
+		      ,b.CONSTT_ID          AS CONSTT_ID
+		      ,SUM(b.EVL_SUM_SCORE) AS EVL_SUM_SCORE
+		      ,(SELECT count(1) 
+		          FROM AYC280 x
+		         WHERE x.CONSTT_ID = b.CONSTT_ID
+		           AND x.SRVY_KND_SE_CD = b.SRVY_KND_SE_CD) AS CNT   
+		FROM AYC200 a /* 평가지관리 */
+		    ,AYC280 b /* 평가관리 */
+		WHERE 1=1
+		  AND a.EVFO_MNG_SN   = b.EVFO_MNG_SN
+		  AND a.DEL_YN        = 'N'
+		  AND b.DEL_YN        = 'N'
+		  AND a.EVFO_MNG_SN   = #{EVFO_MNG_SN} 
+		  GROUP BY a.RLVT_YR,a.EVL_TME_SE_CD,a.EVL_GROUP_SE_CD,b.SRVY_KND_SE_CD,b.CONSTT_ID
+		) 
+		]]>  
+    </select>
+    
+    <insert id="insertEvlScoreMng" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.insertEvlScoreMng - 개발지원팀 이태호  */        
+        INSERT INTO AYC270 /* 평가점수관리 */
+            (EVL_SCORE_SN
+			, RLVT_YR
+			, EVL_GROUP_SE_CD
+			, EVL_TME_SE_CD
+			, CONSTT_ID
+			, CHTT_DSCSN_EVL_SCORE
+			, NTABRD_DSCSN_EVL_SCORE
+			, MSNGR_DSCSN_EVL_SCORE			
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT
+            )
+        VALUES
+            (AYC270_SQ01.NEXTVAL
+            , #{RLVT_YR}
+            , #{EVL_GROUP_SE_CD}
+            , #{EVL_TME_SE_CD}
+            , #{CONSTT_ID}
+            , NVL(#{CHTT_DSCSN_EVL_SCORE},0)
+            , NVL(#{NTABRD_DSCSN_EVL_SCORE},0)
+            , NVL(#{MSNGR_DSCSN_EVL_SCORE},0)                                    
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )             
+    </insert>
+    
+    <update id="UpdateEvlScoreMng" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEvlScoreMng - 개발지원팀 이태호  */
+        UPDATE AYC270 /* 평가점수관리 */
+            SET DEL_YN               = 'Y'              
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE RLVT_YR         = #{RLVT_YR}
+         AND EVL_TME_SE_CD   = #{EVL_TME_SE_CD}
+         AND EVL_GROUP_SE_CD = #{EVL_GROUP_SE_CD}
+    </update>
+    
+    <select id="selectOgdpInstList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectOgdpInstList - 개발지원팀 이태호  */
+        
+        SELECT b.DEPT_NM AS DEPT_NM
+		      ,b.DEPT_CD AS DEPT_CD
+		  FROM SAA000 a /* 통합기관 */
+		      ,SAA300 b /* 기관부서 */
+		WHERE 1=1
+		  AND a.INST_NO           = b.INST_NO
+		  AND a.UNT_TASKWK_SE_CD  = b.UNT_TASKWK_SE_CD
+		  AND a.INST_NO           = #{INST_NO}
+		  AND a.UNT_TASKWK_SE_CD  = 'U11'  
+          ]]>          
+    </select>
+    
+    <select id="selectExclncCaseMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectExclncCaseMngList - 개발지원팀 이태호  */
+        
+        SELECT a.EXCLNC_CASE_SN                   AS EXCLNC_CASE_SN
+		      ,a.CNSLTNT_ID                       AS CNSLTNT_ID
+		      ,a.RLVT_YR                          AS RLVT_YR
+		      ,a.TASKWK_TYPE_DEPT_CD              AS TASKWK_TYPE_DEPT_CD
+		      ,a.ATFINO                           AS ATFINO
+		      ,C##RG.DEC_B64(c.FLNM_ENCPT)     AS CONSTT_NM
+		      ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '1월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO1
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '2월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO2
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '3월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO3
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '4월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO4
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '5월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO5
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '6월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO6
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '7월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO7
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '8월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO8
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '9월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO9
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '10월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO10
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '11월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO11
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '12월'
+                AND   e.FILE_STTS_SE_CD = 'N')    AS ATFINO12		      
+		FROM AYC290 a /* 우수사례 */
+		    ,SAA200 b /* 사용자테이블 */
+		    ,SCA100 c /* 개인종사자 */
+		WHERE 1=1 
+		AND a.CNSLTNT_ID = b.USER_ID
+		AND b.ENFSN_NO   = c.ENFSN_NO
+		AND a.DEL_YN     = 'N'  
+		AND c.DEL_YN     = 'N'
+    ]]>
+        <if test="RLVT_YR != null and RLVT_YR != ''">
+            AND a.RLVT_YR       = #{RLVT_YR} 
+        </if>
+        <if test='DEPT_CD == "all"'>
+            <include refid="isry.couns.cmmn.mapper.CounsMapper.cyber_dept_all">
+                <property name="alias" value="c"/>
+            </include>
+        </if>
+        <if test='DEPT_CD != "all"'>
+            AND c.OGDP_DEPT_CD  = #{DEPT_CD} 
+        </if>
+        <if test='IS_ADMIN == "N"'>
+            AND a.CNSLTNT_ID    =   #{loginId}
+        </if>          
+    </select>
+    
+    <select id="selectSuperVisionMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectSuperVisionMngList - 개발지원팀 이태호  */
+        
+        SELECT a.SUPERV_CASE_SN                 AS SUPERV_CASE_SN
+              ,a.CNSLTNT_ID                     AS CNSLTNT_ID
+              ,a.REG_DT                         AS REG_DT
+              ,a.RLVT_YR                        AS RLVT_YR
+              ,a.TASKWK_TYPE_DEPT_CD            AS TASKWK_TYPE_DEPT_CD
+              ,a.ATFINO                         AS ATFINO
+              ,C##RG.DEC_B64(c.FLNM_ENCPT)   AS CONSTT_NM  
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '1차'
+                AND   e.FILE_STTS_SE_CD = 'N')  AS ATFINO1 
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '2차'
+                AND   e.FILE_STTS_SE_CD = 'N')  AS ATFINO2
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '3차'
+                AND   e.FILE_STTS_SE_CD = 'N')  AS ATFINO3
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '4차'
+                AND   e.FILE_STTS_SE_CD = 'N')  AS ATFINO4
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '5차'
+                AND   e.FILE_STTS_SE_CD = 'N')  AS ATFINO5
+              ,(SELECT COUNT(1)
+                FROM SAB821 e
+                WHERE e.ATFINO = a.ATFINO
+                AND   e.ATCMFL_CL_NM = '6차'
+                AND   e.FILE_STTS_SE_CD = 'N')  AS ATFINO6                                    
+        FROM AYC295 a /* 수퍼비전 */
+            ,SAA200 b /* 사용자테이블 */
+            ,SCA100 c /* 개인종사자 */
+        WHERE 1=1 
+        AND a.CNSLTNT_ID = b.USER_ID
+        AND b.ENFSN_NO   = c.ENFSN_NO
+        AND a.DEL_YN     = 'N'  
+        AND c.DEL_YN     = 'N'
+          ]]>
+          <if test="RLVT_YR != null and RLVT_YR != ''">
+              <![CDATA[
+                   AND a.RLVT_YR = #{RLVT_YR} 
+              ]]>
+          </if>          
+          <if test='DEPT_CD == "all"'>
+              <include refid="isry.couns.cmmn.mapper.CounsMapper.cyber_dept_all">
+                  <property name="alias" value="c"/>
+              </include>
+          </if>
+          <if test='DEPT_CD != "all"'>
+              AND c.OGDP_DEPT_CD  = #{DEPT_CD} 
+          </if>
+          <if test='IS_ADMIN == "N"'>
+              AND a.CNSLTNT_ID    =   #{loginId}
+          </if>        
+    </select>
+    
+    <select id="selectExclncCaseConsttList" parameterType="HashMap" resultType="HashMap">
+    /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectExclncCaseConsttList - 개발지원팀 이태호  */
+		SELECT  a.USER_ID                            AS CONSTT_ID
+				, C##RG.DEC_B64(b.FLNM_ENCPT)     AS CONSTT_NM
+				, b.OGDP_DEPT_CD                     AS DEPT_CD
+		FROM    SAA200    a       /* 사용자테이블 */
+		        ,SCA100   b       /* 개인종사자 */
+		WHERE   1=1
+		AND     a.USER_CNTN_INTRCP_YN   =      'N'          /* 사용자접속차단여부 */
+		AND     a.JOIN_APRV_YN          =      'Y'          /* 가입승인여부 */
+		AND     b.DEL_YN                =      'N'          /* 삭제 여부 */
+		AND     a.ENFSN_NO              =      b.ENFSN_NO
+		<if test='DEPT_CD == "all"'>
+		  <include refid="isry.couns.cmmn.mapper.CounsMapper.cyber_dept_all">
+		      <property name="alias" value="b"/>
+		  </include>
+		</if>
+		<if test='DEPT_CD != "all"'>
+		  AND   b.OGDP_DEPT_CD          =      #{DEPT_CD} 
+		</if>
+		AND     NOT EXISTS (SELECT *
+							FROM AYC290 x        /* 우수사례 */
+							WHERE x.CNSLTNT_ID  =   a.USER_ID
+							AND x.RLVT_YR       =   #{RLVT_YR}
+							AND x.DEL_YN        =   'N'
+						   )
+		ORDER BY USER_ID ASC                      
+    </select>
+    
+    <select id="selectSuperVisionConsttList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectSuperVisionConsttList - 개발지원팀 이태호  */
+        
+        SELECT a.USER_ID                          AS CONSTT_ID
+              ,C##RG.DEC_B64(b.FLNM_ENCPT)     AS CONSTT_NM
+              ,b.OGDP_DEPT_CD                     AS DEPT_CD
+          FROM SAA200 a /* 사용자테이블 */
+              ,SCA100 b /* 개인종사자 */
+         WHERE 1=1
+           AND a.USER_CNTN_INTRCP_YN = 'N'          /* 사용자접속차단여부 */
+           AND a.JOIN_APRV_YN = 'Y'                /* 가입승인여부 */
+           AND b.DEL_YN = 'N'                      /* 삭제 여부 */ 
+           AND a.ENFSN_NO = b.ENFSN_NO
+           <if test='DEPT_CD == "all"'>
+             <include refid="isry.couns.cmmn.mapper.CounsMapper.cyber_dept_all">
+                 <property name="alias" value="b"/>
+             </include>
+           </if>
+           <if test='DEPT_CD != "all"'>
+             AND   b.OGDP_DEPT_CD          =      #{DEPT_CD} 
+           </if>
+           AND NOT EXISTS (SELECT *
+                             FROM AYC295 x /* 수퍼비전 */
+                            WHERE x.CNSLTNT_ID  =   a.USER_ID
+                              AND x.RLVT_YR     =   #{RLVT_YR}
+                              AND x.DEL_YN      =   'N')
+          ORDER BY USER_ID ASC                      
+    </select>
+    
+    <insert id="insertExclncCaseConstt" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.insertExclncCaseConstt - 개발지원팀 이태호  */        
+        INSERT INTO AYC290 /* 우수사례 */
+            (EXCLNC_CASE_SN
+			, CNSLTNT_ID
+			, RLVT_YR
+			, TASKWK_TYPE_DEPT_CD				
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT
+            )
+        VALUES
+            (AYC290_SQ01.NEXTVAL           
+            , #{CNSLTNT_ID}
+            , #{RLVT_YR}
+            , #{DEPT_CD}   
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )             
+    </insert>
+    
+    <insert id="UpdateMngrApraiMngCoList" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateMngrApraiMngCoList - 개발지원팀 이태호  */ 
+        MERGE INTO
+        AYC210 a /* 평가자관리상세 */
+        USING   DUAL
+            ON
+            (
+                a.EVFO_MNG_SN       = #{EVFO_MNG_SN}
+            AND a.APRAI_MNG_DTL_SN  = #{APRAI_MNG_DTL_SN}    
+            )
+        WHEN MATCHED THEN
+            UPDATE SET
+                  a.APRAI_ID                = #{APRAI_ID}
+                , a.APRAI_NM_ENCPT          = C##RG.ENC_B64(#{APRAI_NM_ENCPT})
+                , a.EVL_GROUP_TYPE_SE_CD    = #{EVL_GROUP_TYPE_SE_CD}                
+                , a.LAST_MDFR_ID            = #{LAST_MDFR_ID}
+                , a.LAST_MDFCN_DT           = SYSDATE
+       WHEN NOT MATCHED THEN  
+	        INSERT 
+	            (a.EVFO_MNG_SN
+	            , a.APRAI_MNG_DTL_SN
+	            , a.APRAI_ID
+	            , a.APRAI_NM_ENCPT    
+	            , a.EVL_GROUP_TYPE_SE_CD        
+	            , a.DEL_YN
+	            , a.FRST_RGTR_ID
+	            , a.FRST_REG_DT
+	            , a.LAST_MDFR_ID
+	            , a.LAST_MDFCN_DT
+	            )
+	        VALUES
+	            (#{EVFO_MNG_SN}
+	            , AYC210_SQ01.NEXTVAL
+	            , #{APRAI_ID}
+	            , C##RG.ENC_B64(#{APRAI_NM_ENCPT}) 
+	            , #{EVL_GROUP_TYPE_SE_CD}            
+	            , NVL(#{DEL_YN},'N')
+	            , #{FRST_RGTR_ID}
+	            , SYSDATE
+	            , #{LAST_MDFR_ID}
+	            , SYSDATE 
+	            )   
+    </insert>
+    
+    <insert id="insertSuperVisionConstt" parameterType="HashMap">
+    
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.insertSuperVisionConstt - 개발지원팀 이태호  */        
+        INSERT INTO AYC295 /* 수퍼비전 */
+            (SUPERV_CASE_SN
+            , CNSLTNT_ID
+            , REG_DT  
+            , RLVT_YR
+            , TASKWK_TYPE_DEPT_CD               
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT
+            )
+        VALUES
+            (AYC295_SQ01.NEXTVAL           
+            , #{CNSLTNT_ID}
+            , SYSDATE
+            , #{RLVT_YR}
+            , #{DEPT_CD}         
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )             
+    </insert>
+    
+    <update id="UpdateExclncCaseMm" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateExclncCaseMm - 개발지원팀 이태호  */
+        UPDATE AYC290 /* 우수사례 */
+            SET ATFINO          = #{ATFINO}
+              , LAST_MDFR_ID    = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT   = SYSDATE
+       WHERE EXCLNC_CASE_SN = #{EXCLNC_CASE_SN}
+         AND CNSLTNT_ID     = #{CNSLTNT_ID}
+         AND RLVT_YR        = #{RLVT_YR}
+    </update>
+    
+    <update id="exclncCaseMmDelete" parameterType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.exclncCaseMmDelete - 응용2팀 정원제  */
+        UPDATE
+                SAB821      /* 첨부파일상세 */
+        SET
+                FILE_STTS_SE_CD     =   'D'
+                , LAST_MDFR_ID        =   #{USER_ID}
+                , LAST_MDFCN_DT       =   SYSDATE
+        WHERE   1=1
+        AND     ATFINO              =   #{ATFINO}
+        AND     ATCMFL_CL_NM        =   #{ATCMFL_CL_NM}
+    </update>
+    
+    <update id="UpdateSuperVisionMm" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateSuperVisionMm - 개발지원팀 이태호  */
+        UPDATE AYC295 /* 수퍼비전 */
+            SET ATFINO          = #{ATFINO}
+              , LAST_MDFR_ID    = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT   = SYSDATE
+       WHERE SUPERV_CASE_SN = #{SUPERV_CASE_SN}
+         AND CNSLTNT_ID     = #{CNSLTNT_ID}
+         AND RLVT_YR        = #{RLVT_YR}
+    </update>
+    
+    <update id="superVisionMmDelete" parameterType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.superVisionMmDelete - 응용2팀 정원제  */
+        UPDATE
+                SAB821      /* 첨부파일상세 */
+        SET
+                FILE_STTS_SE_CD     =   'D'
+                , LAST_MDFR_ID        =   #{USER_ID}
+                , LAST_MDFCN_DT       =   SYSDATE
+        WHERE   1=1
+        AND     ATFINO              =   #{ATFINO}
+        AND     ATCMFL_CL_NM        =   #{ATCMFL_CL_NM}
+    </update>
+    
+    <insert id="insertChklstGroup" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.insertChklstGroup - 개발지원팀 이태호  */        
+        INSERT INTO AYC255 /* 체크리스트그룹 */
+            (CHKLST_MNG_SN
+            , CHKLST_GROUP_SN
+            , CHKLST_SE_CD
+            , ABILIT_CN
+            , ABILIT_ALLOT_SCORE
+            , CRT_DT
+            , CRT_ID
+            , MDFCN_DT
+            , MDFR_ID
+            , ADSBTR_SE_YN
+            , SRTNG_SQNCE
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+        VALUES
+            (#{CHKLST_MNG_SN}
+            , AYC255_SQ01.NEXTVAL
+            , #{CHKLST_SE_CD}
+            , #{ABILIT_CN}
+            , #{ABILIT_ALLOT_SCORE}
+            , SYSDATE
+            , #{CRT_ID}
+            , SYSDATE
+            , #{MDFR_ID}            
+            , NVL(#{ADSBTR_SE_YN},'N')            
+            , #{SRTNG_SQNCE}            
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )
+        <selectKey keyProperty="CHKLST_GROUP_SN" resultType="String" order="AFTER">
+            -- NVL(MAX(CHKLST_GROUP_SN)+1 ,1)            
+            SELECT MAX(CHKLST_GROUP_SN)  FROM AYC255            
+        </selectKey>
+    </insert>
+    
+    <insert id="insertChklstQuest" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.insertChklstQuest - 개발지원팀 이태호  */
+        INSERT INTO AYC260 /* 체크리스트그룹 */
+            (CHKLST_QUEST_SN
+            , CHKLST_GROUP_SN
+            , QUEST_NO
+            , CHKLST_SCORE
+            , CHKLST_CN
+            , ADDTNG_SCORE_YN
+            , CRT_DT
+            , CRT_ID
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+            VALUES(
+             AYC260_SQ01.NEXTVAL
+            , #{CHKLST_GROUP_SN}
+            , #{QUEST_NO}
+            , #{CHKLST_SCORE}
+            , #{CHKLST_CN}          
+            , NVL(#{ADDTNG_SCORE_YN},'N')
+            , SYSDATE
+            , #{CRT_ID}
+            , NVL(#{DEL_YN},'N')
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE 
+            )
+    </insert>
+    
+    <!-- 체크리스트관리일련번호(AYC250) 구하기 -->
+    <select id="selectSn250" parameterType="HashMap" resultType="String">
+    
+        SELECT /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectSn250 - 개발지원팀 이태호 */
+               CHKLST_MNG_SN AS CHKLST_MNG_SN
+         FROM AYC250
+        WHERE EVFO_MNG_SN = #{EVFO_MNG_SN}
+          AND PRVSON_NM   = #{PRVSON_NM}         
+    </select>
+    
+    <update id="updateTrprSlctn" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.updateTrprSlctn - 개발지원팀 이태호  */
+        UPDATE AYC240
+            SET DEL_YN               = 'Y'            
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE EVL_TRPR_SLCTN_SN != #{EVL_TRPR_SLCTN_SN}
+        AND EVFO_MNG_SN        = #{EVFO_MNG_SN}
+        AND CONSTT_ID          = #{CONSTT_ID}
+    </update>
+    
+    <select id="selectEvlSeq" resultType="Integer">
+     <![CDATA[
+     
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlSeq - 개발지원팀 이태호  */
+        SELECT 
+            AYC240_SQ01.NEXTVAL        
+        FROM
+            DUAL
+     ]]>
+    </select>
+    
+    <update id="updateTrprSlctnFalse" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.updateTrprSlctnFalse - 개발지원팀 이태호  */
+        UPDATE AYC240
+            SET DEL_YN               = 'Y'            
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE EVFO_MNG_SN        = #{EVFO_MNG_SN}
+         AND CONSTT_ID          = #{CONSTT_ID}
+    </update>
+    
+    <update id="updateEvlTrprChcFalse" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.updateEvlTrprChcFalse - 개발지원팀 이태호  */
+        UPDATE AYC230
+            SET DEL_YN               = 'Y'            
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE EVL_GROUP_TYPE_SE_CD    = #{EVL_GROUP_TYPE_SE_CD}
+         AND CONSTT_ID               = #{CONSTT_ID}
+         AND APRAI_MNG_DTL_SN        = #{APRAI_MNG_DTL_SN}
+    </update>
+    
+    <select id="selectEvlTrprChc" resultType="Integer">
+     <![CDATA[
+     
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEvlTrprChc - 개발지원팀 이태호  */
+        SELECT 
+            AYC230_SQ01.NEXTVAL        
+        FROM
+            DUAL
+     ]]>
+    </select>
+    
+    <update id="updateEvlTrprChc" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.updateEvlTrprChc - 개발지원팀 이태호  */
+        UPDATE AYC230
+            SET DEL_YN               = 'Y'            
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+       WHERE EVL_TRGT_SN !           = #{EVL_TRGT_SN}
+        AND EVL_GROUP_TYPE_SE_CD     = #{EVL_GROUP_TYPE_SE_CD}
+        AND CONSTT_ID                = #{CONSTT_ID}
+        AND APRAI_MNG_DTL_SN         = #{APRAI_MNG_DTL_SN}
+    </update>
+    
+    <select id="selectMinDelYn" parameterType="HashMap" resultType="HashMap">
+     <![CDATA[
+     
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMinDelYn - 개발지원팀 이태호  */
+        SELECT 
+		    MIN(DEL_YN) AS DEL_YN
+		  FROM AYC240
+		 WHERE CONSTT_ID = #{CONSTT_ID}
+     ]]>
+    </select>
+    
+    <update id="updateDelYn" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.updateDelYn - 개발지원팀 이태호  */
+        UPDATE AYC230
+            SET DEL_YN               = 'Y'            
+              , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT        = SYSDATE
+        WHERE EVL_GROUP_TYPE_SE_CD    = #{EVL_GROUP_TYPE_SE_CD}
+          AND CONSTT_ID               = #{CONSTT_ID}
+          AND APRAI_MNG_DTL_SN        = #{APRAI_MNG_DTL_SN}    
+    </update>
+
+    <select id="selectExclncModeInfo" resultType="String">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectExclncModeInfo - 응용2팀 정원제  */
+        SELECT  MAX(T1.ATFINO) KEEP (DENSE_RANK LAST ORDER BY T1.LAST_MDFCN_DT)
+		FROM    SBA110      T1
+		        , SBA120    T2
+		WHERE   1=1
+		AND     T1.NTABRD_ESNTAL_NO     =       T2.NTABRD_ESNTAL_NO
+		AND     T1.BBSCTT_ESNTAL_NO     =       T2.BBSCTT_ESNTAL_NO
+		AND     T1.DEL_YN = 'N'
+		AND     T2.DEL_YN = 'N'
+		AND     T1.NTABRD_ESNTAL_NO = 10167     /* 양식 관리 */
+		AND     T2.NTABRD_COL_CN = '01'         /* 우수사례 양식 */
+    </select>
+    
+    <select id="selectSuperVisionModeInfo" resultType="String">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectSuperVisionModeInfo - 응용2팀 정원제  */
+        SELECT  MAX(T1.ATFINO) KEEP (DENSE_RANK LAST ORDER BY T1.LAST_MDFCN_DT)
+        FROM    SBA110      T1
+                , SBA120    T2
+        WHERE   1=1
+        AND     T1.NTABRD_ESNTAL_NO     =       T2.NTABRD_ESNTAL_NO
+        AND     T1.BBSCTT_ESNTAL_NO     =       T2.BBSCTT_ESNTAL_NO
+        AND     T1.DEL_YN = 'N'
+        AND     T2.DEL_YN = 'N'
+        AND     T1.NTABRD_ESNTAL_NO = 10167     /* 양식 관리 */
+        AND     T2.NTABRD_COL_CN = '02'         /* 수퍼비전 양식 */
+    </select>
+    
+	<!-- 
+	관리자 - 상담원 역량관리 - 교육관리
+	-->
+	
+	<select id="selectEduHstrList" parameterType="HashMap" resultType="HashMap">
+	   /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEduHstrList - 응용2팀 정원제  */
+		SELECT
+		        T2.EDU_ATDRN_SN                                 AS  EDU_ATDRN_SN
+		        , T1.EDU_ESTBL_SN                               AS  EDU_ESTBL_SN
+		        , T1.EDU_YMD                                    AS  EDU_YMD
+		        , T1.EDU_TTL_NM                                 AS  EDU_TTL_NM
+		        , T3.OGDP_INST_NO                               AS  OGDP_INST_NO
+		        , C##RG.DEC_B64(T3.FLNM_ENCPT)               AS  FLNM_ENCPT
+		        , trunc((T1.EDU_COMPL_HR / 60), 1)              AS  EDU_COMPL_HR
+		        , T2.EDU_ATND_YN                                AS  EDU_ATND_YN
+		        , T2.CTCPL_OTPT_NO                              AS  CTCPL_OTPT_NO
+		FROM    AYC190      T1  /* 교육관리 */
+		        , AYC195    T2  /* 교육 참석자 관리 */
+		        , SCA100    T3  /* 종사자 */
+		        , SAA200    T4  /* 사용자 */
+		WHERE   1=1
+		AND     T1.EDU_ESTBL_SN         =       T2.EDU_ESTBL_SN
+		AND     T2.CNSLTNT_ID           =       T4.USER_ID
+		AND     T4.ENFSN_NO             =       T3.ENFSN_NO
+		AND     T1.DEL_YN               =       'N'
+		AND     T2.DEL_YN               =       'N'
+		AND     T1.EDU_YMD              LIKE    #{YYYY}||'%'
+		<if test="COMPL_YN != 'all'">
+		AND     T2.EDU_ATND_YN          =       #{COMPL_YN}
+		</if>
+		<if test='IS_ADMIN == "N"'>
+		AND     T2.CNSLTNT_ID           =       #{loginId}
+		</if>
+		ORDER BY T1.EDU_ESTBL_SN DESC
+		         , T2.CNSLTNT_ID DESC
+	</select>
+	
+	<select id="selectMaxCtcplNo" parameterType="String" resultType="int">
+		/* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMaxCtcplNo - 응용2팀 정원제  */
+		SELECT 
+		      NVL(MAX(CTCPL_OTPT_NO), 0) + 1
+		FROM 
+		      AYC195
+		WHERE 1=1
+		AND   EDU_ESTBL_SN        =       #{EDU_ESTBL_SN}
+	</select>
+	
+	<update id="updateEduCtcplNo" parameterType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.updateEduCtcplNo - 응용2팀 정원제  */
+        UPDATE  AYC195
+        SET     CTCPL_OTPT_NO       =       #{CTCPL_OTPT_NO}
+                , LAST_MDFR_ID      =       #{loginId}
+                , LAST_MDFCN_DT     =       SYSDATE
+        WHERE   1=1
+        AND     EDU_ATDRN_SN        =       #{EDU_ATDRN_SN}
+	</update>
+	
+    <select id="selectEduMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEduMngList - 개발지원팀 이태호  */
+        
+        SELECT a.EDU_ESTBL_SN       AS EDU_ESTBL_SN
+              ,a.EDU_TTL_NM         AS EDU_TTL_NM
+              ,a.EDU_YMD            AS EDU_YMD
+              ,a.EDU_BGNG_HR        AS EDU_BGNG_HR
+              ,a.EDU_END_HR         AS EDU_END_HR
+              ,trunc((a.EDU_COMPL_HR / 60),1)       AS EDU_COMPL_HR           
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'EDU_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = a.EDU_TYPE_SE_CD) AS EDU_TYPE_SE_CD   --교육유형구분코드
+              ,a.EDU_INSTR_NM       AS EDU_INSTR_NM
+              ,nvl(a.CYBER_EDU_NOPE, 0)     AS CYBER_EDU_NOPE
+              ,nvl(a.TLPHON_EDU_NOPE, 0)    AS TLPHON_EDU_NOPE
+              ,nvl(a.MBLA_EDU_NOPE, 0)      AS MBLA_EDU_NOPE          
+              ,substr(a.EDU_YMD, 0, 4) || '.' || substr(a.EDU_YMD, 5, 2) || '.' || substr(a.EDU_YMD, 7, 2) || '(' || substr(a.EDU_BGNG_HR, 0, 2) || ':' || substr(a.EDU_BGNG_HR, 3, 2) || '~' || substr(a.EDU_END_HR, 0, 2) || ':' || substr(a.EDU_END_HR, 3, 2) || ')'  AS EDU_DT
+        FROM AYC190 a /* 교육 관리 */           
+        WHERE 1=1     
+          ]]>
+          <if test="EDU_TYPE_SE_CD != null and EDU_TYPE_SE_CD != 'ALL'">
+              <![CDATA[
+                   AND a.EDU_TYPE_SE_CD = #{EDU_TYPE_SE_CD} 
+              ]]>
+          </if>  
+          <if test="EDU_YMD != null and EDU_YMD != ''">
+              <![CDATA[
+                   AND SUBSTR(a.EDU_YMD,1,4) = #{EDU_YMD} 
+              ]]>
+          </if>
+          AND   a.DEL_YN        =       'N'
+          ORDER BY a.EDU_YMD DESC, a.EDU_BGNG_HR DESC, a.EDU_END_HR DESC        
+    </select>
+    
+    <!-- <select id="selectCyberDscsnList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectCyberDscsnList - 개발지원팀 이태호  */
+        
+        SELECT  a.ENFSN_NO        AS ENFSN_NO        /* 종사자 번호 */
+                , a.OGDP_INST_NO  AS OGDP_INST_NO    /* 소속기관번호 */
+                , a.OGDP_DEPT_CD  AS OGDP_DEPT_CD    /* 소속부서코드 */
+                , a.FLNM_ENCPT    AS FLNM_ENCPT      /* 성명 */
+                , b.INST_NM       AS INST_NM        /* 기관명 */
+        FROM    SCA100 a /* 종사자 */
+                ,SAA000 b /* 통합기관 */
+        WHERE   1=1
+        AND     a.OGDP_INST_NO        = b.INST_NO
+        AND     a.OGDP_DEPT_CD        IN('324','325') /* 324:사이버 325:사이버아웃리치 */
+        AND     a.UNT_TASKWK_SE_CD    = 'U11'
+        AND     a.DEL_YN              = 'N'
+        AND     b.DEL_YN              = 'N'
+        AND     NOT EXISTS (SELECT *
+                             FROM AYC195 x /* 교육 참석자 관리 */
+                            WHERE x.CNSLTNT_ID = a.ENFSN_NO 
+                              AND x.DEL_YN = 'N')
+        ]]>
+    </select> -->
+    
+    <select id="selectCyberDscsnList" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectCyberDscsnList - 응용2팀 정원제  */
+        
+        SELECT
+                T1.OGDP_DEPT_CD                       AS    OGDP_DEPT_CD    /* 소속 부서 코드 */
+                , T2.USER_ID                          AS    CNSLTNT_ID      /* 사용자 아이디 */
+                , C##RG.DEC_B64(T1.FLNM_ENCPT)     AS    FLNM_ENCPT      /* 상담사명 */
+        FROM    SCA100      T1      /* 종사자 */
+                , SAA200    T2      /* 사용자 */
+        WHERE   1=1
+        AND     T1.ENFSN_NO                 =       T2.ENFSN_NO
+        AND     T1.OGDP_DEPT_CD             =       '324'
+        AND     T2.JOIN_APRV_YN             =       'Y'             /* 가입승인여부 */
+        AND     T2.USER_CNTN_INTRCP_YN      =       'N'             /* 사용자접속차단여부 */
+        AND     T1.DEL_YN                   =       'N'             /* 삭제 여부 */
+        ORDER BY C##RG.DEC_B64(T1.FLNM_ENCPT) ASC
+        ]]>
+    </select>
+    
+    <!-- <select id="selectMblaDscsnList" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMblaDscsnList - 개발지원팀 이태호  */
+        
+        SELECT  a.ENFSN_NO      AS ENFSN_NO
+               ,a.OGDP_INST_NO  AS OGDP_INST_NO /* 소속기관번호 */
+               ,a.OGDP_DEPT_CD  AS OGDP_DEPT_CD /* 소속부서코드 */
+               ,a.FLNM_ENCPT    AS FLNM_ENCPT
+               ,b.INST_NM       AS INST_NM
+        FROM SCA100 a /* 종사자 */
+            ,SAA000 b /* 통합기관 */
+        WHERE 1=1
+        AND a.OGDP_INST_NO        = b.INST_NO
+        AND a.OGDP_DEPT_CD        ='326' /* 모바일 */
+        AND a.UNT_TASKWK_SE_CD    = 'U11'
+        AND a.DEL_YN              = 'N'
+        AND b.DEL_YN              = 'N'
+        AND NOT EXISTS (SELECT *
+                             FROM AYC195 x /* 교육 참석자 관리 */
+                            WHERE x.CNSLTNT_ID = a.ENFSN_NO 
+                              AND x.DEL_YN = 'N')
+        ]]>
+    </select> -->
+    
+    <select id="selectMblaDscsnList" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMblaDscsnList - 응용2팀 정원제  */
+        
+        SELECT
+                T1.OGDP_DEPT_CD                         AS  OGDP_DEPT_CD        /* 소속 부서 코드 */
+                , T2.USER_ID                            AS  CNSLTNT_ID          /* 사용자 아이디 */
+                , C##RG.DEC_B64(T1.FLNM_ENCPT)       AS  FLNM_ENCPT          /* 상담사명 */
+        FROM    SCA100      T1      /* 종사자 */
+                , SAA200    T2      /* 사용자 */
+        WHERE   1=1
+        AND     T1.ENFSN_NO                 =       T2.ENFSN_NO
+        AND     T1.OGDP_DEPT_CD             =       '325'
+        AND     T2.JOIN_APRV_YN             =       'Y'             /* 가입승인여부 */
+        AND     T2.USER_CNTN_INTRCP_YN      =       'N'             /* 사용자접속차단여부 */
+        AND     T1.DEL_YN                   =       'N'             /* 삭제 여부 */
+        ]]>
+    </select>
+    
+    <insert id="insertEduInfo" parameterType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.insertEduInfo - 응용2팀 정원제  */
+        <selectKey keyProperty="ESTBL_SN" resultType="string" order="AFTER">            
+            SELECT AYC190_SQ01.CURRVAL AS ESTBL_SN 
+            FROM   DUAL           
+        </selectKey>
+        INSERT INTO AYC190      /* 교육관리 */
+                (
+                    EDU_ESTBL_SN
+                    , EDU_TTL_NM
+                    , EDU_THMA_NM
+                    , EDU_YMD
+                    , EDU_BGNG_HR
+                    , EDU_END_HR
+                    , EDU_COMPL_HR
+                    , EDU_TYPE_SE_CD
+                    , EDU_INSTR_NM
+                    , CYBER_EDU_NOPE
+                    , MBLA_EDU_NOPE
+                    , FRST_RGTR_ID
+                    , FRST_REG_DT
+                    , LAST_MDFR_ID
+                    , LAST_MDFCN_DT
+                )
+        VALUES
+                (
+                    AYC190_SQ01.NEXTVAL
+                    , #{EDU_TTL_NM}
+                    , #{EDU_THMA_NM}
+                    , #{EDU_YMD}
+                    , #{EDU_BGNG_HR}
+                    , #{EDU_END_HR}
+                    , #{EDU_COMPL_HR}
+                    , #{EDU_TYPE_SE_CD}
+                    , #{EDU_INSTR_NM}
+                    , #{CYBER_EDU_NOPE}
+                    , #{MBLA_EDU_NOPE}
+                    , #{FRST_RGTR_ID}
+                    , SYSDATE
+                    , #{LAST_MDFR_ID}
+                    , SYSDATE
+                )
+    </insert>
+    
+    <update id="updateEduInfo" parameterType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.updateEduInfo - 응용2팀 정원제  */
+        UPDATE  AYC190       /* 교육관리 */
+        SET
+                EDU_TTL_NM          =       #{EDU_TTL_NM}
+                , EDU_THMA_NM       =       #{EDU_THMA_NM}
+                , EDU_YMD           =       #{EDU_YMD}
+                , EDU_BGNG_HR       =       #{EDU_BGNG_HR}
+                , EDU_END_HR        =       #{EDU_END_HR}
+                , EDU_COMPL_HR      =       #{EDU_COMPL_HR}
+                , EDU_TYPE_SE_CD    =       #{EDU_TYPE_SE_CD}
+                , EDU_INSTR_NM      =       #{EDU_INSTR_NM}
+                , CYBER_EDU_NOPE    =       #{CYBER_EDU_NOPE}
+                , MBLA_EDU_NOPE     =       #{MBLA_EDU_NOPE}
+                , LAST_MDFR_ID      =       #{LAST_MDFR_ID}
+                , LAST_MDFCN_DT     =       SYSDATE
+        WHERE   EDU_ESTBL_SN        =       #{EDU_ESTBL_SN}
+    </update>
+    
+    <update id="deleteEduInfo" parameterType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.deleteEduInfo - 응용2팀 정원제  */
+        UPDATE  AYC190      /* 교육관리 */
+        SET
+                DEL_YN              =       'Y'
+                , LAST_MDFR_ID      =       #{LAST_MDFR_ID}
+                , LAST_MDFCN_DT     =       SYSDATE
+        WHERE   EDU_ESTBL_SN        =       #{EDU_ESTBL_SN}
+    </update>
+    
+    <update id="deleteEduAtndMng" parameterType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.deleteEduAtndMng - 응용2팀 정원제  */
+        UPDATE  AYC195      /* 교육참석자관리 */
+        SET
+                DEL_YN              =       'Y'
+                , LAST_MDFR_ID      =       #{LAST_MDFR_ID}
+                , LAST_MDFCN_DT     =       SYSDATE
+        WHERE   EDU_ESTBL_SN        =       #{EDU_ESTBL_SN}
+    </update>
+    
+    <select id="selectEduMngBassInfo" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectEduMngBassInfo - 개발지원팀 이태호  */  
+        SELECT a.EDU_ESTBL_SN       AS EDU_ESTBL_SN
+              ,a.EDU_TTL_NM         AS EDU_TTL_NM
+              ,a.EDU_THMA_NM        AS EDU_THMA_NM
+              ,a.EDU_YMD            AS EDU_YMD
+              ,a.EDU_BGNG_HR        AS EDU_BGNG_HR
+              ,a.EDU_END_HR         AS EDU_END_HR
+              ,a.EDU_COMPL_HR       AS EDU_COMPL_HR 
+              ,a.EDU_TYPE_SE_CD     AS EDU_TYPE_SE_CD
+              ,a.EDU_INSTR_NM       AS EDU_INSTR_NM
+              ,a.CYBER_EDU_NOPE     AS CYBER_EDU_NOPE
+              ,a.TLPHON_EDU_NOPE    AS TLPHON_EDU_NOPE
+              ,a.MBLA_EDU_NOPE      AS MBLA_EDU_NOPE
+              ,SUBSTR(a.EDU_BGNG_HR,0,2)        AS START_TIME
+              ,SUBSTR(a.EDU_BGNG_HR,3,4)        AS START_MINUTE            
+              ,SUBSTR(a.EDU_END_HR,0,2)         AS END_TIME
+              ,SUBSTR(a.EDU_END_HR,3,4)         AS END_MINUTE
+              ,substr(a.EDU_YMD, 0, 4) || '.' || substr(a.EDU_YMD, 5, 2) || '.' || substr(a.EDU_YMD, 7, 2) || ' ( ' || substr(a.EDU_BGNG_HR, 0, 2) || ' : ' || substr(a.EDU_BGNG_HR, 3, 2) || ' ~ ' || substr(a.EDU_END_HR, 0, 2) || ' : ' || substr(a.EDU_END_HR, 3, 2) || ' ) ' || '사수 ' || a.EDU_COMPL_HR || ' 분'  AS EDU_DT
+        FROM AYC190 a /* 교육 관리 */        
+        WHERE 1=1
+          AND a.EDU_ESTBL_SN = #{EDU_ESTBL_SN} 
+          AND DEL_YN         = 'N'
+    </select>
+    
+    <select id="selectCyberNonAtndList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectCyberNonAtndList - 응용2팀 정원제  */
+        SELECT  T1.EDU_ATDRN_SN                         AS  EDU_ATDRN_SN
+                , T1.EDU_ESTBL_SN                       AS  EDU_ESTBL_SN
+                , T1.OGDP_DEPT_CD                       AS  OGDP_DEPT_CD
+                , T1.CNSLTNT_ID                         AS  CNSLTNT_ID
+                , C##RG.DEC_B64(T3.FLNM_ENCPT)       AS  FLNM_ENCPT
+                , T1.EDU_ATND_YN                        AS  EDU_ATND_YN
+                , T1.ATFINO                             AS  ATFINO
+                , T1.CTCPL_OTPT_NO                      AS  CTCPL_OTPT_NO
+        FROM    AYC195      T1      /* 교육 참석자 관리 */
+                , SAA200    T2      /* 사용자 */
+                , SCA100    T3      /* 종사자 */
+        WHERE   1=1
+        AND     T1.EDU_ESTBL_SN         =       #{EDU_ESTBL_SN}
+        AND     T1.OGDP_DEPT_CD         =       '324'      
+        AND     T1.EDU_ATND_YN          =       'N'
+        AND     T1.DEL_YN               =       'N'
+        AND     T1.CNSLTNT_ID           =       T2.USER_ID
+        AND     T2.ENFSN_NO             =       T3.ENFSN_NO
+        ORDER BY C##RG.DEC_B64(T3.FLNM_ENCPT)
+    </select>
+    
+    <select id="selectCyberAtndList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectCyberAtndList - 응용2팀 정원제  */
+        SELECT  T1.EDU_ATDRN_SN                         AS  EDU_ATDRN_SN
+                , T1.EDU_ESTBL_SN                       AS  EDU_ESTBL_SN
+                , T1.OGDP_DEPT_CD                       AS  OGDP_DEPT_CD
+                , T1.CNSLTNT_ID                         AS  CNSLTNT_ID
+                , C##RG.DEC_B64(T3.FLNM_ENCPT)       AS  FLNM_ENCPT
+                , T1.EDU_ATND_YN                        AS  EDU_ATND_YN
+                , T1.ATFINO                             AS  ATFINO
+                , T1.CTCPL_OTPT_NO                      AS  CTCPL_OTPT_NO
+        FROM    AYC195      T1      /* 교육 참석자 관리 */
+                , SAA200    T2      /* 사용자 */
+                , SCA100    T3      /* 종사자 */
+        WHERE   1=1
+        AND     T1.EDU_ESTBL_SN         =       #{EDU_ESTBL_SN}
+        AND     T1.OGDP_DEPT_CD         =       '324'      
+        AND     T1.EDU_ATND_YN          =       'Y'
+        AND     T1.DEL_YN               =       'N'
+        AND     T1.CNSLTNT_ID           =       T2.USER_ID
+        AND     T2.ENFSN_NO             =       T3.ENFSN_NO
+        ORDER BY C##RG.DEC_B64(T3.FLNM_ENCPT)
+    </select>
+    
+    <select id="selectMblaNonAtndList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMblaNonAtndList - 응용2팀 정원제  */
+        SELECT  T1.EDU_ATDRN_SN                         AS  EDU_ATDRN_SN
+                , T1.EDU_ESTBL_SN                       AS  EDU_ESTBL_SN
+                , T1.OGDP_DEPT_CD                       AS  OGDP_DEPT_CD
+                , T1.CNSLTNT_ID                         AS  CNSLTNT_ID
+                , C##RG.DEC_B64(T3.FLNM_ENCPT)       AS  FLNM_ENCPT
+                , T1.EDU_ATND_YN                        AS  EDU_ATND_YN
+                , T1.ATFINO                             AS  ATFINO
+                , T1.CTCPL_OTPT_NO                      AS  CTCPL_OTPT_NO
+        FROM    AYC195      T1      /* 교육 참석자 관리 */
+                , SAA200    T2      /* 사용자 */
+                , SCA100    T3      /* 종사자 */
+        WHERE   1=1
+        AND     T1.EDU_ESTBL_SN         =       #{EDU_ESTBL_SN}
+        AND     T1.OGDP_DEPT_CD         =       '325'     
+        AND     T1.EDU_ATND_YN          =       'N'
+        AND     T1.DEL_YN               =       'N'
+        AND     T1.CNSLTNT_ID           =       T2.USER_ID
+        AND     T2.ENFSN_NO             =       T3.ENFSN_NO
+    </select>
+    
+    <select id="selectMblaAtndList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMblaAtndList - 응용2팀 정원제  */
+        SELECT  T1.EDU_ATDRN_SN                         AS  EDU_ATDRN_SN
+                , T1.EDU_ESTBL_SN                       AS  EDU_ESTBL_SN
+                , T1.OGDP_DEPT_CD                       AS  OGDP_DEPT_CD
+                , T1.CNSLTNT_ID                         AS  CNSLTNT_ID
+                , C##RG.DEC_B64(T3.FLNM_ENCPT)       AS  FLNM_ENCPT
+                , T1.EDU_ATND_YN                        AS  EDU_ATND_YN
+                , T1.ATFINO                             AS  ATFINO
+                , T1.CTCPL_OTPT_NO                      AS  CTCPL_OTPT_NO
+        FROM    AYC195      T1      /* 교육 참석자 관리 */
+                , SAA200    T2      /* 사용자 */
+                , SCA100    T3      /* 종사자 */
+        WHERE   1=1
+        AND     T1.EDU_ESTBL_SN         =       #{EDU_ESTBL_SN}
+        AND     T1.OGDP_DEPT_CD         =       '325'      
+        AND     T1.EDU_ATND_YN          =       'Y'
+        AND     T1.DEL_YN               =       'N'
+        AND     T1.CNSLTNT_ID           =       T2.USER_ID
+        AND     T2.ENFSN_NO             =       T3.ENFSN_NO
+    </select>
+        
+    <select id="selectMblaDscsnUpdateList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectMblaDscsnUpdateList - 개발지원팀 이태호  */
+        
+        SELECT  a.ENFSN_NO      AS ENFSN_NO
+               ,a.OGDP_INST_NO  AS OGDP_INST_NO --소속기관번호
+               ,a.OGDP_DEPT_CD  AS OGDP_DEPT_CD --소속부서코드
+               ,a.FLNM_ENCPT    AS FLNM_ENCPT
+               ,b.INST_NM       AS INST_NM
+               ,'true'          AS CHK
+               ,c.EDU_ATDRN_SN  AS EDU_ATDRN_SN
+               ,c.EDU_ESTBL_SN  AS EDU_ESTBL_SN
+        FROM SCA100 a /* 종사자 */
+            ,SAA000 b /* 통합기관 */
+            ,AYC195 c /* 교육 참석자 관리 */
+        WHERE 1=1
+        AND a.OGDP_INST_NO        = b.INST_NO
+        AND a.ENFSN_NO            = c.CNSLTNT_ID
+        AND a.OGDP_DEPT_CD        ='326' --모바일
+        AND a.UNT_TASKWK_SE_CD    = 'U11'
+        AND a.DEL_YN              = 'N'
+        AND b.DEL_YN              = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectCyberDscsnUpdateList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.selectCyberDscsnUpdateList - 개발지원팀 이태호  */
+        
+        SELECT  a.ENFSN_NO      AS ENFSN_NO
+               ,a.OGDP_INST_NO  AS OGDP_INST_NO --소속기관번호
+               ,a.OGDP_DEPT_CD  AS OGDP_DEPT_CD --소속부서코드
+               ,a.FLNM_ENCPT    AS FLNM_ENCPT
+               ,b.INST_NM       AS INST_NM
+               ,'true'          AS CHK
+               ,c.EDU_ATDRN_SN  AS EDU_ATDRN_SN
+               ,c.EDU_ESTBL_SN  AS EDU_ESTBL_SN
+        FROM SCA100 a /* 종사자 */
+            ,SAA000 b /* 통합기관 */
+            ,AYC195 c /* 교육 참석자 관리 */
+        WHERE 1=1
+        AND a.OGDP_INST_NO        = b.INST_NO
+        AND a.ENFSN_NO            = c.CNSLTNT_ID
+        AND a.OGDP_DEPT_CD        IN('324','325') --324:사이버 325:사이버아웃리치
+        AND a.UNT_TASKWK_SE_CD    = 'U11'
+        AND a.DEL_YN              = 'N'
+        AND b.DEL_YN              = 'N'
+        ]]>
+    </select>
+    
+    <update id="UpdateEduMng" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEduMng - 개발지원팀 이태호  */
+        <selectKey keyProperty="ESTBL_SN" resultType="string" order="AFTER">            
+            SELECT AYC190_SQ01.CURRVAL AS ESTBL_SN 
+            FROM   DUAL           
+        </selectKey>
+        MERGE INTO
+        AYC190 a /* 교육 관리 */      
+        USING   DUAL
+            ON
+            (
+                a.EDU_ESTBL_SN   = #{EDU_ESTBL_SN}  
+            )
+        WHEN MATCHED THEN
+            UPDATE SET        
+                  a.EDU_TTL_NM      = #{EDU_TTL_NM}
+                , a.EDU_THMA_NM     = #{EDU_THMA_NM}
+                , a.EDU_YMD         = #{EDU_YMD}
+                , a.EDU_BGNG_HR     = #{EDU_BGNG_HR}
+                , a.EDU_END_HR      = #{EDU_END_HR}
+                , a.EDU_COMPL_HR    = #{EDU_COMPL_HR}
+                , a.EDU_TYPE_SE_CD  = #{EDU_TYPE_SE_CD}
+                , a.EDU_INSTR_NM    = #{EDU_INSTR_NM}
+                , a.ATFINO          = #{ATFINO}
+                , a.CYBER_EDU_NOPE  = #{CYBER_EDU_NOPE}
+                , a.TLPHON_EDU_NOPE = #{TLPHON_EDU_NOPE}
+                , a.MBLA_EDU_NOPE   = #{MBLA_EDU_NOPE}
+                , a.FRST_RGTR_ID    = #{FRST_RGTR_ID}
+                , a.FRST_REG_DT     = SYSDATE
+                , a.LAST_MDFR_ID    = #{LAST_MDFR_ID}
+                , a.LAST_MDFCN_DT   = SYSDATE
+            WHERE a.EDU_ESTBL_SN   = #{EDU_ESTBL_SN}    
+        WHEN NOT MATCHED THEN 
+            INSERT
+                (a.EDU_ESTBL_SN
+                , a.EDU_TTL_NM
+                , a.EDU_THMA_NM
+                , a.EDU_YMD
+                , a.EDU_BGNG_HR
+                , a.EDU_END_HR
+                , a.EDU_COMPL_HR
+                , a.EDU_TYPE_SE_CD
+                , a.EDU_INSTR_NM
+                , a.ATFINO
+                , a.CYBER_EDU_NOPE
+                , a.TLPHON_EDU_NOPE
+                , a.MBLA_EDU_NOPE
+                , a.FRST_RGTR_ID
+                , a.FRST_REG_DT
+                , a.LAST_MDFR_ID
+                , a.LAST_MDFCN_DT)
+            VALUES
+                (AYC190_SQ01.NEXTVAL
+                , #{EDU_TTL_NM}
+                , #{EDU_THMA_NM}
+                , #{EDU_YMD}
+                , #{EDU_BGNG_HR}
+                , #{EDU_END_HR}
+                , #{EDU_COMPL_HR}
+                , #{EDU_TYPE_SE_CD}
+                , #{EDU_INSTR_NM}
+                , #{ATFINO}
+                , #{CYBER_EDU_NOPE}
+                , #{TLPHON_EDU_NOPE}
+                , #{MBLA_EDU_NOPE}
+                , #{FRST_RGTR_ID}
+                , SYSDATE
+                , #{LAST_MDFR_ID}
+                , SYSDATE
+                )
+    </update>
+    
+    <update id="UpdateEduMngSaveList" parameterType="HashMap">
+        
+        /* isry.couns.mngr.consultantabltymng.mapper.DscsnAbilitMngMapper.UpdateEduMngSaveList - 개발지원팀 이태호  */
+        MERGE INTO
+        AYC195 a /* 교육 관리 */      
+        USING   DUAL
+            ON
+            (
+                a.EDU_ATDRN_SN   = #{EDU_ATDRN_SN} 
+            AND a.EDU_ESTBL_SN   = #{EDU_ESTBL_SN}  
+            )
+        WHEN MATCHED THEN
+            UPDATE SET        
+                  a.OGDP_DEPT_CD    = #{OGDP_DEPT_CD}
+                , a.CNSLTNT_ID      = #{CNSLTNT_ID}
+                , a.EDU_ATND_YN     = #{EDU_ATND_YN}
+                , a.ATFINO          = #{ATFINO}
+                , a.CTCPL_OTPT_NO   = #{CTCPL_OTPT_NO}              
+                , a.LAST_MDFR_ID    = #{LAST_MDFR_ID}
+                , a.LAST_MDFCN_DT   = SYSDATE
+             WHERE 1=1
+               AND a.EDU_ATDRN_SN   = #{EDU_ATDRN_SN} 
+               AND a.EDU_ESTBL_SN   = #{EDU_ESTBL_SN}   
+        WHEN NOT MATCHED THEN 
+            INSERT 
+                (a.EDU_ATDRN_SN
+                , a.EDU_ESTBL_SN
+                , a.OGDP_DEPT_CD
+                , a.CNSLTNT_ID
+                , a.EDU_ATND_YN
+                , a.FRST_RGTR_ID
+                , a.FRST_REG_DT
+                , a.LAST_MDFR_ID
+                , a.LAST_MDFCN_DT
+                )
+            VALUES
+                (AYC195_SQ01.NEXTVAL
+                , #{EDU_ESTBL_SN}
+                , #{OGDP_DEPT_CD}
+                , #{CNSLTNT_ID}
+                , #{EDU_ATND_YN}                
+                , #{FRST_RGTR_ID}
+                , SYSDATE
+                , #{LAST_MDFR_ID}
+                , SYSDATE
+                )
+    </update>
+    
+</mapper>

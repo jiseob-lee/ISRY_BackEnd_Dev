@@ -1,0 +1,719 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.subms.preconmng.atendprecon.mapper.AtendPreconMapper">
+
+	<select id="selectAtendPreconList" parameterType="HashMap"
+		resultType="HashMap">
+	<![CDATA[
+	/*isry.subms.preconmng.atendprecon.mapper.AtendPreconMapper.selectAtendPreconList*/
+    WITH
+        ATNC_BASE AS (
+        /* 대상자 출결 기본 */
+            SELECT
+                A.*
+            ,   E.TRPR_INFO_NO                                                  /* 대상자정보번호 */
+            ,   D.BGNG_YMD                                                      /* 대상자 교육시작일자 */
+            ,   NVL(NVL(D.END_YMD, E.CASE_TRMN_YMD), #{END_YMD})    AS END_YMD  /* 대상자 교육종료일자 */
+            FROM (
+                SELECT
+                    B.PTCPTN_YMD                                    /* 출결일자 */
+                ,   C.ATNC_SE_CD                                    /* 출결구분코드 */
+                ,   C.ATNC_CS_SE_CD                                 /* 출결사유구분코드 */
+                ,   B.SRVC_PVSN_NO                                  /* 서비스제공번호 */
+                ,   B.CASE_MNG_NO                                   /* 사례관리번호 */
+                ,   B.CASE_MNG_ODRNO                                /* 사례관리차수 */
+                ,   B.RESRCE_NO                                     /* 자원번호 */
+                ,   B.RSFR_INST_NO                                  /* 자원제공기관번호 */
+                ,   B.SRVC_PVSN_BGNG_YMD
+                ,   B.SRVC_PVSN_END_YMD
+                FROM (
+                    SELECT
+                            B.SRVC_PVSN_NO          /* 서비스제공번호 */
+                        ,   B.CASE_MNG_NO           /* 사례관리번호 */
+                        ,   B.CASE_MNG_ODRNO        /* 사례관리차수 */
+                        ,   B.RESRCE_NO             /* 자원번호 */
+                        ,   A.RSFR_INST_NO          /* 자원제공기관번호 */
+                        ,   DD.PTCPTN_YMD           /* 표시일자 */
+                        ,   C.SRVC_PVSN_BGNG_YMD
+                        ,   C.SRVC_PVSN_END_YMD
+                    FROM SDA100 A                   /* 자원기본 */
+                    JOIN SEB510 B                   /* 서비스제공대상자 */
+                    ON  B.RESRCE_NO     = A.RESRCE_NO
+                    AND B.DEL_YN = 'N'
+                    JOIN SEB500 C
+                    ON  C.DEL_YN        = 'N'
+                    AND C.SRVC_PVSN_NO  = B.SRVC_PVSN_NO
+                    AND C.RESRCE_NO     = B.RESRCE_NO
+                    CROSS JOIN (
+                        SELECT TO_CHAR(YMD,'YYYYMMDD') AS PTCPTN_YMD    /* 날짜 */
+                        FROM (
+                            SELECT TO_DATE(#{BGNG_YMD},'YYYYMMDD') + LEVEL - 1 AS YMD
+                            FROM DUAL
+                            CONNECT BY LEVEL <= (TO_DATE(#{END_YMD},'YYYYMMDD') - TO_DATE(#{BGNG_YMD},'YYYYMMDD')+1)
+                            ) A
+                    ) DD
+                    WHERE   1=1
+                    AND A.RSFR_INST_NO = #{INST_NO}
+                    AND A.SRVC_RESRCE_LCLAS_SE_CD != '01'
+    ]]>
+    <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+                        AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    </if>
+    <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+                        AND A.RESRCE_NO = #{RESRCE_NO}
+    </if>
+    <![CDATA[
+                ) B
+                LEFT JOIN SEB530 C                  /* 자원프로그램제공 */
+                ON  C.SRVC_PVSN_NO      = B.SRVC_PVSN_NO
+                AND C.CASE_MNG_NO       = B.CASE_MNG_NO
+                AND C.CASE_MNG_ODRNO    = B.CASE_MNG_ODRNO
+                AND C.RESRCE_NO         = B.RESRCE_NO
+                AND C.PROGRM_CRSE_SE_CD = '1'
+                AND C.PTCPTN_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+                AND C.PTCPTN_YMD        = B.PTCPTN_YMD
+            ) A
+            LEFT JOIN AFA330 D                           /* 교육이수일정내역 */
+            ON  D.CASE_MNG_NO       = A.CASE_MNG_NO
+            AND D.CASE_MNG_ODRNO    = A.CASE_MNG_ODRNO
+            JOIN SEB100 E                           /* 사례기본 */
+            ON  E.CASE_MNG_NO       = A.CASE_MNG_NO
+            AND E.CASE_MNG_ODRNO    = A.CASE_MNG_ODRNO
+            WHERE   1=1
+            AND NVL(NVL(D.END_YMD, E.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD) >= #{BGNG_YMD}
+            AND NVL(NVL(D.BGNG_YMD, E.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) <= #{END_YMD}
+	        AND #{INST_NO} IN (
+                SELECT PIC_INST_NO FROM SEB150
+                WHERE   CASE_MNG_NO    =   E.CASE_MNG_NO
+	                AND CASE_MNG_ODRNO =   E.CASE_MNG_ODRNO)
+        ),
+        CLASS_SCHDL AS (
+        /* 조회 기간 스케줄 목록 */
+            SELECT DISTINCT
+                C.PROGRM_NO
+            ,   C.RESRCE_NO
+            ,   C.LCTRE_SN
+            ,   C.LCTRE_YMD
+            ,   C.LCTRE_HR
+            FROM SDA100 SD                          /* 자원기본 */
+            JOIN SDA300 A                           /* 자원프로그램 */
+            ON  A.RESRCE_NO     = SD.RESRCE_NO
+            AND A.DEL_YN        = 'N'
+            JOIN SDA340 B                           /* 자원프로그램상세일정 */
+            ON  B.PROGRM_NO     = A.PROGRM_NO
+            AND B.RESRCE_NO     = A.RESRCE_NO
+            AND B.DEL_YN        = 'N'
+            JOIN SDA320 C                           /* 자원프로그램실행시간 */
+            ON  C.PROGRM_NO     = B.PROGRM_NO
+            AND C.RESRCE_NO     = B.RESRCE_NO
+            AND C.LCTRE_SN      = B.LCTRE_SN
+            AND C.LCTRE_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+            WHERE   1=1
+            AND SD.RSFR_INST_NO = #{INST_NO}
+    ]]>
+    <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+            AND SD.SRVC_EXCN_BIZ_NO    = #{SRVC_EXCN_BIZ_NO}
+    </if>
+    <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+            AND SD.RESRCE_NO    = #{RESRCE_NO}
+    </if>
+    <![CDATA[
+            AND SD.SRVC_RESRCE_LCLAS_SE_CD != '01'
+        ),
+        CLASS_SCHDL_STD AS (
+        /* 조회 기간 스케줄(학생별) - 월중 최고시수, 월별 수업시간수, 월별 교육 일수를 학생별로 조회 */
+            SELECT
+                CS.LCTRE_YMD
+            ,   SUM(NVL(CS.LCTRE_HR, 0)) AS SUM_DAILY_HR
+            ,   AB.SRVC_PVSN_NO
+            ,   AB.CASE_MNG_NO
+            ,   AB.CASE_MNG_ODRNO
+            ,   AB.RESRCE_NO
+            ,   AB.TRPR_INFO_NO
+            ,   AB.BGNG_YMD
+            ,   AB.END_YMD
+            FROM (
+                SELECT DISTINCT
+                    SRVC_PVSN_NO
+                ,   CASE_MNG_NO
+                ,   CASE_MNG_ODRNO
+                ,   RESRCE_NO
+                ,   TRPR_INFO_NO
+                ,   BGNG_YMD
+                ,   END_YMD
+                FROM ATNC_BASE
+            ) AB
+            JOIN CLASS_SCHDL CS
+            ON CS.LCTRE_YMD BETWEEN AB.BGNG_YMD AND AB.END_YMD
+            AND CS.RESRCE_NO = AB.RESRCE_NO
+            GROUP BY AB.RESRCE_NO, AB.TRPR_INFO_NO, AB.CASE_MNG_NO, AB.CASE_MNG_ODRNO,  AB.SRVC_PVSN_NO, CS.LCTRE_YMD, AB.BGNG_YMD, AB.END_YMD
+        ),
+        CLASS_SCHDL_MON AS (
+        /* 조회 기간 월별 계획시간수, 계획수업일수 */
+            SELECT
+                SUBSTR(CS.LCTRE_YMD, 1, 6)  AS LCTRE_YM         /* 수업 월 */
+            ,   MIN(CS.SUM_DAILY_HR)        AS MIN_LCTRE_HR     /* 1일 최소교육시간수(월별) */
+            ,   MAX(CS.SUM_DAILY_HR)        AS MAX_LCTRE_HR     /* 1일 최대교육시간수(월별) */
+            ,   SUM(CS.SUM_DAILY_HR)        AS SCHD_HR_SUM      /* 월 계획수업시간수 */
+            ,   COUNT(CS.LCTRE_YMD)         AS  SCHD_DAY_CNT    /* 월 계획수업일수 */
+            ,   CS.SRVC_PVSN_NO                                 /* 서비스제공번호 */
+            ,   CS.CASE_MNG_NO                                  /* 사례대상번호 */
+            ,   CS.CASE_MNG_ODRNO                               /* 사례대상차수 */
+            ,   CS.RESRCE_NO                                    /* 자원번호 */
+            ,   CS.TRPR_INFO_NO                                 /* 대상자번호 */
+            ,   CS.BGNG_YMD                                     /* 대상자 교육시작일자 */
+            ,   CS.END_YMD                                      /* 대상자 교육종료일자 */
+            FROM CLASS_SCHDL_STD CS
+            GROUP BY SUBSTR(CS.LCTRE_YMD, 1, 6), CS.RESRCE_NO, CS.SRVC_PVSN_NO, CS.TRPR_INFO_NO, CS.CASE_MNG_NO, CS.CASE_MNG_ODRNO, CS.BGNG_YMD, CS.END_YMD
+        ),
+        ATNC_STAT_CNT AS (
+        /* 조회 기간 출석 집계 */
+            SELECT
+                A.SRVC_PVSN_NO                                              /* 서비스제공번호 */
+            ,   A.CASE_MNG_NO                                               /* 사례관리번호 */
+            ,   A.CASE_MNG_ODRNO                                            /* 사례관리차수 */
+            ,   A.RESRCE_NO                                                 /* 자원번호 */
+            ,   SUM(A.ATEND_CNT)                        AS ATEND_CNT        /* 출석횟수 */
+            ,   SUM(A.ABSNC_CNT)                        AS ABSNC_CNT        /* 결석횟수 */
+            ,   SUM(A.LATEN_CNT)                        AS LATEN_CNT        /* 지각횟수 */
+            ,   SUM(A.LRLY_CNT)                         AS LRLY_CNT         /* 조퇴횟수 */
+            ,   SUM(A.EGRS_CNT)                         AS EGRS_CNT         /* 외출횟수 */
+            ,   SUM(A.ETC_CNT)                          AS ETC_CNT          /* 기타횟수 */
+            ,   SUM(A.STUDY_HR_SUM - A.ETC_ABSNC_TIME)  AS ATEND_TIMECNT    /* 출석시수 */
+            ,   SUM(A.SCHD_HR_SUM)                      AS CLASS_TIMECNT    /* 총수업시수 */
+            ,   SUM(A.ATEND_TOT_CNT - A.ETC_ABSNC_CNT)  AS ATEND_DAYCNT     /* 출석일수 */
+            ,   SUM(A.SCHD_DAY_CNT)                     AS CLASS_DAYCNT     /* 총수업일수 */
+            FROM (
+                SELECT
+                    A.SRVC_PVSN_NO                              /* 서비스제공번호 */
+                ,   A.CASE_MNG_NO                               /* 사례관리번호 */
+                ,   A.CASE_MNG_ODRNO                            /* 사례관리차수 */
+                ,   A.RESRCE_NO                                 /* 자원번호 */
+                ,   A.PTCPTN_YM                                 /* 출결월 */
+                ,   A.ATEND_CNT                                 /* 출석횟수 */
+                ,   A.ABSNC_CNT                                 /* 결석횟수 */
+                ,   A.LATEN_CNT                                 /* 지각횟수 */
+                ,   A.LRLY_CNT                                  /* 조퇴횟수 */
+                ,   A.EGRS_CNT                                  /* 외출횟수 */
+                ,   A.ETC_CNT                                   /* 기타횟수 */
+                ,   TRUNC((A.LATEN_CNT + A.LRLY_CNT + A.EGRS_CNT + A. ETC_CNT) / 3)
+                                            AS ETC_ABSNC_CNT    /* 결석이외 결석횟수 - 지각,조퇴,외출,기타 3회시 결석처리 */
+                ,   TRUNC((A.LATEN_CNT + A.LRLY_CNT + A.EGRS_CNT + A. ETC_CNT) / 3) * B.MAX_LCTRE_HR
+                                            AS ETC_ABSNC_TIME   /* 결석이외 결석시간 - 지각,조퇴,외출,기타 3회시 결석처리(월중 최대 일일 교육시간) */
+                ,   NVL(C.STUDY_HR_SUM, 0)  AS STUDY_HR_SUM     /* 월 교육수업시간수 */
+                ,   NVL(B.SCHD_HR_SUM, 0)   AS SCHD_HR_SUM      /* 월 계획수업시간수 */
+                ,   NVL(A.ATEND_TOT_CNT, 0) AS ATEND_TOT_CNT    /* 월 총 교육수업일수 */
+                ,   NVL(B.SCHD_DAY_CNT, 0)  AS SCHD_DAY_CNT     /* 월 계획수업일수 */
+                FROM (
+                    SELECT
+                        A.SRVC_PVSN_NO                                                                                            /* 서비스제공번호 */
+                    ,   A.CASE_MNG_NO                                                                                             /* 사례관리번호 */
+                    ,   A.CASE_MNG_ODRNO                                                                                          /* 사례관리차수 */
+                    ,   A.RESRCE_NO                                                                                               /* 자원번호 */
+                    ,   SUBSTR(A.PTCPTN_YMD,1,6)                                                              AS PTCPTN_YM        /* 출결월 */
+                    ,   SUM(CASE WHEN A.ATNC_SE_CD = '01' THEN 1 ELSE 0 END)                                  AS ATEND_CNT        /* 출석횟수 */
+                    ,   SUM(CASE WHEN A.ATNC_SE_CD = '02' THEN 1 ELSE 0 END)                                  AS ABSNC_CNT        /* 결석횟수 */
+                    ,   SUM(CASE WHEN A.ATNC_SE_CD = '03' THEN 1 ELSE 0 END)                                  AS LATEN_CNT        /* 지각횟수 */
+                    ,   SUM(CASE WHEN A.ATNC_SE_CD = '04' THEN 1 ELSE 0 END)                                  AS LRLY_CNT         /* 조퇴횟수 */
+                    ,   SUM(CASE WHEN A.ATNC_SE_CD = '05' THEN 1 ELSE 0 END)                                  AS EGRS_CNT         /* 외출횟수 */
+                    ,   SUM(CASE WHEN A.ATNC_SE_CD BETWEEN '06' AND '09' THEN 1 ELSE 0 END)                   AS ETC_CNT          /* 기타횟수 */
+                    ,   SUM(CASE WHEN A.ATNC_SE_CD IN ('01','03','04','05','07','08','09') THEN 1 ELSE 0 END) AS ATEND_TOT_CNT    /* 총 출석횟수(결석이외 전체) */
+                    FROM ATNC_BASE A
+                    WHERE A.PTCPTN_YMD IN (SELECT DISTINCT LCTRE_YMD FROM CLASS_SCHDL WHERE RESRCE_NO = A.RESRCE_NO)
+                    GROUP BY A.SRVC_PVSN_NO, A.CASE_MNG_NO, A.CASE_MNG_ODRNO, A.RESRCE_NO, /*A.PROGRM_PVSN_SN,*/ SUBSTR(A.PTCPTN_YMD,1,6)
+                )  A
+                LEFT JOIN CLASS_SCHDL_MON B         /* 월별 계획 일자, 시간수 구하기 */
+                ON  B.RESRCE_NO         = A.RESRCE_NO
+                AND B.SRVC_PVSN_NO      = A.SRVC_PVSN_NO
+                AND B.CASE_MNG_NO       = A.CASE_MNG_NO
+                AND B.CASE_MNG_ODRNO    = A.CASE_MNG_ODRNO
+                AND B.LCTRE_YM          = A.PTCPTN_YM
+                LEFT JOIN (         /* 월별 교육받은 시간수 구하기 */
+                    SELECT
+                        A.SRVC_PVSN_NO                              /* 서비스제공번호 */
+                    ,   A.CASE_MNG_NO                               /* 사례관리번호 */
+                    ,   A.CASE_MNG_ODRNO                            /* 사례관리차수 */
+                    ,   A.RESRCE_NO                                 /* 자원번호 */
+                    ,   SUM(NVL(B.SUM_DAILY_HR, 0)) AS STUDY_HR_SUM /* 월 수업시간수 */
+                    ,   SUBSTR(A.PTCPTN_YMD,1,6)    AS PTCPTN_YM    /* 출결월 */
+                    FROM ATNC_BASE A
+                    JOIN CLASS_SCHDL_STD B
+	                ON B.RESRCE_NO         = A.RESRCE_NO
+	                AND B.SRVC_PVSN_NO     = A.SRVC_PVSN_NO
+	                AND B.CASE_MNG_NO      = A.CASE_MNG_NO
+	                AND B.CASE_MNG_ODRNO   = A.CASE_MNG_ODRNO
+	                AND B.LCTRE_YMD        = A.PTCPTN_YMD
+                    WHERE A.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+                    GROUP BY A.RESRCE_NO, A.CASE_MNG_NO, A.CASE_MNG_ODRNO, A.SRVC_PVSN_NO, SUBSTR(A.PTCPTN_YMD,1,6)
+                ) C
+                ON  C.RESRCE_NO         = A.RESRCE_NO
+                AND C.SRVC_PVSN_NO      = A.SRVC_PVSN_NO
+                AND C.CASE_MNG_NO       = A.CASE_MNG_NO
+                AND C.CASE_MNG_ODRNO    = A.CASE_MNG_ODRNO
+                AND C.PTCPTN_YM         = A.PTCPTN_YM
+            ) A
+            GROUP BY A.SRVC_PVSN_NO, A.CASE_MNG_NO, A.CASE_MNG_ODRNO, A.RESRCE_NO
+        )
+        SELECT
+            DEC_B64(NVL(H.FLNM_ENCPT,G.TRPR_NM_ENCPT))                      AS TRPR_NM  /* 이름 */
+        ,   AB.PTCPTN_YMD AS PTCPTN_YMD                                                 /* 날짜 */
+        ,   TO_CHAR(TO_DATE(AB.PTCPTN_YMD),'DY','NLS_DATE_LANGUAGE=korean') AS DAOFTH   /* 요일 */
+        ,   AB.ATNC_SE_CD                                                               /* 출결구분코드 */
+        ,   AB.ATNC_CS_SE_CD                                                            /* 출결사유구분코드 */
+        ,   AC.ATEND_CNT                                                                /* 출석 */
+        ,   AC.ABSNC_CNT                                                                /* 결석 */
+        ,   AC.LATEN_CNT                                                                /* 지각 */
+        ,   AC.LRLY_CNT                                                                 /* 조퇴 */
+        ,   AC.EGRS_CNT                                                                 /* 외출 */
+        ,   AC.ETC_CNT                                                                  /* 기타 */
+        ,   AC.ATEND_TIMECNT                                                            /* 출석시수 */
+        ,   AC.CLASS_TIMECNT                                                            /* 총수업시수 */
+        ,   AC.ATEND_DAYCNT                                                             /* 출석일수 */
+        ,   AC.CLASS_DAYCNT                                                             /* 총수업일수 */
+        ,   AB.SRVC_PVSN_NO                                                             /* 서비스제공번호 */
+        ,   AB.CASE_MNG_NO                                                              /* 사례관리번호 */
+        ,   AB.CASE_MNG_ODRNO                                                           /* 사례관리차수 */
+        ,   AB.RESRCE_NO                                                                /* 자원번호 */
+        FROM ATNC_BASE AB
+        LEFT JOIN ATNC_STAT_CNT AC
+        ON AC.RESRCE_NO         = AB.RESRCE_NO
+        AND AC.SRVC_PVSN_NO     = AB.SRVC_PVSN_NO
+        AND AC.CASE_MNG_NO      = AB.CASE_MNG_NO
+        AND AC.CASE_MNG_ODRNO   = AB.CASE_MNG_ODRNO
+        JOIN SEA200 G                           /* 대상자정보 */
+        ON G.TRPR_INFO_NO       = AB.TRPR_INFO_NO
+        AND	G.DEL_YN = 'N'
+        LEFT JOIN SCA300 H                      /* 개인정보 */
+        ON H.INDV_IDNTFC_NO     = G.INDV_IDNTFC_NO
+        AND H.DEL_YN = 'N'
+        ORDER BY TRPR_NM, PTCPTN_YMD
+	]]>
+	</select>
+
+	<select id="selectAtendList" parameterType="HashMap"
+		resultType="HashMap">
+        <![CDATA[
+            /* selectAtendList - Lee SangHoon */
+
+            SELECT
+                A.SRVC_PVSN_NO AS SRVC_PVSN_NO          /* 서비스제공번호 */
+                ,A.CASE_MNG_NO AS CASE_MNG_NO           /* 사례관리번호 */
+                ,A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO     /* 사례관리차수 */
+                ,A.RESRCE_NO AS RESRCE_NO               /* 자원번호 */
+
+				,#{ATNC_YMD} AS PTCPTN_YMD              /* 참여일자 */
+				,B.PROGRM_PVSN_SN AS PROGRM_PVSN_SN     /* 프로그램제공일련번호 */
+
+				,NVL(B.PROGRM_CRSE_SE_CD,1) AS PROGRM_CRSE_SE_CD   /* 프로그램과정구분코드 */
+				,B.PROGRM_NO AS PROGRM_NO               /* 프로그램번호 */
+				,B.LCTRE_SN AS LCTRE_SN                 /* 강의일련번호 */
+				,B.ATEND_TYPE_SE_CD AS ATEND_TYPE_SE_CD /* 출석유형구분코드 */
+				,B.ATNC_SE_CD AS ATNC_SE_CD             /* 출결구분코드 */
+				,B.ATNC_CS_SE_CD AS ATNC_CS_SE_CD       /* 출결사유구분코드 */
+				,B.ONLINE_CLASS_YN AS ONLINE_CLASS_YN   /* 온라인수업여부 */
+				,B.ATFINO AS ATFINO                     /* 첨부파일번호 */
+				,B.RM_CN AS RM_CN                       /* 비고내용 */
+				,B.FRST_RGTR_ID AS FRST_RGTR_ID         /* 최초등록자아이디 */
+				,B.FRST_REG_DT AS FRST_REG_DT           /* 최초등록일시 */
+				,B.LAST_MDFR_ID AS LAST_MDFR_ID         /* 최종수정자아이디 */
+				,B.LAST_MDFCN_DT AS LAST_MDFCN_DT       /* 최종수정일시 */
+				,(
+				    SELECT
+				        REAL_FILE_NM
+				    FROM SAB821
+                    WHERE ATFINO = B.ATFINO
+                        AND FILE_STTS_SE_CD = 'N'
+                ) AS REAL_FILE_NM                       /* 첨부파일명 */
+
+                ,DEC_B64(NVL(E.FLNM_ENCPT,C.TRPR_NM_ENCPT)) AS TRPR_NM             /* 이름 */
+                ,NVL(E.BRTH_YMD,C.TRPR_BRTH_YMD)            AS TRPR_BRTH_YMD       /* 생일 */
+
+            FROM SEB500 T0      /* 서비스제공 */
+            JOIN SEB510 A       /* 서비스제공대상자 */
+            ON  A.SRVC_PVSN_NO  = T0.SRVC_PVSN_NO
+            AND A.RESRCE_NO     = T0.RESRCE_NO
+            AND A.DEL_YN = 'N'
+            JOIN SDA100 F
+            ON F.RESRCE_NO = A.RESRCE_NO
+            LEFT JOIN SEB530 B  /* 자원프로그램제공 */
+            ON A.SRVC_PVSN_NO = B.SRVC_PVSN_NO
+            AND B.PTCPTN_YMD = #{ATNC_YMD}
+            AND A.CASE_MNG_NO = B.CASE_MNG_NO
+            AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+            AND A.RESRCE_NO = B.RESRCE_NO
+            AND B.PROGRM_CRSE_SE_CD = '1'
+            JOIN SEB100 G  /* 사례기본 */
+            ON G.CASE_MNG_NO = A.CASE_MNG_NO
+            AND G.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+            JOIN SEA200 C  /* 대상자정보 */
+            ON C.TRPR_INFO_NO = G.TRPR_INFO_NO
+            AND C.DEL_YN = 'N'
+            LEFT JOIN AFA330 D  /* 교육이수일정내역 */
+            ON A.CASE_MNG_NO = D.CASE_MNG_NO
+            AND A.CASE_MNG_ODRNO = D.CASE_MNG_ODRNO
+            LEFT JOIN SCA300 E  /* 개인정보 */
+            ON E.INDV_IDNTFC_NO = C.INDV_IDNTFC_NO
+            AND E.DEL_YN = 'N'
+
+            WHERE 1=1
+        ]]>
+        <if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO != ''">
+            AND F.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+        </if>
+		<if test="RESRCE_NO != NULL and RESRCE_NO != ''">
+			AND T0.RESRCE_NO = #{RESRCE_NO}
+		</if>
+        <![CDATA[
+            AND (SELECT UNT_TASKWK_SE_CD FROM SAA000    /* 통합기관 */
+                 WHERE INST_NO = (SELECT RSFR_INST_NO FROM SDA100    /* 자원기본 */
+                                  WHERE RESRCE_NO = T0.RESRCE_NO)
+                ) = #{UNT_TASKWK_SE_CD}
+            AND (SELECT RSFR_INST_NO FROM SDA100    /* 자원기본 */
+                WHERE RESRCE_NO = T0.RESRCE_NO
+                ) LIKE #{INST_NO} || '%'
+            AND T0.DEL_YN = 'N'
+            AND #{ATNC_YMD}
+                BETWEEN NVL(NVL(D.BGNG_YMD,G.CASE_BGNG_YMD),T0.SRVC_PVSN_BGNG_YMD)
+                    AND NVL(NVL(D.END_YMD,G.CASE_TRMN_YMD),T0.SRVC_PVSN_END_YMD)
+            AND F.SRVC_RESRCE_LCLAS_SE_CD != '01'
+            AND #{ATNC_YMD} IN
+                (SELECT DISTINCT AC.LCTRE_YMD
+                FROM SDA300 AA
+                JOIN SDA340 AB
+                ON  AB.PROGRM_NO    = AA.PROGRM_NO
+                AND AB.RESRCE_NO    = AA.RESRCE_NO
+                AND AB.DEL_YN       = 'N'
+                JOIN SDA320 AC
+                ON  AC.PROGRM_NO    = AB.PROGRM_NO
+                AND AC.RESRCE_NO    = AB.RESRCE_NO
+                AND AC.LCTRE_SN     = AB.LCTRE_SN
+                WHERE 1=1
+                AND AA.DEL_YN       = 'N'
+                AND AA.RESRCE_NO    = T0.RESRCE_NO)
+            AND #{INST_NO} IN (
+                SELECT PIC_INST_NO FROM SEB150
+                WHERE   CASE_MNG_NO    =   G.CASE_MNG_NO
+                    AND CASE_MNG_ODRNO =   G.CASE_MNG_ODRNO)
+
+            ORDER BY TRPR_NM
+        ]]>
+	</select>
+
+	<insert id="insertAtend" parameterType="HashMap" >
+        <![CDATA[
+            /* insertAtend - Lee SangHoon */
+            MERGE INTO SEB530   /* 프로그램제공 */
+            USING DUAL
+                ON  (SRVC_PVSN_NO       =   #{SRVC_PVSN_NO}         /* 서비스제공번호 */
+                AND CASE_MNG_NO         =   #{CASE_MNG_NO}          /* 사례관리번호 */
+                AND CASE_MNG_ODRNO      =   #{CASE_MNG_ODRNO}       /* 사례관리차수 */
+                AND RESRCE_NO           =   #{RESRCE_NO}            /* 자원번호 */
+                AND PTCPTN_YMD          =   #{PTCPTN_YMD}           /* 참여일자 */
+                AND PROGRM_CRSE_SE_CD   =   #{PROGRM_CRSE_SE_CD})   /* 프로그램과정구분코드 */
+            WHEN MATCHED THEN
+                UPDATE SET
+                    ATNC_SE_CD      =   #{ATNC_SE_CD}       /* 출결구분코드 */
+                ,   ATNC_CS_SE_CD   =   #{ATNC_CS_SE_CD}    /* 출결사유구분코드 */
+                ,   ATFINO          =   #{ATFINO}           /* 첨부파일번호 */
+                ,   ONLINE_CLASS_YN =   #{ONLINE_CLASS_YN}  /* 온라인수업여부 */
+                ,   RM_CN           =   #{RM_CN}            /* 비고내용 */
+                ,   LAST_MDFR_ID    =   #{LAST_MDFR_ID}     /* 최종수정자아이디 */
+                ,   LAST_MDFCN_DT   =   SYSDATE             /* 최종수정일시 */
+            WHEN NOT MATCHED THEN
+                INSERT (
+                    SRVC_PVSN_NO        /* 서비스제공번호 */
+                ,   CASE_MNG_NO         /* 사례관리번호 */
+                ,   CASE_MNG_ODRNO      /* 사례관리차수 */
+                ,   RESRCE_NO           /* 자원번호 */
+                ,   PTCPTN_YMD          /* 참여일자 */
+                ,   PROGRM_PVSN_SN      /* 프로그램제공일련번호 */
+                ,   PROGRM_CRSE_SE_CD   /* 프로그램과정구분코드 */
+                ,   ATEND_TYPE_SE_CD    /* 출석유형구분코드 */
+                ,   ATNC_SE_CD          /* 출석구분코드 */
+                ,   ATNC_CS_SE_CD       /* 출석사유구분코드 */
+                ,   ONLINE_CLASS_YN     /* 온라인수업여부 */
+                ,   ATFINO              /* 첨부파일번호 */
+                ,   RM_CN               /* 비고내용 */
+                ,   FRST_RGTR_ID        /* 최초등록자아이디 */
+                ,   LAST_MDFR_ID        /* 최종수정자아이디 */
+                ) VALUES (
+                    #{SRVC_PVSN_NO}
+                ,   #{CASE_MNG_NO}
+                ,   #{CASE_MNG_ODRNO}
+                ,   #{RESRCE_NO}
+                ,   #{PTCPTN_YMD}
+                ,   (SELECT
+                        NVL(MAX(PROGRM_PVSN_SN), 0) +1  AS PROGRM_PVSN_SN
+				    FROM SEB530
+				    WHERE 1=1
+				    AND SRVC_PVSN_NO = #{SRVC_PVSN_NO}
+				    AND CASE_MNG_NO = #{CASE_MNG_NO}
+				    AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+				    AND RESRCE_NO = #{RESRCE_NO}
+				    AND PTCPTN_YMD = #{PTCPTN_YMD})
+                ,   #{PROGRM_CRSE_SE_CD}
+                ,   #{ATEND_TYPE_SE_CD}
+                ,   #{ATNC_SE_CD}
+                ,   #{ATNC_CS_SE_CD}
+                ,   #{ONLINE_CLASS_YN}
+                ,   #{ATFINO}
+                ,   #{RM_CN}
+                ,   #{FRST_RGTR_ID}
+                ,   #{LAST_MDFR_ID}
+                )
+        ]]>
+        <selectKey resultType="String" keyProperty="DATAA_CHG_SE_CD" order="AFTER">
+            SELECT
+                CASE
+                    WHEN FRST_REG_DT = LAST_MDFCN_DT
+                    THEN 'I'
+                    ELSE 'U'
+                END             AS DATAA_CHG_SE_CD
+            FROM SEB530
+            WHERE   SRVC_PVSN_NO        =   #{SRVC_PVSN_NO}         /* 서비스제공번호 */
+                AND CASE_MNG_NO         =   #{CASE_MNG_NO}          /* 사례관리번호 */
+                AND CASE_MNG_ODRNO      =   #{CASE_MNG_ODRNO}       /* 사례관리차수 */
+                AND RESRCE_NO           =   #{RESRCE_NO}            /* 자원번호 */
+                AND PTCPTN_YMD          =   #{PTCPTN_YMD}           /* 참여일자 */
+                AND PROGRM_CRSE_SE_CD   =   #{PROGRM_CRSE_SE_CD}    /* 프로그램과정구분코드 */
+        </selectKey>
+	</insert>
+
+	<delete id="deleteAtend" parameterType="HashMap">
+	   <![CDATA[
+	       /* deleteAtend - Lee SangHoon */
+
+	       DELETE FROM SEB530
+	       WHERE 1=1
+           AND SRVC_PVSN_NO = #{SRVC_PVSN_NO__origin}
+           AND CASE_MNG_NO = #{CASE_MNG_NO__origin}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO__origin}
+           AND RESRCE_NO = #{RESRCE_NO__origin}
+           AND PTCPTN_YMD = #{PTCPTN_YMD__origin}
+           AND PROGRM_PVSN_SN = #{PROGRM_PVSN_SN__origin}
+	   ]]>
+	</delete>
+
+	<insert id="insertAtendHstr" parameterType="HashMap">
+	   <![CDATA[
+	       /* insertAtendHstr - Lee SangHoon */
+
+	       INSERT INTO SEB531 (
+	           SRVC_PVSN_NO        /* 서비스제공번호 */
+	       ,   CASE_MNG_NO         /* 사례관리번호 */
+	       ,   CASE_MNG_ODRNO      /* 사례관리차수 */
+	       ,   PTCPTN_YMD          /* 참여일자 */
+	       ,   PROGRM_PVSN_SN      /* 프로그램제공일련번호 */
+	       ,   RESRCE_NO           /* 자원번호 */
+	       ,   MDFCN_DT            /* 수정일시 */
+	       ,   DATAA_CHG_SE_CD     /* 데이터변경구분코드 */
+	       ,   PROGRM_CRSE_SE_CD   /* 프로그램과정구분코드 */
+	       ,   PROGRM_NO           /* 프로그램번호 */
+	       ,   LCTRE_SN            /* 강의일련번호 */
+	       ,   ATEND_TYPE_SE_CD    /* 출석유형구분코드 */
+	       ,   ATNC_SE_CD          /* 출결구분코드 */
+	       ,   ATNC_CS_SE_CD       /* 출결사유구분코드 */
+	       ,   ONLINE_CLASS_YN     /* 온라인수업여부 */
+	       ,   ATFINO              /* 첨부파일번호 */
+	       ,   RM_CN               /* 비고내용 */
+	       ,   FRST_RGTR_ID        /* 최초등록자아이디 */
+	       ,   FRST_REG_DT         /* 최초등록일시 */
+	       ,   LAST_MDFR_ID        /* 최종수정자아이디 */
+	       ,   LAST_MDFCN_DT       /* 최종수정일시 */
+	       )
+
+           SELECT
+               SRVC_PVSN_NO
+           ,   CASE_MNG_NO
+           ,   CASE_MNG_ODRNO
+           ,   PTCPTN_YMD
+           ,   PROGRM_PVSN_SN
+           ,   RESRCE_NO
+           ,   SYSDATE
+           ,   #{DATAA_CHG_SE_CD}
+           ,   PROGRM_CRSE_SE_CD
+           ,   PROGRM_NO
+           ,   LCTRE_SN
+           ,   ATEND_TYPE_SE_CD
+           ,   ATNC_SE_CD
+           ,   ATNC_CS_SE_CD
+           ,   ONLINE_CLASS_YN
+           ,   ATFINO
+           ,   RM_CN
+           ,   FRST_RGTR_ID
+           ,   FRST_REG_DT
+           ,   LAST_MDFR_ID
+           ,   LAST_MDFCN_DT
+           FROM SEB530
+           WHERE   SRVC_PVSN_NO        =   #{SRVC_PVSN_NO}
+               AND CASE_MNG_NO         =   #{CASE_MNG_NO}
+               AND CASE_MNG_ODRNO      =   #{CASE_MNG_ODRNO}
+               AND RESRCE_NO           =   #{RESRCE_NO}
+               AND PTCPTN_YMD          =   #{PTCPTN_YMD}
+               AND PROGRM_CRSE_SE_CD   =   #{PROGRM_CRSE_SE_CD}
+	   ]]>
+	</insert>
+
+	<select id="selectAtend" parameterType="HashMap"
+		resultType="HashMap">
+        <![CDATA[
+           /* selectAtend - Lee SangHoon */
+
+        SELECT
+            A.SRVC_PVSN_NO                  /* 서비스제공번호 */
+            , A.CASE_MNG_NO                 /* 사례관리번호 */
+            , A.CASE_MNG_ODRNO              /* 사례관리차수 */
+            , A.RESRCE_NO                   /* 자원관리번호 */
+            , A.PTCPTN_YMD                  /* 참여일자 */
+            , A.PROGRM_PVSN_SN              /* 프로그램제공번호 */
+            , A.PROGRM_CRSE_SE_CD           /* 프로그램과정구분코드 */
+            , A.PROGRM_NO                   /* 프로그램번호 */
+            , A.LCTRE_SN                    /* 강의일련번호 */
+            , A.ATNC_SE_CD                  /* 출결구분코드 */
+            , A.ATNC_CS_SE_CD               /* 출결사유구분코드 */
+            , A.ONLINE_CLASS_YN             /* 온라인수업여부 */
+            , A.ATFINO                      /* 첨부파일번호 */
+            , A.RM_CN                       /* 비고사항 */
+        FROM SEB530 A     /* 자원프로그램제공 */
+
+        WHERE 1=1
+            AND SRVC_PVSN_NO = #{SRVC_PVSN_NO}
+            AND CASE_MNG_NO = #{CASE_MNG_NO}
+            AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+            AND RESRCE_NO = #{RESRCE_NO}
+            AND PTCPTN_YMD = #{PTCPTN_YMD}
+            AND PROGRM_PVSN_SN LIKE #{PROGRM_PVSN_SN} || '%'
+            AND PROGRM_CRSE_SE_CD = '1'
+        ]]>
+	</select>
+
+	<select id="selectAtendByTrpr" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectAtendByTrpr - Lee SangHoon */
+
+    SELECT
+        BGNG_YMD                                -- 교육시작일
+    ,   END_YMD                                 -- 교육종료일
+    ,   SUM(ATEND_CNT)      AS ATEND_CNT        -- 출석수
+    ,   SUM(ABSNC_CNT)      AS ABSNC_CNT        -- 결석수
+    ,   SUM(LATEN_CNT)      AS LATEN_CNT        -- 지각수
+    ,   SUM(LRLY_CNT)       AS LRLY_CNT         -- 조퇴수
+    ,   SUM(EGRS_CNT)       AS EGRS_CNT         -- 외출수
+    ,   SUM(ETC_CNT)        AS ETC_CNT          -- 기타 수
+    ,   SUM(ATEND_TIMECNT)  AS ATEND_TIMECNT    -- 출석시간
+    ,   SUM(CLASS_TIMECNT)  AS CLASS_TIMECNT    -- 총 수업시간
+    ,   SUM(ATEND_DAYCNT)   AS ATEND_DAYCNT     -- 출석일수
+    ,   SUM(CLASS_DAYCNT)   AS CLASS_DAYCNT     -- 총수업일수
+    FROM (
+        SELECT
+            NVL(D.BGNG_YMD,C.CASE_BGNG_YMD)                                                         AS BGNG_YMD
+        ,   NVL(D.END_YMD,C.CASE_TRMN_YMD)                                                          AS END_YMD
+        ,   COUNT(CASE F.ATNC_SE_CD WHEN '01' THEN 1 END)                                           AS ATEND_CNT        -- 월별출석수
+        ,   COUNT(CASE F.ATNC_SE_CD WHEN '02' THEN 1 END)                                           AS ABSNC_CNT        -- 월별결석수
+        ,   COUNT(CASE F.ATNC_SE_CD WHEN '03' THEN 1 END)                                           AS LATEN_CNT        -- 월별지각수
+        ,   COUNT(CASE F.ATNC_SE_CD WHEN '04' THEN 1 END)                                           AS LRLY_CNT         -- 월별조퇴수
+        ,   COUNT(CASE F.ATNC_SE_CD WHEN '05' THEN 1 END)                                           AS EGRS_CNT         -- 월별외출수
+        ,   COUNT(CASE WHEN F.ATNC_SE_CD BETWEEN '06' AND '09' THEN 1 END)                          AS ETC_CNT          -- 월별기타수
+        ,   NVL(SUM(CASE WHEN F.ATNC_SE_CD IN ('01','03','04','05','07','08','09') THEN E.LCTRE_HR END),0)
+        -   TRUNC(COUNT(CASE WHEN F.ATNC_SE_CD IN ('03','04','05','07','08','09') THEN 1 END)/3)*MAX(LCTRE_HR)
+                                                                                                    AS ATEND_TIMECNT    -- 월별출석시간
+        ,   NVL(SUM(E.LCTRE_HR),0)                                                                  AS CLASS_TIMECNT    -- 월별총수업시간
+        ,   COUNT(CASE WHEN F.ATNC_SE_CD IN ('01','03','04','05','07','08','09') THEN 1 END)
+        -   TRUNC(COUNT(CASE WHEN F.ATNC_SE_CD IN ('03','04','05','07','08','09') THEN 1 END)/3)    AS ATEND_DAYCNT     --월별출석일수
+        ,   COUNT(E.LCTRE_YMD)                                                                      AS CLASS_DAYCNT     -- 월별총수업일수
+        FROM SEB510 A       /* 서비스제공대상자 */
+        JOIN SEB500 B       /* 서비스제공 */
+            ON  B.SRVC_PVSN_NO=A.SRVC_PVSN_NO
+            AND B.RESRCE_NO=A.RESRCE_NO
+        JOIN SEB100 C       /* 사례기본 */
+            ON  C.CASE_MNG_NO=A.CASE_MNG_NO
+            AND C.CASE_MNG_ODRNO=A.CASE_MNG_ODRNO
+        LEFT JOIN AFA330 D  /* 교육이수일정내역 */
+            ON  D.CASE_MNG_NO=C.CASE_MNG_NO
+            AND D.CASE_MNG_ODRNO=C.CASE_MNG_ODRNO
+        LEFT JOIN (
+            SELECT
+                E1.RESRCE_NO
+            ,   E3.LCTRE_YMD
+            ,   SUM(E3.LCTRE_HR) AS LCTRE_HR
+            FROM SDA300 E1  /*자원프로그램*/
+            JOIN SDA340 E2  /*자원프로그램상세일정*/
+                ON  E2.PROGRM_NO =E1.PROGRM_NO
+                AND E2.RESRCE_NO=E1.RESRCE_NO
+                AND E2.DEL_YN='N'
+            JOIN SDA320 E3  /*자원프로그램실행시간*/
+                ON  E3.PROGRM_NO =E2.PROGRM_NO
+                AND E3.RESRCE_NO=E2.RESRCE_NO
+                AND E3.LCTRE_SN=E2.LCTRE_SN
+            WHERE E1.DEL_YN ='N'
+            GROUP BY E1.RESRCE_NO, E3.LCTRE_YMD
+            ) E
+            ON E.RESRCE_NO=  A.RESRCE_NO
+            AND E.LCTRE_YMD
+                BETWEEN NVL(NVL(D.BGNG_YMD,C.CASE_BGNG_YMD),B.SRVC_PVSN_BGNG_YMD)
+                    AND NVL(NVL(D.END_YMD,C.CASE_TRMN_YMD),B.SRVC_PVSN_END_YMD)
+        LEFT JOIN SEB530 F  /* 자원프로그렘제공 */
+            ON  F.SRVC_PVSN_NO=A.SRVC_PVSN_NO
+            AND F.CASE_MNG_NO=A.CASE_MNG_NO
+            AND F.CASE_MNG_ODRNO=A.CASE_MNG_ODRNO
+            AND F.RESRCE_NO=A.RESRCE_NO
+            AND F.PTCPTN_YMD=E.LCTRE_YMD
+            AND F.PROGRM_CRSE_SE_CD ='1'
+        WHERE   1=1
+            AND A.SRVC_PVSN_NO=#{SRVC_PVSN_NO}
+            AND A.CASE_MNG_NO=#{CASE_MNG_NO}
+            AND A.CASE_MNG_ODRNO=#{CASE_MNG_ODRNO}
+            AND A.RESRCE_NO=#{RESRCE_NO}
+            AND A.DEL_YN='N'
+            AND B.DEL_YN='N'
+        GROUP BY
+            NVL(D.BGNG_YMD,C.CASE_BGNG_YMD)
+        ,   NVL(D.END_YMD,C.CASE_TRMN_YMD)
+        ,   A.SRVC_PVSN_NO
+        ,   A.CASE_MNG_NO
+        ,   A.CASE_MNG_ODRNO
+        ,   A.RESRCE_NO
+        ,   SUBSTR(E.LCTRE_YMD,1,6)
+        )
+    GROUP BY BGNG_YMD, END_YMD
+    ]]>
+	</select>
+
+	<select id="selectAtendRmCnByTrpr" parameterType="HashMap"
+		resultType="HashMap">
+	   <![CDATA[
+        /* selectAtendRmCnByTrpr - Lee Sanghoon */
+
+        SELECT
+            PTCPTN_YMD
+            , RM_CN
+		FROM SEB530 /* 자원프로그램제공 */
+
+		WHERE 1=1
+            AND SRVC_PVSN_NO = #{SRVC_PVSN_NO}
+			AND CASE_MNG_NO = #{CASE_MNG_NO}
+			AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+			AND RESRCE_NO = #{RESRCE_NO}
+	   ]]>
+	</select>
+
+	<update id="deleteFile" parameterType="HashMap">
+    <![CDATA[
+        /* deleteFile - Lee Sanghoon */
+
+        UPDATE SAB821
+
+        SET FILE_STTS_SE_CD = 'D'
+
+        WHERE
+
+            ATFINO = #{ATFINO}
+            AND ATCMFL_CL_NM = #{ATCMFL_CL_NM}
+    ]]>
+		<if test="MNG_SN != null and MNG_SN !=''">
+			AND MNG_SN = #{MNG_SN__origin}
+		</if>
+
+	</update>
+</mapper>

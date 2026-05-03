@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.regns.emrgcntrms.emrgactn.mapper.EmrgActnMapper">
+
+    <select id="selectKeyValue" resultType="String">
+    <![CDATA[
+        /* selectKeyValue - Lee MS */
+        
+        SELECT 
+            ISRY_APP.SA_FN_GET_RENU_NO('EA', #{USER_ID}, TO_CHAR(SYSDATE, 'YYYYMMDD'))
+        FROM DUAL
+
+    ]]>
+    </select>
+
+    <select id="selectReqList" resultType="HashMap">
+        <!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" />        
+        <![CDATA[
+        /* selectReqList - Lee MS */       
+            B.INCDNT_TTL_NM AS INCDNT_TTL_NM,              /* 사건제목명 */ 
+            B.INCDNT_OCRN_YMD AS INCDNT_OCRN_YMD,          /* 사건발생일자 */
+            A.ACTN_TTL_NM AS ACTN_TTL_NM,                  /* 조치제목명 */ 
+            A.ACTN_RPT_YMD AS ACTN_RPT_YMD,                /* 조치보고일자 */
+            C##RG.DEC_B64(D.FLNM_ENCPT) AS PIC_NM,      /* 담당자명 */
+            C.INST_NM AS INST_NM,                             /* 기관명 */
+            A.EMRG_CNTRMS_INCDNT_NO AS EMRG_CNTRMS_INCDNT_NO,  /*긴급대응사건번호 */
+            A.INCDNT_NO_SN AS INCDNT_NO_SN                     /*사건번호일련번호 */
+        FROM ACA710 A, ACA700 B, SAA000 C, SCA100 D /* 통합기관(C), 종사사(D) */
+        WHERE A.EMRG_CNTRMS_INCDNT_NO = B.EMRG_CNTRMS_INCDNT_NO
+        AND A.INST_NO = C.INST_NO(+)
+        AND A.PIC_NO = D.ENFSN_NO
+        AND A.ACTN_RPT_YMD >= #{BGNG_YMD}
+        AND A.ACTN_RPT_YMD <= #{END_YMD}
+        AND B.INCDNT_TTL_NM LIKE '%'||#{INCDNT_TTL_NM}||'%'
+        ]]>
+
+        <if test="PIC_NM != '' and PIC_NM != null">
+            AND C##RG.DEC_B64(D.FLNM_ENCPT) LIKE '%'||#{PIC_NM}||'%'
+        </if>
+
+        <if test='AUTHRT != "1"'>   /* 상담복지센터는 모두 조회 */  
+            /* 20230410_권한 쿼리_권한쿼리시작*/                               
+            <include refid="RegnsGroupAuthrtMapper.regnsBasicGropuAuthrt"/>                                   
+            /* 20230220_권한 쿼리_권한쿼리종료*/
+        </if>
+        
+        
+        ORDER BY A.ACTN_RPT_YMD DESC
+        <!-- 페이지 인덱서 OFFSET 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+            
+    </select>
+
+    <select id="selectEmrgRptById" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectEmrgRptById - Lee MS */
+        
+        SELECT 
+            A.EMRG_CNTRMS_INCDNT_LCLAS_SE_CD AS EMRG_CNTRMS_INCDNT_LCLAS_SE_CD,            /* 긴급대응사건대분류구분코드 */
+            A.EMRG_CNTRMS_INCDNT_MLSFC_SE_CD AS EMRG_CNTRMS_INCDNT_MLSFC_SE_CD,            /* 긴급대응사건중분류구분코드 */
+            A.EMRG_CNTRMS_INCDNT_SCLAS_SE_CD AS EMRG_CNTRMS_INCDNT_SCLAS_SE_CD,            /* 긴급대응사건소분류구분코드 */
+            A.INCDNT_TTL_NM AS INCDNT_TTL_NM,                                              /* 사건제목명 */
+            A.INCDNT_OCRN_YMD AS INCDNT_OCRN_YMD,                                          /* 사건발생일자 */
+            A.OCRN_RPT_YMD AS OCRN_RPT_YMD,                                                /* 발생보고일자 */
+            A.INCDNT_CN AS INCDNT_CN,                                                      /* 사건내용 */
+            A.INCDNT_RELATA_SCALE_CN AS INCDNT_RELATA_SCALE_CN,                            /* 사건관련규모내용 */ 
+            A.PIC_NO AS PIC_NO,                                                            /* 담당자번호 */
+            A.INST_NO AS INST_NO,                                                          /* 기관번호 */
+            C##RG.DEC_B64(C.FLNM_ENCPT) AS PIC_NM,                                      /* 담당자명 */
+            C.WRD_TELNO AS WRD_TELNO,                                                      /* 유선전화번호 */
+            C##RG.DEC_B64(C.MBL_TELNO_ENCPT) AS MBL_TELNO,                              /* 휴대전화번호 */
+            C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR,                                /* 이메일 */
+            D.CTPV_NM AS CTPV_NM,                                                          /* 시도명 */
+            D.SGG_NM AS SGG_NM,                                                            /* 시군구명 */
+            A.RM_CN AS RM_CN,                                                              /* 비고내용 */
+            A.ATFINO AS ATFINO,                                                            /* 첨부화일번호 */
+            A.EMRG_CNTRMS_INCDNT_NO AS EMRG_CNTRMS_INCDNT_NO,                              /* 긴급대응사건번호 */
+            E.EMRG_CNTRMS_TRMN_NO AS EMRG_CNTRMS_TRMN_NO                                   /* 긴급대응종결번호 */
+        FROM ACA700 A, SAA000 B, SCA100 C, SAA020 D, ACA720 E /* 통합기관(B), 종사자(C) 시군구코드(D), 긴급대응조치 (E) */
+        WHERE A.INST_NO = B.INST_NO
+        AND B.SGG_CD = D.SGG_CD(+)
+        AND A.PIC_NO = C.ENFSN_NO
+        AND A.EMRG_CNTRMS_INCDNT_NO = E.EMRG_CNTRMS_INCDNT_NO(+)   
+        AND A.EMRG_CNTRMS_INCDNT_NO = #{EMRG_CNTRMS_INCDNT_NO}      
+
+    ]]>
+    </select>
+
+    <select id="selectReqById" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectReqById - Lee MS */
+        
+        SELECT
+            A.ACTN_RPT_YMD AS ACTN_RPT_YMD,                      /* 조치보고일자 */
+            A.ACTN_TTL_NM AS ACTN_TTL_NM,                        /* 조치제목명 */ 
+            A.ACTN_MATTER_CN AS ACTN_MATTER_CN,                  /* 조치사항내용 */
+            A.HNCFRT_ACTN_PLAN_CN AS HNCFRT_ACTN_PLAN_CN,        /* 향후조치계획 */
+            A.UP_INST_DMND_CN AS UP_INST_DMND_CN,                /* 상위기관요청 */
+            A.EMRG_CNTRMS_INCDNT_NO AS EMRG_CNTRMS_INCDNT_NO,       /* 긴급대응조치번호 */
+            A.INCDNT_NO_SN AS INCDNT_NO_SN                      /* 사건번호일련번호 */
+        FROM ACA710 A             /* 긴급대응조치 */
+        WHERE A.EMRG_CNTRMS_INCDNT_NO = #{EMRG_CNTRMS_INCDNT_NO}      
+
+    ]]>
+    </select>
+
+    <update id="saveData" parameterType="HashMap">
+    <![CDATA[
+         /* saveData - Lee  MS */
+         
+        MERGE INTO ACA710 /* 긴급대응조치 */
+        USING DUAL
+           ON (EMRG_CNTRMS_INCDNT_NO = #{EMRG_CNTRMS_INCDNT_NO}
+           AND INCDNT_NO_SN = #{INCDNT_NO_SN})
+         WHEN MATCHED THEN
+       UPDATE SET
+              ACTN_TTL_NM = #{ACTN_TTL_NM},                       /* 조치제목명 */
+              ACTN_RPT_YMD = #{ACTN_RPT_YMD},                     /* 조치보고일자 */
+              ACTN_MATTER_CN = #{ACTN_MATTER_CN},                 /* 조치사항내용 */
+              HNCFRT_ACTN_PLAN_CN = #{HNCFRT_ACTN_PLAN_CN},       /* 향후조치계획 */
+              UP_INST_DMND_CN = #{UP_INST_DMND_CN},               /* 상위기관요청 */
+              PIC_NO = #{PIC_NO},                                 /* 담당자번호 */
+              INST_NO = #{INST_NO},                               /* 기관번호 */
+              LAST_MDFR_ID = #{USER_ID},                          /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                             /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+             EMRG_CNTRMS_INCDNT_NO,              /* 긴급대응사건번호 */
+             INCDNT_NO_SN,                       /* 사건번호일련번호 */
+             ACTN_TTL_NM,                        /* 조치제목명 */  
+             ACTN_RPT_YMD,                       /* 조치보고일자 */
+             ACTN_MATTER_CN,                     /* 조치사항내용 */
+             HNCFRT_ACTN_PLAN_CN,                /* 향후조치계획 */
+             UP_INST_DMND_CN,                    /* 상위기관요청 */
+             PIC_NO,                             /* 담당자번호 */
+             INST_NO,                            /* 기관번호 */
+             FRST_RGTR_ID,
+             FRST_REG_DT,
+             LAST_MDFR_ID,
+             LAST_MDFCN_DT
+        )
+        VALUES (
+             #{EMRG_CNTRMS_INCDNT_NO},
+             (SELECT NVL(MAX(INCDNT_NO_SN),0)+1 FROM ACA710 WHERE EMRG_CNTRMS_INCDNT_NO = #{EMRG_CNTRMS_INCDNT_NO}),
+             #{ACTN_TTL_NM},
+             #{ACTN_RPT_YMD},
+             #{ACTN_MATTER_CN},
+             #{HNCFRT_ACTN_PLAN_CN},
+             #{UP_INST_DMND_CN},
+             #{PIC_NO}, 
+             #{INST_NO},
+             #{USER_ID},
+             SYSDATE,
+             #{USER_ID},
+             SYSDATE
+        )
+        
+    ]]>
+    </update>
+
+    <delete id="deleteData" parameterType="String">
+    <![CDATA[
+         /* deleteData - Lee  MS */
+    
+        DELETE FROM ACA710 /* 긴급대응조치 */
+        WHERE EMRG_CNTRMS_INCDNT_NO = #{EMRG_CNTRMS_INCDNT_NO}
+    
+    ]]>
+    </delete>
+
+    <delete id="deleteDtlData" parameterType="HashMap">
+    <![CDATA[
+         /* deleteDtlData - Lee  MS */
+    
+        DELETE FROM ACA710 /* 긴급대응조치 */
+        WHERE EMRG_CNTRMS_INCDNT_NO = #{EMRG_CNTRMS_INCDNT_NO}
+        AND INCDNT_NO_SN = #{INCDNT_NO_SN}
+    ]]>
+    </delete>
+
+</mapper>

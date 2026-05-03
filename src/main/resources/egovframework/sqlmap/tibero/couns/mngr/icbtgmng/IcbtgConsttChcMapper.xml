@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.couns.mngr.icbtgmng.mapper.IcbtgConsttChcMapper">
+	
+	<select id="selectIcbtgConsttChcList" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		selectIcbtgConsttChcList : isry.couns.mngr.icbtgmng.mapper.IcbtgConsttChcMapper : 인큐베이팅 상담자선택 조회 
+	*/
+		SELECT 
+				AA.USER_ID						   AS		USER_ID
+			,	AA.WORK_YMD						   AS		WORK_YMD
+			,	C##RG.DEC_B64(DD.FLNM_ENCPT)	   AS		USER_NM
+			,	FF.DEPT_NM						   AS		DEPT_NM
+			,	NVL(BB.NTABRD_USE_YN,'N')		   AS		NTABRD_USE_YN		/** 게시판사용여부 **/
+			,	NVL(BB.FLAG_YN,'N')				   AS		FLAG_YN				/** 플래그여부 **/
+		FROM
+				AYC100		AA		/** 근무배정표_일별 **/
+			,	AYC150		BB		/** 근무배정표_인큐베이팅 **/
+			,	SAA200		CC		/** 기관사용자 **/
+			,	SCA100		DD		/** 종사자 **/
+			,	SCA140		EE		/** 종사자수행업무 **/
+			,	SAA300		FF		/** 기관부서 **/
+		WHERE	1=1
+			AND	AA.USER_ID	=	BB.CONSTT_ID(+)
+			AND AA.USER_ID	=	CC.USER_ID
+			AND	CC.ENFSN_NO	=	DD.ENFSN_NO
+			AND	DD.ENFSN_NO	=	EE.ENFSN_NO
+			AND	EE.OGDP_DEPT_CD	=	FF.DEPT_CD
+		<if test="workYmd != null and workYmd != ''">
+			<![CDATA[
+			AND	AA.WORK_YMD	=	#{workYmd}
+			]]>
+		</if>
+		<if test="deptCd != null and deptCd != ''">
+			<![CDATA[
+			AND	EE.OGDP_DEPT_CD	=	#{deptCd}
+			]]>
+		</if>
+	</select>
+	
+	<insert id="insertIcbtgConsttChc" parameterType="HashMap">
+	INSERT
+	INTO
+            AYC150
+	(
+            INDEX_SN
+        ,   CONSTT_ID
+        ,   NTABRD_EVL_YN
+        ,   CHTT_EVL_YN
+        ,   INCUBA_WORK_YMD
+	)
+	SELECT
+            AYC150_SQ01.NEXTVAL
+        ,   BB.CONSTT_ID
+        ,   BB.NTABRD_EVL_YN
+        ,   BB.CHTT_EVL_YN
+        ,   TO_CHAR(AA.INCUBA_WORK_YMD, 'YYYYMMDD') 
+	FROM
+			(
+			SELECT
+                    TRUNC(TO_DATE(#{START_DT}, 'YYYYMMDD') + (LEVEL - 1)) AS INCUBA_WORK_YMD
+			FROM
+			        DUAL
+	        CONNECT BY	        
+                    <![CDATA[LEVEL <= TO_DATE(#{END_DT}, 'YYYYMMDD') - TO_DATE(#{START_DT}, 'YYYYMMDD') + 1]]>
+            )       AA
+		,   (
+		    SELECT
+				    #{CONSTT_ID}             AS CONSTT_ID      
+				,   #{NTABRD_EVL_YN}         AS NTABRD_EVL_YN
+				,   #{CHTT_EVL_YN}           AS CHTT_EVL_YN
+			FROM
+                    DUAL
+            )       BB
+	</insert>
+	
+</mapper>

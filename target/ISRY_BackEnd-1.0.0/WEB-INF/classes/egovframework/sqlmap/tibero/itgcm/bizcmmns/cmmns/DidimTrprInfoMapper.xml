@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : DidimTrprInfoMapper.xml
+* @Description : (디딤,드림)대상자정보조회 팝업 SQL Mapper
+*
+* @author  : Kwon.Min.Seo
+* @since   : 2022. 09. 15.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 09. 15.  Kwon.Min.Seo    최초작성
+* </pre>
+-->
+<mapper namespace="isry.itgcm.bizcmmns.cmmns.mapper.DidimTrprInfoMapper">
+
+    <!-- 대상자정보 목록조회 -->
+    <select id="selectDidimTrprInfoList" parameterType="HashMap" resultType="HashMap">
+  
+        SELECT /* isry.itgcm.bizcmmns.cmmns.DidimTrprInfoMapper.selectDidimTrprInfoList(대상자정보 목록조회) */
+             CASE WHEN T1.INDV_IDNTFC_NO IS NOT NULL THEN T1.INDV_IDNTFC_NO
+             ELSE T1.TRPR_INFO_NO END AS  TRPR_INFO_NO          -- 대상자(식별)번호
+             ,T1.INDV_IDNTFC_NO     AS  INDV_IDNTFC_NO          -- 개인식별번호
+             ,T2.CASE_MNG_NO        AS CASE_MNG_NO              -- 사례관리번호(CS)
+             ,(SELECT MAX(CASE_MNG_ODRNO) FROM SEB100 WHERE CASE_MNG_NO=T2.CASE_MNG_NO)  AS CASE_MNG_ODRNO -- 사례관리차수
+             ,T1.UNT_TASKWK_SE_CD   AS  UNT_TASKWK_SE_CD        -- 단위업무구분코드
+             , CASE WHEN T3.ACBG_SE_CD NOT IN ('01','91','92')THEN (SELECT MAX(T3.ACBG_SE_CD) FROM SEA230 WHERE 1=1 AND T1.TRPR_INFO_NO = T3.TRPR_INFO_NO)
+               ELSE T3.ACBG_SE_CD END AS ACBG_SE_CD             -- 학력구분코드
+             ,(SELECT DISTINCT T3.GRDTN_STTS_SE_CD FROM SEA230 T3 WHERE 1=1 AND T3.ACBG_SE_CD = (SELECT MAX(T3.ACBG_SE_CD) FROM SEA230 T3 WHERE 1=1 AND T1.TRPR_INFO_NO = T3.TRPR_INFO_NO) AND T1.TRPR_INFO_NO = T3.TRPR_INFO_NO)
+                                    AS GRDTN_STTS_SE_CD         -- 졸업상태구분코드     
+             ,C##RG.DEC_B64(T1.TRPR_NM_ENCPT) AS  TRPR_NM           -- 대상자명암호화
+             ,T1.TRPR_BRTH_YMD      AS  TRPR_BRTH_YMD           -- 대상자출생일자
+             ,NULL                  AS  RRNO_ENCPT              -- 주민등록번호암호화
+             ,T1.SXDC_SE_CD         AS  SXDC_SE_CD              -- 성별구분코드
+             ,C##RG.DEC_B64(T1.MBL_TELNO_ENCPT)    AS  MBL_TELNO         -- 휴대전화번호암호화
+             ,T1.TRPR_TELNO         AS  TRPR_TELNO              -- 대상자전화번호
+             ,C##RG.DEC_B64(T1.EML_ADDR_ENCPT)     AS  EML_ADDR          -- 이메일주소암호화
+             ,T1.SNS_SE_CD          AS  SNS_SE_CD               -- SNS구분코드
+             ,C##RG.DEC_B64(T1.MSNGR_ID_ENCPT)     AS  MSNGR_ID          -- 메신저아이디암호화
+             ,T1.ZIP                AS  ZIP                     -- 우편번호
+             ,T1.PST_ADDR           AS  PST_ADDR                -- 우편주소
+             ,T1.DADDR              AS  DADDR                   -- 상세주소
+             , CASE WHEN T1.ZIP IS NULL THEN NULL
+                    ELSE '(' || T1.ZIP || ') ' || T1.PST_ADDR || ' ' || T1.DADDR
+               END                  AS ADDR                     -- 주소  
+             , T1.CASE_MNG_SE_CD    AS CASE_MNG_SE_CD           -- 사례관리구분코드
+             , T2.CASE_PRGRS_STTS_SE_CD    AS CASE_PRGRS_STTS_SE_CD           -- 사례진행상태구분코드
+             
+             , T1.FRST_RGTR_ID      AS FRST_RGTR_ID             -- 최초등록자아이디
+             , T1.FRST_REG_DT       AS FRST_REG_DT              -- 최초등록일시
+             , T1.LAST_MDFR_ID      AS LAST_MDFR_ID             -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT     AS LAST_MDFCN_DT            -- 최종수정일시
+        FROM  SEA200 T1
+             ,SEB100 T2
+             ,SEA230 T3
+        WHERE 1=1
+        AND T1.INDV_IDNTFC_NO IS NULL     /* TEST 주석처리 */
+        AND T1.TRPR_INFO_NO = T2.TRPR_INFO_NO(+)
+        AND T1.TRPR_INFO_NO = T3.TRPR_INFO_NO(+)
+        AND T1.FRST_REG_DT    BETWEEN TO_DATE(NVL(#{REG_BGNG_YMD}, '00010101') || '000000', 'YYYYMMDDHH24MISS')        -- 등록시작일자
+                                          AND TO_DATE(NVL(#{REG_END_YMD}, '99991231') || '235959', 'YYYYMMDDHH24MISS')         -- 등록종료일자                 
+        <if test="TRPR_NM != null and TRPR_NM != ''"> 
+           AND T1.TRPR_NM_ENCPT  = (C##RG.ENC_B64(#{TRPR_NM}))       -- 대상자명
+        </if>
+        <if test="MBL_TELNO != null and MBL_TELNO != ''"> 
+           AND T1.MBL_TELNO_ENCPT  = (C##RG.ENC_B64(#{MBL_TELNO}))    -- 휴대전화번호
+        </if>
+        <if test="EML_ADDR != null and EML_ADDR != ''"> 
+           AND T1.EML_ADDR_ENCPT  = (C##RG.ENC_B64(#{EML_ADDR}))      -- 이메일주소
+        </if>
+        <if test="TRPR_BRTH_YMD != null and TRPR_BRTH_YMD != ''"> 
+           AND T1.TRPR_BRTH_YMD     = #{TRPR_BRTH_YMD}                        -- 대상자출생일자
+        </if>      
+        <if test="TRPR_TELNO != null and TRPR_TELNO != ''"> 
+           AND T1.TRPR_TELNO        LIKE '%' || #{TRPR_TELNO} || '%'          -- 전화번호
+        </if>
+        <if test="SNS_SE_CD != null and SNS_SE_CD != ''"> 
+           AND T1.SNS_SE_CD     = #{SNS_SE_CD}                                -- SNS구분코드
+        </if>            
+        <if test="MSNGR_ID != null and MSNGR_ID != ''"> 
+           AND T1.MSNGR_ID_ENCPT  = (C##RG.ENC_B64(#{MSNGR_ID}))            -- 메신저 아이디
+        </if>
+        <if test="EML_ADDR != null and EML_ADDR != ''"> 
+           AND T1.PST_ADDR    LIKE '%' || #{PST_ADDR} || '%'      -- 우편주소
+        </if>         
+        
+        
+        <if test="CHK_CD == 1">   /* 발굴등록 최초Load 시 */ 
+           <!-- AND T1.INDV_IDNTFC_NO IS NULL                                        /* 개인식별번호가 없는경우 */ -->
+           AND T1.UNT_TASKWK_SE_CD      = #{UNT_TASKWK_SE_CD}                   -- 단위업무구분(화면 좌측상단체크박스)
+           AND T1.CASE_MNG_SE_CD        IN ('01','02','03','04')                -- 사례관리구분코드(01:사례대상자미신청, 02:사례대상자신청(대기상태), 03:사례대상자미선정, 04:사례대상자선정) 
+        </if>
+        
+        ORDER BY T1.FRST_REG_DT DESC
+        
+
+    
+    </select>
+    
+   <!-- 대상자상세조회 -->
+    <select id="selectDidimTrprDetail" parameterType="HashMap" resultType="HashMap">
+         /* isry.itgcm.casemng.uneart.TrprInqMapper.selectDidimTrprDetail(대상자상세조회) */
+        SELECT T1.TRPR_INFO_NO                           AS TRPR_INFO_NO                 -- 대상자정보번호(TR)
+             , T1.INDV_IDNTFC_NO                         AS INDV_IDNTFC_NO               -- 개인식별번호
+             , T2.CASE_MNG_NO                            AS CASE_MNG_NO                  -- 사례관리번호(CS)
+             ,(SELECT MAX(CASE_MNG_ODRNO) FROM SEB100 WHERE CASE_MNG_NO=T2.CASE_MNG_NO)  AS CASE_MNG_ODRNO -- 사례관리차수
+             , T1.UNT_TASKWK_SE_CD                       AS UNT_TASKWK_SE_CD             -- 단위업무구분코드
+             , CASE WHEN T3.ACBG_SE_CD NOT IN ('01','91','92')THEN (SELECT MAX(T3.ACBG_SE_CD) FROM SEA230 WHERE 1=1 AND T1.TRPR_INFO_NO = T3.TRPR_INFO_NO)
+                ELSE T3.ACBG_SE_CD END                   AS ACBG_SE_CD                   -- 학력구분코드
+             ,(SELECT DISTINCT  T3.GRDTN_STTS_SE_CD FROM SEA230 T3 WHERE 1=1 AND T3.ACBG_SE_CD = (SELECT MAX(T3.ACBG_SE_CD) FROM SEA230 T3 WHERE 1=1 AND T1.TRPR_INFO_NO = T3.TRPR_INFO_NO) AND T1.TRPR_INFO_NO = T3.TRPR_INFO_NO)
+                                                         AS GRDTN_STTS_SE_CD             -- 졸업상태구분코드
+             , T1.TRPR_NM_ENCPT                          AS TRPR_NM_ENCPT                -- 대상자명
+             , T1.TRPR_BRTH_YMD                          AS TRPR_BRTH_YMD                -- 대상자출생일자
+             , T1.SXDC_SE_CD                             AS SXDC_SE_CD                   -- 성별구분코드
+             , NVL(T1.MRG_YN,'N')                        AS MRG_YN                       -- 결혼여부
+             , T1.TRPR_TELNO                             AS TRPR_TELNO                   /* 대상자전화번호 */
+             , T1.MBL_TELNO_ENCPT                        AS MBL_TELNO_ENCPT              -- 휴대전화번호
+             , T1.EML_ADDR_ENCPT                         AS EML_ADDR_ENCPT               -- 이메일주소
+             , T1.SNS_SE_CD                              AS SNS_SE_CD                    -- SNS구분코드
+             , T1.MSNGR_ID_ENCPT                         AS MSNGR_ID_ENCPT               -- 메신저아이디
+             , T1.ZIP                                    AS ZIP                          -- 우편번호
+             , T1.PST_ADDR                               AS PST_ADDR                     -- 우편주소
+             , T1.DADDR                                  AS DADDR                        -- 상세주소
+             , CASE WHEN T1.ZIP IS NULL THEN NULL
+                    ELSE '(' || T1.ZIP || ') ' || T1.PST_ADDR || ' ' || T1.DADDR
+                END                                      AS TRPR_ADDR                    -- 대상자주소
+             , NVL(T1.ACBG_SE_CD,'92')                   AS ACBG_SE_CD                   -- 학력구분코드
+             , T1.GRDTN_STTS_SE_CD                       AS GRDTN_STTS_SE_CD             -- 졸업상태구분코드
+             , T1.GRADE_SE_CD                            AS GRADE_SE_CD                  -- 학년구분코드
+             , T1.PSPT_ENG_FLNM_ENCPT                    AS PSPT_ENG_FLNM_ENCPT          -- 여권영문성명
+             , T1.TRPR_BCRN_TYPE_SE_CD                   AS TRPR_BCRN_TYPE_SE_CD         -- 대상자배경유형구분코드
+             , T1.TRPR_BCRN_TYPE_RM_NM                   AS TRPR_BCRN_TYPE_RM_NM         -- 대상자배경유형비고명
+             , T1.NLTY_NTN_SE_CD                         AS NLTY_NTN_SE_CD               -- 국적국가구분코드
+             , T1.ENTCNY_YMD                             AS ENTCNY_YMD                   -- 입국일자
+             , T1.BRTH_NTN_SE_CD                         AS BRTH_NTN_SE_CD               -- 출생국가구분코드
+             , T1.GROWTH_NTN_SE_CD                       AS GROWTH_NTN_SE_CD             -- 성장국가구분코드
+             , T1.VISA_TYPE_SE_CD                        AS VISA_TYPE_SE_CD              -- 비자유형구분코드
+             , T1.HANAWO_PENU_NO                         AS HANAWO_PENU_NO               -- 하나원기수번호
+             , T1.RELGN_SE_CD                            AS RELGN_SE_CD                  -- 종교구분코드
+             , T1.QLFC_INFO_MNG_NO                       AS QLFC_INFO_MNG_NO             -- 자격정보관리번호
+             , T1.RCPT_PIC_NO                            AS RCPT_PIC_NO                  -- 접수담당자번호
+             , ( SELECT X.FLNM_ENCPT FROM SCA100 X WHERE X.ENFSN_NO = T1.RCPT_PIC_NO )     AS FLNM_ENCPT  -- 접수담당자명
+             , T1.RCPT_INST_NO                          AS RCPT_INST_NO                  -- 접수기관번호
+             , ( SELECT X.INST_NM FROM SAA000 X WHERE X.INST_NO = T1.RCPT_INST_NO )  AS RCPT_INST_NM      -- 접수기관명
+             , T1.CASE_TRPR_TYPE_SE_CD                   AS CASE_TRPR_TYPE_SE_CD         -- 사례대상자유형구분코드
+             , T1.CASE_MNG_SE_CD                         AS CASE_MNG_SE_CD               -- 사례관리구분코드
+             , T1.CASE_TRPR_SLCTN_YMD                    AS CASE_TRPR_SLCTN_YMD          -- 사례대상자선정일자
+             , T1.CASE_TRPR_UNSL_CS_CN                   AS CASE_TRPR_UNSL_CS_CN         -- 사례대상자미선정사유내용
+             , T1.PRTCR_NM_ENCPT                         AS PRTCR_NM_ENCPT               -- 보호자명
+             , T1.TRPR_REL_SE_CD                         AS TRPR_REL_SE_CD               -- 대상자관계구분코드
+             , NVL(T1.LIVTGT_YN,'N')                     AS LIVTGT_YN                    -- 동거여부
+             , NVL(T1.PRTCR_AGRE_YN,'N')                 AS PRTCR_AGRE_YN                -- 보호자동의여부
+             , NVL(T1.PRVC_PVSN_AGRE_YN,'N')             AS PRVC_PVSN_AGRE_YN            -- 개인정보제공동의여부
+             , NVL(T1.SRVC_CTRT_AGRE_YN,'N')             AS SRVC_CTRT_AGRE_YN            -- 서비스계약동의여부
+             , T1.TAG_NO                                 AS TAG_NO                       -- 태그번호
+             , T1.TAG_NM                                 AS TAG_NM                       -- 태그명
+             , T1.CASE_TRPR_NOAP_CS_SE_CD                AS CASE_TRPR_NOAP_CS_SE_CD      -- 사례대상자미신청사유구분코드
+             , T1.PRTCR_TELNO                            AS PRTCR_TELNO                  -- 보호자전화번호
+             , T1.PRTCR_MBL_TELNO_ENCPT                  AS PRTCR_MBL_TELNO_ENCPT        -- 보호자휴대전화번호
+             , T1.PRTCR_EML_ADDR_ENCPT                   AS PRTCR_EML_ADDR_ENCPT         -- 보호자이메일주소
+             , T1.PRTCR_ZIP                              AS PRTCR_ZIP                    -- 보호자우편번호
+             , T1.PRTCR_PST_ADDR                         AS PRTCR_PST_ADDR               -- 보호자우편주소
+             , T1.PRTCR_DADDR                            AS PRTCR_DADDR                  -- 보호자상세주소
+             , T1.RESDN_SHAPE_SE_CD                      AS RESDN_SHAPE_SE_CD            -- 거주형태구분코드
+             , T1.RESIDE_SHAPE_SE_CD                     AS RESIDE_SHAPE_SE_CD           -- 주거형태구분코드
+             , T1.RESIDE_SHAPE_ETC_CN                    AS RESIDE_SHAPE_ETC_CN          -- 주거형태기타내용
+             , T1.FAM_CHAR_SE_CD                         AS FAM_CHAR_SE_CD               -- 가족특성구분코드
+             , T1.INDV_IDNTFC_INFO_UNIPT_CS_CN           AS INDV_IDNTFC_INFO_UNIPT_CS_CN -- 개인식별정보미입력사유내용
+             , T1.INDV_IDNTFC_CRTR_YMD                   AS INDV_IDNTFC_CRTR_YMD         -- 개인식별기준일자
+             , T1.FRST_RGTR_ID                           AS FRST_RGTR_ID                 -- 최초등록자아이디
+             , T1.FRST_REG_DT                            AS FRST_REG_DT                  -- 최초등록일시
+             , T1.LAST_MDFR_ID                           AS LAST_MDFR_ID                 -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                          AS LAST_MDFCN_DT                -- 최종수정일시
+          FROM SEA200 T1 /* 대상자정보 */
+              ,SEB100 T2 /* 사례기본   */
+              ,SEA230 T3 /* 학력상태  */
+         WHERE 1 = 1
+           AND T1.TRPR_INFO_NO       = T2.TRPR_INFO_NO(+)
+           AND T1.TRPR_INFO_NO       = T3.TRPR_INFO_NO(+)
+           <!-- AND T1.INDV_IDNTFC_NO = T3.INDV_IDNTFC_NO(+) -->
+           AND T1.TRPR_INFO_NO       = #{TRPR_INFO_NO}              -- 대상자정보번호(TR)
+           <!-- AND T1.INDV_IDNTFC_NO     = #{INDV_IDNTFC_NO}            /* 개인식별번호(PN)*/ -->
+           AND T1.UNT_TASKWK_SE_CD   = #{UNT_TASKWK_SE_CD}          -- 단위업무구분코드
+    </select>    
+      
+</mapper>

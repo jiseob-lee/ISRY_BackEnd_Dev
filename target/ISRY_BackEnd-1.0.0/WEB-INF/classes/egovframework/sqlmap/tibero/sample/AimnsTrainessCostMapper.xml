@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.sample.mapper.AimnsTrainessCostMapper">
+
+	<select id="selectTrainessCostList" parameterType="HashMap"
+		resultType="HashMap">
+       
+        /* 공통팀 유민상 isry.sample.mapper.AimnsTrainessCostMapper.selectTrainessCostList 공통팀 유민상*/
+        
+        SELECT *
+		FROM PIVOT_TEST 
+		PIVOT (
+		    MAX(COST) AS COST, MAX(ATTENDANCE_RATE) AS RATE
+		    FOR YEAR_MONTH IN 
+            <foreach collection="SEARCH_DATE_ARRAY" item="item" index="index" separator="," open="(" close=")">
+                '${item.DATE}' AS ${item.ALIAS}
+            </foreach>
+		)
+		WHERE 1=1
+        ORDER BY EX_NAME
+	</select>
+
+</mapper>

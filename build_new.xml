@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ISRY_BackEnd" basedir=".">
+	<!-- 빌드 환경 설정 -->
+	<property name="target.dir" location="./target" />
+	<property name="exbuilder.build-lib.dir" location="ci-lib/clx" />
+	<property name="exbuilder.workspace.dir" location="../ISRY_FrontEnd" />
+	<property name="key_file_path" value="/home/sw/.ssh/id_rsa"/>
+	<property name="was.war.filename" value="ISRY_BackEnd-${build.system}.war" />
+    <property name="web.tgz.filename" value="ISRY_FrontEnd-${build.system}.tar.gz" />
+    <property name="deploy.target.path" value="/data/DEPLOY_APP" />
+    <property name="maven.war.filename" value="ISRY_BackEnd-1.0.0-${build.system}.war" />
+
+    <property name="dev.was.hostname" value="devserver" />
+    <property name="dev.was.user.id" value="sw" />
+    <property name="dev.was.server.ip" value="10.33.2.59" />
+    <property name="dev.was.server.ssh.port" value="22" />
+
+    <property name="dev.web.user.id" value="sw" />
+    <property name="dev.web.server.ip" value="10.33.2.59" />
+    <property name="dev.web.server.ssh.port" value="22" />
+
+    <property name="test.was.server01.hostname" value="trybwas11" />
+    <property name="test.was.server02.hostname" value="trybwas21" />
+    <property name="test.was.user.id" value="sw" />
+    <property name="test.was.server01.ip" value="127.0.0.1" />
+    <property name="test.was.server02.ip" value="127.0.0.1" />
+    <property name="test.was.server01.ssh.port" value="22" />
+    <property name="test.was.server02.ssh.port" value="22" />
+
+    <property name="test.web.user.id" value="sw" />
+    <property name="test.web.server01.ip" value="127.0.0.1" />
+    <property name="test.web.server02.ip" value="127.0.0.1" />
+    <property name="test.web.server01.ssh.port" value="22" />
+    <property name="test.web.server02.ssh.port" value="22" />
+	
+    <property name="ireal.was.server01.hostname" value="rybwas11" />
+    <property name="ireal.was.server02.hostname" value="rybwas21" />
+    <property name="ireal.was.user.id" value="sw" />
+    <property name="ireal.was.server01.ip" value="127.0.0.1" />
+    <property name="ireal.was.server02.ip" value="127.0.0.1" />
+    <property name="ireal.was.server01.ssh.port" value="22" />
+    <property name="ireal.was.server02.ssh.port" value="22" />
+
+    <property name="ireal.web.user.id" value="sw" />
+    <property name="ireal.web.server01.ip" value="127.0.0.1" />
+    <property name="ireal.web.server02.ip" value="127.0.0.1" />
+    <property name="ireal.web.server01.ssh.port" value="22" />
+    <property name="ireal.web.server02.ssh.port" value="22" />
+
+    <property name="greal.was.server01.hostname" value="grybwas11" />
+    <property name="greal.was.server02.hostname" value="grybwas21" />
+    <property name="greal.was.user.id" value="sw" />
+    <property name="greal.was.server01.ip" value="127.0.0.1" />
+    <property name="greal.was.server02.ip" value="127.0.0.1" />
+    <property name="greal.was.server01.ssh.port" value="22" />
+    <property name="greal.was.server02.ssh.port" value="22" />
+
+    <property name="greal.web.user.id" value="sw" />
+    <property name="greal.web.server01.ip" value="127.0.0.1" />
+    <property name="greal.web.server02.ip" value="127.0.0.1" />
+    <property name="greal.web.server01.ssh.port" value="22" />
+    <property name="greal.web.server02.ssh.port" value="22" />
+	
+    <target name="init">
+        <tstamp>
+            <format property="DAYTIME" pattern="yyyyMMddHHmmss" />
+        </tstamp>
+        <property name="build.datetime" value="${DAYTIME}" />
+        <property name="deploy.was.war.filename" value="ISRY_BackEnd_${DAYTIME}.war" />
+        <property name="deploy.web.tgz.filename" value="ISRY_FrontEnd_${DAYTIME}.tar.gz" />
+    </target>
+
+    <!-- eXbuilder 빌드 -->
+    <target name="build.exbuilder">
+        <echo>=====================================================</echo>
+        <echo>[start] eXbuilder Build</echo>
+        <echo>=====================================================</echo>
+	    <taskdef name="clxcompile"
+	        classname="kr.co.tomatosystem.exbuilder.cikit.build.ant.Compile"
+	        classpath="${exbuilder.build-lib.dir}/e6-compiler.jar"
+	    />
+        <clxcompile
+            src="${exbuilder.workspace.dir}"
+            out="${target.dir}/clx-build"
+            minify="true"
+            single="false"
+            language="true"
+            main=""
+            relativizelessurl="true"
+        >
+            <exclude pattern="**/.svn/**" />
+        </clxcompile>
+        <echo>=====================================================</echo>
+        <echo>[end] eXbuilder Build</echo>
+        <echo>=====================================================</echo>
+    </target>
+    
+    <!-- 빌드후 복사할 파일 -->
+    <target name="make.src.package">
+        <echo>=====================================================</echo>
+        <echo>[start] Copy Build Config Files</echo>
+        <echo>=====================================================</echo>
+        <copy verbose="true" file="${target.dir}/clx-build/env.json" tofile="${target.dir}/ISRY_BackEnd-1.0.0/ui/env.json" overwrite="true" failonerror="true" />
+        <copy todir="${target.dir}/ISRY_BackEnd-1.0.0/ui">
+            <fileset dir="${target.dir}/clx-build">
+                <include name="**" />
+            </fileset>
+        </copy>
+        <echo>=====================================================</echo>
+        <echo>[end] Copy Build Config Files</echo>
+        <echo>=====================================================</echo>
+    </target>
+    
+    <!-- WAR 파일 생성 -->
+    <target name="make.war.deploy.file" depends="init">
+        <echo>=======================================================</echo>
+        <echo>[start] Make WAR Deploy File</echo>
+        <echo>=======================================================</echo>
+        <delete file="${target.dir}/${was.war.filename}" />
+        <war destfile="${target.dir}/${was.war.filename}" basedir="${target.dir}/ISRY_BackEnd-1.0.0">
+            <include name="**/*" />
+            <include name="META-INF/**/*" />
+            <include name="WEB-INF/**/*" />
+            <include name="**/*.jsp" />
+            <include name="**/*.class" />
+            <include name="ui/**/**" />
+            <exclude name="**/*.java" />
+            <exclude name="css/**/**" />
+            <exclude name="js/**/**" />
+            <exclude name="fonts/**/**" />
+            <exclude name="images/**/**" />
+            <exclude name="resource/**/**" />
+            <exclude name="html/**/**" />
+            <exclude name="raonnx/cmn/**" />
+            <exclude name="raonnx/demo/**" />
+            <exclude name="raonnx/extension/**" />
+            <exclude name="raonnx/image/**" />
+            <exclude name="raonnx/install/**" />
+            <exclude name="raonnx/jquery/**" />
+            <exclude name="raonnx/nxWeb/**" />
+            <exclude name="MagicLine4Web/ML4Web/**" />
+            <exclude name="favicon.ico" />
+        </war>
+        <echo>=====================================================</echo>
+        <echo>[end] Make WAR Deploy File</echo>
+        <echo>=====================================================</echo>
+    </target>    
+    
+    <!-- WEB 파일 생성 -->
+    <target name="make.web.deploy.file">
+        <echo>=======================================================</echo>
+        <echo>[end] Make WEB Deploy File</echo>
+        <echo>=======================================================</echo>
+        <delete file="${target.dir}/${web.tgz.filename}" />
+        <tar destfile="${target.dir}/${web.tgz.filename}" compression="gzip">  
+            <fileset dir="${target.dir}/ISRY_BackEnd-1.0.0">
+	            <include name="css/**/**" />
+	            <include name="js/**/**" />
+                <include name="fonts/**/**" />
+	            <include name="images/**/**" />
+	            <include name="resource/**/**" />
+	            <include name="html/**/**" />
+	            <include name="raonnx/cmn/**" />
+	            <include name="raonnx/image/**" />
+	            <include name="raonnx/install/**" />
+	            <include name="raonnx/jquery/**" />
+	            <include name="raonnx/nxWeb/**" />
+	            <include name="MagicLine4Web/**/**" />
+                <include name="favicon.ico" />
+            </fileset>
+        </tar>
+        <echo>=======================================================</echo>
+        <echo>[end] Make WEB Deploy File</echo>
+        <echo>=======================================================</echo>
+    </target>   
+
+    <!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="tran.war.dev" depends="init">
+        <echo>=====================================================</echo>
+        <echo>trans war file dev was</echo>
+        <echo>=====================================================</echo>
+        <scp file="${target.dir}/${was.war.filename}" todir="${dev.was.user.id}@${dev.was.server.ip}:${deploy.target.path}/was/${deploy.was.war.filename}" keyfile="${key_file_path}" port="${dev.was.server.ssh.port}" sftp="true" trust="true"></scp>
+    </target>
+
+    <!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="deploy.was.dev">
+        <echo>=====================================================</echo>
+        <echo>Stop dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${dev.was.server.ip}" port="${dev.was.server.ssh.port}" username="${dev.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="cd /GCLOUD/JBOSS/domains/${dev.was.hostname}/bin;./kill.sh"/>
+        <echo>=====================================================</echo>
+        <echo>Deploy war file dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${dev.was.server.ip}" port="${dev.was.server.ssh.port}" username="${dev.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="rm -rf /app/JBOSS7.3-ISRY_BackEnd.war;mkdir /app/JBOSS7.3-ISRY_BackEnd.war;cd /app/JBOSS7.3-ISRY_BackEnd.war;jar -xvf ${deploy.target.path}/was/${deploy.was.war.filename};"/>
+        <echo>=====================================================</echo>
+        <echo>Start dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${dev.was.server.ip}" port="${dev.was.server.ssh.port}" username="${dev.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command=". .bash_profile; cd /GCLOUD/JBOSS/domains/${dev.was.hostname}/bin;./start.sh"/>
+    </target>
+
+    <!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="tran.web.dev" depends="init">
+        <echo>=====================================================</echo>
+        <echo>trans war file dev was</echo>
+        <echo>=====================================================</echo>
+        <scp file="${target.dir}/${web.tgz.filename}" todir="${dev.web.user.id}@${dev.web.server.ip}:${deploy.target.path}/web/${deploy.web.tgz.filename}" keyfile="${key_file_path}" port="${dev.web.server.ssh.port}" sftp="true" trust="true"></scp>
+    </target>
+
+    <!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="deploy.web.dev">
+        <echo>=====================================================</echo>
+        <echo>Deploy war file dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${dev.web.server.ip}" port="${dev.web.server.ssh.port}" username="${dev.web.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="cd /GCLOUD/WebApp; mkdir ${build.datetime}; cd ${build.datetime}; tar xvfz ${deploy.target.path}/web/${deploy.web.tgz.filename}; ln -snf /GCLOUD/WebApp/${build.datetime} /GCLOUD/WebApp/www"/>
+    </target>
+
+    
+    <!-- 6) WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="was.tran.war.real1">
+        <echo>=====================================================</echo>
+        <echo>trans war file (${op_module_was_war}) was#1</echo>
+        <echo>=====================================================</echo>
+        <scp file="${war_dir}/${op_module_was_war}" todir="${op_was1_svr_id}@${op_was1_ip}:${op_was_app_dir}/${op_module_was_war}" keyfile="${key_file_path}" port="${op_was1_port}" sftp="true" trust="true"></scp>
+    </target>
+
+    <target name="was.tran.war.real2">
+        <echo>=====================================================</echo>
+        <echo>trans war file (${op_module_was_war}) was#2</echo>
+        <echo>=====================================================</echo>
+        <scp file="${war_dir}/${op_module_was_war}" todir="${op_was2_svr_id}@${op_was2_ip}:${op_was_app_dir}/${op_module_was_war}" keyfile="${key_file_path}" port="${op_was2_port}" sftp="true" trust="true"></scp>
+    </target>
+    
+    <!-- 6-1) Web, 소스 전송 ( from CI server to Web ) -->
+    <target name="web.tran.tar.op1">
+        <echo>=====================================================</echo>
+        <echo>trans tar file (${op_module_web_tar}) web#1</echo>
+        <echo>=====================================================</echo>
+        <scp file="${war_dir}/${op_module_web_tar}" todir="${op_web1_svr_id}@${op_web1_ip}:${op_web_app_dir}/${op_module_web_tar}" keyfile="${key_file_path}" port="${op_web1_port}" sftp="true" trust="true"></scp>
+    </target>
+
+    <target name="web.tran.tar.op2">
+        <echo>=====================================================</echo>
+        <echo>trans tar file (${op_module_web_tar}) web#2</echo>
+        <echo>=====================================================</echo>
+        <scp file="${war_dir}/${op_module_web_tar}" todir="${op_web2_svr_id}@${op_web2_ip}:${op_web_app_dir}/${op_module_web_tar}" keyfile="${key_file_path}" port="${op_web2_port}" sftp="true" trust="true"></scp>
+    </target>
+    
+    <!-- 7) WAS, domain 기동 중지 -->
+    <target name="was.stop.op1">
+        <echo>=====================================================</echo>
+        <echo>manage server(${prj_name}) stop1 </echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_was1_ip}" port="${op_was1_port}" username="${op_was1_svr_id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="false" command="cd ${op_was_dir}; ${op_was_dir}/${op_was1_stop1_sh}"/>
+    </target>
+
+    <target name="was.stop.op2">
+        <echo>=====================================================</echo>
+        <echo>manage server(${prj_name}) stop2 </echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_was2_ip}" port="${op_was2_port}" username="${op_was2_svr_id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="false" command="cd ${op_was_dir}; ${op_was_dir}/${op_was2_stop1_sh}"/>
+    </target>
+    
+    <!-- 8) WAS, 소스 압축해제 -->
+    <target name="war.build.op1">
+        <echo>=====================================================</echo>
+        <echo>clean server(${prj_name}) pre-compiled files was#1</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_was1_ip}" port="${op_was1_port}" username="${op_was1_svr_id}" keyfile="${key_file_path}" 
+                         trust="yes" failonerror="false" command="cd ${op_was_app_dir}; rm -rf WEB-INF; rm -rf META-INF; rm -rf index.html; rm -rf static"/>
+        <echo>=====================================================</echo>
+        <echo>jar -xvf (${op_module_was_war})</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_was1_ip}" port="${op_was1_port}" username="${op_was1_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="cd ${op_was_app_dir}; /opt/java7/bin/jar -xvf ${op_module_was_war}"/>
+    </target>
+    
+    <target name="war.build.op2">
+        <echo>=====================================================</echo>
+        <echo>clean server(${prj_name}) pre-compiled files was#2</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_was2_ip}" port="${op_was2_port}" username="${op_was2_svr_id}" keyfile="${key_file_path}" 
+                         trust="yes" failonerror="false" command="cd ${op_was_app_dir}; rm -rf WEB-INF; rm -rf META-INF; rm -rf index.html; rm -rf static"/>
+        <echo>=====================================================</echo>
+        <echo>jar -xvf (${op_module_was_war})</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_was2_ip}" port="${op_was2_port}" username="${op_was2_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="cd ${op_was_app_dir}; /opt/java7/bin/jar -xvf ${op_module_was_war}"/>
+    </target>
+    
+    <!-- 8-1) Web, 소스 압축해제 -->
+    <target name="web.build.op1">
+        <echo>=====================================================</echo>
+        <echo>clean server(${prj_name}) pre-compiled files web#1</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_web1_ip}" port="${op_web1_port}" username="${op_web1_svr_id}" keyfile="${key_file_path}" 
+                         trust="yes" failonerror="false" command="cd ${op_web_app_dir}; rm -rf static/*"/>
+        <echo>=====================================================</echo>
+        <echo>tar -xvf (${op_module_web_tar}) web#1</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_web1_ip}" port="${op_web1_port}" username="${op_web1_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="cd ${op_web_app_dir}/static; tar -xvf ../${op_module_web_tar}"/>
+    </target>
+
+    <target name="web.build.op2">
+        <echo>=====================================================</echo>
+        <echo>clean server(${prj_name}) pre-compiled files web#2</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_web2_ip}" port="${op_web2_port}" username="${op_web2_svr_id}" keyfile="${key_file_path}" 
+                         trust="yes" failonerror="false" command="cd ${op_web_app_dir}; rm -rf static/*"/>
+        <echo>=====================================================</echo>
+        <echo>tar -xvf (${op_module_web_tar}) web#2</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_web2_ip}" port="${op_web2_port}" username="${op_web2_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="cd ${op_web_app_dir}/static; tar -xvf ../${op_module_web_tar}"/>
+    </target>
+    
+    <!-- 9) WAS, 서버 재기동 -->
+    <target name="was.start.op1">
+        <echo>=====================================================</echo>
+        <echo>manage server(${prj_name}) start  was#1</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_was1_ip}" port="${op_was1_port}" username="${op_was1_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="cd ${op_was_dir}; ${op_was_dir}/${op_was1_start1_sh}; sleep 180;"/>
+    </target>
+    
+    <target name="was.start.op2">
+        <echo>=====================================================</echo>
+        <echo>manage server(${prj_name}) start was#2</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${op_was2_ip}" port="${op_was2_port}" username="${op_was2_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="cd ${op_was_dir}; ${op_was_dir}/${op_was2_start1_sh}; sleep 60;"/>
+    </target>
+    
+    <!-- 10) WAS11 log 확인 (5000 line)-->
+    <target name="was.log5000.op1">
+        <echo>=====================================================</echo>
+        <echo>manage server(${prj_name}) log was#1</echo>
+        <echo>=====================================================</echo> 
+         <sshexec host="${op_was1_ip}" port="${op_was1_port}" username="${op_was1_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="cd /logs_new/ap/log;iconv -c -f utf8 -t eucKR apMGR1.out > apMGR1_eucKR.out;tail -n 5000 /logs_new/ap/log/apMGR1_eucKR.out"/>
+    </target>
+    
+    <target name="was.log5000.op2">
+        <echo>=====================================================</echo>
+        <echo>manage server(${prj_name}) log was#2</echo>
+        <echo>=====================================================</echo> 
+         <!--<sshexec host="${op_was2_ip}" port="${op_was2_port}" username="${op_was2_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="tail -n 5000 /logs/ap/log/apMGR2.out"/>-->
+         <sshexec host="${op_was2_ip}" port="${op_was2_port}" username="${op_was2_svr_id}" keyfile="${key_file_path}" trust="yes" failonerror="true" command="cd /logs_new/ap/log;iconv -c -f utf8 -t eucKR apMGR2.out > apMGR2_eucKR.out;tail -n 5000 /logs_new/ap/log/apMGR2_eucKR.out"/>
+    </target>
+    
+    <!-- 11) sleep -->
+    <target name="sleep.30">
+        <echo>=====================================================</echo>
+        <echo>sleep 30 sec                                         </echo>
+        <echo>=====================================================</echo>
+         <sleep seconds="30" />
+    </target>
+    <!-- 12) sleep -->
+    <target name="sleep.300">
+        <echo>=====================================================</echo>
+        <echo>sleep 300 sec                                         </echo>
+        <echo>=====================================================</echo>
+         <sleep seconds="300" />
+    </target>
+    <!-- 13) sleep -->
+    <target name="sleep.600">
+        <echo>=====================================================</echo>
+        <echo>sleep 600 sec                                         </echo>
+        <echo>=====================================================</echo>
+         <sleep seconds="600" />
+    </target>
+</project>

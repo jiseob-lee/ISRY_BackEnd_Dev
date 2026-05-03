@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.test.mapper.TestMapper">
+
+    <select id="selectSAA000" resultType="HashMap">
+    <![CDATA[
+        /* selectSAA000 - Lee JiSeob */
+        
+        SELECT 
+            INST_NO,
+            RPRSV_NM_ENCPT,
+            PIC_NM_ENCPT,
+            PIC_TELNO,
+            PIC_MBL_TELNO_ENCPT
+        
+        FROM SAA000
+        
+    ]]>
+    </select>
+    
+    <update id="updateSAA000" parameterType="HashMap">
+    <![CDATA[
+        /* updateSAA000 - Lee JiSeob */
+
+        UPDATE SAA000
+        
+        SET
+            RPRSV_NM_ENCPT = #{RPRSV_NM_ENCPT},
+            PIC_NM_ENCPT = #{PIC_NM_ENCPT},
+            PIC_TELNO = #{PIC_TELNO},
+            PIC_MBL_TELNO_ENCPT = #{PIC_MBL_TELNO_ENCPT}
+        
+        WHERE
+            INST_NO = #{INST_NO}
+            
+    ]]>
+    </update>
+    
+    <select id="selectSCA100" resultType="HashMap">
+    <![CDATA[
+        /* selectSCA100 - Lee JiSeob */
+        
+        SELECT
+            ENFSN_NO,
+            FLNM_ENCPT,
+            MBL_TELNO_ENCPT,
+            EML_ADDR_ENCPT,
+            MSNGR_ID_ENCPT
+            
+        FROM SCA100
+        
+    ]]>
+    </select>
+    
+    <update id="updateSCA100" parameterType="HashMap">
+    <![CDATA[
+        /* updateSCA100 - Lee JiSeob */
+        
+        UPDATE SCA100
+        
+        SET
+            FLNM_ENCPT = #{FLNM_ENCPT},
+            MBL_TELNO_ENCPT = #{MBL_TELNO_ENCPT},
+            EML_ADDR_ENCPT = #{EML_ADDR_ENCPT},
+            MSNGR_ID_ENCPT = #{MSNGR_ID_ENCPT}
+            
+        WHERE
+            ENFSN_NO = #{ENFSN_NO}
+            
+    ]]>
+    </update>
+    
+    <select id="selectSCA300" resultType="HashMap">
+    <![CDATA[
+        /* selectSCA300 - Lee JiSeob */
+        
+        SELECT
+            INDV_IDNTFC_NO,
+            FLNM_ENCPT,
+            RRNO_ENCPT,
+            MBL_TELNO_ENCPT,
+            EML_ADDR_ENCPT,
+            MSNGR_ID_ENCPT
+            
+        FROM SCA300
+        
+    ]]>
+    </select>
+    
+    <update id="updateSCA300" parameterType="HashMap">
+    <![CDATA[
+        /* updateSCA300 - Lee JiSeob */
+
+        UPDATE SCA300
+        
+        SET
+            FLNM_ENCPT = #{FLNM_ENCPT},
+            RRNO_ENCPT = #{RRNO_ENCPT},
+            MBL_TELNO_ENCPT = #{MBL_TELNO_ENCPT},
+            EML_ADDR_ENCPT = #{EML_ADDR_ENCPT},
+            MSNGR_ID_ENCPT = #{MSNGR_ID_ENCPT}
+             
+        WHERE
+            INDV_IDNTFC_NO = #{INDV_IDNTFC_NO}
+            
+    ]]>
+    </update>
+    
+</mapper>
+

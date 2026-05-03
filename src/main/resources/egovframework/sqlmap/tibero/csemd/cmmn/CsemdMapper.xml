@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.csemd.cmmn.mapper.CsemdMapper">
+
+    <select id="selectBizYr" parameterType="HashMap"
+        resultType="HashMap">
+    <![CDATA[
+    /* isry.csemd.cmmn.mapper.CsemdMapper - selectBizYr */
+    /* Lee SangHoon [드림/디딤 사업연도 콤보데이터 호출] */
+    
+    SELECT DISTINCT
+        A.BIZ_YR            /* 사업연도 */
+    FROM SDA400 A           /* 서비스사업 */
+    LEFT JOIN SDA420 B      /* 서비스실행사업 */
+    ON A.SRVC_BIZ_NO = B.SRVC_BIZ_NO
+    
+    WHERE 1=1
+    AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    AND (B.INST_NO = #{INST_NO} OR #{INST_TYPE_SE_CD} < '5' OR #{AUTHRT_SE_CD} = '3300706' OR SUBSTR(#{AUTHRT_SE_CD},2,2) = '10')
+    
+    ORDER BY A.BIZ_YR DESC
+    ]]>
+    </select>
+
+    <!-- 자원제공주체(교육기관) select box data 리스트 -->
+    <select id="selectInstCmb" parameterType="HashMap"
+        resultType="HashMap">
+    <![CDATA[
+        /*SQL-ID : isry.csemd.cmmn.mapper.CsemdMapper selectInstCmb : 자원제공주체(교육기관) select box data 리스트 */
+        
+        SELECT DISTINCT
+            INST_NO     -- 기관번호
+            ,INST_NM    -- 기관명
+        FROM SAA000 A
+        INNER JOIN SAC100 B
+        ON B.CMMNS_CD_ID = 'APLY_RQST_TRGT_INST_SE_CD'
+        AND (B.ADDTNG_MNG_VALUE2 = A.INST_NO OR B.ADDTNG_MNG_VALUE3 = A.INST_NO)
+        
+        WHERE B.ADDTNG_MNG_VALUE1 = #{UNT_TASKWK_SE_CD}
+        AND (INST_NO = #{INST_NO} OR #{INST_TYPE_SE_CD} < '5' OR #{AUTHRT_SE_CD} = '3300706' OR SUBSTR(#{AUTHRT_SE_CD},2,2) = '10')
+    ]]>
+    </select>
+    
+    <!-- 과정(자원제공서비스) select box data 리스트 -->
+    <select id="selectSrvcExcnBizCmb" parameterType="HashMap"
+        resultType="HashMap">
+    <![CDATA[
+        /*SQL-ID : isry.csemd.cmmn.mapper.CsemdMapper selectSrvcExcnBizCmb : 과정(서비스실행사업) select box data 리스트 */
+        
+        SELECT DISTINCT
+            A.SRVC_EXCN_BIZ_NM                                      /* 서비스실행사업명 */
+            ,A.INST_NO                                              /* 기관번호*/
+            ,A.SRVC_EXCN_BIZ_NO                                     /* 서비스실행사업번호 */
+            ,A.BIZ_BGNG_YMD AS SRVC_EXCN_BIZ_BGNG_YMD               /* 서비스실행사업시작일자 */
+            ,A.BIZ_END_YMD  AS SRVC_EXCN_BIZ_END_YMD                /* 서비스실행사업사업종료일자 */
+            ,B.BIZ_YR                                               /* 사업연도 */
+            ,A.ALTMNT_GROUP_LCLAS_SE_CD                             /* 배정그룹대분류구분코드 */
+            ,B.ALTMNT_GROUP_PRD_CL_SE_CD                            /* 배정그룹기간분류구분코드 */
+            ,A.REQSTD_INDCT_YN                                      /* 신청서표시여부 */
+        FROM SDA420 A       /* 서비스실행사업 */
+        LEFT JOIN SDA400 B  /* 서비스사업 */
+        ON A.SRVC_BIZ_NO = B.SRVC_BIZ_NO
+        
+        WHERE 1=1
+        AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}                /* 단위업무구분코드 */
+        AND (A.INST_NO = #{INST_NO} OR #{INST_TYPE_SE_CD} < '5' OR #{AUTHRT_SE_CD} = '3300706' OR SUBSTR(#{AUTHRT_SE_CD},2,2) = '10')   /* 기관번호 */
+          
+        ORDER BY A.BIZ_BGNG_YMD, A.SRVC_EXCN_BIZ_NM
+        ]]>
+
+    </select>
+    
+    <select id="selectViolnc" resultType="HashMap">
+    /* selectViolnc (폭력성향검사결과 목록 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+	  FROM SAC100 A
+	  LEFT JOIN SAC110 B
+	  ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+	  AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0101')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectDiss" resultType="HashMap">
+    /* selectDiss (질병상태 목록 조회) - Lee Hye Sun */    
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0201')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+
+    <select id="selectLgsltn" resultType="HashMap">
+    /* selectLgsltn (법률문제 목록 조회) - Lee Hye Sun */    
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0102')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+
+    <select id="selectDscsn" resultType="HashMap">
+    /* selectDscsn (상담경험 목록 조회) - Lee Hye Sun */    
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0104')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+
+    <select id="selectMaap" resultType="HashMap">
+    /* selectMaap (주호소 목록 조회) - Lee Hye Sun */    
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0203')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectEtc" resultType="HashMap">
+    /* selectEtc (기타문제 목록 조회) - Lee Hye Sun */    
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0204')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+
+    <select id="selectGhvrLatent" resultType="HashMap">
+    /* selectGhvrLatent (문제행동잠재적촉발요인 목록 조회) - Lee Hye Sun */    
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0205')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+
+    <select id="selectOmen" resultType="HashMap">
+    /* selectOmen (문제행동전조행동 목록 조회) - Lee Hye Sun */    
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0206')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+
+    <select id="selectProbmGhvr" resultType="HashMap">
+    /* selectProbmGhvr (문제행동 목록 조회) - Lee Hye Sun */    
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+    AND A.UP_CMMNS_CD_VALUE IN ('0207')
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectViolncYn" resultType="HashMap">
+    /* selectViolncYn (폭력성향여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'VIOLNC_INCLN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectSlfijr" resultType="HashMap">
+    /* selectSlfijr (자해시도여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'SLFIJR_CTPV_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectSucde" resultType="HashMap">
+    /* selectSucde (자살시도여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'SUCDE_CTPV_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectBrhs" resultType="HashMap">
+    /* selectBrhs (공동기숙생활적응여부 조회) - Lee Hye Sun */
+    SELECT CMMNS_CD_VALUE,  CMMNS_CD_VALUE_NM
+      FROM SAC100 
+    WHERE CMMNS_CD_ID = 'BRHS_LVING_ADAPT_SE_CD'
+    </select>
+    
+    <select id="selectNowTakng" resultType="HashMap">
+    /* selectNowTakng (현재약물복용여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'NOW_TAKNG_DRFSTF_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectMece" resultType="HashMap">
+    /* selectMece (병원진단서 여부 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'HSPTL_MECE_YN_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectRprsMaap" resultType="HashMap">
+    /* selectRprsMaap (대표주호소 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'RPRS_MAAP_PROBM_SE_CD'
+    AND B.UNT_TASKWK_SE_CD LIKE 'U07'
+    </select>
+    
+    <select id="selectPblast" resultType="HashMap">
+    /* selectPblast (공적부조 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'PBLAST_SE_CD'
+    </select>
+
+    <select id="selectReside" resultType="HashMap">
+    /* selectReside (주거형태 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'RESIDE_SHAPE_SE_CD'
+    </select>
+
+    <select id="selectFam" resultType="HashMap">
+    /* selectFam (가족형태 조회) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE,  A.CMMNS_CD_VALUE_NM
+      FROM SAC100 A
+      LEFT JOIN SAC110 B
+      ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+      AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+    WHERE A.CMMNS_CD_ID = 'FAM_SHAPE_SE_CD'
+    </select>
+</mapper>

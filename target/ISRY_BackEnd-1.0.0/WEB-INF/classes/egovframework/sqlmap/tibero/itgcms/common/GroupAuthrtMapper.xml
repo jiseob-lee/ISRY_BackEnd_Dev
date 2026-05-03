@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<!-- 
+ 수정
+/*20230126_강화영_권한 쿼리 시작*/
+/*20230203_유치훈_권한 쿼리 최종변경사항 수정*/
+
+ -->
+
+<mapper namespace="GroupAuthrtMapper">
+    
+    <!-- 업무공통 -> 발굴대상자조회팝업 (isry.itgcm.bizcmmns.cmmns.TrprInfoMapper.selectTrprInfoList(대상자정보 목록조회)) -->
+    <sql id="trprinfoGropuAuthrt">
+        AND T1.RCPT_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자 trprinfoGropuAuthrt*/
+            /*
+                목록은 권한적용을 하되 작성자 레벨까지는 하지 말고 소속 기관까지만 레벨로
+            */
+        </if>  
+    </sql>
+
+    <!-- 업무공통 -> 발굴관리 - (발굴상담, 긴급구조) (isry.itgcm.casemng.uneart.DscsnUneartMapper.selectUneartDscsnList(발굴목록조회)/selectEmrgRescList(긴급구조목록조회) -->
+    <sql id="uneartGropuAuthrt">
+        AND T21.CONSTT_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND T21.CONSTT_NO = #{ENFSN_NO}
+        </if> 
+    </sql>    
+    
+    <!-- 업무공통 -> 발굴관리 - (아웃리치) (isry.itgcm.casemng.uneart.DscsnUneartMapper.selectOutrctList(아웃리치 목록조)) -->    
+    <sql id="outrctGropuAuthrt">
+        AND T21.RGTR_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            /* 2023-06-22 모든 담당자가 아웃리치 목록 조회 가능하도록 변경, 아웃리치 실적 및 화면상 보이는 발굴 조치 대상자에 대한 정보 확인 가능하도록*/
+        </if>   
+    </sql> 
+       
+    <!-- 업무공통 -> 미등록사례관리(isry.itgcm.casemng.uneart.mapper.UnRegCaseMapper.selectUnRegCaseList), 미등록사례관리목록조회 -->    
+    <sql id="unRegCaseGropuAuthrt">
+        AND (A.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND #{ENFSN_NO} IN (SELECT UNREGI_CASE_PIC_NO FROM SED102 WHERE UNREGI_CASE_NO = A.UNREGI_CASE_NO)
+        </if>  
+        )
+    </sql>    
+    
+    <!-- 업무공통 -> 발굴관리 - 연계접수목록(isry.itgcm.linkmng.outsd.mapper.LinkTrprRqstMapper.selectLinkTrprRcptList(연계접수목록)) -->
+    <sql id="linkTrprRcptGropuAuthrt">
+        AND ((B.RCPT_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        ) or (B.RRQST_RCPT_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        ))
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND ((B.CLR_NO IS NULL OR B.CLR_NO = '0') OR (B.CLR_NO IS NOT NULL AND B.CLR_NO = #{ENFSN_NO}))
+        </if>  
+    </sql>
+    
+    <!-- 업무공통 -> 사례관리 - 사례등록관리(isry.itgcm.casemng.caseunity.mapper.CaseRegMapper.selectCaseinqList) -->
+    <sql id="caseinqGropuAuthrt">
+        <![CDATA[
+        AND EXISTS (SELECT 1 FROM SEB100 ZZ, SEB150 YY
+            WHERE T1.CASE_MNG_NO = ZZ.CASE_MNG_NO 
+            AND T1.CASE_MNG_ODRNO = ZZ.CASE_MNG_ODRNO
+            AND ZZ.CASE_MNG_NO = YY.CASE_MNG_NO 
+            AND ZZ.CASE_MNG_ODRNO = YY.CASE_MNG_ODRNO
+            AND YY.PIC_DSGN_YMD <= TO_CHAR(SYSDATE,'YYYYMMDD')
+            AND YY.PIC_INST_NO IN             
+        ]]>
+            <foreach collection="INST_NOS" item="item" open="("
+                separator="," close=")">
+                #{item}
+            </foreach>
+            ) 
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND T1.ENFSN_NO LIKE '%'||#{ENFSN_NO}||'%'
+        </if>  
+    </sql>
+    
+    <!-- 업무공통 -> 사례관리 - 사례등록관리(isry.itgcm.casemng.caseunity.mapper.CaseRegMapper.selectCaseinqList) -->
+    <sql id="caseinqGropuListAuthrt">
+        <choose>
+            <when test="GROUP_AUTHRT_SE_CD lt 300">
+            </when>
+            <when test="GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString()">
+            <![CDATA[
+	        AND EXISTS (SELECT 1 FROM SEB150 YY
+	            WHERE 1=1
+	            AND T1.CASE_MNG_NO = YY.CASE_MNG_NO 
+	            AND T1.CASE_MNG_ODRNO = YY.CASE_MNG_ODRNO
+	            AND YY.PIC_DSGN_YMD <= TO_CHAR(SYSDATE,'YYYYMMDD')
+                AND YY.CASE_PIC_NO = #{ENFSN_NO}
+            )
+	        ]]>
+            </when>
+            <otherwise>
+            <![CDATA[
+            AND (T1.CASE_MNG_NO, T1.CASE_MNG_ODRNO) 
+                IN (SELECT YY.CASE_MNG_NO,YY.CASE_MNG_ODRNO  
+                    FROM SEB150 YY
+	                WHERE 1=1
+	                AND YY.PIC_INST_NO IN             
+	            ]]>
+	                <foreach collection="INST_NOS" item="item" open="("
+	                    separator="," close=")">
+	                    #{item}
+	                </foreach>
+	        )
+            </otherwise>
+        
+        </choose>
+    </sql>
+    
+    <!-- 사례관리 - 직업역량강화(isry.drmgs.casereg.mapper.DrmgsCaseRegMapper.selectOccpAbilitInsertList) -->
+    <sql id="occpAbilitGropuAuthrt">
+        AND T4.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND T4.CASE_PIC_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 사례관리 - 연계의뢰(isry.itgcm.linkmng.outsd.mapper.LinkTrprRqstMapper.selectLinkTrprRqstList) -->
+    <sql id="linkTrprRqstGropuAuthrt">
+        AND AA.RQST_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND AA.CLINT_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 통계현황관리 - 발굴관리통계(isry.itgcm.unitystats.mapper.UnitystatsMapper - selectUneartMngStatsList[발굴관리통계]) -->
+    <sql id="uneartMngStatsGropuAuthrt">
+        AND A.RCPT_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND A.RCPT_PIC_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 통계현황관리 - 사례관리기본통계(isry.itgcm.unitystats.mapper.UnitystatsMapper - selectCaseMngBassStatsList[사례관리기본통계]) -->
+    <sql id="caseMngBassStatsGropuAuthrt">
+        AND F0.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND F0.CASE_PIC_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 통계현황관리 - isry.itgcm.unitystats.mapper.UnitystatsMapper - selectDscsnOutrcMngStatsList[아웃리치통계(쉼터)] -->
+    <sql id="dscsnOutrcMngStatsGropuAuthrt">
+        AND A1.RGTR_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND A1.CONSTT_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 통계현황관리 - isry.itgcm.unitystats.mapper.UnitystatsMapper - selectTlphonDscsnMngStatsList[1388전화상담통계(상담복지센터)] -->
+    <sql id="tlphonDscsnMngStatsGropuAuthrt">
+        AND A.INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND A.PIC_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 통계현황관리 - isry.itgcm.unitystats.mapper.UnitystatsMapper - selectEmrgIntrvnMngStatsList[긴급구조통계(지자체안정망,상담복지센터)] -->
+    <sql id="emrgIntrvnMngStatsGropuAuthrt">
+        AND A.CONSTT_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND A.CONSTT_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 사례관리 - isry.drmgs.stats.mapper.StatsDrmgsMapper.selectMeditationStats 학업숙려제통계 -->
+    <sql id="meditationStatsGropuAuthrt">
+        AND D.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND D.CASE_PIC_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 기관및종사자현황 > 시도센터 - isry.drmgs.stdnt.mapper.CnterPreconMapper.selectCtpvCnterPreconList 시도센터현황 -->
+    <sql id="cnterPreconGropuAuthrt">
+        AND T1.INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+    </sql>
+    
+    <!-- 기관및종사자현황 > 종사자현황 - isry.drmgs.stdnt.mapper.CnterPreconEnfsnMapper.selectEnfsnInfo 종사자현황 -->
+    <sql id="cnterPreconEnfsnGropuAuthrt">
+        AND A.OGDP_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND A.ENFSN_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 기관및종사자현황 > 종사자현황 부가정보 - isry.drmgs.stdnt.mapper.CnterPreconEnfsnMapper.selectEnfsnPrvateCerti 종사자 자격증현황 -->
+    <sql id="cnterPreconEnfsnListGropuAuthrt">
+        AND A.CNTER_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND A.ENFSN_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+    
+    <!-- 사례관리 - isry.drmgs.stats.mapper.StatsDrmgsMapper.selectGgBizStats 경기도사업통계 -->
+    <sql id="ggBizStatsGropuAuthrt">
+        AND C.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND C.CASE_PIC_NO = #{ENFSN_NO}
+        </if>  
+    </sql>
+
+    <!-- isry.drmgs.actvt.mapper.ActvtSafetyMuaiasMapper.selectActvtSafetyMuaiasList 청소년활동안전공제회관리 -->
+    <sql id="actvtSafetyMuaiasGropuAuthrt">
+        AND C.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+    </sql>
+
+    <!-- isry.drmgs.stdnt.mapper.YouthLifeRecodeMapper.selectYouthLifeRecodeMainList - 청소년생활기록부관리 -->
+    <sql id="youthLifeRecodeMainGropuAuthrt">
+        AND T5.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+    </sql>
+    
+    <!-- 업무공통 -> 복지부연계의뢰접수 (isry.itgcm.linkmng.outsd.mapper.LinkMohwSrvcRqstMapper.selectMohwSrvcRqstRcptList(복지부연계접수목록)) -->
+    <sql id="linkMohwSrvcRqstRcptGropuAuthrt">
+        AND T1.RQST_PRCS_SRV_INST_ID IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            /* 2023-03-07 : 등록한 해당종사자를 특정할수 있는 컬럼이 없기때문에 기관기준으로만 권한적용을 함*/
+        </if>  
+    </sql>    
+    <!-- 업무공통 -> 복지부연계의뢰요청 (isry.itgcm.linkmng.outsd.mapper.LinkMohwSrvcRqstMapper.selectMohwSrvcRqstDmndList(복지부연계요청목록)) -->
+    <sql id="linkMohwSrvcRqstDmndGropuAuthrt">
+        AND T1.RQST_SRV_INST_ID IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            /* 2023-03-07 : 등록한 해당종사자를 특정할수 있는 컬럼이 없기때문에 기관기준으로만 권한적용을 함*/
+        </if>  
+    </sql>
+    
+    <!-- 업무공통 -> 병역의무자 상담지원의뢰 (isry.itgcm.linkmng.outsd.mapper.LinkMmaRcptJobMapper.selectLinkMmaList(병무청상담지원의뢰접수목록)) -->
+    <sql id="linkMmaSrvcRqstGropuAuthrt">
+        AND T1.INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            /* 2023-03-07 : 등록한 해당종사자를 특정할수 있는 컬럼이 없기때문에 기관기준으로만 권한적용을 함*/
+        </if>  
+    </sql>          
+    
+    <!-- 업무공통 -> 집단서비스등록 (isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectSrvcGrPvsnList(서비스집단제공목록조회)) -->
+    <sql id="srvcGrPvsnGropuAuthrt">
+        AND T1.TKCG_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            /* 2023-03-24 : 집단 계획 및 실행을 등록시 서비스실행사업에 속한 대상자가 모두나옴
+                             내일이룸, 이주배경의 예)
+                             내일이룸학교의 서비스실행사업은 내일이룸학교 단일로써 위탁기관들이 내일이름 학교 서비스실행사업을 기준으로 자원제공서비스를 등록하기 때문에
+                             자원제공서비스 기관로 처리하지 않으면 다른 기관의 대상자까지 끌어 오는 현상이 발생
+                             기관기준으로 권한 적용
+            */
+        </if>  
+    </sql>    
+    
+    <!-- 성과일괄등록 -->
+    <sql id="outcGropuAuthrt">
+        AND (SELECT X.INST_NO
+                           FROM SAA000 X
+                              , SEB150 Y
+                          WHERE X.INST_NO        = Y.PIC_INST_NO
+                            AND Y.PCHPRS_YN      = 'Y' 
+                            AND Y.CASE_MNG_NO    = T1.CASE_MNG_NO
+                            AND Y.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO) IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+    </sql>
+    
+    <!-- 업무공통 -> isry.itgcm.bizcmmns.cmmns.mapper.CaseMtgMapper.selectGrCaseMtgList(집단 사례회의목록) -->
+    <sql id="caseGrMtgGropuAuthrt">
+        AND T3.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자 selectGrCaseMtgList*/
+            AND T3.PIC_NO = #{ENFSN_NO}
+        </if>  
+    </sql>   
+     
+    <!-- 업무공통 -> isry.itgcm.bizcmmns.cmmns.CaseTrprInfoMapper.selectCaseTrprInfoList(사례대상자정보팝업 목록조회) -->
+    <sql id="caseTrprInfoGropuAuthrt">
+        AND T3.PIC_INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자 selectCaseTrprInfoList*/
+        </if>  
+    </sql> 
+    
+</mapper>

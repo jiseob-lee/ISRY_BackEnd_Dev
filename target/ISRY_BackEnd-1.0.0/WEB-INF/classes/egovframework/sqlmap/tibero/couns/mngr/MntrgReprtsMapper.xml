@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.mngr.mapper.MntrgReprtsMapper">
+
+    <select id="selectCombo1List" parameterType="HashMap" resultType="HashMap">
+    SELECT  /*SQL-ID : isry.couns.mngr.mapper.MntrgReprtsMapper.selectCombo1List : 통합기관 LIST */
+            AA.INST_NO          AS  INST_NO
+        ,   AA.INST_NM          AS  INST_NM
+        ,   AA.INST_TYPE_SE_CD  AS  INST_TYPE_SE_CD
+    FROM 
+            SAA000      AA      /* 통합기관 */
+    WHERE   1=1
+        AND AA.DEL_YN           !=      'Y'
+
+    </select>
+    
+    <select id="selectMntrgReprtsList" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            SELECT
+                    #{instNo}       AS  INST_NO
+                ,   #{startDate}    AS  START_DATE
+                ,   #{endDate}      AS  END_DATE
+            FROM
+                    DUAL
+    )
+    SELECT  /*SQL-ID : isry.couns.mngr.mapper.MntrgReprtsMapper.selectMntrgReprtsList : 모니터링보고서목록 LIST */
+            AA.TASKWK_RPT_CNSLTNT_NM
+        ,   AA.CRT_YMD
+        ,   AA.MNTRNG_NO
+   FROM
+            AYC400      AA      /* 일간 모니터링 보고서 */
+        ,   SAA200      BB      /* 사용자 */
+        ,   SCA100      CC      /* 종사자 */
+        ,   ZZ
+    WHERE   1=1
+    
+        AND AA.CRT_YMD          BETWEEN ZZ.START_DATE
+        AND                             ZZ.END_DATE
+
+        AND BB.USER_ID          =       AA.FRST_RGTR_ID
+        AND BB.INST_NO          =       ZZ.INST_NO
+        AND CC.ENFSN_NO         =       BB.ENFSN_NO
+
+    ORDER BY
+            2 DESC
+        ,   1
+
+    </select>
+    
+    <select id="selectMntrgReprtsDetail" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            SELECT
+                    #{MNTRNG_NO}        AS  MNTRNG_NO
+            FROM
+                    DUAL
+    )
+    SELECT  /*SQL-ID : isry.couns.mngr.mapper.MntrgReprtsMapper.selectMntrgReprtsDetail : 모니터링보고서상세 */
+            BB.JOB_BGNG_TM || ' ~ ' || AA.JOB_END_TM        AS  JOB_TM
+        ,   BB.TASKWK_RPT_CNSLTNT_NM                                        /* 업무보고상담사명 */
+        ,   BB.SECRE_NTABRD_NOCS                                            /* 비밀게시판건수 */
+        ,   BB.NEXT_NTABRD_NOCS                                             /* 다음게시판건수 */
+        ,   BB.NTABRD_NAVER_NOCS                                            /* 게시판네이버건수 */
+        ,   BB.JAM_PSTG_NOCS                                                /* JAM게시건수 */
+        ,   BB.CHTT_NOCS                                                    /* 채팅건수 */
+        ,   BB.CMNT_NOCS                                                    /* 댓글건수 */
+        ,   BB.SLRBT_CMNT_NOCS || ' / ' || BB.NTABRD_SLRBT_PRFMNC_NOCS      /* 솔로봇댓글건수 / 게시판솔로봇실적건수 */
+        ,   BB.CHTT_OPEN_TM                                                 /* 채팅오픈시각 */
+        ,   CC.LVFFC_DT                                                     /* 퇴근일시 */
+        ,   BB.CHTT_END_TM                                                  /* 채팅종료시각 */
+        ,   BB.CHTT_UNESTA_TM                                               /* 채팅미개설시각 */
+        ,   ''                                              AS  REST_TM     /* 상담자휴게시간 */
+    FROM
+            AYC400      AA      /* 일간 모니터링 보고서 */
+        ,   AYC410      BB      /* 일간 모니터링 보고서 데이터 */
+        ,   AYC420      CC      /* 사이버상담사퇴근관리(모니터링) */
+        ,   ZZ
+    WHERE   1=1
+        AND AA.MNTRNG_NO         =       ZZ.MNTRNG_NO
+        AND BB.MNTRNG_NO         =       AA.MNTRNG_NO
+        AND CC.MNTRNG_NO         =       ZZ.MNTRNG_NO
+
+    </select>
+    
+</mapper>

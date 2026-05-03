@@ -1,0 +1,1619 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ISRY_BackEnd</groupId>
+	<artifactId>ISRY_BackEnd</artifactId>
+	<packaging>war</packaging>
+	<version>1.0.0</version>
+	<name>ISRY_BackEnd</name>
+	<url>http://www.egovframe.go.kr</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<properties>
+        
+        <!--
+		<spring.maven.artifact.version>4.3.25.RELEASE</spring.maven.artifact.version>
+		<springSecurity.maven.artifact.version>4.2.13.RELEASE</springSecurity.maven.artifact.version>
+        -->
+        
+        <!-- <spring.maven.artifact.version>5.1.6.RELEASE</spring.maven.artifact.version> -->
+        <spring.maven.artifact.version>5.3.9</spring.maven.artifact.version>
+        <springSecurity.maven.artifact.version>5.1.5.RELEASE</springSecurity.maven.artifact.version>
+        
+        
+		<egovframework.rte.version>3.10.0</egovframework.rte.version>
+
+		<exbuilder.version>1.0.3167</exbuilder.version>
+		<exbuilder.ci.lib.path>${basedir}/ci-lib/clx</exbuilder.ci.lib.path>
+		<java.version>1.8</java.version>
+		<org.apache.poi.version>3.17</org.apache.poi.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+	</properties>
+
+	<!--Nexus Server Repo 연결 -->
+
+
+
+	<repositories>
+	
+		<repository>
+		    <id>central</id>
+		    <url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+		
+		<repository>
+			<id>tobesoft</id>
+			<url>http://mangosteen.tobesoft.co.kr/nexus/repository/maven-public/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<!--
+  		<repository>
+			<id>tobesoft</id>
+			<url>http://cacao.tobesoft.co.kr/nexus/content/groups/public/</url>
+			<releases>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		-->
+		<repository>
+			<id>mvn2</id>
+			<url>https://repo1.maven.org/maven2/</url>
+			<releases>
+			</releases>
+			<snapshots>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>egovframe</id>
+			<url>https://www.egovframe.go.kr/maven/</url>
+			<releases>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<repository>
+		    <id>mesir-repo</id>
+		    <url>http://mesir.googlecode.com/svn/trunk/mavenrepo</url>
+		</repository>
+		
+		<repository>
+			<id>oracle</id>
+			<name>ORACLE JDBC Repository</name>
+			<url>http://maven.jahia.org/maven2</url>
+		</repository>
+		
+		<repository>
+			<id>jboss</id>
+			<name>jboss</name>
+			<url>https://repository.jboss.org/maven2/</url>
+		</repository>
+		
+	</repositories>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.1</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- 표준프레임워크 실행환경 -->
+
+		<dependency>
+			<groupId>egovframework.rte</groupId>
+			<artifactId>egovframework.rte.ptl.mvc</artifactId>
+			<version>${egovframework.rte.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-modules-validation</artifactId>
+					<groupId>org.springmodules</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!--
+		<dependency>
+			<groupId>egovframework.validation</groupId>
+			<artifactId>spring-modules-validation-modified</artifactId>
+			<version>0.9.1</version>
+		</dependency>
+		-->
+		
+		<dependency>
+			<groupId>egovframework.rte</groupId>
+			<artifactId>egovframework.rte.psl.dataaccess</artifactId>
+			<version>${egovframework.rte.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>egovframework.rte</groupId>
+			<artifactId>egovframework.rte.fdl.idgnr</artifactId>
+			<version>${egovframework.rte.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>egovframework.rte</groupId>
+			<artifactId>egovframework.rte.fdl.property</artifactId>
+			<version>${egovframework.rte.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>egovframework.rte</groupId>
+			<artifactId>egovframework.rte.fdl.security</artifactId>
+			<version>${egovframework.rte.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>standard</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr</artifactId>
+			<version>3.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>2.3.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.21</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>fontbox</artifactId>
+			<version>2.0.21</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>${org.apache.poi.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.xmlbeans</groupId>
+					<artifactId>xmlbeans</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml-schemas</artifactId>
+			<version>${org.apache.poi.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.monitorjbl</groupId>
+			<artifactId>xlsx-streamer</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+
+
+        <!-- exBuilder6 라이브러리  -->
+		<dependency>
+			<groupId>cleopatra_server</groupId>
+			<artifactId>cleopatra_server</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+            <systemPath>D:\work\2022\20220113\cleopatra_server.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-dbcp2</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.13</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.20</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.3.3</version>
+		</dependency>
+
+
+		<!--송영일 2021.11.03 log4jdbc -->
+		<dependency>
+			<groupId>com.googlecode.log4jdbc</groupId>
+			<artifactId>log4jdbc</artifactId>
+			<version>1.2</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.4</version>
+		</dependency>
+
+		<!-- tibero6 JDBC JDBC 라이브러리 송영일 2021.09.27 -->
+		<!-- 추후 Nexus 라이브러리 등록 예정 -->
+		<dependency>
+			<groupId>com.tmax.tibero</groupId>
+			<artifactId>tibero-jdbc</artifactId>
+			<version>6.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib2/tibero6-jdbc.jar</systemPath>
+		</dependency>
+
+		<!-- mybatis log4jdbc-log4j2 라이브러리 송영일 2021.09.27 -->
+		<dependency>
+			<groupId>org.bgee.log4jdbc-log4j2</groupId>
+			<artifactId>log4jdbc-log4j2-jdbc4</artifactId>
+			<version>1.16</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf</groupId>
+			<artifactId>log4jdbc3</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>springloaded</artifactId>
+			<version>1.2.8.RELEASE</version>
+		</dependency>
+
+		<!-- <dependency> <groupId>org.apache.tomcat</groupId> <artifactId>tomcat-coyote</artifactId> 
+			<version>9.0.53</version> </dependency> -->
+		<!-- 송영일 추가 2021.09.28 시작 -->
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.13</version>
+		</dependency>
+
+		<dependency>
+			<groupId>regexp</groupId>
+			<artifactId>regexp</artifactId>
+			<version>1.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.aether</groupId>
+			<artifactId>aether-api</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+
+        <!--
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.9.8</version>
+		</dependency>
+		-->
+
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.json</artifactId>
+			<version>1.0.4</version>
+		</dependency>
+
+		<!-- Apache Log4j 보안이슈 대응 -->
+		<!-- Apache Log4j 추가 공지에 따른 재 적용 처리 2021.12.27 시작 -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>2.17.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.17.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.17.0</version>
+		</dependency>
+
+
+		<!-- Apache Log4j 추가 공지에 따른 재 적용 처리 2021.12.27 끝 -->
+		<dependency>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz</artifactId>
+			<version>2.3.2</version>
+		</dependency>
+
+
+		<!-- 펜타시큐리티 디아모 DB 암호화 솔루션 등록 2022.01.06 -->
+		<!-- <dependency> <groupId>com.penta</groupId> <artifactId>scpdb</artifactId> 
+			<version>4.0</version> </dependency> -->
+
+		
+		<dependency>
+			<groupId>com.penta</groupId>
+			<artifactId>scpdb</artifactId>
+			<version>4.0</version>
+			<scope>system</scope>
+			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib2\scpdb.jar</systemPath>
+		</dependency>
+        
+
+		<!-- ClipReport 5.132 버전 적용 2022.01.10 시작 -->
+		<!--
+		<dependency>
+			<groupId>com.sun.media</groupId>
+			<artifactId>jai_codec</artifactId>
+			<version>1.1.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.media</groupId>
+			<artifactId>jai_core</artifactId>
+			<version>1.1.3</version>
+		</dependency>
+		-->
+
+
+		<!-- 리포팅 솔루션 클립 리포트 라이브러리   -->
+		<dependency>
+			<groupId>com.clipsoft</groupId>
+			<artifactId>ClipReport</artifactId>
+			<version>5.0.132</version>
+			<scope>system</scope>
+			<systemPath>D:/work/2022/20220113/ClipReport-5.0.132.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>com.clipsoft</groupId>
+			<artifactId>ClipReport_Common</artifactId>
+			<version>5.0</version>
+			<scope>system</scope>
+			<systemPath>D:\work\2022\20220113\ClipReport_Common-5.0.jar</systemPath>
+		</dependency>
+		<!-- 키보드보안 K-Depense R7 버전 적용 -->
+		<dependency>
+			<groupId>kr.co.kings</groupId>
+			<artifactId>kings-e2e-filter-20191024-release</artifactId>
+			<version>1.0</version>
+			<!-- <classifier>release</classifier> -->
+			<scope>system</scope>
+			<systemPath>D:\work\2022\20220113\kings-e2e-filter-20191024-release-1.0-release.jar</systemPath>
+		</dependency>
+		
+		<dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>taglibs</groupId>
+            <artifactId>standard</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+
+
+
+		<!-- ######################################################### -->
+		<!-- Redis 구성 라이브러리 추가 2022.02.10                     -->
+		<!-- ######################################################### -->
+
+		<!-- redis value를 json 형태로 표현하기 위해 추가 setValueSerializer(json) -->
+		
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.9.9</version>
+		</dependency>
+		
+
+		<!-- redis 연동을 위해 Driver 파일 다운로드 -->
+		<!--
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>3.9.0</version>
+			<version>2.10.2</version>
+		</dependency>
+		-->
+
+		<!-- redis와 스프링 프레임워크와의 연동을 위해 추가 -->
+        <!--
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+            <version>2.3.0.RELEASE</version>
+            <version>1.3.5.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+            <version>2.7.6</version>
+        </dependency>
+ 		
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-redis</artifactId>
+			<version>1.8.23.RELEASE</version>
+			<version>2.3.9.RELEASE</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-core</artifactId>
+			<version>2.3.3.RELEASE</version>
+		</dependency>
+        -->
+
+		<!-- 데이터 전송시, 문자 깨지는 현상을 방지하기 위한 BASE64 인코딩 -->
+		<!--
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
+		</dependency>
+		-->
+
+		<!-- RequestBody 사용시, JSON 변환이 안되는 경우 추가함 -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.6</version>
+		</dependency>
+
+		<!-- JSON 형태의 데이터 생성 및 내용 읽기를 위한 라이브러리 다운 -->
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+
+        <!--
+        <dependency>
+            <groupId>irsy.itgcm</groupId>
+            <artifactId>session-timeout-cookie-filter</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev/src/main/webapp/WEB-INF/lib/sessionTimeoutCookieFilter.jar</systemPath>
+        </dependency>
+        -->
+        
+		<dependency>
+			<groupId>kr.go.ads</groupId>
+			<artifactId>ADSClient</artifactId>
+			<version>1.1</version>
+			<!-- <classifier>release</classifier> -->
+			<scope>system</scope>
+			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\ADSClient-1.1.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>com.dreamsecurity</groupId>
+			<artifactId>magice2e</artifactId>
+			<version>1.0.1.6</version>
+			<scope>system</scope>
+			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\magice2e_1.0.1.6.jar</systemPath>
+		</dependency>
+	
+		<dependency>
+			<groupId>com.dreamsecurity</groupId>
+			<artifactId>MagicJCrypto</artifactId>
+			<version>2.0.0.0</version>
+			<scope>system</scope>
+			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\MagicJCrypto-v2.0.0.0.jar</systemPath>
+		</dependency>
+	
+		<dependency>
+			<groupId>com.dreamsecurity</groupId>
+			<artifactId>magicline-e2e</artifactId>
+			<version>4.0.0.0</version>
+			<scope>system</scope>
+			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\magicline-e2e-4.0.0.0.jar</systemPath>
+		</dependency>
+	
+		<dependency>
+			<groupId>com.dreamsecurity</groupId>
+			<artifactId>ml4web_server</artifactId>
+			<version>4.5.0.12</version>
+			<scope>system</scope>
+			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\ml4web_server_4.5.0.12.jar</systemPath>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.dreamsecurity</groupId>
+			<artifactId>jcaos</artifactId>
+			<version>1.5.2.5</version>
+			<scope>system</scope>
+			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\jcaos-1.5.2.5.jar</systemPath>
+		</dependency>
+		
+
+        <!-- ######################################################### -->
+        <!-- hibernate-validator 라이브러리 추가 2022.03.29                     -->
+        <!-- ######################################################### -->
+    
+        <dependency>  
+            <groupId>org.hibernate</groupId>  
+            <artifactId>hibernate-validator</artifactId>  
+            <version>4.2.0.Final</version>
+        </dependency>
+        
+        <!-- LOMBOK 추가 2022.05.03 -->
+        <dependency>
+		    <groupId>org.projectlombok</groupId>
+		    <artifactId>lombok</artifactId>
+		    <version>1.18.24</version>
+		</dependency>
+
+		<!--
+        <dependency>
+            <groupId>kr.go.ads</groupId>
+            <artifactId>ADSClient</artifactId>
+            <version>1.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/ADSClient-1.1.jar</systemPath>
+        </dependency>
+        -->
+        
+        <!--
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>session-timeout-cookie-filter</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/sessionTimeoutCookieFilter.jar</systemPath>
+        </dependency>
+        -->
+        
+        <!-- 캐쉬 라이브러 등록(20221104) -->
+        <!--
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>3.10</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/ehcache-3.10.0.jar</systemPath>
+        </dependency>
+        
+        <dependency>
+            <groupId>javax.cache</groupId>
+            <artifactId>cache-api</artifactId>
+            <version>1.1.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/cache-api-1.1.1.jar</systemPath>
+        </dependency>
+        -->
+        
+        <!-- 휴대폰본인확인서비스 라이브러리 등록(20221202) -->
+        <dependency>
+            <groupId>dreamCrypto</groupId>
+            <artifactId>dreamCrypto</artifactId>
+            <version>1.4</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/dreamCryptoV1.4.jar</systemPath>
+        </dependency>
+
+        <!-- 간편인증서비스 라이브러리 등록(20221205) -->
+        <dependency>
+            <groupId>eziokManager</groupId>
+            <artifactId>eziokManager</artifactId>
+            <version>1.8_1.0.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/eziokManager-jdk1.8_1.0.1.jar</systemPath>
+        </dependency>
+    
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.7</version>
+        </dependency>
+
+
+        
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${springSecurity.maven.artifact.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>${springSecurity.maven.artifact.version}</version>
+        </dependency>
+        
+        <!--
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-taglibs</artifactId>
+            <version>${springSecurity.maven.artifact.version}</version>
+        </dependency>
+        -->
+        
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-acl</artifactId>
+            <version>${springSecurity.maven.artifact.version}</version>
+        </dependency>
+
+        <!--
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>4.3.23.RELEASE</version>
+        </dependency>
+        -->
+        
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+            <!-- <version>5.3.9</version> -->
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-expression</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        
+        
+        
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.maven.artifact.version}</version>
+        </dependency>
+        
+        
+        
+        
+        
+
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-data-redis</artifactId>
+			<!-- <version>2.3.0.RELEASE</version> -->
+			<!-- <version>2.7.0</version> -->
+			<version>2.3.3.RELEASE</version>
+		</dependency>
+ 
+		<dependency>
+			<groupId>io.lettuce</groupId>
+			<artifactId>lettuce-core</artifactId>
+			<version>6.6.0.RELEASE</version>
+			<!-- <version>6.2.1.RELEASE</version> -->
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-redis</artifactId>
+			<!-- <version>2.3.1.RELEASE</version> -->
+			<version>2.3.9.RELEASE</version>
+			<!-- <version>2.7.9</version> -->
+			<!-- <version>2.7.6</version> -->
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-core</artifactId>
+			<!-- <version>2.3.0.RELEASE</version> -->
+			<!-- <version>2.7.0</version> -->
+			<version>2.3.3.RELEASE</version>
+		</dependency>
+        
+        
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
+            <version>2.3.9.RELEASE</version>
+            <!-- <version>3-0-9</version> -->
+        </dependency>
+        
+        
+        
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-keyvalue</artifactId>
+            <version>2.3.9.RELEASE</version>
+            <!-- <version>2-7-9</version> -->
+        </dependency>
+        
+        
+        <!--
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+            <version>2.3.9.RELEASE</version>
+             <version>1.7.1.RELEASE</version>
+        </dependency>
+        -->
+        
+        <!--
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.5.4</version>
+        </dependency>
+        -->
+
+
+
+		<!--
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-data-redis</artifactId>
+			<version>1.3.1.RELEASE</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>biz.paluch.redis</groupId>
+			<artifactId>lettuce</artifactId>
+			<version>3.5.0.Final</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session</artifactId>
+			<version>1.3.1.RELEASE</version>
+		</dependency>
+        
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <version>1.7.11.RELEASE</version>
+        </dependency>
+        -->
+        
+        
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+            <version>4.1.121.Final</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>4.1.121.Final</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>1.0.17</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <version>3.4.14</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec</artifactId>
+            <version>4.1.121.Final</version>
+        </dependency>
+		
+		<dependency>
+            <groupId>io.reactivex.rxjava3</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>3.0.9</version>
+        </dependency>
+		
+
+		
+        <!-- 2023-01-06 EzFilter 개인정보필터  -->        
+		<!--
+		<dependency>
+		  <groupId>com.easycerti.psm</groupId>
+		  <artifactId>EzFilter</artifactId>
+		  <version>1.8.0</version>
+		</dependency>        
+        -->
+
+
+		<dependency>
+		    <groupId>commons-lang</groupId>
+		    <artifactId>commons-lang</artifactId>
+		    <version>2.6</version>
+		</dependency>
+
+	</dependencies>
+
+	<!-- install 빌드 환경 구성 -->
+	<!-- 송영일 2021.11.12 -->
+	<build>
+		<defaultGoal>install</defaultGoal>
+		<directory>${basedir}/target</directory>
+		<finalName>${artifactId}-${version}</finalName>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>11</version>
+					<executions>
+						<execution>
+							<id>generate-sources</id>
+							<phase>generate-sources</phase>
+							<configuration>
+								<target>
+									<ant antfile="${basedir}/build.xml">
+										<target name="deploy" />
+									</ant>
+								</target>
+							</configuration>
+							<goals>
+								<goal>dev</goal>
+                                <goal>testbed</goal>
+                                <goal>real</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>3.3.2</version>
+					<configuration>
+						<warSourceDirectory>src/main/webapp</warSourceDirectory>
+						<webXml>src/main/webapp/WEB-INF/web.xml</webXml>
+						<webResources>
+
+							<!-- BackEnd기반으로 서비스를 기동하기 위하여 FrontEnd 소스를 가져오는 로직-->
+							<resource>
+								<targetPath>ui</targetPath>
+								<filtering>false</filtering>
+								<directory>../ISRY_FrontEnd_Dev/clx-build</directory>
+								<includes>
+									<include>**/*.*</include>
+								</includes>
+							</resource>
+
+							<resource>
+								<targetPath>ui/docs</targetPath>
+								<filtering>false</filtering>
+								<directory>../ISRY_FrontEnd_Dev/docs/module/doc</directory>
+								<includes>
+									<include>**/*.*</include>
+								</includes>
+							</resource>
+
+							<resource>
+								<targetPath>WEB-INF/classes</targetPath>
+								<filtering>false</filtering>
+								<directory>exbuilder/config</directory>
+								<includes>
+									<include>**/*.*</include>
+								</includes>
+							</resource>
+
+							<resource>
+								<targetPath>resource</targetPath>
+								<filtering>false</filtering>
+								<directory>${exbuilder.ci.lib.path}/runtime</directory>
+								<includes>
+									<include>**/*.*</include>
+								</includes>
+								<excludes>
+									<exclude>**/defaults.js</exclude>
+								</excludes>
+							</resource>
+
+							<resource>
+								<targetPath>resource/conf</targetPath>
+								<filtering>false</filtering>
+								<directory>exbuilder/runtime/conf</directory>
+								<includes>
+									<include>**/defaults.js</include>
+								</includes>
+							</resource>
+
+							<!-- cleopatra_server -->
+							<!-- 토마토 시스템의 BackEnd 연동 라이브러리 -->
+							<resource>
+								<directory>${exbuilder.ci.lib.path}</directory>
+								<includes>
+									<include>cleopatra_server.jar</include>
+								</includes>
+								<targetPath>WEB-INF/lib</targetPath>
+							</resource>
+						</webResources>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>${java.version}</source>
+						<target>${java.version}</target>
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<skipTests>true</skipTests>
+					</configuration>
+				</plugin>
+			</plugins>
+
+		</pluginManagement>
+		<plugins>
+		</plugins>
+	</build>
+
+	<profiles>
+	
+	
+	    <!-- ########################################################### -->
+        <!-- ############## Dev Server ProFile : 로컬 적용 #################### -->
+        <!-- ########################################################### -->
+
+        <profile>
+            <id>local</id>
+            <dependencies>
+                <!-- 환경별 JAR 가 별도로 구성 되는 경우는 이곳에 기술 처리 해야함 -->
+                <!-- <dependency> <groupId>com.sap</groupId> <artifactId>sapjco</artifactId> 
+                    <version>3.0.11</version> <scope>system</scope> <systemPath>D:/SW/LIB/sapjco3.jar</systemPath> 
+                    </dependency> -->
+            </dependencies>
+
+            <properties>
+                <deploy.env>local</deploy.env>
+                <maven.test.skip>true</maven.test.skip>
+                <maven.resources.overwrite>true</maven.resources.overwrite>
+                <target.directory>${project.basedir}/target</target.directory>
+                <war.name>${project.artifactId}-${project.version}-${deploy.env}</war.name>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.2</version>
+                        <configuration>
+                            <webXml>src/main/resources-${deploy.env}/web.xml</webXml>
+                            <warName>${war.name}</warName>
+                            <packagingIncludes> **/** </packagingIncludes>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                            </archive>
+                            <overwrite>true</overwrite>
+                            <webResources>
+                                <!-- clipreport5,Kings 는 WEB-INF 바로 밑으로 가야 하기 때문에 제외 처리 2021.01.10 -->
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes/egovframework</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes/egovframework</targetPath>
+                                </Resource>
+
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes</targetPath>
+                                </Resource>
+
+                                <!-- clipreport5는 WEB-INF 바로 밑으로 deploy 2021.01.10 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/clipreport5</directory>
+                                    <targetPath>/WEB-INF/clipreport5</targetPath>
+                                </webResource>
+
+                                <!-- 키보드보안 K-Depense R7은 WEB-I  NF 바로 밑으로 deploy 2021.01.11 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/Kings</directory>
+                                    <targetPath>/WEB-INF/Kings</targetPath>
+                                </webResource>
+                                
+                                <!-- 인증서(드림시큐리티)은 WEBAPP 바로 밑으로 deploy 2022.05.27 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/MagicLine4Web</directory>
+                                    <targetPath>/MagicLine4Web</targetPath>
+                                </webResource>
+                                
+                                <!-- 인증서(드림시큐리티)은 WEB-INF 바로 밑으로 deploy 2022.05.27 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/magicline</directory>
+                                    <targetPath>/WEB-INF/magicline</targetPath>
+                                </webResource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+	
+		<!-- ########################################################### -->
+		<!-- ############## Dev Server ProFile : 개발서버 적용 #################### -->
+		<!-- ########################################################### -->
+
+		<profile>
+			<id>dev</id>
+			<dependencies>
+				<!-- 환경별 JAR 가 별도로 구성 되는 경우는 이곳에 기술 처리 해야함 -->
+				<!-- <dependency> <groupId>com.sap</groupId> <artifactId>sapjco</artifactId> 
+					<version>3.0.11</version> <scope>system</scope> <systemPath>D:/SW/LIB/sapjco3.jar</systemPath> 
+					</dependency> -->
+			</dependencies>
+
+			<properties>
+				<deploy.env>dev</deploy.env>
+				<maven.test.skip>true</maven.test.skip>
+				<maven.resources.overwrite>true</maven.resources.overwrite>
+				<target.directory>${project.basedir}/target</target.directory>
+				<war.name>${project.artifactId}-${project.version}-${deploy.env}</war.name>
+			</properties>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>2.2</version>
+						<configuration>
+							<webXml>src/main/resources-${deploy.env}/web.xml</webXml>
+							<warName>${war.name}</warName>
+							<packagingIncludes> **/** </packagingIncludes>
+							<failOnMissingWebXml>false</failOnMissingWebXml>
+							<archive>
+								<manifest>
+									<addClasspath>true</addClasspath>
+								</manifest>
+							</archive>
+							<overwrite>true</overwrite>
+							<webResources>
+								<!-- clipreport5,Kings 는 WEB-INF 바로 밑으로 가야 하기 때문에 제외 처리 2021.01.10 -->
+								<Resource>
+									<directory>src/main/resources-${deploy.env}/classes/egovframework</directory>
+									<filtering>true</filtering>
+									<excludes>
+										<exclude>**/clipreport5/**</exclude>
+										<exclude>**/Kings/**</exclude>
+									</excludes>
+									<targetPath>/WEB-INF/classes/egovframework</targetPath>
+								</Resource>
+
+								<Resource>
+									<directory>src/main/resources-${deploy.env}/classes</directory>
+									<filtering>true</filtering>
+									<excludes>
+										<exclude>**/clipreport5/**</exclude>
+										<exclude>**/Kings/**</exclude>
+									</excludes>
+									<targetPath>/WEB-INF/classes</targetPath>
+								</Resource>
+
+								<!-- clipreport5는 WEB-INF 바로 밑으로 deploy 2021.01.10 -->
+								<webResource>
+									<directory>src/main/resources-${deploy.env}/clipreport5</directory>
+									<targetPath>/WEB-INF/clipreport5</targetPath>
+								</webResource>
+
+								<!-- 키보드보안 K-Depense R7은 WEB-I  NF 바로 밑으로 deploy 2021.01.11 -->
+								<webResource>
+									<directory>src/main/resources-${deploy.env}/Kings</directory>
+									<targetPath>/WEB-INF/Kings</targetPath>
+								</webResource>
+								
+								<!-- 인증서(드림시큐리티)은 WEBAPP 바로 밑으로 deploy 2022.05.27 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/MagicLine4Web</directory>
+                                    <targetPath>/MagicLine4Web</targetPath>
+                                </webResource>
+								
+								<!-- 인증서(드림시큐리티)은 WEB-INF 바로 밑으로 deploy 2022.05.27 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/magicline</directory>
+                                    <targetPath>/WEB-INF/magicline</targetPath>
+                                </webResource>
+							</webResources>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
+		
+		
+		
+        <!-- ########################################################### -->
+        <!-- ############## real Server ProFile : 행정(업무망)적용    ################ -->
+        <!-- ########################################################### -->
+
+        <profile>
+            <id>real</id>
+            <dependencies>
+
+            </dependencies>
+
+            <properties>
+                <deploy.env>real</deploy.env>
+                <maven.test.skip>true</maven.test.skip>
+                <maven.resources.overwrite>true</maven.resources.overwrite>
+                <target.directory>${project.basedir}/target</target.directory>
+                <war.name>${project.artifactId}-${project.version}-${deploy.env}</war.name>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.2</version>
+                        <configuration>
+                            <webXml>src/main/resources-${deploy.env}/web.xml</webXml>
+                            <warName>${war.name}</warName>
+                            <packagingIncludes> **/** </packagingIncludes>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                            </archive>
+                            <overwrite>true</overwrite>
+                            <webResources>
+                                <!-- clipreport5,Kings 는 WEB-INF 바로 밑으로 가야 하기 때문에 제외 처리 2021.01.10 -->
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes/egovframework</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes/egovframework</targetPath>
+                                </Resource>
+
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes</targetPath>
+                                </Resource>
+
+                                <!-- clipreport5는 WEB-INF 바로 밑으로 deploy 2021.01.10 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/clipreport5</directory>
+                                    <targetPath>/WEB-INF/clipreport5</targetPath>
+                                </webResource>
+
+                                <!-- 키보드보안 K-Depense R7은 WEB-INF 바로 밑으로 deploy 2021.01.11 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/Kings</directory>
+                                    <targetPath>/WEB-INF/Kings</targetPath>
+                                </webResource>
+                                
+                                <!-- 인증서(드림시큐리티)은 WEBAPP 바로 밑으로 deploy 2022.05.27 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/MagicLine4Web</directory>
+                                    <targetPath>/MagicLine4Web</targetPath>
+                                </webResource>
+                                
+                                <!-- DRM(RAON)은 WEBAPP/resource 바로 밑으로 deploy 2022.12.09 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/raonnx</directory>
+                                    <targetPath>/resource/raonnx</targetPath>
+                                </webResource>
+                                
+                                <!-- 인증서(드림시큐리티)은 WEB-INF 바로 밑으로 deploy 2022.05.27 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/magicline</directory>
+                                    <targetPath>/WEB-INF/magicline</targetPath>
+                                </webResource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>        
+        
+        
+        
+        
+        <!-- ########################################################### -->
+        <!-- ############## real2 Server ProFile 적용    ################ -->
+        <!-- ########################################################### -->
+
+        <profile>
+            <id>real2</id>
+            <dependencies>
+
+            </dependencies>
+
+            <properties>
+                <deploy.env>real2</deploy.env>
+                <maven.test.skip>true</maven.test.skip>
+                <maven.resources.overwrite>true</maven.resources.overwrite>
+                <target.directory>${project.basedir}/target</target.directory>
+                <war.name>${project.artifactId}-${project.version}-${deploy.env}</war.name>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.2</version>
+                        <configuration>
+                            <webXml>src/main/resources-${deploy.env}/web.xml</webXml>
+                            <warName>${war.name}</warName>
+                            <packagingIncludes> **/** </packagingIncludes>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                            </archive>
+                            <overwrite>true</overwrite>
+                            <webResources>
+                                <!-- clipreport5,Kings 는 WEB-INF 바로 밑으로 가야 하기 때문에 제외 처리 2021.01.10 -->
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes/egovframework</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes/egovframework</targetPath>
+                                </Resource>
+
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes</targetPath>
+                                </Resource>
+
+                                <!-- clipreport5는 WEB-INF 바로 밑으로 deploy 2021.01.10 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/clipreport5</directory>
+                                    <targetPath>/WEB-INF/clipreport5</targetPath>
+                                </webResource>
+
+                                <!-- 키보드보안 K-Depense R7은 WEB-INF 바로 밑으로 deploy 2021.01.11 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/Kings</directory>
+                                    <targetPath>/WEB-INF/Kings</targetPath>
+                                </webResource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>        
+        
+        
+        
+        <!-- ########################################################### -->
+        <!-- ############## real3 Server ProFile : 인터넷망적용    ################ -->
+        <!-- ########################################################### -->
+
+        <profile>
+            <id>real3</id>
+            <dependencies>
+
+            </dependencies>
+
+            <properties>
+                <deploy.env>real3</deploy.env>
+                <maven.test.skip>true</maven.test.skip>
+                <maven.resources.overwrite>true</maven.resources.overwrite>
+                <target.directory>${project.basedir}/target</target.directory>
+                <war.name>${project.artifactId}-${project.version}-${deploy.env}</war.name>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.2</version>
+                        <configuration>
+                            <webXml>src/main/resources-${deploy.env}/web.xml</webXml>
+                            <warName>${war.name}</warName>
+                            <packagingIncludes> **/** </packagingIncludes>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                            </archive>
+                            <overwrite>true</overwrite>
+                            <webResources>
+                                <!-- clipreport5,Kings 는 WEB-INF 바로 밑으로 가야 하기 때문에 제외 처리 2021.01.10 -->
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes/egovframework</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes/egovframework</targetPath>
+                                </Resource>
+
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes</targetPath>
+                                </Resource>
+
+                                <!-- clipreport5는 WEB-INF 바로 밑으로 deploy 2021.01.10 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/clipreport5</directory>
+                                    <targetPath>/WEB-INF/clipreport5</targetPath>
+                                </webResource>
+
+                                <!-- 키보드보안 K-Depense R7은 WEB-INF 바로 밑으로 deploy 2021.01.11 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/Kings</directory>
+                                    <targetPath>/WEB-INF/Kings</targetPath>
+                                </webResource>
+                                <!-- 인증서(드림시큐리티)은 WEBAPP 바로 밑으로 deploy 2022.05.27 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/MagicLine4Web</directory>
+                                    <targetPath>/MagicLine4Web</targetPath>
+                                </webResource>
+                                
+                                <!-- DRM(RAON)은 WEBAPP/resource 바로 밑으로 deploy 2022.12.09 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/raonnx</directory>
+                                    <targetPath>/resource/raonnx</targetPath>
+                                </webResource>
+                                
+                                <!-- 인증서(드림시큐리티)은 WEB-INF 바로 밑으로 deploy 2022.05.27 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/magicline</directory>
+                                    <targetPath>/WEB-INF/magicline</targetPath>
+                                </webResource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>        
+        
+        
+        
+        
+         <!-- ########################################################### -->
+        <!-- ############## testbed Server ProFile 적용 ################ -->
+        <!-- ########################################################### -->
+
+        <profile>
+            <id>testbed</id>
+            <dependencies>
+
+            </dependencies>
+
+            <properties>
+                <deploy.env>testbed</deploy.env>
+                <maven.test.skip>true</maven.test.skip>
+                <maven.resources.overwrite>true</maven.resources.overwrite>
+                <target.directory>${project.basedir}/target</target.directory>
+                <war.name>${project.artifactId}-${project.version}-${deploy.env}</war.name>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.2</version>
+                        <configuration>
+                            <webXml>src/main/resources-${deploy.env}/web.xml</webXml>
+                            <warName>${war.name}</warName>
+                            <packagingIncludes> **/** </packagingIncludes>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                            </archive>
+                            <overwrite>true</overwrite>
+                            <webResources>
+                                <!-- clipreport5,Kings 는 WEB-INF 바로 밑으로 가야 하기 때문에 제외 처리 2021.01.10 -->
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes/egovframework</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes/egovframework</targetPath>
+                                </Resource>
+
+                                <Resource>
+                                    <directory>src/main/resources-${deploy.env}/classes</directory>
+                                    <filtering>true</filtering>
+                                    <excludes>
+                                        <exclude>**/clipreport5/**</exclude>
+                                        <exclude>**/Kings/**</exclude>
+                                    </excludes>
+                                    <targetPath>/WEB-INF/classes</targetPath>
+                                </Resource>
+
+                                <!-- clipreport5는 WEB-INF 바로 밑으로 deploy 2021.01.10 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/clipreport5</directory>
+                                    <targetPath>/WEB-INF/clipreport5</targetPath>
+                                </webResource>
+
+                                <!-- 키보드보안 K-Depense R7은 WEB-INF 바로 밑으로 deploy 2021.01.11 -->
+                                <webResource>
+                                    <directory>src/main/resources-${deploy.env}/Kings</directory>
+                                    <targetPath>/WEB-INF/Kings</targetPath>
+                                </webResource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+               
+        
+        
+        
+        
+        		
+	</profiles>
+
+
+
+
+
+
+
+
+
+
+
+
+	<!--Nexus Server distributionManagement 연결 -->
+	<!-- 행정망 Nexus 리파지토리 -->
+
+	<distributionManagement>
+
+		<repository>
+			<id>isry_group_repo</id>
+			<url>http://devserver.com:8802/nexus/content/repositories/isry_group_repo/</url>
+		</repository>
+		<snapshotRepository>
+			<id>isry_snapshots</id>
+			<url>http://devserver.com:8802/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+
+	</distributionManagement>
+
+</project>
+

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.regns.emrgcntrms.emrgcntrms.mapper.EmrgCntrmsMapper">
+
+    <select id="selectReqList" resultType="HashMap">
+    
+        <!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        		
+		<![CDATA[
+            /* selectReqList - Lee MS */
+            A.EMRG_CNTRMS_INCDNT_LCLAS_SE_CD AS EMRG_CNTRMS_INCDNT_LCLAS_SE_CD, /* 긴급대응사건대분류구분코드 */ 
+            A.EMRG_CNTRMS_INCDNT_MLSFC_SE_CD AS EMRG_CNTRMS_INCDNT_MLSFC_SE_CD, /* 긴급대응사건중분류구분코드 */ 
+            A.EMRG_CNTRMS_INCDNT_SCLAS_SE_CD AS EMRG_CNTRMS_INCDNT_SCLAS_SE_CD, /* 긴급대응사건소분류구분코드 */ 
+
+            A.INCDNT_TTL_NM AS INCDNT_TTL_NM,                /* 사건제목명 */ 
+            A.INCDNT_OCRN_YMD AS INCDNT_OCRN_YMD,            /* 사건발생일자 */
+            A.OCRN_RPT_YMD AS OCRN_RPT_YMD,                  /* 발생보고일자 */
+            (SELECT COUNT(*) FROM ACA710 F WHERE F.EMRG_CNTRMS_INCDNT_NO = A.EMRG_CNTRMS_INCDNT_NO) AS ACTN_CONT,  /* 긴급대응조치 보고 건수 */
+            D.EMRG_CNTRMS_TRMN_YMD AS EMRG_CNTRMS_TRMN_YMD,  /* 긴급대응종결일자 */
+            C##RG.DEC_B64(C.FLNM_ENCPT) AS PIC_NM,         /* 담당자명 */
+            B.INST_NM AS INST_NM,                            /* 기관명 */
+            A.EMRG_CNTRMS_INCDNT_NO AS EMRG_CNTRMS_INCDNT_NO /*긴급대응사건번호 */
+        FROM ACA700 A, SAA000 B, SCA100 C, ACA720 D/* 통합기관(B), 종사사(C) */
+        WHERE A.INST_NO = B.INST_NO(+)
+        AND A.PIC_NO = C.ENFSN_NO
+        AND A.EMRG_CNTRMS_INCDNT_NO = D.EMRG_CNTRMS_INCDNT_NO(+)
+		AND A.INCDNT_OCRN_YMD >= #{BGNG_YMD}
+		AND A.INCDNT_OCRN_YMD <= #{END_YMD}
+		AND A.INCDNT_TTL_NM LIKE '%'||#{INCDNT_TTL_NM}||'%'
+		AND A.EMRG_CNTRMS_INCDNT_LCLAS_SE_CD LIKE '%'||#{EMRG_CNTRMS_INCDNT_LCLAS_SE_CD}||'%'
+		AND A.EMRG_CNTRMS_INCDNT_MLSFC_SE_CD LIKE '%'||#{EMRG_CNTRMS_INCDNT_MLSFC_SE_CD}||'%'
+		AND A.EMRG_CNTRMS_INCDNT_SCLAS_SE_CD LIKE '%'||#{EMRG_CNTRMS_INCDNT_SCLAS_SE_CD}||'%'
+        ]]>
+
+        <if test="PIC_NM != '' and PIC_NM != null">
+            AND C##RG.DEC_B64(C.FLNM_ENCPT) LIKE '%'||#{PIC_NM}||'%'
+        </if>
+		
+        <if test='AUTHRT != "1"'>   /* 상담복지센터는 모두 조회 */  
+            /* 20230410_권한 쿼리_권한쿼리시작*/                               
+            <include refid="RegnsGroupAuthrtMapper.regnsBasicGropuAuthrt"/>                                   
+            /* 20230220_권한 쿼리_권한쿼리종료*/
+        </if>
+		
+		ORDER BY A.INCDNT_OCRN_YMD DESC    
+      
+      <!-- 페이지 인덱서 OFFSET 조건 -->
+      <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+
+</mapper>

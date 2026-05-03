@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.taskwkschmng.schprecon.mapper.workChgAplylMapper">
+ 
+    <select id="selectWorkListFrom" parameterType="HashMap" resultType="HashMap">        
+			SELECT  /* SQL-ID: isry.couns.taskwkschmng.schprecon.mapper.workChgAplylMapper.selectWorkListFrom */
+			        (SELECT  C##RG.DEC_B64(SCA100.FLNM_ENCPT) 
+			         FROM    SCA100          
+			               , SAA200 
+			         WHERE   DD.USER_ID       =   SAA200.USER_ID
+			         AND     SAA200.ENFSN_NO  =   SCA100.ENFSN_NO
+			        )    AS  FLNM
+			      , DD.WORK_YMD  ||  ', '  ||  MM.BGNG_HR  ||  ' ~ '  ||  MM.END_HR      AS  WORKER_FROM
+			      , DD.TASKWK_SCHDL_SN                       AS  TASKWK_SCHDL_SN_FROM	
+			      , DD.USER_ID                               AS  ID_FROM
+			      , MM.BGNG_HR  ||  ' ~ '  ||  MM.END_HR     AS  TIME_FROM
+			      , DD.WORK_YMD                              AS  WORK_YMD_FROM
+			      , MM.BGNG_HR                               AS  BGNG_HR_FROM
+			      , MM.END_HR                                AS  END_HR_FROM
+			      , ROWNUM                                   AS  RN
+		   FROM    AYC110      MM
+			     , AYC100      DD    
+           WHERE   MM.BIZ_PLAN_MNG_NO      =  DD.BIZ_PLAN_MNG_NO
+<!--            AND     MM.CRTR_YM              =  DD.CRTR_YM -->
+<!--            AND     MM.TASKWK_TYPE_INST_NO  =  DD.TASKWK_TYPE_INST_NO -->
+           AND     DD.WORK_YMD             =  #{WORKYMD}
+           AND     DD.TASKWK_TYPE_DEPT_CD  =  #{deptCd}
+           AND     DD.USER_ID              =  #{USERID}
+<!--            AND     DD.TASKWK_TYPE_INST_NO  =  (SELECT  TASKWK_TYPE_INST_NO -->
+<!--                                                FROM    AYC100 -->
+<!--                                                WHERE   CRTR_YM              =  SUBSTR(#{WORKYMD},1,6) -->
+<!--                                                AND     USER_ID              =  #{USERID} -->
+<!--                                                AND     ROWNUM               =  1 -->
+<!--                                               ) -->
+    </select>
+    
+    
+    <select id="selectWorkListTo" parameterType="HashMap" resultType="HashMap">        
+
+            SELECT  /* SQL-ID: isry.couns.taskwkschmng.schprecon.mapper.workChgAplylMapper.selectWorkListTo */
+                    (SELECT  C##RG.DEC_B64(SCA100.FLNM_ENCPT) 
+                     FROM    SCA100          
+                           , SAA200 
+                     WHERE   DD.USER_ID       =   SAA200.USER_ID
+                     AND     SAA200.ENFSN_NO  =   SCA100.ENFSN_NO
+                    )   AS  FLNM
+                  , DD.WORK_YMD  ||  ', '  ||  MM.BGNG_HR  ||  ' ~ '  ||  MM.END_HR      AS  WORKER_TO
+                  , DD.TASKWK_SCHDL_SN                      AS  TASKWK_SCHDL_SN_TO          
+                  , DD.USER_ID                              AS  ID_TO
+                  , MM.BGNG_HR  ||  ' ~ '  ||  MM.END_HR    AS  TIME_TO
+                  , DD.WORK_YMD                             AS  WORK_YMD_TO
+                  , MM.BGNG_HR                              AS  BGNG_HR_TO
+                  , MM.END_HR                               AS  END_HR_TO
+                  , ROWNUM                                  AS  RN
+           FROM    AYC110      MM
+                 , AYC100      DD    
+           WHERE   MM.BIZ_PLAN_MNG_NO      =  DD.BIZ_PLAN_MNG_NO
+<!--            AND     MM.CRTR_YM              =  DD.CRTR_YM -->
+<!--            AND     MM.TASKWK_TYPE_INST_NO  =  DD.TASKWK_TYPE_INST_NO -->
+           AND     DD.WORK_YMD             =  #{WORKYMD}
+           AND     DD.TASKWK_TYPE_DEPT_CD  =  #{deptCd}
+           AND     DD.USER_ID              != #{USERID}
+<!--            AND     DD.TASKWK_TYPE_INST_NO  =  (SELECT  TASKWK_TYPE_INST_NO -->
+<!--                                                FROM    AYC100 -->
+<!--                                                WHERE   CRTR_YM              =  SUBSTR(#{WORKYMD},1,6) -->
+<!--                                                AND     USER_ID              =  #{USERID} -->
+<!--                                                AND     ROWNUM               =  1 -->
+<!--                                               ) -->
+           ORDER BY MM.BGNG_HR, DD.USER_ID ASC 
+    </select>
+    
+
+    <select id="selectWorkChgAplyList" parameterType="HashMap" resultType="HashMap">        
+	SELECT  INDEX_SN                                            AS INDEXSN                              
+          , (
+            SELECT
+                    C##RG.DEC_B64(FLNM_ENCPT)
+            FROM
+                    SAA200
+                ,   SCA100
+            WHERE   1=1
+                AND SAA200.USER_ID      =       CHG_DMND_ID
+                AND SCA100.ENFSN_NO     =       SAA200.ENFSN_NO
+            )                                                   AS CHG_DMND_NM
+          , CHG_DMND_ID                                         AS CHG_DMND_ID
+          , TO_CHAR(TO_DATE(CHG_DMND_WORK_YMD, 'YYYYMMDD'), 'YYYY-MM-DD') || '(' || CHG_DMND_WORK_HR_CN ||')'   
+                                                                AS CHG_DMND_WORK_YMD
+          , (
+            SELECT
+                    C##RG.DEC_B64(FLNM_ENCPT)
+            FROM
+                    SAA200
+                ,   SCA100
+            WHERE   1=1
+                AND SAA200.USER_ID      =       CHG_TRGT_ID
+                AND SCA100.ENFSN_NO     =       SAA200.ENFSN_NO
+            )                                                   AS CHG_TRGT_NM
+          , CHG_TRGT_ID                                         AS CHG_TRGT_ID
+          , TO_CHAR(TO_DATE(CHG_TRGT_WORK_YMD, 'YYYYMMDD'), 'YYYY-MM-DD') || '(' || CHG_TRGT_WORK_HR_CN ||')'   
+                                                                AS CHG_TRGT_WORK_YMD
+          , (
+            SELECT
+                    CMMNS_CD_VALUE_NM
+            FROM
+                    SAC100      AA
+            WHERE   1=1
+                AND AA.CMMNS_CD_ID      =       'APRV_STTS_SE_CD'
+                AND AA.CMMNS_CD_VALUE   =       AYC140.APRV_STTS_SE_CD
+            )                                                  AS APRV_STTS_SE_CD   
+         ,  TO_CHAR(AYC140.FRST_REG_DT, 'YYYY-MM-DD')          AS   FRST_REG_DT 
+         ,  COUNT(*) OVER()                             AS  TOTAL_COUNT
+	FROM   
+	       AYC140
+    WHERE   CHG_DMND_ID     =  #{CHGDMNDID} 
+    ORDER BY  
+	       INDEX_SN   DESC
+    OFFSET  #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+
+    </select>
+
+    
+    <insert id="insertWorkChgAply" parameterType="HashMap" >        
+    INSERT  INTO    AYC140
+    (
+            INDEX_SN
+        ,   CHG_DMND_ID                 /* 변경요청아이디 */
+        ,   CHG_DMND_WORK_YMD           /* 변경요청근무일자 */
+        ,   CHG_DMND_WORK_HR_CN         /* 변경요청근무시간내용 */
+        ,   CHG_DMND_SN                 /* 변경요청일련번호 */
+        ,   CHG_TRGT_ID                 /* 변경대상아이디 */
+        ,   CHG_TRGT_WORK_YMD           /* 변경대상근무일자 */
+        ,   CHG_TRGT_WORK_HR_CN         /* 변경대상근무시간내용 */
+        ,   CHG_TRGT_SN                 /* 변경대상일련번호 */
+        ,   CHG_CS_CN                   /* 변경사유내용 */
+        ,   APRV_PSBLTY_YN              /* 승인가능여부 */
+        ,   APRV_STTS_SE_CD             /* 승인상태구분코드 */
+        ,   FRST_RGTR_ID
+        ,   FRST_REG_DT
+        ,   LAST_MDFR_ID
+        ,   LAST_MDFCN_DT
+    )
+    VALUES
+    (
+            AYC140_SQ01.NEXTVAL
+        ,   #{CHG_DMND_ID}
+        ,   #{CHG_DMND_YMD}
+        ,   #{CHG_DMND_TIME}
+        ,   #{CHG_DMND_SN}
+        ,   #{CHG_TRGT_ID}
+        ,   #{CHG_TRGT_YMD}
+        ,   #{CHG_TRGT_TIME}
+        ,   #{CHG_TRGT_SN}
+        ,   #{CHG_CS_CN}
+        ,   #{APRV_PSBLTY_YN}
+        ,   '0'
+        ,   #{loginId}
+        ,   SYSDATE
+        ,   #{loginId}
+        ,   SYSDATE
+    )
+    </insert>
+
+
+    <delete id="deleteWorkChgAplyDetail" parameterType="HashMap" >        
+    
+	DELETE FROM    AYC140 
+	WHERE  INDEX_SN          =     #{INDEX_SN}
+	   AND APRV_STTS_SE_CD   =     '0'
+
+    </delete>
+    
+    <select id="selectWorkChgAplyDetail" parameterType="HashMap" resultType="HashMap">        
+    
+    SELECT  
+            AA.INDEX_SN                                         AS  INDEXSN   
+        ,   TO_CHAR(TO_DATE(AA.CHG_DMND_WORK_YMD, 'YYYYMMDD'), 'YYYY-MM-DD')
+                                                                AS  DMND_YMD                           
+        ,   CHG_DMND_ID                                         AS  CHG_DMND_ID
+        ,   (
+            SELECT
+                    C##RG.DEC_B64(FLNM_ENCPT)
+            FROM
+                    SAA200
+                ,   SCA100
+            WHERE   1=1
+                AND SAA200.USER_ID      =       AA.CHG_DMND_ID
+                AND SCA100.ENFSN_NO     =       SAA200.ENFSN_NO
+            )                                                   AS  CHG_DMND_NM
+        ,   TO_CHAR(TO_DATE(AA.CHG_DMND_WORK_YMD, 'YYYYMMDD'), 'YYYY-MM-DD') || '(' || AA.CHG_DMND_WORK_HR_CN ||')'   
+                                                                AS  CHG_DMND_WORK_YMD
+        ,   AA.CHG_DMND_WORK_HR_CN                              AS  CHG_DMND_WORK_HR_CN
+        ,   AA.CHG_DMND_SN                                      AS  CHG_DMND_SN
+        ,   AA.CHG_TRGT_ID                                      AS  CHG_TRGT_ID
+        ,   (
+            SELECT
+                    C##RG.DEC_B64(FLNM_ENCPT)
+            FROM
+                    SAA200
+                ,   SCA100
+            WHERE   1=1
+                AND SAA200.USER_ID      =       AA.CHG_TRGT_ID
+                AND SCA100.ENFSN_NO     =       SAA200.ENFSN_NO
+            )                                                   AS  CHG_TRGT_NM
+        ,   TO_CHAR(TO_DATE(AA.CHG_TRGT_WORK_YMD, 'YYYYMMDD'), 'YYYY-MM-DD') || '(' || AA.CHG_TRGT_WORK_HR_CN ||')'   
+                                                                AS  CHG_TRGT_WORK_YMD
+        ,   AA.CHG_TRGT_WORK_HR_CN                              AS  CHG_TRGT_WORK_HR_CN
+        ,   AA.CHG_TRGT_SN                                      AS  CHG_TRGT_SN
+        ,   AA.CHG_CS_CN                                        AS  CHG_CS_CN
+        ,   AA.APRV_STTS_SE_CD                                  AS  APRV_STTS_SE_CD
+        ,   (
+            SELECT
+                    CMMNS_CD_VALUE_NM
+            FROM
+                    SAC100      BB
+            WHERE   1=1
+                AND BB.CMMNS_CD_ID      =       'APRV_STTS_SE_CD'
+                AND BB.CMMNS_CD_VALUE   =       AA.APRV_STTS_SE_CD
+            )                                                   AS  APRV_STTS_SE_NM
+        ,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD')               AS  FRST_REG_DT 
+    FROM   
+            AYC140      AA      /* 근무변경허가원 */
+    WHERE   1=1
+        AND AA.INDEX_SN     =       #{INDEX_SN} 
+
+    </select>
+    <!-- 
+    CASE
+                             WHEN SUBSTR(#{CHG_TRGT_BGNG_HR}, 0, 2) < '20'
+                             THEN TO_DATE(#{CHG_TRGT_YMD} || REPLACE(#{CHG_TRGT_BGNG_HR}, ':', ''), 'YYYYMMDD HH24:MI:SS')
+                             ELSE TO_DATE(#{CHG_TRGT_YMD} || REPLACE(#{CHG_TRGT_BGNG_HR}, ':', ''), 'YYYYMMDD HH24:MI:SS') + 1
+                         END
+     -->
+    <select id="selectWorkChgAplyChkList" parameterType="HashMap" resultType="HashMap">
+    /*
+     * isry.couns.taskwkschmng.schprecon.mapper.workChgAplylMapper.selectWorkChgAplyChkList
+     */
+	    <![CDATA[
+			/* 신청자이전휴게시간 : 대상자의 근무시작시간 - 신청자의 대상근무일자이전 근무종료시간 */
+			SELECT
+			      'CHG_DMND_BEFORE'  AS  RET_TITLE
+			      , TRUNC(
+						  (
+						   TO_DATE(#{CHG_TRGT_YMD} || REPLACE(#{CHG_TRGT_BGNG_HR}, ':', ''), 'YYYYMMDD HH24:MI:SS')     /* 대상_시작시간 : 신청자가 선택한 대상자의 시작 시간 */ 
+						   -
+						   CASE                                                                                         /* 신청자의 이전근무 종료시간 */
+						  	   WHEN SUBSTR(BGNG_HR, 0, 2) < '20'
+						  	   THEN TO_DATE(EE.WORK_YMD || REPLACE(EE.END_HR, ':', ''), 'YYYYMMDD HH24:MI:SS') 
+						  	   ELSE TO_DATE(EE.WORK_YMD || REPLACE(EE.END_HR, ':', ''), 'YYYYMMDD HH24:MI:SS') + 1 
+						   END 
+						  ) * 24, 0
+					     )           AS  RET_VAL
+			FROM
+				  ( 
+				   SELECT 
+				         MM.BGNG_HR
+				         , MM.END_HR
+				         , DD.WORK_YMD 
+				   FROM  AYC110      MM 
+				         , AYC100    DD   
+				   WHERE 1=1
+				   AND   MM.BIZ_PLAN_MNG_NO      =   DD.BIZ_PLAN_MNG_NO
+				   AND   DD.USER_ID              =   #{CHG_DMND_ID} 
+				   AND   DD.TASKWK_SCHDL_SN      <>  #{CHG_DMND_SN}   -- 요청_업무일정일렬번호
+				   AND   TO_CHAR(TO_DATE(DD.WORK_YMD || REPLACE(MM.BGNG_HR,':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+				         <=
+				         TO_CHAR(TO_DATE(#{CHG_TRGT_YMD} ||  REPLACE(#{CHG_TRGT_BGNG_HR}, ':', ''), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+				   ORDER BY DD.WORK_YMD DESC, SUBSTR(MM.BGNG_HR,0,2)  DESC
+				  ) EE 
+			WHERE ROWNUM = 1
+			UNION ALL
+			/* 신청자이후휴게시간 : 신청자의 대상근무일자이후 근무시작시간 - 대상자의 근무종료시간 */ 
+			SELECT
+			      'CHG_DMND_AFTER'   AS  RET_TITLE
+			      , TRUNC(
+			              ( 
+						   TO_DATE(EE.WORK_YMD || REPLACE(EE.BGNG_HR, ':', ''), 'YYYYMMDD HH24:MI:SS')                  /* 신청자의 이후근무 시작시간 */
+						   -
+						   CASE                                                                                         /* 대상_시작시간 : 신청자가 선택한 대상자의 시작 시간 → 대상_종료시간으로 변경 */
+						       WHEN SUBSTR(#{CHG_TRGT_BGNG_HR}, 0, 2) < '20'
+						       THEN TO_DATE(#{CHG_TRGT_YMD} || REPLACE(#{CHG_TRGT_END_HR}, ':', ''), 'YYYYMMDD HH24:MI:SS') 
+						       ELSE TO_DATE(#{CHG_TRGT_YMD} || REPLACE(#{CHG_TRGT_END_HR}, ':', ''), 'YYYYMMDD HH24:MI:SS') + 1
+						   END
+						  ) * 24, 0
+					     )           AS  RET_VAL
+			FROM  
+			      (
+				   SELECT 
+				         MM.BGNG_HR
+				         , DD.WORK_YMD
+				         , DD.TASKWK_SCHDL_SN
+				   FROM  AYC110      MM  
+				         , AYC100    DD   
+				   WHERE 1=1
+				   AND   MM.BIZ_PLAN_MNG_NO      =   DD.BIZ_PLAN_MNG_NO
+				   AND   DD.USER_ID              =   #{CHG_DMND_ID} 
+				   AND   DD.TASKWK_SCHDL_SN      <>  #{CHG_DMND_SN}   /* 요청_업무일정일렬번호 */
+				   AND   TO_CHAR(TO_DATE(DD.WORK_YMD || REPLACE(MM.BGNG_HR,':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+				         >=
+				         TO_CHAR(TO_DATE(#{CHG_TRGT_YMD} || REPLACE(#{CHG_TRGT_BGNG_HR}, ':', ''), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+				   ORDER BY  DD.WORK_YMD ASC, SUBSTR(MM.BGNG_HR,0,2)  ASC
+				  ) EE 
+			WHERE ROWNUM = 1
+			UNION ALL
+			/* 대상자이전휴게시간 */
+			SELECT
+			      'CHG_TRGT_BEFORE'  AS  RET_TITLE 
+			      , TRUNC(
+				          ( 
+					       TO_DATE(#{CHG_DMND_YMD} || REPLACE(#{CHG_DMND_BGNG_HR}, ':', ''), 'YYYYMMDD HH24:MI:SS')     /* 요청_시작시간 : 신청자의 시작시간 */  
+					       -      
+					       CASE 
+						       WHEN SUBSTR(BGNG_HR, 0,2) < '20'
+						       THEN TO_DATE(EE.WORK_YMD || REPLACE(EE.END_HR, ':', ''), 'YYYYMMDD HH24:MI:SS')    
+						       ELSE TO_DATE(EE.WORK_YMD || REPLACE(EE.END_HR, ':', ''), 'YYYYMMDD HH24:MI:SS') + 1 
+					       END 
+					      ) * 24, 0
+					     )           AS  RET_VAL
+			FROM  
+				  ( 
+				   SELECT 
+				         MM.BGNG_HR
+				         , MM.END_HR
+				         , DD.WORK_YMD 
+				   FROM  AYC110      MM 
+				         , AYC100    DD   
+				   WHERE 1=1
+				   AND   MM.BIZ_PLAN_MNG_NO      =   DD.BIZ_PLAN_MNG_NO
+				   AND   DD.USER_ID              =   #{CHG_TRGT_ID} 
+				   AND   DD.TASKWK_SCHDL_SN      <>  #{CHG_TRGT_SN}   /* 대상_업무일정일렬번호 */
+				   AND   TO_CHAR(TO_DATE(DD.WORK_YMD || REPLACE(MM.BGNG_HR,':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+				         <= 
+				         TO_CHAR(TO_DATE(#{CHG_DMND_YMD} || REPLACE(#{CHG_DMND_BGNG_HR}, ':', ''), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+				   ORDER BY  DD.WORK_YMD DESC, SUBSTR(MM.BGNG_HR,0,2)  DESC 
+				  )   EE 
+			WHERE ROWNUM = 1
+			UNION ALL
+			/* 대상자이후휴게시간 */ 
+			SELECT 
+			      'CHG_TRGT_AFTER'   AS  RET_TITLE
+				  , TRUNC(
+					      ( 
+					       TO_DATE(EE.WORK_YMD || SUBSTR(EE.BGNG_HR,1,2) || SUBSTR(EE.BGNG_HR,4,2) , 'YYYYMMDD HH24:MI:SS')
+					       -
+					       CASE                                                                                          /* 요청_시작시간 : 신청자의 시작시간  → 요청_종료시간으로 변경 */
+					           WHEN SUBSTR(#{CHG_DMND_BGNG_HR}, 0, 2) < '20'
+					           THEN TO_DATE(#{CHG_DMND_YMD} || REPLACE(#{CHG_DMND_END_HR}, ':', ''), 'YYYYMMDD HH24:MI:SS')
+					           ELSE TO_DATE(#{CHG_DMND_YMD} || REPLACE(#{CHG_DMND_END_HR}, ':', ''), 'YYYYMMDD HH24:MI:SS') + 1
+					       END
+					      ) * 24, 0
+					     )           AS  RET_VAL
+			FROM  
+				  (
+				   SELECT 
+				         MM.BGNG_HR
+				         , DD.WORK_YMD
+				         , DD.TASKWK_SCHDL_SN
+				   FROM  AYC110      MM  
+				         , AYC100    DD   
+				   WHERE 1=1
+				   AND   MM.BIZ_PLAN_MNG_NO      =   DD.BIZ_PLAN_MNG_NO
+				   AND   DD.USER_ID              =   #{CHG_TRGT_ID} 
+				   AND   DD.TASKWK_SCHDL_SN      <>  #{CHG_TRGT_SN}   /* 대상_업무일정일렬번호 */
+				   AND   TO_CHAR(TO_DATE(DD.WORK_YMD || REPLACE(MM.BGNG_HR,':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+				         >=
+				         TO_CHAR(TO_DATE(#{CHG_DMND_YMD} || REPLACE(#{CHG_DMND_BGNG_HR}, ':', ''), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')
+				   ORDER BY DD.WORK_YMD ASC, SUBSTR(MM.BGNG_HR,0,2)  ASC
+				  )   EE 
+			WHERE ROWNUM = 1
+		]]>
+    </select>
+
+
+    <!-- <select id="selectWorkChgAplyChkList" parameterType="HashMap" resultType="HashMap"> 
+    /* 쿼리 검토 확인(테스트) 후 사용 요청 드립니다.
+                 신청자 ,대상자 근무 변경 시간(전,후)의 휴식시간을 return 한다.
+                 일일 1회 근무가 정책이라면 쿼리에 반영 바랍니다.
+        param : 대상자의 시작 시간, 신청자 아이디, 대상자 아이디 , 업무일정일렬번호, 신청자의 시작시간
+     */ 
+    <![CDATA[      
+        SELECT (
+                    SELECT ROUND( ( 
+                                    TO_DATE('20221130' || '00' || '00', 'YYYYMMDD HH24:MI:SS')  -      신청자가 선택한 대상자의 시작 시간
+                                    CASE 
+                                    WHEN SUBSTR(BGNG_HR, 0,2) <='20'
+                                    THEN TO_DATE(EE.WORK_YMD || SUBSTR(EE.END_HR,1,2) || SUBSTR(EE.END_HR,4,2) , 'YYYYMMDD HH24:MI:SS') + 1        신청자의 이전근무 종료시간 
+                                    ELSE TO_DATE(EE.WORK_YMD || SUBSTR(EE.END_HR,1,2) || SUBSTR(EE.END_HR,4,2) , 'YYYYMMDD HH24:MI:SS') 
+                                    END 
+                                   ) * 24, 2) 
+                      FROM  ( 
+                              SELECT MM.BGNG_HR, MM.END_HR, DD.WORK_YMD 
+                                FROM AYC110  MM , AYC100  DD   
+                               WHERE MM.BIZ_PLAN_MNG_NO      =  DD.BIZ_PLAN_MNG_NO
+                                 AND DD.USER_ID              =  'TESTE1' 
+                                 AND DD.TASKWK_SCHDL_SN <> '303105'    신청 업무일정일렬번호
+                                 AND TO_CHAR(TO_DATE(DD.WORK_YMD || REPLACE(MM.END_HR,':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AM HH:MI:SS')  < 
+                                                TO_CHAR(TO_DATE('20221130' ||  REPLACE('00:00',':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AM HH:MI:SS')
+                               ORDER BY DD.WORK_YMD DESC, SUBSTR(MM.BGNG_HR,0,2)  ASC
+                             ) EE 
+                     WHERE ROWNUM = 1
+               ) AS RET_VAL1  신청자이전휴게시간
+             , (
+                    SELECT ROUND( ( 
+                                    TO_DATE(EE.WORK_YMD || SUBSTR(EE.BGNG_HR,1,2) || SUBSTR(EE.BGNG_HR,4,2) , 'YYYYMMDD HH24:MI:SS')  -
+                                    TO_DATE('20221130' || '00' || '00', 'YYYYMMDD HH24:MI:SS')      신청자가 선택한 대상자의 시작 시간
+                                   ) * 24, 2) 
+                      FROM  (
+                              SELECT MM.BGNG_HR, DD.WORK_YMD, DD.TASKWK_SCHDL_SN
+                                FROM AYC110  MM  ,AYC100 DD   
+                               WHERE MM.BIZ_PLAN_MNG_NO      =  DD.BIZ_PLAN_MNG_NO
+                                 AND DD.USER_ID              =  'TESTE1' 
+                                 AND DD.TASKWK_SCHDL_SN <> '303105'    신청 업무일정일렬번호
+                                 AND TO_CHAR(TO_DATE(DD.WORK_YMD || REPLACE(MM.END_HR,':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AM HH:MI:SS')  > 
+                                                TO_CHAR(TO_DATE('20221130' ||  REPLACE('00:00',':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AM HH:MI:SS')
+                               ORDER BY  DD.WORK_YMD ASC, SUBSTR(MM.BGNG_HR,0,2)  ASC
+                             ) EE 
+                     WHERE ROWNUM = 1
+               ) AS RET_VAL2  신청자이후휴게시간 
+             , (
+                    SELECT ROUND( ( 
+                                    TO_DATE('20221130' || '20' || '30', 'YYYYMMDD HH24:MI:SS')  -      신청자의 시작시간
+                                    CASE 
+                                    WHEN SUBSTR(BGNG_HR, 0,2) <='20'
+                                    THEN TO_DATE(EE.WORK_YMD || SUBSTR(EE.END_HR,1,2) || SUBSTR(EE.END_HR,4,2) , 'YYYYMMDD HH24:MI:SS') + 1    
+                                    ELSE TO_DATE(EE.WORK_YMD || SUBSTR(EE.END_HR,1,2) || SUBSTR(EE.END_HR,4,2) , 'YYYYMMDD HH24:MI:SS') 
+                                    END 
+                                   ) * 24, 2) 
+                      FROM  ( 
+                              SELECT MM.BGNG_HR, MM.END_HR, DD.WORK_YMD 
+                                FROM AYC110  MM , AYC100  DD   
+                               WHERE MM.BIZ_PLAN_MNG_NO      =  DD.BIZ_PLAN_MNG_NO
+                                 AND DD.USER_ID              =  'E2011016' 
+                                 AND DD.TASKWK_SCHDL_SN <> '303113'    신청 업무일정일렬번호
+                                 AND TO_CHAR(TO_DATE(DD.WORK_YMD || REPLACE(MM.END_HR,':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AM HH:MI:SS')  < 
+                                                TO_CHAR(TO_DATE('20221130' ||  REPLACE('20:30',':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AM HH:MI:SS')
+                               ORDER BY  DD.WORK_YMD DESC, SUBSTR(MM.BGNG_HR,0,2)  ASC 
+                             )   EE 
+                     WHERE  ROWNUM = 1
+                ) AS RET_VAL3  대상자이전휴게시간
+              , (
+                    SELECT ROUND( ( 
+                                    TO_DATE(EE.WORK_YMD || SUBSTR(EE.BGNG_HR,1,2) || SUBSTR(EE.BGNG_HR,4,2) , 'YYYYMMDD HH24:MI:SS')  -
+                                    TO_DATE('20221130' || '20' || '30', 'YYYYMMDD HH24:MI:SS')       신청자의 시작시간 
+                                   ) * 24, 2)
+                     FROM  (
+                             SELECT MM.BGNG_HR, DD.WORK_YMD, DD.TASKWK_SCHDL_SN
+                               FROM AYC110  MM  ,AYC100 DD   
+                              WHERE MM.BIZ_PLAN_MNG_NO      =  DD.BIZ_PLAN_MNG_NO
+                                AND DD.USER_ID              =  'E2011016' 
+                                AND DD.TASKWK_SCHDL_SN <> '303113'    신청 업무일정일렬번호
+                                AND TO_CHAR(TO_DATE(DD.WORK_YMD || REPLACE(MM.END_HR,':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AM HH:MI:SS')  >
+                                               TO_CHAR(TO_DATE('20221130' ||  REPLACE('00:00',':','' ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD AM HH:MI:SS')
+                              ORDER BY DD.WORK_YMD DESC, SUBSTR(MM.BGNG_HR,0,2)  ASC
+                            )   EE 
+                    WHERE  ROWNUM = 1
+                ) AS RET_VAL4 대상자이후휴게시간 
+           FROM DUAL
+           ]]>
+    </select> -->
+</mapper>

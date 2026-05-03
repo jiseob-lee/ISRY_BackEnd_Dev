@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+    <!--  #############################################################################################  -->
+    <!--  ######################       REAL-ISRY SYSTEM CONFIG            #############################  -->
+    <!--  ######################      2022.02.10 Song.Young.Il            #############################  -->
+    <!--  #############################################################################################  -->
+
+
+<Configuration>
+
+    <Appenders>
+
+        <!-- Console 출력을 위한 Appender -->
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %5p [%c] %m%n" />
+        </Console>
+
+        <!-- 로그파일 생성을 위한 Appender -->
+        <RollingFile name="dailyRollingFileAppender"
+            fileName="/logs/ISRY_BackEnd/ISRY_BackEnd.log"
+            filePattern="/logs/ISRY_BackEnd/ISRY_BackEnd.%d{yyyy-MM-dd}.log"
+            append="true">
+            
+            <PatternLayout pattern="%d %5p [%c] %m%n" />
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"
+                    modulate="true" />
+            </Policies>
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+
+        <!-- 로컬환경-ISRY 패키지 영역은  전체 ERROR로 출력함. -->
+        <Logger name="isry" level="ERROR"
+            additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="dailyRollingFileAppender" />
+        </Logger>
+
+        <!-- 로컬환경-ISRY 패키지 영역은  전체 ERROR로 출력함. -->
+        <Logger name="egovframework.com" level="ERROR"
+            additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="dailyRollingFileAppender" />
+        </Logger>
+            
+        <Logger name="org.springframework" level="ERROR"
+            additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="dailyRollingFileAppender" />
+        </Logger>
+
+        <!-- SQL Logger -->
+        <logger name="jdbc.connection" additivity="false">
+            <level value="ERROR" />
+            <appender-ref ref="console" />
+            <AppenderRef ref="dailyRollingFileAppender" />
+        </logger>
+
+        <logger name="jdbc.audit" additivity="false">
+            <level value="ERROR" />
+            <appender-ref ref="console" />
+        </logger>
+
+        <logger name="jdbc.resultset" additivity="false">
+            <level value="ERROR" />
+            <appender-ref ref="console" />
+        </logger>
+
+        <logger name="jdbc.resultsettable" additivity="false">
+            <level value="ERROR" />
+            <appender-ref ref="console" />
+        </logger>
+
+        <logger name="jdbc.sqltiming" additivity="false">
+            <level value="ERROR" />
+            <appender-ref ref="console" />
+        </logger>
+
+        <logger name="java.sql" level="ERROR" />
+        
+        <logger name="jdbc.audit" level="ERROR" />
+        
+        <logger name="jdbc.resultset" level="ERROR" />
+        
+        <logger name="jdbc.sqlonly" level="ERROR" />
+    
+        <logger name="springfox" level="ERROR" />
+        
+        <logger name="org.quartz" level="ERROR" />
+        
+
+        <Root level="ERROR">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="dailyRollingFileAppender" />
+        </Root>
+    </Loggers>
+
+</Configuration>

@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper">
+
+    <select id="getTotalCount" parameterType="HashMap" resultType="int">
+        SELECT /*SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실*/
+                    count(*)
+        FROM        AYE100
+        WHERE 
+                    1=1
+            AND     BBSCTT_TYPE_SE_CD = '08'        /*게시글유형구분코드*/
+            AND     DEL_YN = 'N'        /*삭제여부*/
+    </select>
+    
+    <!-- <select id="selectInqBbsRplyList" parameterType="String" resultType="HashMap">
+        SELECT /*SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(조회)*/
+		            AA.BBSCTT_ESNTAL_NO AS BBSCTT_ESNTAL_NO       /*게시글번호*/
+		        ,   AA.BBSCTT_TYPE_SE_CD AS BBSCTT_TYPE_SE_CD      /*게시글구분코드*/
+		        ,   AA.BBSCTT_TTL_NM AS  BBSCTT_TTL_NM      /*게시글제목명*/
+                ,   COUNT(BB.BBSCTT_ESNTAL_NO) AS BBSCTT_RP_NO  /*댓글수*/
+		        ,   AA.WRTR_NM_ENCPT AS WRTR_NM_ENCPT      /*작성자*/
+		        ,   AA.BBSCTT_CN AS BBSCTT_CN      /*게시글내용*/
+		        ,   AA.CNTN_IP_ADDR AS CNTN_IP_ADDR       /*아이피주소*/
+		        ,   AA.EML_ADDR_ENCPT AS EML_ADDR_ENCPT     /*이메일주소*/
+		        ,   to_char(AA.FRST_REG_DT, 'YYYY-MM-DD') AS FRST_REG_DT      /*최초등록일자*/
+		        ,   AA.RDCNT_NOCS AS RDCNT_NOCS     /*조회수*/
+		        ,   AA.ATFINO AS ATFINO     /*첨부파일번호*/
+		        ,   (SELECT COUNT(1)
+                       FROM AYE110 Z
+                      WHERE Z.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+                        AND Z.BBSCTT_TYPE_SE_CD = AA.BBSCTT_TYPE_SE_CD
+                        AND Z.DEL_YN = 'N') AS CMNT
+		        ,   COUNT(*) OVER() AS TOTAL_COUNT
+		FROM        AYE100 AS AA 
+		        ,   AYE110 AS BB
+        WHERE 
+                    1=1
+		    AND     AA.BBSCTT_TYPE_SE_CD = '08'
+		    AND     AA.DEL_YN = 'N'
+		    AND     AA.BBSCTT_TYPE_SE_CD = BB.BBSCTT_TYPE_SE_CD(+)
+		    AND     AA.BBSCTT_ESNTAL_NO = BB.BBSCTT_ESNTAL_NO(+)
+		    AND     AA.DEL_YN = BB.DEL_YN(+)
+                    <if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''">
+            AND     AA.BBSCTT_TTL_NM LIKE '%'||#{BBSCTT_TTL_NM}||'%'      
+                    </if>                
+                    <if test="BBSCTT_ESNTAL_NO != null and BBSCTT_ESNTAL_NO != ''">
+            AND     AA.BBSCTT_ESNTAL_NO LIKE '%'||#{BBSCTT_ESNTAL_NO}||'%'
+                    </if> 
+                    <if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''">
+            <![CDATA[
+            AND CASE 
+                    WHEN LENGTH(AA.WRTR_NM_ENCPT) < 24 
+                        THEN AA.WRTR_NM_ENCPT
+                    ELSE  
+                        C##RG.DEC_B64(AA.WRTR_NM_ENCPT) 
+                    END 
+                    LIKE '%' || #{WRTR_NM_ENCPT} || '%'
+            ]]>
+                    </if> 
+		GROUP BY    AA.BBSCTT_ESNTAL_NO       /*게시글번호*/
+		        ,   AA.BBSCTT_TYPE_SE_CD      /*게시글구분코드*/
+		        ,   AA.BBSCTT_TTL_NM        /*게시글제목명*/
+		        ,   AA.WRTR_NM_ENCPT      /*작성자*/
+		        ,   AA.BBSCTT_CN     /*게시글번호*/
+		        ,   AA.CNTN_IP_ADDR       /*아이피주소*/
+		        ,   AA.EML_ADDR_ENCPT     /*이메일주소*/
+		        ,   AA.FRST_REG_DT/*최초등록일자*/
+		        ,   AA.RDCNT_NOCS     /*조회수*/
+		        ,   AA.ATFINO     /*첨부파일번호*/
+		ORDER BY    AA.BBSCTT_ESNTAL_NO DESC
+        OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select> -->
+    
+    <select id="selectInqBbsRplyList" parameterType="String" resultType="HashMap">
+    /*
+     * SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(조회)
+     * 2023.06.01 수정 - Jeong.Won.Je
+     */
+        SELECT 
+                    AA.BBSCTT_ESNTAL_NO                         AS BBSCTT_ESNTAL_NO     /*게시글번호*/
+                ,   AA.BBSCTT_TYPE_SE_CD                        AS BBSCTT_TYPE_SE_CD    /*게시글구분코드*/
+                ,   AA.BBSCTT_TTL_NM                            AS  BBSCTT_TTL_NM       /*게시글제목명*/
+                ,   C##RG.DEC_B64(AA.WRTR_NM_ENCPT)          AS WRTR_NM_ENCPT        /*작성자*/
+                ,   AA.BBSCTT_CN                                AS BBSCTT_CN            /*게시글내용*/
+                ,   AA.CNTN_IP_ADDR                             AS CNTN_IP_ADDR         /*아이피주소*/
+                ,   AA.EML_ADDR_ENCPT                           AS EML_ADDR_ENCPT       /*이메일주소*/
+                ,   to_char(AA.FRST_REG_DT, 'YYYY-MM-DD')       AS FRST_REG_DT          /*최초등록일자*/
+                ,   AA.RDCNT_NOCS                               AS RDCNT_NOCS           /*조회수*/
+                ,   AA.ATFINO                                   AS ATFINO               /*첨부파일번호*/
+                ,   (SELECT COUNT(1)
+                       FROM AYE110 Z
+                      WHERE Z.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+                        AND Z.BBSCTT_TYPE_SE_CD = AA.BBSCTT_TYPE_SE_CD
+                        AND Z.DEL_YN = 'N')                     AS CMNT
+                ,   COUNT(*) OVER()                             AS TOTAL_COUNT
+                ,   AA.DEL_YN                                   AS  DEL_YN
+                ,   (
+                     SELECT COUNT(*)
+                     FROM   SCA100      T1
+                            , SAA200    T2
+                     WHERE  T1.ENFSN_NO     =   T2.ENFSN_NO
+                     AND    T2.USER_ID      =   AA.LAST_MDFR_ID
+                    )                                           AS  MDFR_CNT
+        FROM        AYE100 AS AA 
+        WHERE 
+                    1=1
+            AND     AA.BBSCTT_TYPE_SE_CD = '08'
+            AND     (
+                     AA.DEL_YN           !=  'Y'
+                     OR
+                     AA.DEL_YN           IS NULL
+                    )
+                    <if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''">
+            AND     AA.BBSCTT_TTL_NM LIKE '%'||#{BBSCTT_TTL_NM}||'%'      
+                    </if>                
+                    <if test="BBSCTT_ESNTAL_NO != null and BBSCTT_ESNTAL_NO != ''">
+            AND     AA.BBSCTT_ESNTAL_NO LIKE '%'||#{BBSCTT_ESNTAL_NO}||'%'
+                    </if> 
+                    <if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''">
+            <![CDATA[
+            AND CASE 
+                    WHEN LENGTH(AA.WRTR_NM_ENCPT) < 24 
+                        THEN AA.WRTR_NM_ENCPT
+                    ELSE  
+                        C##RG.DEC_B64(AA.WRTR_NM_ENCPT) 
+                    END 
+                    LIKE '%' || #{WRTR_NM_ENCPT} || '%'
+            ]]>
+                    </if> 
+        ORDER BY    AA.BBSCTT_ESNTAL_NO DESC
+        OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select>
+    
+    <update id="updateRdcntDtlList" parameterType="HashMap">
+        /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  댓글상담실(조회수)*/
+        UPDATE AYE100 SET
+            RDCNT_NOCS = NVL(TO_NUMBER(RDCNT_NOCS), 0) +1
+        WHERE 1=1
+        AND BBSCTT_TYPE_SE_CD = '08'
+        AND BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+    </update>
+    
+    <select id="selectInqBbsRplyListDetail" parameterType="String" resultType="HashMap">
+    /*
+     * SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper.selectInqBbsRplyListDetail :  댓글상담실(상세)
+     * 2023.04.27 수정 : 불필요한 컬럼 삭제 - Jeong.Won.Je
+     */
+		SELECT 
+			    AA.BBSCTT_ESNTAL_NO                                          AS BBSCTT_ESNTAL_NO       /* 게시글번호 */
+			,   AA.BBSCTT_TYPE_SE_CD                                         AS BBSCTT_TYPE_SE_CD      /* 게시글구분코드 */
+			,   AA.BBSCTT_TTL_NM                                             AS BBSCTT_TTL_NM          /* 게시글제목명 */
+			,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD AM HH12:MI:SS')          AS WRT_DT                 /* 작성일자 */
+			,   C##RG.DEC_B64(AA.WRTR_NM_ENCPT)                           AS WRTR_NM_ENCPT          /* 작성자명 */
+			,   AA.HPGE_URL_ADDR                                             AS HPGE_URL_ADDR          /* 홈페이지URL */
+			,   AA.BRTH_YMD                                                  AS BRTH_YR                /* 출생년도 */
+			,   AA.FRST_RGTR_ID                                              AS CLIENA_ID              /* 작성자아이디 */
+			,   AA.EML_ADDR_ENCPT                                            AS EML_ADDR_ENCPT         /* 이메일주소 */
+			,   AA.RDCNT_NOCS                                                AS RDCNT_NOCS             /* 조회수 */
+			,   AA.CNTN_IP_ADDR                                              AS CNTN_IP_ADDR           /* 아이피주소 */
+			,   AA.BBSCTT_CN                                                 AS BBSCTT_CN              /* 게시글내용 */
+			,   AA.SXDC_SE_CD                                                AS SXDC_SE_CD             /* 성별 */
+			,   AA.ACBG_SE_CD                                                AS ACBG_SE_CD             /* 학력구분코드 */
+            ,   AA.GRADE_SE_CD                                               AS GRADE_SE_CD            /* 학년구분코드 */
+            ,   AA.GRDTN_STTS_SE_CD                                          AS GRDTN_STTS_SE_CD       /* 졸업상태구분코드 */
+            ,   AA.REAL_CONSTT_SE_CD                                         AS REAL_CONSTT_SE_CD      /* 실제상담자구분코드 */
+            ,   AA.REAL_CONSTT_ETC_CN                                        AS REAL_CONSTT_ETC_CN     /* 실제상담자기타내용 */
+            ,   AA.YNGBGS_SE_NO                                              AS YNGBGS_SE_NO           /* 청소년구분번호 */
+            ,   AA.PROBM_STTS_LCLAS_SE_CD                                    AS PROBM_STTS_LCLAS_SE_CD /* 문제상태대분류구분코드 */
+            ,   AA.PROBM_STTS_MLSFC_SE_CD                                    AS PROBM_STTS_MLSFC_SE_CD /* 문제상태중분류구분코드 */
+            ,   AA.PROBM_STTS_SCLAS_SE_CD                                    AS PROBM_STTS_SCLAS_SE_CD /* 문제상태소분류구분코드 */
+            ,   AA.PROBM_CAS_LCLAS_SE_CD                                     AS PROBM_CAS_LCLAS_SE_CD  /* 문제원인대분류구분코드 */
+            ,   AA.PROBM_CAS_SCLAS_SE_CD                                     AS PROBM_CAS_SCLAS_SE_CD  /* 문제원인소분류구분코드 */
+            ,   AA.ETC_CN                                                    AS ETC_CN                 /* 기타내용 */
+            ,   AA.LINK_PRCS_SE_CN                                           AS LINK_PRCS_SE_CN        /* 연계처리구분내용 */
+            ,   AA.RCPT_RQST_COURS_SE_CD                                     AS RCPT_RQST_COURS_SE_CD  /* 접수의뢰경로구분코드 */
+            ,   (
+                 SELECT CMMNS_CD_VALUE_NM 
+                 FROM   SAC100 x 
+                 WHERE  x.CMMNS_CD_ID       =   'RCPT_RQST_COURS_SE_CD'
+                 AND    x.CMMNS_CD_VALUE    =   AA.RCPT_RQST_COURS_SE_CD
+                )                                                            AS RCPT_RQST_COURS_SE_NM  /* 접수의뢰경로구분명 */
+            ,   AA.LINK_INST_NM                                              AS LINK_INST_NM           /* 연계기관명 */
+            ,   AA.DEL_YN                                                    AS DEL_YN                 /* 삭제여부 */ 
+		FROM    AYE100    AA
+		WHERE   1=1
+		AND     AA.BBSCTT_ESNTAL_NO        =       #{BBSCTT_ESNTAL_NO}
+		AND     AA.BBSCTT_TYPE_SE_CD       =       '08'
+    </select>
+    
+    <insert id="insertBbsRplyReg" parameterType="HashMap" useGeneratedKeys="true" keyProperty="BBSCTT_ESNTAL_NO">
+    /*
+     * SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(등록)
+     * 2023.04.27 수정 : 불필요한 컬럼 삭제 / 컬럼 추가 - Jeong.Won.Je
+     */
+		<selectKey resultType="String" keyProperty="BBSCTT_ESNTAL_NO" order="AFTER">
+			<![CDATA[            
+				SELECT AYE100_SQ01.CURRVAL AS BBSCTT_ESNTAL_NO
+				FROM DUAL 
+			]]>
+		</selectKey>    
+			INSERT INTO AYE100 (
+					  BBSCTT_ESNTAL_NO         /* 게시글번호 */
+					, BBSCTT_TYPE_SE_CD        /* 게시글구분코드 */
+					<if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''">
+					, BBSCTT_TTL_NM            /* 게시글제목명 */
+					</if> 
+					<if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''">
+					, WRTR_NM_ENCPT            /* 작성자명 */
+					</if>
+					<if test="HPGE_URL_ADDR != null and HPGE_URL_ADDR != ''">
+					, HPGE_URL_ADDR            /* 홈페이지URL */
+					</if> 
+					<if test="BRTH_YMD != null and BRTH_YMD != ''">
+					, BRTH_YMD                 /* 출생일자 */
+					</if>
+					<if test="EML_ADDR_ENCPT != null and EML_ADDR_ENCPT != ''"> 
+					, EML_ADDR_ENCPT           /* 이메일주소 */
+					</if> 
+					<if test="CNTN_IP_ADDR != null and CNTN_IP_ADDR != ''">
+					, CNTN_IP_ADDR             /* 아이피주소 */
+					</if> 
+					<if test="BBSCTT_CN != null and BBSCTT_CN != ''">
+					, BBSCTT_CN                /* 게시글내용 */
+					</if> 
+					<if test="SXDC_SE_CD != null and SXDC_SE_CD != ''">
+					, SXDC_SE_CD               /* 성별 */
+					</if>
+					<if test="ACBG_SE_CD != null and ACBG_SE_CD != ''">
+					, ACBG_SE_CD               /* 학력구분코드 */
+					</if>
+					<if test="GRADE_SE_CD != null and GRADE_SE_CD != ''">
+					, GRADE_SE_CD              /* 학년구분코드 */
+					</if>
+					<if test="GRDTN_STTS_SE_CD != null and GRDTN_STTS_SE_CD != ''">
+                    , GRDTN_STTS_SE_CD         /* 졸업상태구분코드 */
+                    </if>
+                    <if test="REAL_CONSTT_SE_CD != null and REAL_CONSTT_SE_CD != ''">
+                    , REAL_CONSTT_SE_CD        /* 실제상담자구분코드 */
+                    </if>
+                    <if test="REAL_CONSTT_ETC_CN != null and REAL_CONSTT_ETC_CN != ''">
+                    , REAL_CONSTT_ETC_CN       /* 실제상담자기타내용 */
+                    </if>
+                    <if test="YNGBGS_SE_NO != null and YNGBGS_SE_NO != ''">
+                    , YNGBGS_SE_NO             /* 청소년구분번호 */
+                    </if>
+                    <if test="PROBM_STTS_LCLAS_SE_CD != null and PROBM_STTS_LCLAS_SE_CD != ''">
+                    , PROBM_STTS_LCLAS_SE_CD   /* 문제상태대분류구분코드 */
+                    </if>
+                    <if test="PROBM_STTS_MLSFC_SE_CD != null and PROBM_STTS_MLSFC_SE_CD != ''">
+                    , PROBM_STTS_MLSFC_SE_CD   /* 문제상태중분류구분코드 */
+                    </if>
+                    <if test="PROBM_STTS_SCLAS_SE_CD != null and PROBM_STTS_SCLAS_SE_CD != ''">
+                    , PROBM_STTS_SCLAS_SE_CD   /* 문제상태소분류구분코드 */
+                    </if>
+                    <if test="PROBM_CAS_LCLAS_SE_CD != null and PROBM_CAS_LCLAS_SE_CD != ''">
+                    , PROBM_CAS_LCLAS_SE_CD    /* 문제원인대분류구분코드 */
+                    </if>
+                    <if test="PROBM_CAS_SCLAS_SE_CD != null and PROBM_CAS_SCLAS_SE_CD != ''">
+                    , PROBM_CAS_SCLAS_SE_CD    /* 문제원인소분류구분코드 */
+                    </if>
+                    <if test="ETC_CN != null and ETC_CN != ''">
+                    , ETC_CN                   /* 기타내용 */
+                    </if>
+                    <if test="LINK_PRCS_SE_CN != null and LINK_PRCS_SE_CN != ''">
+                    , LINK_PRCS_SE_CN          /* 연계처리구분내용 */
+                    </if>
+                    <if test="RCPT_RQST_COURS_SE_CD != null and RCPT_RQST_COURS_SE_CD != ''">
+                    , RCPT_RQST_COURS_SE_CD    /* 접수의뢰경로구분코드 */
+                    </if>
+                    <if test="LINK_INST_NM != null and LINK_INST_NM != ''">
+                    , LINK_INST_NM             /* 연계기관명 */
+                    </if>
+					, FRST_REG_DT              /* 최초등록일자 */
+					, FRST_RGTR_ID             /* 최초등록아이디 */
+					)
+			VALUES(
+					AYE100_SQ01.NEXTVAL
+					, '08' 
+					<if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''">
+					, #{BBSCTT_TTL_NM}
+					</if> 
+					<if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''">
+					, C##RG.ENC_B64(#{WRTR_NM_ENCPT}) 
+					</if> 
+					<if test="HPGE_URL_ADDR != null and HPGE_URL_ADDR != ''">
+                    , #{HPGE_URL_ADDR}
+                    </if>
+					<if test="BRTH_YMD != null and BRTH_YMD != ''">
+					, #{BRTH_YMD}
+					</if>
+					<if test="EML_ADDR_ENCPT != null and EML_ADDR_ENCPT != ''"> 
+					, #{EML_ADDR_ENCPT} 
+					</if>
+					<if test="CNTN_IP_ADDR != null and CNTN_IP_ADDR != ''">
+					, #{CNTN_IP_ADDR}
+					</if>
+					<if test="BBSCTT_CN != null and BBSCTT_CN != ''">
+					, #{BBSCTT_CN} 
+					</if> 
+					<if test="SXDC_SE_CD != null and SXDC_SE_CD != ''">
+					, #{SXDC_SE_CD}
+					</if>
+					<if test="ACBG_SE_CD != null and ACBG_SE_CD != ''">
+                    , #{ACBG_SE_CD}
+                    </if>
+                    <if test="GRADE_SE_CD != null and GRADE_SE_CD != ''">
+                    , #{GRADE_SE_CD}
+                    </if>
+                    <if test="GRDTN_STTS_SE_CD != null and GRDTN_STTS_SE_CD != ''">
+                    , #{GRDTN_STTS_SE_CD}
+                    </if>
+                    <if test="REAL_CONSTT_SE_CD != null and REAL_CONSTT_SE_CD != ''">
+                    , #{REAL_CONSTT_SE_CD}
+                    </if>
+                    <if test="REAL_CONSTT_ETC_CN != null and REAL_CONSTT_ETC_CN != ''">
+                    , #{REAL_CONSTT_ETC_CN}
+                    </if>
+                    <if test="YNGBGS_SE_NO != null and YNGBGS_SE_NO != ''">
+                    , #{YNGBGS_SE_NO}
+                    </if>
+                    <if test="PROBM_STTS_LCLAS_SE_CD != null and PROBM_STTS_LCLAS_SE_CD != ''">
+                    , #{PROBM_STTS_LCLAS_SE_CD}
+                    </if>
+                    <if test="PROBM_STTS_MLSFC_SE_CD != null and PROBM_STTS_MLSFC_SE_CD != ''">
+                    , #{PROBM_STTS_MLSFC_SE_CD}
+                    </if>
+                    <if test="PROBM_STTS_SCLAS_SE_CD != null and PROBM_STTS_SCLAS_SE_CD != ''">
+                    , #{PROBM_STTS_SCLAS_SE_CD}
+                    </if>
+                    <if test="PROBM_CAS_LCLAS_SE_CD != null and PROBM_CAS_LCLAS_SE_CD != ''">
+                    , #{PROBM_CAS_LCLAS_SE_CD}
+                    </if>
+                    <if test="PROBM_CAS_SCLAS_SE_CD != null and PROBM_CAS_SCLAS_SE_CD != ''">
+                    , #{PROBM_CAS_SCLAS_SE_CD}
+                    </if>
+                    <if test="ETC_CN != null and ETC_CN != ''">
+                    , #{ETC_CN}
+                    </if>
+                    <if test="LINK_PRCS_SE_CN != null and LINK_PRCS_SE_CN != ''">
+                    , #{LINK_PRCS_SE_CN}
+                    </if>
+                    <if test="RCPT_RQST_COURS_SE_CD != null and RCPT_RQST_COURS_SE_CD != ''">
+                    , #{RCPT_RQST_COURS_SE_CD}
+                    </if>
+                    <if test="LINK_INST_NM != null and LINK_INST_NM != ''">
+                    , #{LINK_INST_NM}
+                    </if>
+					, TO_DATE(#{FRST_REG_DT},'YYYY-MM-DD')
+					, #{FRST_RGTR_ID}
+					)
+    </insert>
+
+    <update id="updateBbsRplyProc" parameterType="HashMap">
+    /*
+     * SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(수정)
+     * 2023.04.27 수정 : 불필요한 컬럼 삭제 / 컬럼 추가 - Jeong.Won.Je
+     */
+        UPDATE  
+                AYE100 
+        SET  
+                SXDC_SE_CD                  =       #{SXDC_SE_CD}               /* 성별 */
+            ,   BBSCTT_TTL_NM               =       #{BBSCTT_TTL_NM}            /* 게시글제목명 */
+            ,   WRTR_NM_ENCPT               =       C##RG.ENC_B64(#{WRTR_NM_ENCPT})            /* 작성자명암호화 */
+            <if test="BBSCTT_CN != 'false'"> 
+            ,   BBSCTT_CN                   =       #{BBSCTT_CN}                /* 게시글내용 */
+            </if>
+            ,   ACBG_SE_CD                  =       #{ACBG_SE_CD}               /* 학력구분코드 */
+            ,   GRADE_SE_CD                 =       #{GRADE_SE_CD}              /* 학년구분코드 */
+            ,   GRDTN_STTS_SE_CD            =       #{GRDTN_STTS_SE_CD}         /* 졸업상태구분코드 */
+            ,   REAL_CONSTT_SE_CD           =       #{REAL_CONSTT_SE_CD}        /* 실제상담자구분코드 */
+            ,   REAL_CONSTT_ETC_CN          =       #{REAL_CONSTT_ETC_CN}       /* 실제상담자기타내용 */
+            ,   YNGBGS_SE_NO                =       #{YNGBGS_SE_NO}             /* 청소년구분번호 */
+            ,   PROBM_STTS_LCLAS_SE_CD      =       #{PROBM_STTS_LCLAS_SE_CD}   /* 문제상태대분류 */
+            ,   PROBM_STTS_MLSFC_SE_CD      =       #{PROBM_STTS_MLSFC_SE_CD}   /* 문제상태중분류 */
+            ,   PROBM_STTS_SCLAS_SE_CD      =       #{PROBM_STTS_SCLAS_SE_CD}   /* 문제상태소분류 */
+            ,   PROBM_CAS_LCLAS_SE_CD       =       #{PROBM_CAS_LCLAS_SE_CD}    /* 문제원인대분류 */
+            ,   PROBM_CAS_SCLAS_SE_CD       =       #{PROBM_CAS_SCLAS_SE_CD}    /* 문제원인소분류 */
+            ,   ETC_CN                      =       #{ETC_CN}                   /* 문제상세 */
+            ,   LINK_PRCS_SE_CN             =       #{LINK_PRCS_SE_CN}          /* 연계처리구분내용 */
+            ,   RCPT_RQST_COURS_SE_CD       =       #{RCPT_RQST_COURS_SE_CD}    /* 접수의뢰경로구분코드 */
+            ,   LINK_INST_NM                =       #{LINK_INST_NM}             /* 연계기관명 */
+			,   LAST_MDFR_ID                =       #{LAST_MDFR_ID}             /* 최종수정아이디 */              
+			,   LAST_MDFCN_DT               =       SYSDATE                     /* 최종수정일 */ 
+        WHERE   1=1
+        AND     BBSCTT_ESNTAL_NO            =       #{BBSCTT_ESNTAL_NO}                                 
+        AND     BBSCTT_TYPE_SE_CD           =       #{BBSCTT_TYPE_SE_CD}
+    </update>
+    
+    <update id="deleteBbsRplyProc" parameterType="HashMap">
+    /* 
+     * SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(삭제)
+     */
+		UPDATE
+		        AYE100
+		SET   
+		        DEL_YN                =   'Y'                     /* 삭제여부 */
+		        , LAST_MDFCN_DT       =   SYSDATE                 /* 최종수정일 */
+		        , LAST_MDFR_ID        =   #{LAST_MDFR_ID}         /* 최종수정아이디 */
+		WHERE   1=1
+		AND     BBSCTT_ESNTAL_NO      =   #{BBSCTT_ESNTAL_NO}     /* 게시글고유번호 */
+		AND     BBSCTT_TYPE_SE_CD     =   #{BBSCTT_TYPE_SE_CD}    /* 게시글유형구분코드 */
+    </update>
+
+
+    <insert id="insertBbsDetailRplyReg" parameterType="HashMap" >
+			INSERT INTO AYE110  (/*SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(댓글등록)*/
+					BBSCTT_ESNTAL_NO,      /*게시글고유번호*/
+					BBSCTT_TYPE_SE_CD,     /*게시글유형코드*/
+					CMNT_ESNTAL_NO,        /*댓글고유번호*/
+					<if test="CMNT_CN != null and CMNT_CN != ''">
+					CMNT_CN,       /*댓글내용*/
+					</if>
+					<if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''">
+					WRTR_NM_ENCPT,     /*작성자*/
+					</if>
+					<if test="CNTN_IP_ADDR != null and CNTN_IP_ADDR != ''">
+					CNTN_IP_ADDR,      /*접속아이피*/
+					</if>
+					DEL_YN,        /*삭제여부*/
+					FRST_RGTR_ID,      /*최초등록아이디*/
+					FRST_REG_DT,       /*최초등록일*/
+					LAST_MDFR_ID,      /*최종수정아이디*/
+					LAST_MDFCN_DT      /*최종수정일*/
+					)
+			VALUES(
+					   #{BBSCTT_ESNTAL_NO}
+					 , '08'
+					 , AYE110_SQ01.NEXTVAL
+					   <if test="CMNT_CN != null and CMNT_CN != ''">
+					 , #{CMNT_CN} 
+					  </if>
+					  <if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''">
+					 , C##RG.ENC_B64(#{WRTR_NM_ENCPT}) 
+					  </if>
+					  <if test="CNTN_IP_ADDR != null and CNTN_IP_ADDR != ''">
+					 , #{CNTN_IP_ADDR} 
+					  </if>
+					 , 'N'
+					 , #{FRST_RGTR_ID} 
+					 , SYSDATE 
+					 , #{LAST_MDFR_ID} 
+					 , SYSDATE  
+					)
+    </insert>
+    
+    
+    
+    <select id="subRplyList" parameterType="String" resultType="HashMap">
+        SELECT /*SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(댓글조회)*/
+                     BBSCTT_ESNTAL_NO                                       /*게시글번호*/
+                    ,BBSCTT_TYPE_SE_CD                                      /*게시글구분코드*/
+                    ,CMNT_ESNTAL_NO                                         /*댓글고유번호*/
+                    ,CMNT_CN                                                /*댓글내용*/
+                    ,C##RG.DEC_B64(WRTR_NM_ENCPT)    AS WRTR_NM_ENCPT    /*작성자*/
+                    ,DEL_YN                                                 /*삭제여부*/
+                    ,CNTN_IP_ADDR                                           /*접속아이피주소*/
+                    ,FRST_RGTR_ID                                           /*최초등록아이디*/
+                    ,TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD') AS FRST_REG_YMD     /*최초등록일자*/
+                    ,TO_CHAR(FRST_REG_DT, 'AM HH24:MI:SS') AS FRST_REG_TIME /*최초등록일자*/
+                    ,LAST_MDFR_ID                                           /*최종수정아이디*/
+                    ,LAST_MDFCN_DT                                          /*최종수정일자*/
+        FROM        AYE110
+        WHERE 
+                    1=1
+            AND     BBSCTT_TYPE_SE_CD = '08'                /*게시글유형구분코드*/
+            AND     DEL_YN = 'N'                            /*삭제여부*/
+            AND     BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}  /*게시글번호*/
+            ORDER BY FRST_REG_DT DESC
+    </select>
+    
+    <update id="updateBbsDetailRplyProc" parameterType="HashMap">
+        UPDATE AYE110 SET /*SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(댓글수정)*/
+                    CMNT_CN = #{CMNT_CN}                  
+                    ,LAST_MDFCN_DT = SYSDATE 
+                    ,LAST_MDFR_ID = #{LAST_MDFR_ID}
+        WHERE       1=1
+            AND     BBSCTT_TYPE_SE_CD = '08'
+            AND     BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO__origin}
+            AND     CMNT_ESNTAL_NO = #{CMNT_ESNTAL_NO__origin}                               
+    </update>
+    
+    <update id="deleteBbsDetailRplyProc" parameterType="HashMap">
+
+        UPDATE AYE110 SET   /*SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(댓글삭제)*/
+                      DEL_YN = 'Y'
+                    , LAST_MDFCN_DT = SYSDATE     
+                    , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        WHERE       1=1
+            AND     BBSCTT_TYPE_SE_CD = '08'
+            AND     BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO__origin}
+            AND     CMNT_ESNTAL_NO = #{CMNT_ESNTAL_NO__origin}
+    </update>
+    
+    <update id="updateRdcnt" parameterType="HashMap">
+        <![CDATA[
+	    /*SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsRplyListMapper :  댓글상담실(조회수)
+	    UPDATE AYE100 SET
+	        RDCNT_NOCS = NVL(TO_NUMBER(RDCNT_NOCS), 0) +1
+	    WHERE 1=1
+		    AND BBSCTT_TYPE_SE_CD = '08'
+		    AND BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+	    ]]>
+    </update>
+    
+</mapper>

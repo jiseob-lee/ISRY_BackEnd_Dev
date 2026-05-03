@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+    	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+    	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+
+
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="txManager2" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource2"/>
+    </bean>
+
+    <!--
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="*" rollback-for="Exception"/>
+		</tx:attributes>
+	</tx:advice>
+    -->
+
+	<!-- transactionManager 적용 범위 지정(advice) -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+	    <tx:attributes>
+	        <tx:method name="select*" read-only="true" rollback-for="Exception" />
+	        <tx:method name="search*" read-only="true" rollback-for="Exception" />
+	        <tx:method name="list*" read-only="true" rollback-for="Exception" />
+	        <tx:method name="get*" read-only="true" rollback-for="Exception" />
+	        <tx:method name="save*"   read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+	        <tx:method name="insert*" read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+	        <tx:method name="update*" read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+	        <tx:method name="delete*" read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+	        <tx:method name="process*" read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+	    </tx:attributes>
+	</tx:advice>
+
+    <tx:advice id="txAdvice2" transaction-manager="txManager2">
+        <tx:attributes>
+            <tx:method name="select*" read-only="true" rollback-for="Exception" />
+            <tx:method name="search*" read-only="true" rollback-for="Exception" />
+	        <tx:method name="list*" read-only="true" rollback-for="Exception" />
+	        <tx:method name="get*" read-only="true" rollback-for="Exception" />
+            <tx:method name="save*"   read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="insert*" read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="update*" read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="delete*" read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="process*" read-only="false" propagation="REQUIRED" rollback-for="Exception"/>
+        </tx:attributes>
+    </tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="requiredTx" expression="execution(* egovframework.example.sample..impl.*Impl.*(..)) || execution(* isry..impl.*Impl.*(..))"/>
+		<aop:advisor id="transactionAdvisor" advice-ref="txAdvice" pointcut-ref="requiredTx" />
+		<aop:advisor id="transactionAdvisor2" advice-ref="txAdvice2" pointcut-ref="requiredTx" />
+	</aop:config>
+
+</beans>

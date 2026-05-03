@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="isry.pubmt.indivsprt.mapper.CertiMapper">
+    
+    <select id="selectSysDate" resultType="String">
+        /*  isry.pubmt.indivsprt.mapper.certimapper.selectSysDate   */
+        <choose>
+             <when test="STR_FORMAT != null and STR_FORMAT != ''">
+                SELECT TO_CHAR(SYSDATE, #{STR_FORMAT}) AS CURT_DT
+            </when>
+            <otherwise>
+                SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') AS CURT_DT
+            </otherwise>
+        </choose>
+       <![CDATA[
+            FROM DUAL
+       ]]>       
+    </select>
+    
+    <select id="getTotalCount" resultType="String">
+        /*  isry.pubmt.indivsprt.mapper.certimapper.getTotalCount   */
+        <![CDATA[
+        SELECT  COUNT(*)  
+          FROM  CMN_TMP_BOARD        
+        ]]>       
+    </select>
+    
+    <select id="selectCertiList" resultType="HashMap">
+        <![CDATA[
+        /* isry.pubmt.indivsprt.mapper.certimapper.selectCertiList  */
+        SELECT CASE_MNG_NO,
+               CASE_MNG_ODRNO,
+               EMPYMN_QLFC_MNG_NO,
+               TASKWK_SE_CD,
+               DECODE(TASKWK_SE_CD,'1','취업','자격증') AS TASKWK_SE_CD_NM,
+               EMPYMN_INST_NM,
+               WORK_BGNG_YMD,
+               WORK_END_YMD,
+               RETIRE_CS_CN,
+               EMPYMN_TYPE_SE_CD,
+               ACQS_CERTI_NM,
+               ACQS_YMD,
+               CONSTT_ID,
+               RGN_CD,
+               INST_CD,
+               ISSU_INST_NM,
+               RTRM_YMD,
+               CN1,
+               FRST_RGTR_ID,
+               FRST_REG_DT,
+               LAST_MDFR_ID,
+               LAST_MDFCN_DT        
+          FROM CYS_LICENCE
+         WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          ]]>       
+        ORDER BY FRST_REG_DT DESC
+    </select>
+    
+
+	<insert id="insertCertiList" parameterType="HashMap" useGeneratedKeys="true" keyProperty="BRD_SEQ">
+		
+        <selectKey resultType="String" keyProperty="NEW_EMPYMN_QLFC_MNG_NO" order="BEFORE">
+            <![CDATA[
+              /* !!!!!!  아래 키를 가져오는 부분은 Sequence Table을 이용해서 Nextval을 활용하여 키를 가져와야 합니다. */
+              /* 아래 로직은 수정이 필요함. */
+              SELECT TO_CHAR(SYSDATE,'YYYYMMDD')||'_'|| TO_CHAR(NVL(COUNT(EMPYMN_QLFC_MNG_NO), 0) +1) AS EMPYMN_QLFC_MNG_NO
+                FROM CYS_LICENCE
+               WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+            ]]>
+        </selectKey>
+        
+    <![CDATA[
+        /* isry.pubmt.indivsprt.mapper.certimapper.insertCertiList  */
+        
+        INSERT INTO CYS_LICENCE /* 권한 */
+        (
+            CASE_MNG_NO
+           ,CASE_MNG_ODRNO
+           ,EMPYMN_QLFC_MNG_NO
+           ,TASKWK_SE_CD
+           ,EMPYMN_INST_NM 
+           ,WORK_BGNG_YMD
+           ,WORK_END_YMD
+           ,RETIRE_CS_CN
+           ,EMPYMN_TYPE_SE_CD
+           ,ACQS_CERTI_NM
+           ,ACQS_YMD 
+           ,CONSTT_ID
+           ,RGN_CD 
+           ,INST_CD 
+           ,ISSU_INST_NM 
+           ,RTRM_YMD 
+           ,CN1
+           ,FRST_RGTR_ID
+           ,FRST_REG_DT
+        )
+        VALUES
+        (
+            #{CASE_MNG_NO}
+           ,#{CASE_MNG_ODRNO}
+           ,#{NEW_EMPYMN_QLFC_MNG_NO}
+           ,#{TASKWK_SE_CD}
+           ,#{EMPYMN_INST_NM} 
+           ,#{WORK_BGNG_YMD}
+           ,#{WORK_END_YMD}
+           ,#{RETIRE_CS_CN}
+           ,#{EMPYMN_TYPE_SE_CD}
+           ,#{ACQS_CERTI_NM}
+           ,#{ACQS_YMD}
+           ,#{CONSTT_ID}
+           ,#{RGN_CD}
+           ,#{INST_CD}
+           ,#{ISSU_INST_NM}
+           ,#{RTRM_YMD}
+           ,#{CN1}
+           ,#{FRST_RGTR_ID}
+           ,SYSDATE
+        )
+    ]]>
+	</insert>
+
+		
+    <update id="updateCertiList" parameterType="HashMap">
+    
+        /* isry.pubmt.indivsprt.mapper.certimapper.updateCertiList  */
+        UPDATE CYS_LICENCE SET
+           TASKWK_SE_CD = #{TASKWK_SE_CD}
+           ,EMPYMN_INST_NM = #{EMPYMN_INST_NM}
+           ,WORK_BGNG_YMD = #{WORK_BGNG_YMD}
+           ,WORK_END_YMD = #{WORK_END_YMD}
+           ,RETIRE_CS_CN = #{RETIRE_CS_CN}
+           ,EMPYMN_TYPE_SE_CD = #{EMPYMN_TYPE_SE_CD}
+           ,ACQS_CERTI_NM = #{ACQS_CERTI_NM}
+           ,ACQS_YMD  = #{ACQS_YMD}
+           ,CONSTT_ID = #{CONSTT_ID}
+           ,RGN_CD  = #{RGN_CD}
+           ,INST_CD  = #{INST_CD}
+           ,ISSU_INST_NM  = #{ISSU_INST_NM}
+           ,RTRM_YMD  = #{RTRM_YMD}
+           ,CN1 = #{CN1}
+           ,LAST_MDFR_ID = #{LAST_MDFR_ID}
+           ,LAST_MDFCN_DT = SYSDATE
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          AND EMPYMN_QLFC_MNG_NO = #{EMPYMN_QLFC_MNG_NO}
+    </update>
+
+    <!-- * 자동 생성 쿼리 * 생성일시 : 2020-03-12 -->
+    <delete id="deleteCertiList" parameterType="HashMap">
+    
+        /* isry.pubmt.indivsprt.mapper.certimapper.deleteCertiList  */
+        DELETE
+        FROM CYS_LICENCE
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          AND EMPYMN_QLFC_MNG_NO = #{EMPYMN_QLFC_MNG_NO}
+        
+    </delete>
+
+</mapper>

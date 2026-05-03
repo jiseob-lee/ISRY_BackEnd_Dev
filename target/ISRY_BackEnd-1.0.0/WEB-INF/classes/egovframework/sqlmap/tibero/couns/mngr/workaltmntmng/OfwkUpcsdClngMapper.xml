@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.couns.mngr.workaltmntmng.mapper.OfwkUpcsdClngMapper">
+	
+	<select id="searchComboBoxAprv" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		searchComboBoxAprv : isry.couns.mngr.atrzmng.mapper.OfwkUpcsdClngMapper : 승인상태구분코드 조회
+	*/
+		SELECT 
+				AA.CMMNS_CD_VALUE			AS	CD_VALUE
+			,	AA.CMMNS_CD_VALUE_NM		AS	CD_NAME
+		FROM
+				SAC100	AA
+		WHERE 	1=1
+			AND	AA.CMMNS_CD_ID = 'APRV_STTS_SE_CD'
+			AND	AA.CMMNS_CD_VALUE IN ('0','2','5')
+	</select>
+	
+	<select id="selectOfwkUpcsdClngList" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		selectOfwkUpcsdClngList : isry.couns.mngr.workaltmntmng.mapper.OfwkUpcsdClngMapper :  퇴근미처리소명 목록 조회
+	*/
+		SELECT 
+					C##RG.DEC_B64(BB.FLNM_ENCPT)						AS	CNSLTNT_NM	/** 퇴근처리 누락자 **/
+				,	AA.USER_ID							AS	CNSLTNT_ID
+				,	SUBSTR(AA.UNOF_YMD, 1,4)||'-'||SUBSTR(AA.UNOF_YMD, 5,2)||'-'||SUBSTR(AA.UNOF_YMD, 7,2)		AS	UNOF_YMD	/** 미처리 일자 **/
+			--	,	DECODE(AA.REG_YN,'N','미등록','등록완료')			AS	FLAG_YN		/** 상태 (미등록N, 등록Y) **/
+			--	,	DECODE(AA.APRV_STTS_SE_CD,'2','Y','N')		AS	CMPTN_YN	/** 승인 여부 **/
+			    ,   AA.REG_YN                           AS FLAG_YN       /** 상태 **/
+			    ,   AA.APRV_STTS_SE_CD                  AS CMPTN_YN      /** 승인 여부 **/
+				,	COUNT(*) OVER()						AS TOTAL_COUNT	
+		FROM
+				AYC310		AA
+			,	SCA100		BB
+			,	SAA200		CC
+		WHERE	1=1
+			AND	AA.USER_ID	=	CC.USER_ID
+			AND	CC.ENFSN_NO	=	BB.ENFSN_NO
+		<if test="userId != null and userId != ''">
+			<![CDATA[
+			AND	AA.USER_ID	=	#{userId}
+			]]>
+		</if>
+		<if test="userNm != null and userNm != ''">
+			<![CDATA[
+			AND	BB.FLNM_ENCPT	=	C##RG.ENC_B64(#{userNm})
+			]]>
+		</if>
+		<if test="flagYn != null and flagYn != ''">
+			<![CDATA[
+			AND	AA.REG_YN	=	#{flagYn}
+			]]>
+		</if>
+		<if test="bgngYmd != null and bgngYmd != ''">
+			<![CDATA[
+			AND	AA.UNOF_YMD	>=	TO_DATE(#{bgngYmd} || '000000', 'YYYYMMDDHH24MISS')
+			]]>
+		</if>
+		<if test="endYmd != null and endYmd != ''">
+			<![CDATA[
+			AND	AA.UNOF_YMD	<	TO_DATE(#{endYmd} || '000000', 'YYYYMMDDHH24MISS')+1
+			]]>
+		</if>
+		ORDER BY	3 DESC
+	 	OFFSET 
+				#{START_IDX}	ROWS FETCH NEXT
+				#{ROW_COUNT}	ROWS ONLY	/** 페이징 처리 **/
+	
+	</select>
+	
+	<select id="selectOfwkUpcsdClngDetail" parameterType="HashMap" resultType="HashMap">	
+	/**
+	*		selectOfwkUpcsdClngDetail : isry.couns.mngr.workaltmntmng.mapper.OfwkUpcsdClngMapper :  퇴근미처로소명 상세 조회
+	*/
+			SELECT 
+					C##RG.DEC_B64(BB.FLNM_ENCPT)		AS	USER_NM			/** 퇴근처리 누락자 **/		
+				,	SUBSTR(AA.UNOF_YMD, 1, 4)||'-'||SUBSTR(AA.UNOF_YMD, 5, 2)||'-'||SUBSTR(AA.UNOF_YMD, 7, 2)
+				                                  		AS	UNOF_YMD		/** 미처리 일자 **/
+				,	AA.REG_YN							AS	FLAG_YN			/** 상태 (미등록N, 등록Y) **/
+				,	TO_CHAR(AA.FRST_REG_DT,'YYYY-MM-DD')	AS	REG_YMD			/** 자료등록일자 **/
+				,	AA.APRV_STTS_SE_CD					AS	APRV_STTS_SE_CD		/** 승인 여부 **/
+				,	AA.UNOF_CS_CN						AS	LVFFC_CS_CN		/** 누락사유(미퇴근사유내용 in table) **/
+				,	AA.ATFINO							AS	ATFINO		/** 증빙자료 첨부(미퇴근사유파일명 in table) **/
+				,	AA.MDFCN_CS_CN						AS	MDFCN_CS_CN		/** 수정사유 **/
+				,	CC.USER_ID							AS	USER_ID		/** 사용자 아이디 **/
+			FROM
+					AYC310		AA
+				,	SCA100		BB
+				,	SAA200		CC
+			WHERE	1=1
+				AND	AA.USER_ID	=	CC.USER_ID
+				AND	CC.ENFSN_NO	=	BB.ENFSN_NO
+			<if test="userId != null and userId != ''">
+				<![CDATA[
+				AND	AA.USER_ID = #{userId}
+				]]>
+			</if>
+			<if test="unofYmd != null and unofYmd != ''">
+				<![CDATA[
+				AND AA.UNOF_YMD = REPLACE(#{unofYmd}, '-', '')
+				]]>
+			</if>
+	</select>
+	
+	<update id="updateOfwkUpcsdClng" parameterType="HashMap">
+	/**
+	*		updateOfwkUpcsdClng : isry.couns.mngr.workaltmntmng.mapper.OfwkUpcsdClngMapper :  퇴근미처리소명 저장
+	*/
+			UPDATE 
+					AYC310 T1  /* 사이버상담사퇴근관리(퇴근미처리소명) */
+			SET
+					T1.LAST_MDFCN_DT		= SYSDATE
+				,	T1.APRV_STTS_SE_CD		= #{aprvSttsSeCd}
+				,	T1.LAST_MDFR_ID			= #{LOGIN_ID}
+			<if test="mdfcnCsCn != null and mdfcnCsCn != ''">
+				,	T1.MDFCN_CS_CN			= #{mdfcnCsCn}
+			</if>
+			<if test="lvffcCsCn != null and lvffcCsCn != ''">
+				,	T1.UNOF_CS_CN			= #{lvffcCsCn}
+			</if>
+			<if test="atfino != null and atfino != ''">
+				,	T1.ATFINO				= #{atfino}
+			</if>
+			WHERE	1=1
+				AND	T1.USER_ID				= #{userId}
+				AND	T1.UNOF_YMD				= REPLACE(#{unofYmd}, '-', '')
+	</update>
+	
+	<insert id="insertOfwkUpcsdClngBatch" parameterType="HashMap">
+    /*
+     * insertOfwkUpcsdClngBatch : isry.couns.mngr.workaltmntmng.mapper.OfwkUpcsdClngMapper :  퇴근미처리소명일괄생성
+     * 2023.06.28 수정 - Jeong.Won.Je
+     */
+		INSERT INTO AYC310 (
+			USER_ID
+			, UNOF_YMD
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT
+		)
+		WITH INQ_TB AS (
+		SELECT  T1.WORK_YMD         AS  WORK_YMD
+		        , T1.CONSTT_ID      AS  USER_ID
+		        , (
+		           SELECT
+		                  COUNT(*)
+		           FROM 
+		                  AYC310    T2
+		           WHERE  1=1
+		           AND    T2.USER_ID    =   T1.CONSTT_ID
+		           AND    T2.UNOF_YMD   =   T1.WORK_YMD
+		           AND    T2.DEL_YN     =   'N'
+		          )                 AS  CNT
+		FROM    AYC495      T1
+		WHERE   1=1
+		AND     T1.WORK_YMD     BETWEEN     #{fromWorkYmd}
+		                          AND       #{toWorkYmd}
+		AND     T1.LVFFC_DT     IS NULL
+		)
+		SELECT  T.*
+		FROM    (
+		         SELECT
+		                USER_ID
+		                , WORK_YMD
+		                , #{loginId}
+		                , SYSDATE
+		                , #{loginId}
+		                , SYSDATE
+		         FROM
+		                INQ_TB
+		         WHERE  1=1
+		         AND    CNT     =   0
+		        )   T
+    </insert>
+	
+	<!-- <select id="insertOfwkUpcsdClngBatch" statementType="CALLABLE" parameterType="HashMap">
+	/**
+	*		insertOfwkUpcsdClngBatch : isry.couns.mngr.workaltmntmng.mapper.OfwkUpcsdClngMapper :  퇴근미처리소명일괄생성
+	*/
+		{call AY_SP_INSERT_OFF_WORK_BATCH(
+				#{fromWorkYmd, mode=IN, jdbcType=VARCHAR}
+			,	#{toWorkYmd, mode=IN, jdbcType=VARCHAR}
+			,	#{loginId, mode=IN, jdbcType=VARCHAR}
+			,	#{retVal, mode=OUT, jdbcType=VARCHAR}
+		)}
+		
+	</select> -->
+	
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.mngr.mapper.ConsttUnrcordSesnMapper">
+
+    <select id="selectCombo1List" parameterType="HashMap" resultType="HashMap">
+    SELECT  /*SQL-ID : isry.couns.mngr.mapper.ConsttUnrcordSesnMapper.selectCombo1List : 통합기관 LIST */
+            AA.DEPT_CD          AS  DEPT_CD
+        ,   AA.DEPT_NM          AS  DEPT_NM
+        ,   AA.INST_NO          AS  INST_NO
+        ,   '4'                 AS  INST_TYPE_SE_CD /** 기관유형구분코드 사이버상담(4) **/
+    FROM 
+            SAA300 AA
+    WHERE   1=1
+        AND AA.INST_NO      =   '371'       /** 청소년사이버상담센터 **/
+
+    </select>
+    
+    <select id="selectUnrecordSesnList" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            SELECT
+                    #{instNo}                                                   AS  INST_NO
+                ,   TO_DATE(#{startDate} || '000000', 'YYYYMMDDHH24MISS')       AS  START_DATE
+                ,   TO_DATE(#{endDate} || '000000', 'YYYYMMDDHH24MISS')+1       AS  END_DATE
+            FROM
+                    DUAL
+    )
+    SELECT  /*SQL-ID : isry.couns.mngr.mapper.ConsttUnrcordSesnMapper.selectUnrecordSesnList : 상담자별 미기록 회기 LIST */
+            AA.INST_NM
+        ,   BB.USER_ID
+        ,   MAX(C##RG.DEC_B64(CC.FLNM_ENCPT))    AS  FLNM
+        ,   COUNT(*)        AS  CCNT
+    FROM
+            SAA000      AA      /* 통합기관 */
+        ,   SAA200      BB      /* 사용자 */
+        ,   SCA100      CC      /* 종사자 */
+        ,   AYB200      DD      /* 채팅이력 */
+        ,   ZZ
+    WHERE   1=1
+            <if test="instNo != 'ALL'">
+        AND AA.INST_NO          =       ZZ.INST_NO
+            </if>
+        AND CC.OGDP_INST_NO     =       AA.INST_NO
+        AND CC.ENFSN_NO         =       BB.ENFSN_NO
+        AND DD.CYSNET_ESNTAL_NO IS NULL
+            <![CDATA[
+        AND DD.CHTT_BGNG_DT     >=      ZZ.START_DATE
+        AND DD.CHTT_BGNG_DT     <       ZZ.END_DATE
+            ]]>
+        AND BB.USER_ID          =       DD.CNSLTNT_ID
+    GROUP BY
+            AA.INST_NM
+        ,   BB.USER_ID
+    ORDER BY
+            AA.INST_NM
+        ,   BB.USER_ID
+
+    </select>
+    
+</mapper>

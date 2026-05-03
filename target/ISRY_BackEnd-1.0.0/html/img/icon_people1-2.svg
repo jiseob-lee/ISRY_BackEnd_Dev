@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="44.334" height="44.938" viewBox="0 0 44.334 44.938">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="사각형_127" data-name="사각형 127" width="44.334" height="44.938" fill="none"/>
+    </clipPath>
+  </defs>
+  <g id="그룹_255" data-name="그룹 255" transform="translate(0 0)">
+    <g id="그룹_254" data-name="그룹 254" transform="translate(0 0)" clip-path="url(#clip-path)">
+      <circle id="타원_5" data-name="타원 5" cx="9.109" cy="9.109" r="9.109" transform="translate(9.78 1.526)" fill="none" stroke="#85c2f2" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5"/>
+      <path id="패스_250" data-name="패스 250" d="M36.477,43.814c0-9.59-6.308-21.174-17.363-21.174C8.471,22.64,1.75,34.224,1.75,43.814Z" transform="translate(-0.224 -2.895)" fill="none" stroke="#85c2f2" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5"/>
+      <path id="패스_251" data-name="패스 251" d="M48.074,39.356a9.411,9.411,0,1,0-9.411,9.411,9.411,9.411,0,0,0,9.411-9.411" transform="translate(-3.74 -3.829)" fill="#1586de"/>
+      <path id="패스_252" data-name="패스 252" d="M37.133,44.889a.709.709,0,0,1-.075,0,.882.882,0,0,1-.677-.417l-2.905-4.734a.882.882,0,0,1,1.5-.923l2.281,3.715,6.223-7.071a.882.882,0,0,1,1.325,1.165L37.795,44.59a.883.883,0,0,1-.662.3" transform="translate(-4.264 -4.495)" fill="#fff"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.regns.operorgnzt.cmitmtg.mapper.CmitMtgMapper">
+
+    <select id="selectKeyValue" resultType="String">
+    <![CDATA[
+        /* selectKeyValue - Lee MS */
+        
+        SELECT 
+            ISRY_APP.SA_FN_GET_RENU_NO('ET', #{USER_ID}, TO_CHAR(SYSDATE, 'YYYYMMDD'))
+        FROM DUAL
+
+    ]]>
+    </select>
+
+    <select id="selectReqList" resultType="HashMap">
+    
+        <!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" />      
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+    <![CDATA[
+        /* selectReqList - Lee MS */       
+            A.CMIT_SE_CD AS CMIT_SE_CD,                                          /* 위원회구분코드 */
+            A.ESNTL_LINK_INST_SE_CD AS ESNTL_LINK_INST_SE_CD,                    /* 필수연계기관구분코드 */
+            A.MTG_ITOAGD_CN AS MTG_ITOAGD_CN,                                    /* 회의안건내용 */
+            A.MTG_HDMT_YMD AS MTG_HDMT_YMD,                                      /* 회의개최일자 */
+            (SELECT COUNT(*) FROM ACA630 B WHERE A.MTG_NO = B.MTG_NO) AS ATND_NOPE, /* 참석인원수 */           
+            TO_CHAR(A.FRST_REG_DT, 'YYYYMMDD') AS FRST_REG_DT,                   /* 등록일 */
+            C.INST_NM AS INST_NM,                                                /* 기관 */
+            A.MTG_NO AS MTG_NO                                                   /*회의번호 */
+        FROM ACA620 A, SAA000 C   /* 통합기관(C)  */
+        WHERE A.INST_NO = C.INST_NO
+        AND A.MTG_HDMT_YMD >= #{BGNG_YMD}
+		AND A.MTG_HDMT_YMD <= #{END_YMD}
+		AND A.MTG_ITOAGD_CN LIKE #{MTG_ITOAGD_CN}||'%'  
+    ]]>
+        <if test="CMIT_SE_CD != '' and CMIT_SE_CD != null">
+            AND A.CMIT_SE_CD IS NOT NULL
+        </if>
+
+        <if test="ESNTL_LINK_INST_SE_CD != '' and ESNTL_LINK_INST_SE_CD != null">
+            AND A.ESNTL_LINK_INST_SE_CD IS NOT NULL
+        </if>
+        
+        <if test='AUTHRT != "1"'>   /* 상담복지센터는 모두 조회 */  
+            /* 20230410_권한 쿼리_권한쿼리시작*/                               
+            <include refid="RegnsGroupAuthrtMapper.regnsBasicGropuAuthrt"/>                                   
+            /* 20230220_권한 쿼리_권한쿼리종료*/
+        </if>
+        
+      <!-- 페이지 인덱서 OFFSET 조건 -->
+      <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+
+    <select id="selectReqById" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectReqById - Lee MS */
+        
+        SELECT
+            A.CMIT_SE_CD AS CMIT_SE_CD,                              /* 위원회구분코드 */
+            A.ESNTL_LINK_INST_SE_CD AS ESNTL_LINK_INST_SE_CD,        /* 필수연계기관구분코드 */
+            A.MTG_ITOAGD_CN AS MTG_ITOAGD_CN,                        /* 회의안건내용 */
+            A.MTG_HDMT_YMD AS MTG_HDMT_YMD,                          /* 회의개최일자 */
+            A.HDMT_BGNG_HR AS HDMT_BGNG_HR,                          /* 개최시작시간 */
+            A.HDMT_END_HR AS HDMT_END_HR,                            /* 개최종료시간 */
+            A.MTG_PLACE_NM AS MTG_PLACE_NM,                          /* 회의장소명 */
+            A.MTG_KND_SE_CD AS MTG_KND_SE_CD,                        /* 회의종류구분코드 */ 
+            A.MTG_CN AS MTG_CN,                                      /* 회의내용 */
+            A.MTG_RESULT_CN ASMTG_RESULT_CN,                         /* 회의결과내용 */
+            A.ATFINO AS ATFINO,                                      /* 첨부화일번호 */
+            A.MTG_NO AS MTG_NO                                       /* 회의번호 */
+        FROM ACA620 A  /* 위원회회의관리  */
+		WHERE A.MTG_NO = #{MTG_NO}      
+
+    ]]>
+    </select>
+
+    <update id="saveData" parameterType="HashMap">
+    <![CDATA[
+         /* saveData - Lee  MS */
+         
+        MERGE INTO ACA620 /* 위원회회의관리 */
+        USING DUAL
+           ON (MTG_NO = #{MTG_NO})
+         WHEN MATCHED THEN
+       UPDATE SET
+              CMIT_SE_CD = #{CMIT_SE_CD},                       /* 위원회구분코드 */
+              ESNTL_LINK_INST_SE_CD = #{ESNTL_LINK_INST_SE_CD}, /* 필수연계기관구분코드 */
+              MTG_ITOAGD_CN = #{MTG_ITOAGD_CN},                 /* 회의안건내용 */
+              MTG_HDMT_YMD = #{MTG_HDMT_YMD},                   /* 회의개최일자 */
+              HDMT_BGNG_HR = #{HDMT_BGNG_HR},                   /* 개최시작시간 */
+              
+              HDMT_END_HR = #{HDMT_END_HR},                     /* 개최종료시간 */
+              MTG_PLACE_NM = #{MTG_PLACE_NM},                   /* 회의장소명 */
+              MTG_KND_SE_CD = #{MTG_KND_SE_CD},                 /* 회의종류구분코드 */
+              MTG_CN = #{MTG_CN},                               /* 회의내용 */
+
+              MTG_RESULT_CN = #{MTG_RESULT_CN},                 /* 회의결과내용 */
+              ATFINO = #{ATFINO},                               /* 첨부화일번호 */
+              PIC_NO = #{PIC_NO},                               /* 담당자번호 */
+              INST_NO = #{INST_NO},                             /* 기관번호 */
+
+              LAST_MDFR_ID = #{USER_ID},                        /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                           /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+             MTG_NO,                /* 회의번호 */
+             CMIT_SE_CD,            /* 위원회구분코드 */
+             ESNTL_LINK_INST_SE_CD, /* 필수연계기관구분코드 */
+             MTG_ITOAGD_CN,         /* 회의안건내용 */
+             MTG_HDMT_YMD,          /* 회의개최일자 */
+             HDMT_BGNG_HR,          /* 개최시작시간 */
+
+             HDMT_END_HR,           /* 개최종료시간 */
+             MTG_PLACE_NM,          /* 회의장소명 */
+             MTG_KND_SE_CD,         /* 회의종류구분코드 */
+             MTG_CN,                /* 회의내용 */
+
+             MTG_RESULT_CN,         /* 회의결과내용 */
+             PIC_INST_NO,           /* 담당자기관번호 */
+             ATFINO,                /* 첨부화일번호 */
+             PIC_NO,                /* 담당자번호 */
+             INST_NO,               /* 기관번호 */
+
+             FRST_RGTR_ID,
+             FRST_REG_DT,
+             LAST_MDFR_ID,
+             LAST_MDFCN_DT
+        )
+        VALUES (
+             #{MTG_NO},
+             #{CMIT_SE_CD},
+             #{ESNTL_LINK_INST_SE_CD},
+             #{MTG_ITOAGD_CN},
+             #{MTG_HDMT_YMD},
+             #{HDMT_BGNG_HR},
+             
+             #{HDMT_END_HR},
+             #{MTG_PLACE_NM},
+             #{MTG_KND_SE_CD},
+             #{MTG_CN},
+             
+             #{MTG_RESULT_CN},
+             #{PIC_INST_NO},
+             #{ATFINO},
+             #{PIC_NO},
+             #{INST_NO},
+             
+             #{USER_ID},
+             SYSDATE,
+             #{USER_ID},
+             SYSDATE
+        )
+        
+    ]]>
+    </update>
+
+    <delete id="deleteData" parameterType="String">
+    <![CDATA[
+         /* deleteData - Lee  MS */
+    
+        DELETE FROM ACA620 /* 위원회회의관리 */
+        WHERE MTG_NO = #{MTG_NO}
+    
+    ]]>
+    </delete>
+
+    <delete id="deleteAllAtndData" parameterType="String">
+    <![CDATA[
+         /* deleteAllAtndData - Lee  MS */
+    
+        DELETE FROM ACA630 /* 위원회회의참석자 */
+        WHERE MTG_NO = #{MTG_NO}
+    
+    ]]>
+    </delete>
+    
+    <delete id="deleteAllItoagdData" parameterType="String">
+    <![CDATA[
+         /* deleteAllItoagdData - Lee  MS */
+    
+        DELETE FROM ACA621 /* 위원회회의안건 */
+        WHERE MTG_NO = #{MTG_NO}
+    
+    ]]>
+    </delete>
+
+
+    <select id="selectAtndById" resultType="HashMap">
+    <![CDATA[
+        /* selectAtndById - Lee MS */
+        
+        SELECT
+            C.INST_NM AS INST_NM,                                       /* 기관명 */ 
+            C##RG.DEC_B64(B.ENTRST_PIC_NM_ENCPT) AS ENTRST_PIC_NM,   /* 위촉담당자명암호화 */ 
+            B.CMIT_JBTTL_SE_CD AS CMIT_JBTTL_SE_CD,                     /* 위원회직책구분코드 */ 
+            B.CMIT_SE_CD AS CMIT_SE_CD,                                 /* 위원회구분코드 */
+            A.CMIT_CNSTTN_MNG_NO AS CMIT_CNSTTN_MNG_NO,                 /* 위원회구성관리번호 */
+            A.ATDRN_SN AS ATDRN_SN,                                     /* 참석자일련번호 */
+            A.MTG_NO AS MTG_NO                                          /* 회의번호 */
+        FROM ACA630 A, ACA610 B, ACA600 C      /* 위원회구성정보(B), 필수연계기관관리(C)  */
+        WHERE A.CMIT_CNSTTN_MNG_NO = B.CMIT_CNSTTN_MNG_NO 
+        AND B.ESNTL_LINK_MNG_NO = C.ESNTL_LINK_MNG_NO
+        AND A.MTG_NO = #{MTG_NO}
+
+    ]]>
+    </select>
+
+    <insert id="insertAtndData" parameterType="HashMap">
+    <![CDATA[
+         /* insertDtlData - Lee  MS */
+        
+        INSERT INTO ACA630 (
+             MTG_NO,              /* 회의번호 */
+             ATDRN_SN,            /* 참석자일련번호 */
+             CMIT_CNSTTN_MNG_NO,  /* 위원회구성관리번호 */
+             FRST_RGTR_ID,
+             FRST_REG_DT,
+             LAST_MDFR_ID,
+             LAST_MDFCN_DT
+        )
+        VALUES (
+             #{MTG_NO},
+             (SELECT NVL(MAX(ATDRN_SN),0)+1 FROM ACA630 WHERE MTG_NO = #{MTG_NO}),
+             #{CMIT_CNSTTN_MNG_NO},
+             #{USER_ID},
+             SYSDATE,
+             #{USER_ID},
+             SYSDATE
+        )
+        
+    ]]>
+    </insert>
+
+    <update id="updateAtndData" parameterType="HashMap">
+    <![CDATA[
+         /* saveData - Lee  MS */
+         
+       UPDATE ACA630  /* 위원회회의관리 */
+          SET CMIT_CNSTTN_MNG_NO = #{CMIT_CNSTTN_MNG_NO}, /* 위원회구성관리번호 */
+              LAST_MDFR_ID = #{USER_ID},                  /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                     /* 최종수정일시 */
+        WHERE MTG_NO = #{MTG_NO}
+        AND ATDRN_SN = #{ATDRN_SN}      
+        
+    ]]>
+    </update>
+
+
+    <delete id="deleteAtndData" parameterType="HashMap">
+    <![CDATA[
+         /* deleteData - Lee  MS */
+    
+        DELETE FROM ACA630 /* 위원회회의관리 */
+        WHERE MTG_NO = #{MTG_NO}
+        AND ATDRN_SN = #{ATDRN_SN}
+    
+    ]]>
+    </delete>
+
+    <select id="selectItoagdById" resultType="HashMap">
+    <![CDATA[
+        /* selectItoagdById - Lee MS */
+        
+        SELECT
+            A.MTG_ITOAGD_SE_CD AS MTG_ITOAGD_SE_CD,      /* 회의안건구분코드 */ 
+            A.MTG_ITOAGD_TTL_CN AS MTG_ITOAGD_TTL_CN,    /* 회의안건제목내용 */ 
+            A.MTG_ITOAGD_MAIN_CN AS MTG_ITOAGD_MAIN_CN,  /* 회의안건주요내용 */ 
+            
+            A.MTG_ITOAGD_MNG_NO AS MTG_ITOAGD_MNG_NO,    /* 회의안건관리번호 */
+            A.MTG_NO AS MTG_NO                           /* 회의번호 */
+        FROM ACA621 A                                    /* 위원회회의안건  */
+        WHERE A.MTG_NO = #{MTG_NO}
+
+    ]]>
+    </select>
+
+    <insert id="insertItoagdData" parameterType="HashMap">
+    <![CDATA[
+         /* insertItoagdData - Lee  MS */
+        
+        INSERT INTO ACA621 (
+             MTG_NO,    /* 회의번호 */
+             MTG_ITOAGD_MNG_NO,    /* 회의안건관리번호 */
+             MTG_ITOAGD_SE_CD,     /* 회의안건구분코드 */
+             MTG_ITOAGD_TTL_CN,    /* 회의안건제목내용 */
+             MTG_ITOAGD_MAIN_CN,   /* 회의안건주요내용 */
+             FRST_RGTR_ID,
+             FRST_REG_DT,
+             LAST_MDFR_ID,
+             LAST_MDFCN_DT
+        )
+        VALUES (
+             #{MTG_NO},
+             (SELECT NVL(MAX(MTG_ITOAGD_MNG_NO),0)+1 FROM ACA621 WHERE MTG_NO = #{MTG_NO}),
+             #{MTG_ITOAGD_SE_CD},
+             #{MTG_ITOAGD_TTL_CN},
+             #{MTG_ITOAGD_MAIN_CN},
+             #{USER_ID},
+             SYSDATE,
+             #{USER_ID},
+             SYSDATE
+        )
+        
+    ]]>
+    </insert>
+
+    <update id="updateItoagdData" parameterType="HashMap">
+    <![CDATA[
+         /* updateItoagdData - Lee  MS */
+         
+       UPDATE ACA621  /* 위원회회의관리 */
+          SET MTG_ITOAGD_SE_CD = #{MTG_ITOAGD_SE_CD},     /* 회의안건구분코드 */
+              MTG_ITOAGD_TTL_CN = #{MTG_ITOAGD_TTL_CN},   /* 회의안건제목내용 */
+              MTG_ITOAGD_MAIN_CN = #{MTG_ITOAGD_MAIN_CN}, /* 회의안건주요내용 */
+              LAST_MDFR_ID = #{USER_ID},                  /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                     /* 최종수정일시 */
+        WHERE MTG_NO = #{MTG_NO}
+        AND MTG_ITOAGD_MNG_NO = #{MTG_ITOAGD_MNG_NO}      
+        
+    ]]>
+    </update>
+
+
+    <delete id="deleteItoagdData" parameterType="HashMap">
+    <![CDATA[
+         /* deleteItoagdData - Lee  MS */
+    
+        DELETE FROM ACA621 /* 위원회회의관리 */
+        WHERE MTG_NO = #{MTG_NO}
+        AND MTG_ITOAGD_MNG_NO = #{MTG_ITOAGD_MNG_NO}
+    
+    ]]>
+    </delete>
+
+</mapper>

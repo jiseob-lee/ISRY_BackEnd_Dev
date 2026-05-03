@@ -1,0 +1,2168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.csemd.stats.entscpreconunityreprts.mapper.EntscPreconUnityReprtsMapper">
+
+	<select id="selectEntscPreconUnityReprts" resultType="HashMap">
+	<![CDATA[
+	/* selectEntscPreconUnityReprts 입교현황통합보고서 - Lee SangHoon */
+	WITH TMP000 AS
+	    (
+	    SELECT
+	    
+	        T.TRPR_INFO_NO                             -- 대상자정보번호
+	    ,   T.APLY_RCPT_SN                             -- 신청접수일련번호
+	    ,   T5.APLY_RCPT_SRNG_SE_CD                    -- 신청접수심사구분코드
+	    ,   T5.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD         -- 신청접수심사진행상태구분코드
+        ,   T6.TRMN_SE_CD                              -- 종결구분코드
+        ,   T6.TRMN_CS_SE_CD                           -- 종결사유구분코드
+        
+	    ,   T1.SXDC_SE_CD                              -- 성별구분코드
+	    ,   T2.ACBG_SE_CD                              -- 학력구분코드
+	    ,   T7.ACBG_SE_CD  AS SCHULW_DSCNTC_ACBG_SE_CD -- 학업중단학력구분코드
+	    ,   SUBSTR(T1.ZIP,0,2) AS ZIP                  -- 우편번호(시도)
+	    ,   T1.PBLAST_SE_CD                            -- 공적부조
+        ,   T1.FAM_SHAPE_SE_CD                         -- 가족형태구분코드
+	    ,   T3.DSCSN_CONT                              -- 상담횟수
+	    ,   T3.RPRS_MAAP_PROBM_SE_CD                   -- 대표주호소구분코드
+	    ,   T3.SPCLA_PROBM_DRFSTF                      -- 특별문제유형여부 - 약물
+	    ,   T3.SPCLA_PROBM_DRNKG                       -- 특별문제유형여부 - 음주
+	    ,   T3.SPCLA_PROBM_GAMBLE                      -- 특별문제유형여부 - 도박
+	    ,   T3.LGSLTN_PRTCTN_OBSERV                    -- 법률문제 - 보호관찰
+	    ,   T3.LGSLTN_TRL                              -- 법률문제 - 재판진행
+	    ,   T3.LGSLTN_SCHL_VIOLNC                      -- 법률문제 - 학교폭력
+	    ,   T3.LGSLTN_POLC_EXMN                        -- 법률문제 - 경찰조사
+	    ,   T4.LIVTGT_YN                               -- 동거여부
+	    ,   T4.LVING_MNG_YN                            -- 생활관리여부
+	    
+	    FROM AFA100 T                                  /* 신청접수 */
+	    JOIN SEA200 T1                                 /* 대상자정보 */
+	        ON  T1.TRPR_INFO_NO = T.TRPR_INFO_NO
+	    JOIN AFA150 T5                                 /* 신청접수심사상태정보이력 */
+	        ON T5.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T5.APLY_RCPT_SN = T.APLY_RCPT_SN
+	    LEFT JOIN                                      /* 학력상태 */
+	        (
+	        SELECT A.*
+	        ,   ROW_NUMBER() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY B.ADDTNG_MNG_VALUE1 DESC, A.MNG_SN DESC) AS ROW_NUMBER
+	        FROM SEA230 A  /* 학력상태 */
+	        JOIN SAC100 B  /* 공통코드 값 */
+	            ON  B.CMMNS_CD_ID = 'ACBG_SE_CD'   -- 학력구분코드
+	            AND B.CMMNS_CD_VALUE = A.ACBG_SE_CD
+	        ) T2
+	        ON  T2.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T2.ROW_NUMBER = 1
+	    LEFT JOIN                                      /* 학업중단 */
+	        (
+	        SELECT A.*
+	        ,   ROW_NUMBER() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY A.MNG_SN DESC) AS ROW_NUMBER
+	        FROM SEA240 A  /* 학업중단 */
+	        ) T7
+	        ON  T7.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T7.ROW_NUMBER = 1
+	    LEFT JOIN                                      /* 대상자문제상태내역 */
+	        (
+	        SELECT
+	            A.TRPR_INFO_NO
+	        ,   A.APLY_RCPT_SN
+	        ,   A.DSCSN_CONT
+	        ,   A.RPRS_MAAP_PROBM_SE_CD
+	        ,   COUNT(CASE B.COMPNO_TYPE_SCLAS_SE_CD WHEN '020403' THEN 1 END) AS SPCLA_PROBM_DRFSTF
+	        ,   COUNT(CASE B.COMPNO_TYPE_SCLAS_SE_CD WHEN '020401' THEN 1 END) AS SPCLA_PROBM_DRNKG
+	        ,   COUNT(CASE B.COMPNO_TYPE_SCLAS_SE_CD WHEN '020402' THEN 1 END) AS SPCLA_PROBM_GAMBLE
+	        ,   COUNT(CASE B.COMPNO_TYPE_SCLAS_SE_CD WHEN '010203' THEN 1 END) AS LGSLTN_PRTCTN_OBSERV
+	        ,   COUNT(CASE B.COMPNO_TYPE_SCLAS_SE_CD WHEN '010204' THEN 1 END) AS LGSLTN_TRL
+	        ,   COUNT(CASE B.COMPNO_TYPE_SCLAS_SE_CD WHEN '010205' THEN 1 END) AS LGSLTN_SCHL_VIOLNC
+	        ,   COUNT(CASE B.COMPNO_TYPE_SCLAS_SE_CD WHEN '010202' THEN 1 END) AS LGSLTN_POLC_EXMN
+	        FROM AFA120 A  /* 대상자문제상태내역 */
+	        LEFT JOIN AFA131 B /* 복수선택유형상세 */
+	            ON  B.COMPNO_CHC_TYPE_MNG_NO = A.COMPNO_CHC_TYPE_MNG_NO
+	            
+	        GROUP BY A.TRPR_INFO_NO, A.APLY_RCPT_SN, A.DSCSN_CONT, A.RPRS_MAAP_PROBM_SE_CD
+	        ) T3
+	        ON  T3.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T3.APLY_RCPT_SN = T.APLY_RCPT_SN
+	    LEFT JOIN                                      /* 항목별응답내용 - 정성평가 */
+	        (
+	        SELECT
+	            A.TRPR_INFO_NO
+	        ,   A.APLY_RCPT_SN
+	        ,   C.LIVTGT_YN
+	        ,   C.LVING_MNG_YN
+	        FROM 
+	            (
+	            SELECT A1.*
+	            ,   ROW_NUMBER() OVER (PARTITION BY A1.QUSTNB_TMPT_MNG_NO, A1.TRPR_INFO_NO, A1.APLY_RCPT_SN ORDER BY A1.REG_YMD DESC, A1.MNG_SN DESC) AS ROW_NUMBER
+	            FROM SBB600 A1 /* 설문발송이력 */
+	            JOIN SAC100 A2 /* 공통코드 값 */
+	                ON  A2.ADDTNG_MNG_VALUE1 = A1.QUSTNB_TMPT_MNG_NO
+	                AND A2.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'    -- 설문지종류구분코드
+	                AND A2.CMMNS_CD_VALUE = '006'              -- 설문지종류:정성평가
+	            WHERE   A1.SRVY_ERA_SE_CD = '01'               -- 설문시기:사전
+	            ) A
+	        JOIN
+	            (
+	            SELECT B1.*
+	            ,   ROW_NUMBER() OVER(PARTITION BY B1.QUSTNB_TMPT_MNG_NO, B1.QUSTNB_MNG_NO ORDER BY B1.RSPNS_DT DESC) AS ROW_NUMBER
+	            FROM SBB500 B1 /* 설문응답 */
+	            ) B
+	            ON  B.QUSTNB_TMPT_MNG_NO = A.QUSTNB_TMPT_MNG_NO
+	            AND B.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	            AND B.ROW_NUMBER = 1
+	        JOIN
+	            (
+	            SELECT * FROM
+	                (
+	                SELECT
+	                    C1.QUSTNB_TMPT_MNG_NO
+	                ,   C1.QESITM_SQNCE
+	                ,   C2.SRVY_RSPNS_MNG_NO
+	                ,   C2.QESITM_SINGL_RSPNS_VALUE
+	                FROM SBB010 C1 /* 설문지문항템플릿 */
+	                JOIN SBB220 C2 /* 항목별응답내용 */
+	                    ON  C2.QESITM_MNG_NO = C1.QESITM_MNG_NO
+	                )
+	            PIVOT
+	                (
+	                AVG(QESITM_SINGL_RSPNS_VALUE)
+	                FOR QESITM_SQNCE IN(7 AS LIVTGT_YN, 8 AS LVING_MNG_YN)
+	                )
+	            ) C
+	            ON  C.QUSTNB_TMPT_MNG_NO = A.QUSTNB_TMPT_MNG_NO
+	            AND C.SRVY_RSPNS_MNG_NO = B.SRVY_RSPNS_MNG_NO
+	        
+	        WHERE A.ROW_NUMBER = 1
+	        ) T4
+	        ON  T4.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T4.APLY_RCPT_SN = T.APLY_RCPT_SN
+	    LEFT JOIN                                      /* 사례종결 */
+	        (
+	        SELECT
+	            C.*
+	        ,   A.TRPR_INFO_NO
+	        ,   D.SRVC_EXCN_BIZ_NO
+	        ,   ROW_NUMBER() OVER(PARTITION BY B.CASE_MNG_NO, B.CASE_MNG_ODRNO ORDER BY B.CASE_TRMN_NO DESC) AS ROW_NUMBER
+	        FROM SEB100 A  /* 사례기본 */
+	        JOIN SEC100 B  /* 사례종결 */
+	            ON  B.CASE_MNG_NO = A.CASE_MNG_NO
+	            AND B.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+	            AND B.TRMN_SRNG_RESULT_SE_CD = '02'    -- 종결심사결과:승인
+	        JOIN SEC100 C  /* 사례종결 */
+	            ON  C.CASE_MNG_NO = A.CASE_MNG_NO
+	            AND C.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+	            AND C.TRMN_SRNG_RESULT_SE_CD = '01'    -- 종결심사결과:요청
+	        JOIN SEB120 D  /* 서비스사업대상자 */
+	            ON  D.CASE_MNG_NO = A.CASE_MNG_NO
+	            AND D.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+	            AND D.DEL_YN != 'Y'
+	        ) T6
+	        ON  T6.ROW_NUMBER = 1
+	        AND T6.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T6.SRVC_EXCN_BIZ_NO = T.SRVC_EXCN_BIZ_NO
+        JOIN SDA420 T8                                  /* 서비스실행사업 */
+            ON  T8.SRVC_EXCN_BIZ_NO = T.SRVC_EXCN_BIZ_NO
+        JOIN SDA400 T9                                  /* 서비스사업 */
+            ON  T9.SRVC_BIZ_NO = T8.SRVC_BIZ_NO
+        
+        WHERE 1=1
+    ]]>
+    <if test="BIZ_YR != null">
+        /* 사업연도 */
+        AND T9.BIZ_YR IN
+            <foreach collection="BIZ_YR" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <if test='INST_NO != null and INST_NO != "ALL"'>
+        /* 기관[기관번호] */
+        AND T.RSFR_INST_NO IN
+            <foreach collection="INST_NO" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <if test="SRVC_EXCN_BIZ_NO != null">
+        /* 과정[서비스실행사업번호] */
+        AND T.SRVC_EXCN_BIZ_NO IN
+            <foreach collection="SRVC_EXCN_BIZ_NO" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <![CDATA[
+	    )
+	    
+	SELECT
+	    SE                                                                                                                     -- 구분
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'M' THEN 1 END)                                       AS SXDC_MALE_NMPR                   -- 성별-남-인원
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'F' THEN 1 END)                                       AS SXDC_FEMALE_NMPR                 -- 성별-여-인원
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'M' AND ACBG_SE_CD = '02' THEN 1 END)                 AS ACBG_ELESCH_MALE                 -- 교급-초등-남
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'M' AND SCHULW_DSCNTC_ACBG_SE_CD = '02' THEN 1 END)   AS ACBG_ELESCH_MALE_SCHULW_DSCNTC   -- 교급-초등-남(학업중단)
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'F' AND ACBG_SE_CD = '02' THEN 1 END)                 AS ACBG_ELESCH_FEMALE               -- 교급-초등-여
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'F' AND SCHULW_DSCNTC_ACBG_SE_CD = '02' THEN 1 END)   AS ACBG_ELESCH_FEMALE_SCHULW_DSCNTC -- 교급-초등-여(학업중단)
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'M' AND ACBG_SE_CD = '03' THEN 1 END)                 AS ACBG_MSKUL_MALE                  -- 교급-중등-남
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'M' AND SCHULW_DSCNTC_ACBG_SE_CD = '03' THEN 1 END)   AS ACBG_MSKUL_MALE_SCHULW_DSCNTC    -- 교급-중등-남(학업중단)
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'F' AND ACBG_SE_CD = '03' THEN 1 END)                 AS ACBG_MSKUL_FEMALE                -- 교급-중등-여
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'F' AND SCHULW_DSCNTC_ACBG_SE_CD = '03' THEN 1 END)   AS ACBG_MSKUL_FEMALE_SCHULW_DSCNTC  -- 교급-중등-여(학업중단)
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'M' AND ACBG_SE_CD = '04' THEN 1 END)                 AS ACBG_HGSCHL_MALE                 -- 교급-고등-남
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'M' AND SCHULW_DSCNTC_ACBG_SE_CD = '04' THEN 1 END)   AS ACBG_HGSCHL_MALE_SCHULW_DSCNTC   -- 교급-고등-남(학업중단)
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'F' AND ACBG_SE_CD = '04' THEN 1 END)                 AS ACBG_HGSCHL_FEMALE               -- 교급-고등-여
+	,   COUNT(CASE WHEN SXDC_SE_CD = 'F' AND SCHULW_DSCNTC_ACBG_SE_CD = '04' THEN 1 END)   AS ACBG_HGSCHL_FEMALE_SCHULW_DSCNTC -- 교급-고등-여(학업중단)
+	,   COUNT(CASE WHEN ZIP BETWEEN '01' AND '09' THEN 1 END)                              AS RGN_SEOUL                        -- 지역-서울
+	,   COUNT(CASE WHEN ZIP BETWEEN '46' AND '49' THEN 1 END)                              AS RGN_BUSAN                        -- 지역-부산
+	,   COUNT(CASE WHEN ZIP BETWEEN '41' AND '43' THEN 1 END)                              AS RGN_DAEGU                        -- 지역-대구
+	,   COUNT(CASE WHEN ZIP BETWEEN '21' AND '23' THEN 1 END)                              AS RGN_INCHEON                      -- 지역-인천
+	,   COUNT(CASE WHEN ZIP BETWEEN '61' AND '62' THEN 1 END)                              AS RGN_GWANGJU                      -- 지역-광주
+	,   COUNT(CASE WHEN ZIP BETWEEN '34' AND '35' THEN 1 END)                              AS RGN_DAEJEON                      -- 지역-대전
+	,   COUNT(CASE WHEN ZIP BETWEEN '44' AND '45' THEN 1 END)                              AS RGN_ULSAN                        -- 지역-울산
+	,   COUNT(CASE WHEN ZIP BETWEEN '30' AND '30' THEN 1 END)                              AS RGN_SEJONG                       -- 지역-세종
+	,   COUNT(CASE WHEN ZIP BETWEEN '63' AND '63' THEN 1 END)                              AS RGN_JEJU                         -- 지역-제주
+	,   COUNT(CASE WHEN ZIP BETWEEN '10' AND '20' THEN 1 END)                              AS RGN_GYEONGGI                     -- 지역-경기
+	,   COUNT(CASE WHEN ZIP BETWEEN '24' AND '26' THEN 1 END)                              AS RGN_GANGWON                      -- 지역-강원
+	,   COUNT(CASE WHEN ZIP BETWEEN '27' AND '29' THEN 1 END)                              AS RGN_CHUNGBUK                     -- 지역-충북
+	,   COUNT(CASE WHEN ZIP BETWEEN '31' AND '33' THEN 1 END)                              AS RGN_CHUNGNAM                     -- 지역-충남
+	,   COUNT(CASE WHEN ZIP BETWEEN '54' AND '56' THEN 1 END)                              AS RGN_JEONBUK                      -- 지역-전북
+	,   COUNT(CASE WHEN ZIP BETWEEN '57' AND '60' THEN 1 END)                              AS RGN_JEONNAM                      -- 지역-전남
+	,   COUNT(CASE WHEN ZIP BETWEEN '36' AND '40' THEN 1 END)                              AS RGN_GYEONGBUK                    -- 지역-경북
+	,   COUNT(CASE WHEN ZIP BETWEEN '50' AND '53' THEN 1 END)                              AS RGN_GYEONGNAM                    -- 지역-경남
+	,   COUNT(CASE WHEN PBLAST_SE_CD = '01' THEN 1 END)                                    AS PBLAST_BSIS_LVING_RECIPI         -- 공적부조-국민기초생활수급대상
+	,   COUNT(CASE WHEN PBLAST_SE_CD = '02' THEN 1 END)                                    AS PBLAST_LWRFMY                    -- 공적부조-차상위계층
+	,   COUNT(CASE WHEN PBLAST_SE_CD = '03' THEN 1 END)                                    AS PBLAST_SGLPR                     -- 공적부조-저소득한부모가족
+	,   COUNT(CASE WHEN PBLAST_SE_CD = '04' THEN 1 END)                                    AS PBLAST_NORLVT                    -- 공적부조-미해당
+	,   COUNT(CASE WHEN PBLAST_SE_CD = '05' THEN 1 END)                                    AS PBLAST_UNCNFR                    -- 공적부조-미확인
+	,   COUNT(CASE WHEN PBLAST_SE_CD = '99' THEN 1 END)                                    AS PBLAST_ETC                       -- 공적부조-기타
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '01' THEN 1 END)                                 AS FAM_SHAPE_PARNTS                 -- 가족형태-부모동거
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '02' THEN 1 END)                                 AS FAM_SHAPE_SGLE                   -- 가족형태-혼자거주
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '03' THEN 1 END)                                 AS FAM_SHAPE_BRTHRS                 -- 가족형태-형제동거
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '04' THEN 1 END)                                 AS FAM_SHAPE_RELATIVE               -- 거족형태-친척동거
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '05' THEN 1 END)                                 AS FAM_SHAPE_SGLPR                  -- 거족형태-한부모가족
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '06' THEN 1 END)                                 AS FAM_SHAPE_GRND_PARNTS            -- 가족형태-조손가족
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '07' THEN 1 END)                                 AS FAM_SHAPE_FCLTY                  -- 가족형태-시설보호
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '08' THEN 1 END)                                 AS FAM_SHAPE_CNSGN                  -- 가족형태-가정위탁
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '09' THEN 1 END)                                 AS FAM_SHAPE_UNCNFR                 -- 가족형태-미확인
+	,   COUNT(CASE WHEN FAM_SHAPE_SE_CD = '99' THEN 1 END)                                 AS FAM_SHAPE_ETC                    -- 가족형태-기타
+	,   COUNT(CASE WHEN DSCSN_CONT > 0 THEN 1 END)                                         AS DSCSN_MDLRT_YN_Y_NOPE            -- 상담치료경험여부-있음-인원
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '01' THEN 1 END)                           AS MAAP_MIND                        -- 주호소-정신증
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '02' THEN 1 END)                           AS MAAP_DEPRES                      -- 주호소-우울증
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '03' THEN 1 END)                           AS MAAP_FEEL_TROBL                  -- 주호소-기분장애
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '04' THEN 1 END)                           AS MAAP_ANXIET                      -- 주호소-불안
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '05' THEN 1 END)                           AS MAAP_SMTIZN                      -- 주호소-신체화
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '07' THEN 1 END)                           AS MAAP_DPNDNC                      -- 주호소-의존성
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '06' THEN 1 END)                           AS MAAP_EAT_TROBL                   -- 주호소-식이장애
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '14' THEN 1 END)                           AS MAAP_LRN                         -- 주호소-학습이해
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '08' THEN 1 END)                           AS MAAP_ADHD                        -- 주호소-ADHD
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '09' THEN 1 END)                           AS MAAP_CMPLSN                      -- 주호소-강박증
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '15' THEN 1 END)                           AS MAAP_DLINQ                       -- 주호소-비행
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '10' THEN 1 END)                           AS MAAP_CNDCT_TROBL                 -- 주호소-품행장애
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '11' THEN 1 END)                           AS MAAP_SEX                         -- 주호소-성
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '16' THEN 1 END)                           AS MAAP_TWDPSN_REL                  -- 주호소-대인관계
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '13' THEN 1 END)                           AS MAAP_VIOLNC_DMGE                 -- 주호소-폭력(피해)
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '12' THEN 1 END)                           AS MAAP_VIOLNC_DO                   -- 주호소-폭력(가해)
+	,   COUNT(CASE WHEN RPRS_MAAP_PROBM_SE_CD = '99' THEN 1 END)                           AS MAAP_ETC                         -- 주호소-기타
+	,   COUNT(CASE WHEN SPCLA_PROBM_DRFSTF = 1 THEN 1 END)                                 AS SPCLA_PROBM_DRFSTF               -- 특별문제-약물
+	,   COUNT(CASE WHEN SPCLA_PROBM_DRNKG = 1 THEN 1 END)                                  AS SPCLA_PROBM_DRNKG                -- 특별문제-음주
+	,   COUNT(CASE WHEN SPCLA_PROBM_GAMBLE = 1 THEN 1 END)                                 AS SPCLA_PROBM_GAMBLE               -- 특별문제-도박
+    ,   COUNT(CASE WHEN SPCLA_PROBM_DRFSTF = 0
+            AND SPCLA_PROBM_DRNKG = 0
+            AND SPCLA_PROBM_GAMBLE = 0 THEN 1 END)                                         AS SPCLA_PROBM_NONE                 -- 특별문제-해당없음
+	,   COUNT(CASE WHEN LGSLTN_PRTCTN_OBSERV = 1 THEN 1 END)                               AS LGSLTN_PRTCTN_OBSERV             -- 법률문제-보호관찰
+	,   COUNT(CASE WHEN LGSLTN_TRL = 1 THEN 1 END)                                         AS LGSLTN_TRL                       -- 법률문제-재판
+	,   COUNT(CASE WHEN LGSLTN_SCHL_VIOLNC = 1 THEN 1 END)                                 AS LGSLTN_SCHL_VIOLNC               -- 법률문제-학교폭력
+	,   COUNT(CASE WHEN LGSLTN_POLC_EXMN = 1 THEN 1 END)                                   AS LGSLTN_POLC_EXMN                 -- 법률문제-경찰조사
+    ,   COUNT(CASE WHEN LGSLTN_PRTCTN_OBSERV = 0
+            AND LGSLTN_TRL = 0
+            AND LGSLTN_SCHL_VIOLNC = 0
+            AND LGSLTN_POLC_EXMN = 0 THEN 1 END)                                           AS LGSLTN_NONE                      -- 법률문제-해당사항없음
+	,   COUNT(CASE WHEN LIVTGT_YN = 5 THEN 1 END)                                          AS LIVTGT_YN_Y                      -- 동거여부-예
+	,   COUNT(CASE WHEN LIVTGT_YN = 0 THEN 1 END)                                          AS LIVTGT_YN_N                      -- 동거여부-아니요
+	,   COUNT(CASE WHEN LVING_MNG_YN = 5 THEN 1 END)                                       AS LVING_MNG_YN_Y                   -- 생활관리여부-예
+	,   COUNT(CASE WHEN LVING_MNG_YN = 0 THEN 1 END)                                       AS LVING_MNG_YN_N                   -- 생활관리여부-아니요
+	,   COUNT(TRPR_INFO_NO)                                                                AS NOPE_SUM                         -- 인원수합계
+	
+	FROM    
+	    (
+	    /* 더미 */
+	    SELECT
+	        NULL AS SE                         -- 구분
+	    ,   NULL AS OD                         -- 순서
+	    ,   NULL AS TRPR_INFO_NO               -- 대상자정보번호
+	    ,   NULL AS APLY_RCPT_SN               -- 신청접수일련번호
+	    ,   NULL AS SXDC_SE_CD                 -- 성별구분코드
+	    ,   NULL AS ACBG_SE_CD                 -- 학력구분코드
+	    ,   NULL AS SCHULW_DSCNTC_ACBG_SE_CD   -- 학업중단학력구분코드
+	    ,   NULL AS ZIP                        -- 우편번호(시도)
+	    ,   NULL AS PBLAST_SE_CD               -- 공적부조
+        ,   NULL AS FAM_SHAPE_SE_CD            -- 가족형태구분코드
+	    ,   NULL AS DSCSN_CONT                 -- 상담횟수
+	    ,   NULL AS RPRS_MAAP_PROBM_SE_CD      -- 대표주호소구분코드
+	    ,   NULL AS SPCLA_PROBM_DRFSTF         -- 특별문제유형여부 - 약물
+	    ,   NULL AS SPCLA_PROBM_DRNKG          -- 특별문제유형여부 - 음주
+	    ,   NULL AS SPCLA_PROBM_GAMBLE         -- 특별문제유형여부 - 도박
+	    ,   NULL AS LGSLTN_PRTCTN_OBSERV       -- 법률문제 - 보호관찰
+	    ,   NULL AS LGSLTN_TRL                 -- 법률문제 - 재판진행
+	    ,   NULL AS LGSLTN_SCHL_VIOLNC         -- 법률문제 - 학교폭력
+	    ,   NULL AS LGSLTN_POLC_EXMN           -- 법률문제 - 경찰조사
+	    ,   NULL AS LIVTGT_YN                  -- 동거여부
+	    ,   NULL AS LVING_MNG_YN               -- 생활관리여부
+	    FROM DUAL
+	    WHERE 1=2
+    ]]>
+    <if test='PAPERS_SRNG == "true" or PAPERS_SRNG2 == "true"'>
+        /* 서류심사-서류선정 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+	        SE                                 -- 구분
+	    ,   OD                                 -- 순서
+	    ,   TRPR_INFO_NO                       -- 대상자정보번호
+	    ,   APLY_RCPT_SN                       -- 신청접수일련번호
+	    ,   SXDC_SE_CD                         -- 성별구분코드
+	    ,   ACBG_SE_CD                         -- 학력구분코드
+	    ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+	    ,   ZIP                                -- 우편번호(시도)
+	    ,   PBLAST_SE_CD                       -- 공적부조
+	    ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+	    ,   DSCSN_CONT                         -- 상담횟수
+	    ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+	    ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+	    ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+	    ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+	    ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+	    ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+	    ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+	    ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+	    ,   LIVTGT_YN                          -- 동거여부
+	    ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '서류심사-서류선정' AS SE
+	        ,   11 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0203','0401')         -- 신청접수심사진행상태:신청검토-선정, 접수-승인
+	        AND (TRPR_INFO_NO, APLY_RCPT_SN) NOT IN
+	            (
+	            SELECT
+	                TRPR_INFO_NO
+	            ,   APLY_RCPT_SN
+	            FROM AFA150
+	            WHERE APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0402','0303')   -- 신청접수심사진행상태:접수-미승인, 2단계신청-접수포기
+	            )
+    </if>
+    <if test='PAPERS_SRNG == "true" or PAPERS_SRNG3 == "true"'>
+        /* 서류심사-서류미선정 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '서류심사-서류미선정' AS SE
+	        ,   12 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0202','0402')         -- 신청접수심사진행상태:신청검토-미선정, 접수-미승인
+    </if>
+    <if test='PAPERS_SRNG == "true" or PAPERS_SRNG4 == "true"'>
+        /* 서류심사-접수포기 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '서류심사-접수포기' AS SE
+	        ,   13 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0303')                -- 신청접수심사진행상태:2단계신청-접수포기
+    </if>
+    <if test='PAPERS_SRNG == "true" or PAPERS_SRNG5 == "true"'>
+        /* 서류심사-반송 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '서류심사-반송' AS SE
+	        ,   14 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0201')                -- 신청접수심사진행상태:신청검토-반송
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG2 == "true"'>
+        /* 면접심사-선정 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '면접심사-선정' AS SE
+	        ,   21 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0504')                -- 신청접수심사진행상태:심사(면접)-선정
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG3 == "true"'>
+        /* 면접심사-심사중 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '면접심사-심사중' AS SE
+	        ,   22 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0503')                -- 신청접수심사진행상태:심사(면접)-심사중
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG4 == "true"'>
+        /* 면접심사-보류 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '면접심사-보류' AS SE
+	        ,   23 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0505')                -- 신청접수심사진행상태:심사(면접)-보류
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG5 == "true"'>
+        /* 면접심사-미선정 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '면접심사-미선정' AS SE
+	        ,   24 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0502')                -- 신청접수심사진행상태:심사(면접)-미선정
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG6 == "true"'>
+        /* 면접심사-심사포기 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '면접심사-심사포기' AS SE
+	        ,   25 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0501')                -- 신청접수심사진행상태:심사(면접)-심사포기
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC2 == "true"'>
+        /* 최종입교-최종입교 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '최종입교-최종입교' AS SE
+	        ,   31 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0604')                -- 신청접수심사진행상태:최종-선정
+	        AND (TRMN_SE_CD NOT IN ('11') OR TRMN_SE_CD IS NULL)
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC3 == "true"'>
+        /* 최종입교-적응기간 입교생 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '최종입교-적응기간 입교생' AS SE
+	        ,   32 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0605')                -- 신청접수심사진행상태:최종-선정(대체)
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC4 == "true"'>
+        /* 최종입교-예비후보자 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '최종입교-예비후보자' AS SE
+	        ,   33 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0603')                -- 신청접수심사진행상태:최종-예비후보자
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC5 == "true"'>
+        /* 최종입교-결정보류 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '최종입교-결정보류' AS SE
+	        ,   34 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0602')                -- 신청접수심사진행상태:최종-결정보류
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC6 == "true"'>
+        /* 최종입교-최종미선정 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '최종입교-최종미선정' AS SE
+	        ,   35 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0601')                -- 신청접수심사진행상태:최종-미선정
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC7 == "true"'>
+        /* 최종입교-입교포기(적응기간) */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '최종입교-입교포기(적응기간)' AS SE
+	        ,   36 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0604')                -- 신청접수심사진행상태:최종-선정
+	        AND TRMN_SE_CD IN ('11')
+    </if>
+    <if test='FNSH == "true" or FNSH2 == "true"'>
+        /* 수료-일반수료 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '수료-일반수료' AS SE
+	        ,   41 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  TRMN_SE_CD IN ('01')                                       -- 종결구분:수료
+    </if>
+    <if test='FNSH == "true" or FNSH3 == "true"'>
+        /* 수료-조기수료 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '수료-조기수료' AS SE
+	        ,   42 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  TRMN_SE_CD IN ('02')                                       -- 종결구분:조기수료
+    </if>
+    <if test='FNSH == "true" or FNSH4 == "true"'>
+        /* 수료-기관퇴교 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '수료-기관퇴교' AS SE
+	        ,   43 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  TRMN_SE_CD IN ('04')                                       -- 종결구분:중도탈락
+	        AND TRMN_CS_SE_CD IN ('063')                                   -- 종결사유:기관퇴교
+    </if>
+    <if test='FNSH == "true" or FNSH5 == "true"'>
+        /* 수료-자의퇴교 */
+	    UNION ALL
+	    
+	    SELECT DISTINCT
+            SE                                 -- 구분
+        ,   OD                                 -- 순서
+        ,   TRPR_INFO_NO                       -- 대상자정보번호
+        ,   APLY_RCPT_SN                       -- 신청접수일련번호
+        ,   SXDC_SE_CD                         -- 성별구분코드
+        ,   ACBG_SE_CD                         -- 학력구분코드
+        ,   SCHULW_DSCNTC_ACBG_SE_CD           -- 학업중단학력구분코드
+        ,   ZIP                                -- 우편번호(시도)
+        ,   PBLAST_SE_CD                       -- 공적부조
+        ,   FAM_SHAPE_SE_CD                    -- 가족형태구분코드
+        ,   DSCSN_CONT                         -- 상담횟수
+        ,   RPRS_MAAP_PROBM_SE_CD              -- 대표주호소구분코드
+        ,   SPCLA_PROBM_DRFSTF                 -- 특별문제유형여부 - 약물
+        ,   SPCLA_PROBM_DRNKG                  -- 특별문제유형여부 - 음주
+        ,   SPCLA_PROBM_GAMBLE                 -- 특별문제유형여부 - 도박
+        ,   LGSLTN_PRTCTN_OBSERV               -- 법률문제 - 보호관찰
+        ,   LGSLTN_TRL                         -- 법률문제 - 재판진행
+        ,   LGSLTN_SCHL_VIOLNC                 -- 법률문제 - 학교폭력
+        ,   LGSLTN_POLC_EXMN                   -- 법률문제 - 경찰조사
+        ,   LIVTGT_YN                          -- 동거여부
+        ,   LVING_MNG_YN                       -- 생활관리여부
+	    FROM
+	        (
+	        SELECT
+	            '수료-자의퇴교' AS SE
+	        ,   44 AS OD
+	        FROM DUAL
+	        )
+	    LEFT JOIN TMP000
+	        ON  TRMN_SE_CD IN ('04')                                       -- 종결구분:중도탈락
+	        AND TRMN_CS_SE_CD IN ('062')                                   -- 종결사유:기관퇴교
+    </if>
+	    )
+	
+	GROUP BY SE, OD
+	
+	ORDER BY OD
+	</select>
+	
+	<!-- 입교현황통합보고서 신청기관별 조회 - LEE.SEOUNG.JAE -->
+	<select id="selectAplyInstReprts" resultType="HashMap">
+	<![CDATA[
+	/* selectAplyInstReprts 입교현황통합보고서 신청기관별 조회 - Lee Sanghoon */
+    WITH TMP000 AS
+        (
+        SELECT
+            T.TRPR_INFO_NO                                                  -- 대상자정보번호
+        ,   T.APLY_RCPT_SN                                                  -- 신청접수일련번호
+        ,   T5.APLY_RCPT_SRNG_SE_CD                                         -- 신청접수심사구분코드
+        ,   T5.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD                              -- 신청접수심사진행상태구분코드
+        ,   T.RCPT_RQST_COURS_SE_CD                                         -- 의뢰접수경로구분코드
+        ,   (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+            WHERE CMMNS_CD_ID = 'RCPT_RQST_COURS_SE_CD'
+            AND CMMNS_CD_VALUE = T.RCPT_RQST_COURS_SE_CD) AS APLY_INST      -- 신청기관[접수의뢰경로]
+        ,   T6.TRMN_SE_CD                                                   -- 종결구분코드
+        ,   T6.TRMN_CS_SE_CD                                                -- 종결사유구분코드
+
+        FROM AFA100 T                                  /* 신청접수 */
+        JOIN SEA200 T1                                 /* 대상자정보 */
+            ON  T1.TRPR_INFO_NO = T.TRPR_INFO_NO
+        JOIN AFA150 T5                                 /* 신청접수심사상태정보이력 */
+            ON T5.TRPR_INFO_NO = T.TRPR_INFO_NO
+            AND T5.APLY_RCPT_SN = T.APLY_RCPT_SN
+        LEFT JOIN                                      /* 사례종결 */
+            (
+            SELECT
+                C.*
+            ,   A.TRPR_INFO_NO
+            ,   D.SRVC_EXCN_BIZ_NO
+            ,   ROW_NUMBER() OVER(PARTITION BY B.CASE_MNG_NO, B.CASE_MNG_ODRNO ORDER BY B.CASE_TRMN_NO DESC) AS ROW_NUMBER
+            FROM SEB100 A   /* 사례기본 */
+            JOIN SEC100 B   /* 사례종결 */
+                ON  B.CASE_MNG_NO = A.CASE_MNG_NO
+                AND B.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+                AND B.TRMN_SRNG_RESULT_SE_CD = '02'     -- 종결심사결과:승인
+            JOIN SEC100 C   /* 사례종결 */
+                ON  C.CASE_MNG_NO = A.CASE_MNG_NO
+                AND C.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+                AND C.TRMN_SRNG_RESULT_SE_CD = '01'     -- 종결심사결과:신청
+            JOIN SEB120 D   /* 서비스사업대상자 */
+                ON  D.CASE_MNG_NO = A.CASE_MNG_NO
+                AND D.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+                AND D.DEL_YN != 'Y'
+            ) T6
+            ON  T6.ROW_NUMBER = 1
+            AND T6.TRPR_INFO_NO = T.TRPR_INFO_NO
+            AND T6.SRVC_EXCN_BIZ_NO = T.SRVC_EXCN_BIZ_NO
+        JOIN SDA420 T8                                  /* 서비스실행사업 */
+            ON  T8.SRVC_EXCN_BIZ_NO = T.SRVC_EXCN_BIZ_NO
+        JOIN SDA400 T9                                  /* 서비스사업 */
+            ON  T9.SRVC_BIZ_NO = T8.SRVC_BIZ_NO
+
+        WHERE 1=1
+        AND SUBSTR(T.RCPT_RQST_COURS_SE_CD,0,2) <> '01'
+    ]]>
+    <if test="BIZ_YR != null">
+        /* 사업연도 */
+        AND T9.BIZ_YR IN
+            <foreach collection="BIZ_YR" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <if test='INST_NO != null and INST_NO != "ALL"'>
+        /* 기관[기관번호] */
+        AND T.RSFR_INST_NO IN
+            <foreach collection="INST_NO" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <if test="SRVC_EXCN_BIZ_NO != null">
+        /* 과정[서비스실행사업번호] */
+        AND T.SRVC_EXCN_BIZ_NO IN
+            <foreach collection="SRVC_EXCN_BIZ_NO" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <![CDATA[
+        )
+
+    SELECT
+        SE                              -- 구분
+    ,   NVL(APLY_INST,'-') AS APLY_INST -- 신청기관
+    ,   COUNT(TRPR_INFO_NO) AS NMPR     -- 인원
+
+    FROM    
+        (
+        /* 더미 */
+        SELECT
+            NULL AS SE                          -- 구분
+        ,   NULL AS APLY_INST                   -- 신청기관
+        ,   NULL AS OD                          -- 순서
+        ,   NULL AS TRPR_INFO_NO                -- 대상자정보번호
+        ,   NULL AS APLY_RCPT_SN                -- 신청접수일련번호
+        FROM DUAL
+        WHERE 1=2
+    ]]>
+    <if test='PAPERS_SRNG == "true" or PAPERS_SRNG2 == "true"'>
+        /* 서류심사-서류선정 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '서류심사-서류선정' AS SE
+            ,   11 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0203','0401')          -- 신청접수심사진행상태:신청검토-선정, 접수-승인
+            AND (TRPR_INFO_NO, APLY_RCPT_SN) NOT IN
+                (
+                SELECT
+                    TRPR_INFO_NO
+                ,   APLY_RCPT_SN
+                FROM AFA150
+                WHERE APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0402','0303')    -- 신청접수심사진행상태:접수-미승인, 2단계신청-접수포기
+                )
+    </if>
+    <if test='PAPERS_SRNG == "true" or PAPERS_SRNG3 == "true"'>
+        /* 서류심사-서류미선정 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '서류심사-서류미선정' AS SE
+            ,   12 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0202','0402')          -- 신청접수심사진행상태:신청검토-미선정, 접수-미승인
+    </if>
+    <if test='PAPERS_SRNG == "true" or PAPERS_SRNG4 == "true"'>
+        /* 서류심사-접수포기 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '서류심사-접수포기' AS SE
+            ,   13 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0303')                 -- 신청접수심사진행상태:2단계신청-접수포기
+    </if>
+    <if test='PAPERS_SRNG == "true" or PAPERS_SRNG5 == "true"'>
+        /* 서류심사-반송 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '서류심사-반송' AS SE
+            ,   14 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0201')                 -- 신청접수심사진행상태:신청검토-반송
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG2 == "true"'>
+        /* 면접심사-선정 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '면접심사-선정' AS SE
+            ,   21 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0504')                 -- 신청접수심사진행상태:심사(면접)-선정
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG3 == "true"'>
+        /* 면접심사-심사중 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '면접심사-심사중' AS SE
+            ,   22 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0503')                 -- 신청접수심사진행상태:심사(면접)-심사중
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG4 == "true"'>
+        /* 면접심사-보류 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '면접심사-보류' AS SE
+            ,   23 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0505')                 -- 신청접수심사진행상태:심사(면접)-보류
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG5 == "true"'>
+        /* 면접심사-미선정 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '면접심사-미선정' AS SE
+            ,   24 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0502')                 -- 신청접수심사진행상태:심사(면접)-미선정
+    </if>
+    <if test='INTRVW_SRNG == "true" or INTRVW_SRNG6 == "true"'>
+        /* 면접심사-심사포기 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '면접심사-심사포기' AS SE
+            ,   25 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0501')                 -- 신청접수심사진행상태:심사(면접)-심사포기
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC2 == "true"'>
+        /* 최종입교-최종입교 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '최종입교-최종입교' AS SE
+            ,   31 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0604')                 -- 신청접수심사진행상태:최종-선정
+            AND (TRMN_SE_CD NOT IN ('11') OR TRMN_SE_CD IS NULL)            -- 종결구분:적응기간퇴교
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC3 == "true"'>
+        /* 최종입교-적응기간 입교생 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '최종입교-적응기간 입교생' AS SE
+            ,   32 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0605')                 -- 신청접수심사진행상태:최종-선정(대체)
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC4 == "true"'>
+        /* 최종입교-예비후보자 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '최종입교-예비후보자' AS SE
+            ,   33 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0603')                 -- 신청접수심사진행상태:최종-예비후보자
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC5 == "true"'>
+        /* 최종입교-결정보류 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '최종입교-결정보류' AS SE
+            ,   34 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0602')                 -- 신청접수심사진행상태:최종-결정보류
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC6 == "true"'>
+        /* 최종입교-최종미선정 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '최종입교-최종미선정' AS SE
+            ,   35 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0601')                 -- 신청접수심사진행상태:최종-미선정
+    </if>
+    <if test='LAST_ENTSC == "true" or LAST_ENTSC7 == "true"'>
+        /* 최종입교-입교포기(적응기간) */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '최종입교-입교포기(적응기간)' AS SE
+            ,   36 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0604')                 -- 신청접수심사진행상태:최종-선정
+            AND TRMN_SE_CD IN ('11')                                        -- 종결구분:적응기간퇴교
+    </if>
+    <if test='FNSH == "true" or FNSH2 == "true"'>
+        /* 수료-일반수료 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '수료-일반수료' AS SE
+            ,   41 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  TRMN_SE_CD IN ('01')                                        -- 종결구분:수료
+    </if>
+    <if test='FNSH == "true" or FNSH3 == "true"'>
+        /* 수료-조기수료 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '수료-조기수료' AS SE
+            ,   42 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  TRMN_SE_CD IN ('02')                                        -- 종결구분:조기수료
+    </if>
+    <if test='FNSH == "true" or FNSH4 == "true"'>
+        /* 수료-기관퇴교 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '수료-기관퇴교' AS SE
+            ,   43 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  TRMN_SE_CD IN ('04')                                        -- 종결구분:중도탈락
+            AND TRMN_CS_SE_CD IN ('063')                                    -- 종결사유:기관퇴교
+    </if>
+    <if test='FNSH == "true" or FNSH5 == "true"'>
+        /* 수료-자의퇴교 */
+        UNION ALL
+
+        SELECT DISTINCT
+            SE                                  -- 구분
+        ,   APLY_INST                           -- 신청기관
+        ,   OD1 || RCPT_RQST_COURS_SE_CD AS OD  -- 순서
+        ,   TRPR_INFO_NO                        -- 대상자정보번호
+        ,   APLY_RCPT_SN                        -- 신청접수일련번호
+        FROM
+            (
+            SELECT
+                '수료-자의퇴교' AS SE
+            ,   44 AS OD1
+            FROM DUAL
+            )
+        LEFT JOIN TMP000
+            ON  TRMN_SE_CD IN ('04')                                        -- 종결구분:중도탈락
+            AND TRMN_CS_SE_CD IN ('062')                                    -- 종결사유:자의퇴교
+    </if>
+    <![CDATA[
+        )
+
+    GROUP BY SE, APLY_INST, OD
+
+    ORDER BY OD
+    ]]>
+	</select>
+	
+	<select id="selectTotTrprList" resultType="HashMap">
+    <![CDATA[
+    /* selectTotTrprList 집계대상자목록 - Lee Hye Sun */
+	SELECT DISTINCT
+	        TRPR_INFO_NO
+	    ,   APLY_RCPT_SN
+	    ,   BIZ_YR
+	    ,   CASE
+	            WHEN APLY_STTS IN ('0203', '0401') THEN '서류선정'
+	            WHEN APLY_STTS IN ('0202', '0402') THEN '서류미선정'
+	            WHEN APLY_STTS IN ('0303') THEN '접수포기' 
+	            WHEN APLY_STTS IN ('0201') THEN '반송'
+	            WHEN APLY_STTS IN ('0504') THEN '선정'
+	            WHEN APLY_STTS IN ('0503') THEN '심사중'
+	            WHEN APLY_STTS IN ('0505') THEN '보류'
+	            WHEN APLY_STTS IN ('0502') THEN '미선정'
+	            WHEN APLY_STTS IN ('0501') THEN '심사포기'
+	            WHEN APLY_STTS IN ('0604') AND (TRMN_SE_CD NOT IN ('11') OR TRMN_SE_CD IS NULL) THEN '최종입교'
+	            WHEN APLY_STTS IN ('0605') THEN '적응기간 입교생'
+	            WHEN APLY_STTS IN ('0603') THEN '예비후보자'
+	            WHEN APLY_STTS IN ('0602') THEN '결정보류'
+	            WHEN APLY_STTS IN ('0601') THEN '최종미선정'
+	            WHEN APLY_STTS IN ('0604') AND TRMN_SE_CD IN ('11') THEN '입교포기(적응기간)'
+	            WHEN TRMN_SE_CD IN ('01') THEN '일반수료'
+	            WHEN TRMN_SE_CD IN ('02') THEN '조기수료'
+	            WHEN TRMN_SE_CD IN ('04') AND TRMN_CS_SE_CD IN ('063') THEN '기관퇴교'
+	            WHEN TRMN_SE_CD IN ('04') AND TRMN_CS_SE_CD IN ('062') THEN '자의퇴교'
+            END AS APLY_STTS_NM
+	    ,   TRMN_CS_SE_CD
+	    ,   TRMN_SE_CD
+	    ,   INST_NO
+	    ,   INST_NM
+	    ,   SRVC_EXCN_BIZ_NM
+	    ,   SRVC_EXCN_BIZ_NO
+	    ,   DEC_B64(TRPR_NM) AS TRPR_NM
+	    ,   SXDC_SE_CD
+	    ,   BRTH_YMD
+	    ,   ACBG_GRDTN
+	    ,   RGN
+	    ,   RCPT_COURS
+	    ,   DEC_B64(RQST) AS RQST
+	    ,   SCHL_NM
+	    ,   PBLAST
+	    ,   RESIDE
+	    ,   RPRS_MAAP
+	    ,   COMPNO_RPRS
+	    ,   FAM_SHAPE
+	    ,   DEC_B64(PIC_NM_ENCPT) AS PIC_NM_ENCPT
+	    ,   DEC_B64(PIC_TELNO_ENCPT) AS PIC_TELNO_ENCPT
+	    ,   DEC_B64(PIC_MBL_TELNO_ENCPT) AS PIC_MBL_TELNO_ENCPT
+	    ,   DEC_B64(PIC_EML_ADDR_ENCPT) AS PIC_EML_ADDR_ENCPT
+	    ,   DEC_B64(PRTCR_NM_ENCPT) AS PRTCR_NM_ENCPT
+	    ,   TRPR_REL
+	    ,   DEC_B64(PRTCR_TELNO) AS PRTCR_TELNO
+	    ,   DEC_B64(PRTCR_MBL_TELNO_ENCPT) AS PRTCR_MBL_TELNO_ENCPT
+	    ,   DEC_B64(PRTCR_EML_ADDR_ENCPT) AS PRTCR_EML_ADDR_ENCPT
+	    ,   DEC_B64(MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT
+	    ,   DEC_B64(EML_ADDR_ENCPT) AS EML_ADDR_ENCPT
+	    ,   ROUND(YNGBGS_SCORE, 2) AS YNGBGS_SCORE
+        ,   ROUND(PRTCR_SCORE, 2) AS PRTCR_SCORE
+        ,   ROUND(PIC_SCORE, 2) AS PIC_SCORE
+        ,   ROUND(PRTCR_EVL_SCORE, 2) AS PRTCR_EVL_SCORE
+        ,   ROUND(YNGBGS_PRTCR, 2) AS YNGBGS_PRTCR
+	    ,   RCPT_NUM
+	    ,   RCPT_1
+	    ,   ROUND(ALL_SCORE, 2) AS ALL_SCORE
+	    ,   RCPT_2
+	    ,   INTRVW_MTHD
+	    ,   INTRVW_SE
+	    ,   INTRVW_PLACE
+	    ,   INTRVW_YMD
+	    ,   INTRVW_HR
+	    ,   DEC_B64(INTRVW_SRNG_PIC_NM_ENCPT) AS INTRVW_SRNG_PIC_NM_ENCPT
+	    ,   YNGBGS_GRDNG
+	    ,   PRTCR_GRDNG
+	    ,   GRDNG_SCORE
+	    ,   GRDNG_NUM
+	    ,   RCPT_3
+	    ,   RCPT_4
+	    ,   CASE_MNG_YN
+	FROM (
+	    SELECT
+	            A.TRPR_INFO_NO AS TRPR_INFO_NO
+	        ,   A.APLY_RCPT_SN AS APLY_RCPT_SN
+	        ,   D.BIZ_YR
+	        ,   CC.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD AS APLY_STTS
+	        ,   CC.APLY_RCPT_SRNG_SE_CD AS APLY_SE_CD
+	        ,   B.TRMN_CS_SE_CD AS TRMN_CS_SE_CD
+	        ,   B.TRMN_SE_CD AS TRMN_SE_CD
+	        ,   E.INST_NO AS INST_NO
+	        ,   E.INST_NM AS INST_NM
+	        ,   C.SRVC_EXCN_BIZ_NM AS SRVC_EXCN_BIZ_NM
+	        ,   C.SRVC_EXCN_BIZ_NO AS SRVC_EXCN_BIZ_NO
+	        ,   NVL(G.FLNM_ENCPT, F.TRPR_NM_ENCPT) AS TRPR_NM
+	        ,   NVL(G.SXDC_SE_CD, F.SXDC_SE_CD) AS SXDC_SE_CD
+	        ,   NVL(G.BRTH_YMD, F.TRPR_BRTH_YMD) AS BRTH_YMD
+	        ,   H.ACBG || ' ' || H.GRDTN AS ACBG_GRDTN
+	        ,   CASE
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('01','02','03','04','05','06','07','08','09') THEN '서울'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('46','47','48','49') THEN '부산'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('41','42','43') THEN '대구'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('21','22','23') THEN '인천'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('61','62') THEN '광주'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('34','35') THEN '대전'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('44','45') THEN '울산'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('30') THEN '세종'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('63') THEN '제주'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('10','11','12','13','14','15','16','17','18','19','20') THEN '경기'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('24','25','26') THEN '강원'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('27','28','29') THEN '충북'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('31','32','33') THEN '충남'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('54','55','56') THEN '전북'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('57','58','59','60') THEN '전남'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('36','37','38','39','40') THEN '경북'
+	                WHEN SUBSTR(F.ZIP,0,2) IN ('50','51','52','53') THEN '경남'
+	                WHEN NOT REGEXP_LIKE(F.ZIP ,'^[0-5][0-9]{4}|^6[0-3]{1}[0-9]{3}') THEN '기타'
+	            END AS RGN  
+	        ,   (SELECT CMMNS_CD_VALUE_NM
+	                FROM SAC100
+	                WHERE CMMNS_CD_ID = 'RCPT_RQST_COURS_SE_CD'
+	                AND CMMNS_CD_VALUE = A.RCPT_RQST_COURS_SE_CD) AS RCPT_COURS
+	        ,   CASE
+	                WHEN A.RQST_INST_NM IS NOT NULL THEN A.RQST_INST_NM
+	                WHEN A.RCPT_RQST_COURS_SE_CD IN ('01010101') THEN NVL(G.FLNM_ENCPT, F.TRPR_NM_ENCPT)
+	                ELSE F.PRTCR_NM_ENCPT
+	            END AS RQST
+	        ,   CASE WHEN H.GRDTN LIKE '재학' THEN H.SCHL_NM || '(' || H.ACBG || ')' ELSE '학교밖' END AS SCHL_NM
+	        ,   (SELECT CMMNS_CD_VALUE_NM
+	                FROM SAC100
+	                WHERE CMMNS_CD_ID = 'PBLAST_SE_CD'
+	                AND CMMNS_CD_VALUE = F.PBLAST_SE_CD) AS PBLAST
+	        ,   (SELECT CMMNS_CD_VALUE_NM
+	                FROM SAC100
+	                WHERE CMMNS_CD_ID = 'RESIDE_SHAPE_SE_CD'
+	                AND CMMNS_CD_VALUE = F.RESIDE_SHAPE_SE_CD) AS RESIDE
+	        ,   (SELECT CMMNS_CD_VALUE_NM
+	                FROM SAC100
+	                WHERE CMMNS_CD_ID = 'RPRS_MAAP_PROBM_SE_CD'
+	                AND CMMNS_CD_VALUE = BB.RPRS_MAAP_PROBM_SE_CD) AS RPRS_MAAP
+	        ,   I.COMPNO_RPRS
+	        ,   (SELECT CMMNS_CD_VALUE_NM
+	                FROM SAC100
+	                WHERE CMMNS_CD_ID = 'FAM_SHAPE_SE_CD'
+	                AND CMMNS_CD_VALUE = F.FAM_SHAPE_SE_CD) AS FAM_SHAPE
+	        ,   A.PIC_NM_ENCPT
+	        ,   A.PIC_TELNO_ENCPT
+	        ,   A.PIC_MBL_TELNO_ENCPT
+	        ,   A.PIC_EML_ADDR_ENCPT
+	        ,   F.PRTCR_NM_ENCPT
+	        ,   (SELECT CMMNS_CD_VALUE_NM
+	                FROM SAC100
+	                WHERE CMMNS_CD_ID = 'FAM_REL_SE_CD'
+	                AND CMMNS_CD_VALUE = F.FAM_REL_SE_CD) AS TRPR_REL  
+	        ,   F.PRTCR_TELNO
+	        ,   F.PRTCR_MBL_TELNO_ENCPT
+	        ,   F.PRTCR_EML_ADDR_ENCPT
+	        ,   F.MBL_TELNO_ENCPT
+	        ,   F.EML_ADDR_ENCPT
+	        ,   J.YNGBGS_SCORE
+	        ,   J.PRTCR_SCORE 
+	        ,   J.PIC_SCORE
+	        ,   J.PRTCR_EVL_SCORE
+	        ,   NVL(J.YNGBGS_SCORE, 0) + NVL(J.PRTCR_SCORE, 0) AS YNGBGS_PRTCR
+	        ,   J.RCPT_NUM
+	        ,   B.RCPT_1
+	        ,   J.ALL_SCORE
+	        ,   B.RCPT_2
+	        ,   (SELECT CMMNS_CD_VALUE_NM
+	                FROM SAC100
+	                WHERE CMMNS_CD_ID = 'INTRVW_PTCPTN_MTHD_SE_CD'
+	                AND CMMNS_CD_VALUE = A.INTRVW_PTCPTN_MTHD_SE_CD) AS INTRVW_MTHD 
+	        ,   (SELECT CMMNS_CD_VALUE_NM
+	                FROM SAC100
+	                WHERE CMMNS_CD_ID = 'INTRVW_PTCPTN_SE_CD'
+	                AND CMMNS_CD_VALUE = A.INTRVW_PTCPTN_SE_CD) AS INTRVW_SE
+	        ,   CASE
+	                WHEN A.INTRVW_PLACE_VST_MTHD_SE_CD = '01' THEN '셔틀이용'
+	                WHEN A.INTRVW_PLACE_VST_MTHD_SE_CD = '02' THEN '개별교통'
+	            END AS INTRVW_PLACE
+	        ,   A.INTRVW_YMD
+	        ,   A.INTRVW_HR
+	        ,   A.INTRVW_SRNG_PIC_NM_ENCPT
+	        ,   K.YNGBGS_GRDNG
+	        ,   K.PRTCR_GRDNG
+	        ,   K.GRDNG_SCORE
+	        ,   K.GRDNG_NUM
+	        ,   B.RCPT_3
+	        ,   B.RCPT_4
+	        ,   CASE
+	                WHEN DD.CASE_MNG_NO IS NOT NULL AND DD.CASE_MNG_ODRNO IS NOT NULL THEN '선정'
+	                ELSE '미선정'
+	            END AS CASE_MNG_YN
+	    FROM AFA100 A
+	    LEFT JOIN AFA120 BB
+	    ON A.TRPR_INFO_NO = BB.TRPR_INFO_NO
+	    AND A.APLY_RCPT_SN = BB.APLY_RCPT_SN
+	    LEFT JOIN AFA150 CC
+	    ON A.TRPR_INFO_NO = CC.TRPR_INFO_NO
+	    AND A.APLY_RCPT_SN = CC.APLY_RCPT_SN
+	    LEFT JOIN SEB100 DD
+	    ON BB.CASE_MNG_NO = DD.CASE_MNG_NO
+	    AND BB.CASE_MNG_ODRNO = DD.CASE_MNG_ODRNO
+	    LEFT JOIN (
+	        SELECT
+	                A.TRPR_INFO_NO
+	            ,   A.APLY_RCPT_SN
+	            ,   B.APLY_STTS AS RCPT_1       --서류탈락척도
+	            ,   C.APLY_STTS AS RCPT_2       --서류최종판단
+	            ,   D.APLY_STTS AS RCPT_3       --면접판단
+	            ,   E.APLY_STTS AS RCPT_4       --최종판단
+	            ,   F.APLY_STTS AS RCPT_5       --최종결과
+	            ,   F.TRMN_CS_SE_CD
+	            ,   F.TRMN_SE_CD
+	        FROM AFA120 A
+	        /*서류탈락척도*/
+	        LEFT JOIN (
+	            SELECT
+	                    A.TRPR_INFO_NO
+	                ,   A.APLY_RCPT_SN
+	                ,   B.APLY_RCPT_SRNG_SE_CD
+	                ,   B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD
+	                ,   CASE
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0203') THEN '합격'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0202') THEN '미선정'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0201') THEN '반송' 
+	                    END AS APLY_STTS
+	            FROM AFA120 A
+	            LEFT JOIN AFA150 B
+	            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	            WHERE B.APLY_RCPT_SRNG_SE_CD IN ('02')
+	        ) B
+	        ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	        AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	        /*서류최종판단*/
+	        LEFT JOIN (
+	            SELECT
+	                    A.TRPR_INFO_NO
+	                ,   A.APLY_RCPT_SN
+	                ,   B.APLY_RCPT_SRNG_SE_CD
+	                ,   B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD
+	                ,   CASE
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0401') THEN '서류선정'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0402') THEN '미선정'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0303') THEN '접수포기' 
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0403') THEN '반송' 
+	                    END AS APLY_STTS
+	            FROM AFA120 A
+	            LEFT JOIN AFA150 B
+	            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	            WHERE B.APLY_RCPT_SRNG_SE_CD IN ('03', '04') AND B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD NOT IN ('0301', '0302')
+	        ) C
+	        ON A.TRPR_INFO_NO = C.TRPR_INFO_NO
+	        AND A.APLY_RCPT_SN = C.APLY_RCPT_SN
+	        /*면접판단*/
+	        LEFT JOIN (
+	            SELECT
+	                    A.TRPR_INFO_NO
+	                ,   A.APLY_RCPT_SN
+	                ,   B.APLY_RCPT_SRNG_SE_CD
+	                ,   B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD
+	                ,   CASE
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0504') THEN '선정'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0503') THEN '심사중'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0505') THEN '보류'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0502') THEN '미선정'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0501') THEN '심사포기'
+	                    END AS APLY_STTS
+	            FROM AFA120 A
+	            LEFT JOIN AFA150 B
+	            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	            WHERE B.APLY_RCPT_SRNG_SE_CD IN ('05')
+	        ) D
+	        ON A.TRPR_INFO_NO = D.TRPR_INFO_NO
+	        AND A.APLY_RCPT_SN = D.APLY_RCPT_SN
+	        /*최종결과*/
+	        LEFT JOIN (
+	            SELECT
+	                    A.TRPR_INFO_NO
+	                ,   A.APLY_RCPT_SN
+	                ,   B.APLY_RCPT_SRNG_SE_CD
+	                ,   B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD
+	                ,   D.TRMN_SE_CD
+	                ,   CASE
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0604') AND (D.TRMN_SE_CD NOT IN ('11') OR D.TRMN_SE_CD IS NULL) THEN '최종입교'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0605') THEN '적응기간 입교생'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0603') THEN '예비후보자'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0602') THEN '결정보류'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0601') THEN '최종미선정'
+	                        WHEN B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD IN ('0604') AND D.TRMN_SE_CD IN ('11') THEN '입교포기(적응기간)'
+	                    END AS APLY_STTS
+	            FROM AFA120 A
+	            LEFT JOIN AFA150 B
+	            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	            LEFT JOIN (
+	                SELECT
+	                        BB.CASE_MNG_NO
+	                    ,   BB.CASE_MNG_ODRNO
+	                    ,   BB.TRMN_CS_SE_CD
+	                    ,   AA.CASE_TRMN_YMD
+	                    ,   BB.TRMN_SE_CD
+	                    ,   ROW_NUMBER() OVER(PARTITION BY BB.CASE_MNG_NO, BB.CASE_MNG_ODRNO ORDER BY BB.CASE_TRMN_NO DESC) AS RN
+	                FROM SEC100 AA                                 /*사례종결 테이블*/
+	                LEFT JOIN SEC100 BB
+	                ON BB.CASE_MNG_NO = AA.CASE_MNG_NO
+	                AND BB.CASE_MNG_NO = AA.CASE_MNG_NO
+	                AND BB.TRMN_SRNG_RESULT_SE_CD = '01'           /*종결심사결과구분코드(신청)*/
+	                WHERE AA.TRMN_SRNG_RESULT_SE_CD = '02'         /*종결심사결과구분코드(심사(승인))*/
+	            ) D
+	            ON A.CASE_MNG_NO = D.CASE_MNG_NO
+	            AND A.CASE_MNG_ODRNO = D.CASE_MNG_ODRNO
+	            AND D.RN=1
+	            WHERE B.APLY_RCPT_SRNG_SE_CD IN ('06')
+	        ) E
+	        ON A.TRPR_INFO_NO = E.TRPR_INFO_NO
+	        AND A.APLY_RCPT_SN = E.APLY_RCPT_SN
+	        /*수료*/
+	        LEFT JOIN (
+	            SELECT
+	                    A.TRPR_INFO_NO
+	                ,   A.APLY_RCPT_SN
+	                ,   A.RPRS_MAAP_PROBM_SE_CD
+	                ,   B.APLY_RCPT_SRNG_SE_CD
+	                ,   B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD
+	                ,   D.TRMN_CS_SE_CD
+	                ,   D.TRMN_SE_CD
+	                ,   CASE    --  수료
+	                        WHEN D.TRMN_SE_CD IN ('01') THEN '일반수료'
+	                        WHEN D.TRMN_SE_CD IN ('02') THEN '조기수료'
+	                        WHEN D.TRMN_SE_CD IN ('04') AND D.TRMN_CS_SE_CD = '063' THEN '기관퇴교'
+	                        WHEN D.TRMN_SE_CD IN ('04') AND D.TRMN_CS_SE_CD = '062'THEN '자의퇴교'
+	                   END AS APLY_STTS
+	            FROM AFA120 A
+	            LEFT JOIN(
+	                SELECT
+	                        TRPR_INFO_NO
+	                    ,   APLY_RCPT_SN
+	                    ,   APLY_RCPT_SRNG_SE_CD
+	                    ,   APLY_RCPT_SRNG_PRGRS_STTS_SE_CD
+	                    ,   RANK() OVER(PARTITION BY TRPR_INFO_NO, APLY_RCPT_SN ORDER BY APLY_RCPT_SRNG_SE_CD DESC) AS RO
+	                FROM AFA150
+	            ) B
+	            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	            AND B.RO = 1
+	            LEFT JOIN(
+	                SELECT
+	                        BB.CASE_MNG_NO
+	                    ,   BB.CASE_MNG_ODRNO
+	                    ,   BB.TRMN_CS_SE_CD
+	                    ,   AA.CASE_TRMN_YMD
+	                    ,   BB.TRMN_SE_CD
+	                    ,   ROW_NUMBER() OVER(PARTITION BY BB.CASE_MNG_NO, BB.CASE_MNG_ODRNO ORDER BY BB.CASE_TRMN_NO DESC) AS RN
+	                FROM SEC100 AA                                 /*사례종결 테이블*/
+	                LEFT JOIN SEC100 BB
+	                ON BB.CASE_MNG_NO = AA.CASE_MNG_NO
+	                AND BB.CASE_MNG_NO = AA.CASE_MNG_NO
+	                AND BB.TRMN_SRNG_RESULT_SE_CD = '01'           /*종결심사결과구분코드(신청)*/
+	                WHERE AA.TRMN_SRNG_RESULT_SE_CD = '02'         /*종결심사결과구분코드(심사(승인))*/
+	            ) D
+	            ON A.CASE_MNG_NO = D.CASE_MNG_NO
+	            AND A.CASE_MNG_ODRNO = D.CASE_MNG_ODRNO
+	            AND D.RN=1
+	        ) F
+	        ON A.TRPR_INFO_NO = F.TRPR_INFO_NO
+	        AND A.APLY_RCPT_SN = F.APLY_RCPT_SN
+	        
+	        WHERE 1=1
+	    ) B
+	    ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	    AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	    LEFT JOIN SDA420 C
+	    ON A.SRVC_EXCN_BIZ_NO = C.SRVC_EXCN_BIZ_NO
+	    LEFT JOIN SDA400 D
+	    ON C.SRVC_BIZ_NO = D.SRVC_BIZ_NO
+	    JOIN SAA000 E
+	    ON C.INST_NO = E.INST_NO
+	    JOIN SEA200 F
+	    ON A.TRPR_INFO_NO = F.TRPR_INFO_NO
+	    JOIN SCA300 G
+	    ON F.INDV_IDNTFC_NO = G.INDV_IDNTFC_NO
+	    LEFT JOIN   (
+	        SELECT
+	                ROW_NO
+	            ,   TRPR_INFO_NO
+	            ,   ACBG
+	            ,   GRDTN
+	            ,   SCHL_NM
+	        FROM (
+	            SELECT
+	                    RANK() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY D.ADDTNG_MNG_VALUE1 DESC) ROW_NO
+	                ,   A.TRPR_INFO_NO
+	                ,   B.ACBG_SE_CD
+	                ,   D.CMMNS_CD_VALUE_NM AS ACBG
+	                ,   B.GRDTN_STTS_SE_CD
+	                ,   C.CMMNS_CD_VALUE_NM  AS GRDTN
+	                ,   B.SCHL_NM
+	            FROM SEA200 A
+	            LEFT JOIN SEA230 B
+	            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            LEFT JOIN SAC100 C
+	            ON C.CMMNS_CD_ID = 'GRDTN_STTS_SE_CD'              /* 졸업상태구분코드 */
+	            AND C.CMMNS_CD_VALUE = B.GRDTN_STTS_SE_CD
+	            LEFT JOIN SAC100 D
+	            ON D.CMMNS_CD_ID = 'ACBG_SE_CD'                    /* 최종학력구분코드 */
+	            AND D.CMMNS_CD_VALUE = B.ACBG_SE_CD
+	        )
+	        WHERE ROW_NO = 1
+	    ) H
+	    ON A.TRPR_INFO_NO = H.TRPR_INFO_NO
+	    AND F.TRPR_INFO_NO = H.TRPR_INFO_NO
+	    LEFT JOIN (
+	        SELECT
+	                A.COMPNO_CHC_TYPE_MNG_NO
+	            ,   LISTAGG(B.CMMNS_CD_VALUE_NM, ',') WITHIN GROUP(ORDER BY B.CMMNS_CD_VALUE) AS COMPNO_RPRS
+	        FROM AFA131 A
+	        LEFT JOIN SAC100 B
+	        ON B.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+	        AND B.CMMNS_CD_VALUE = A.COMPNO_TYPE_SCLAS_SE_CD
+	        AND B.UP_CMMNS_CD_VALUE IN ('0203')
+	        GROUP BY A.COMPNO_CHC_TYPE_MNG_NO
+	    ) I
+	    ON I.COMPNO_CHC_TYPE_MNG_NO = BB.COMPNO_CHC_TYPE_MNG_NO
+	    LEFT JOIN (
+	        SELECT
+	                CASE_MNG_NO
+	            ,   CASE_MNG_ODRNO
+	            ,   SRVC_EXCN_BIZ_NO
+	            ,   TRPR_INFO_NO
+	            ,   APLY_RCPT_SN
+	            ,   YNGBGS_SCORE
+	            ,   PRTCR_SCORE
+	            ,   PIC_SCORE
+	            ,   PRTCR_EVL_SCORE
+	            ,   YNGBGS_SCORE + PRTCR_SCORE + PIC_SCORE +    PRTCR_EVL_SCORE AS ALL_SCORE
+	            ,   RANK() OVER(PARTITION BY SRVC_EXCN_BIZ_NO
+	                               ORDER BY YNGBGS_SCORE + PRTCR_SCORE + PIC_SCORE +   PRTCR_EVL_SCORE  DESC) AS RCPT_NUM      --서류심사순위
+	        FROM(
+	            SELECT
+	                    CASE_MNG_NO
+	                ,   CASE_MNG_ODRNO
+	                ,   TRPR_INFO_NO
+	                ,   APLY_RCPT_SN
+	                ,   SRVC_EXCN_BIZ_NO
+	                ,   SUM(NVL(YNGBGS_SCORE,0)) * 0.47 AS YNGBGS_SCORE
+	                ,   SUM(NVL(PRTCR_SCORE, 0)) * 0.23 AS PRTCR_SCORE
+	                ,   SUM(NVL(PIC_SCORE, 0)) * 0.23 AS PIC_SCORE
+	                ,   SUM(NVL(PRTCR_EVL_SCORE, 0)) AS PRTCR_EVL_SCORE
+	            FROM (
+	                SELECT
+	                        A.CASE_MNG_NO
+	                    ,   A.CASE_MNG_ODRNO
+	                    ,   A.TRPR_INFO_NO
+	                    ,   A.APLY_RCPT_SN
+	                    ,   A.SRVC_EXCN_BIZ_NO
+	                    ,   K.QUSTNB_GRDNG_RELM_ESNTAL_NM
+	                    ,   D.SRVY_RSPNS_MNG_NO
+	                    ,   CASE WHEN K.QUSTNB_GRDNG_RELM_ESNTAL_NM NOT LIKE TRIM('피해사고') THEN
+	                            CASE
+	                                WHEN D.GRDNG_SCORE >= 90 THEN 90 - D.GRDNG_SCORE
+	                                WHEN D.GRDNG_SCORE < 60 THEN D.GRDNG_SCORE - 60
+	                                ELSE D.GRDNG_SCORE END
+	                            ELSE 
+	                            CASE
+	                                WHEN D.GRDNG_SCORE >= 70 THEN 0
+	                            ELSE D.GRDNG_SCORE END
+	                        END AS YNGBGS_SCORE    --청소년
+	                    ,   CASE
+	                            WHEN F.GRDNG_SCORE >= 90 THEN 90 - F.GRDNG_SCORE
+	                            WHEN F.GRDNG_SCORE < 60 THEN F.GRDNG_SCORE - 60
+	                            ELSE F.GRDNG_SCORE
+	                        END AS PRTCR_SCORE     --보호자
+	                    ,   CASE
+	                            WHEN H.GRDNG_SCORE >= 90 THEN 90 - H.GRDNG_SCORE
+	                            WHEN H.GRDNG_SCORE < 60 THEN H.GRDNG_SCORE - 60
+	                            ELSE H.GRDNG_SCORE
+	                        END AS PIC_SCORE       --담당자
+	                    ,   J.GRDNG_SCORE AS PRTCR_EVL_SCORE    --보호자정성평가
+	                FROM SBB600 A
+	                JOIN SBB500 B
+	                ON A.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+	                AND A.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+	                AND B.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                --청소년설문지
+	                LEFT JOIN SAC100 C
+	                ON C.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	                AND C.CMMNS_CD_VALUE = '004'
+	                LEFT JOIN SBB510 D
+	                ON A.QUSTNB_MNG_NO = D.QUSTNB_MNG_NO
+	                AND A.QUSTNB_TMPT_MNG_NO = C.ADDTNG_MNG_VALUE1
+	                --보호자설문지
+	                LEFT JOIN SAC100 E
+	                ON E.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	                AND E.CMMNS_CD_VALUE = '005'
+	                LEFT JOIN SBB510 F
+	                ON A.QUSTNB_MNG_NO = F.QUSTNB_MNG_NO
+	                AND A.QUSTNB_TMPT_MNG_NO = E.ADDTNG_MNG_VALUE1
+	                --담당자설문지
+	                LEFT JOIN SAC100 G
+	                ON G.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	                AND G.CMMNS_CD_VALUE = '007'
+	                LEFT JOIN SBB510 H
+	                ON A.QUSTNB_MNG_NO = H.QUSTNB_MNG_NO
+	                AND A.QUSTNB_TMPT_MNG_NO = G.ADDTNG_MNG_VALUE1
+	                --보호자정성평가
+	                LEFT JOIN SAC100 I
+	                ON I.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	                AND I.CMMNS_CD_VALUE = '006'
+	                LEFT JOIN SBB510 J
+	                ON A.QUSTNB_MNG_NO = J.QUSTNB_MNG_NO
+	                AND A.QUSTNB_TMPT_MNG_NO = I.ADDTNG_MNG_VALUE1
+	                            
+	                LEFT JOIN SBB130 K
+	                ON A.QUSTNB_TMPT_MNG_NO = K.QUSTNB_TMPT_MNG_NO
+	                AND A.QUSTNB_MNG_NO = K.QUSTNB_MNG_NO
+	                AND K.QUSTNB_GRDNG_RELM_MNG_NO IN (D.QUSTNB_GRDNG_RELM_MNG_NO, F.QUSTNB_GRDNG_RELM_MNG_NO, H.QUSTNB_GRDNG_RELM_MNG_NO, J.QUSTNB_GRDNG_RELM_MNG_NO)
+	                
+	                WHERE A.QUSTNB_TMPT_MNG_NO IN (C.ADDTNG_MNG_VALUE1, E.ADDTNG_MNG_VALUE1, G.ADDTNG_MNG_VALUE1, I.ADDTNG_MNG_VALUE1)
+	            )
+	            GROUP BY SRVC_EXCN_BIZ_NO, TRPR_INFO_NO, APLY_RCPT_SN, CASE_MNG_NO, CASE_MNG_ODRNO
+	        )
+	    ) J
+	    ON (A.TRPR_INFO_NO = J.TRPR_INFO_NO AND A.APLY_RCPT_SN = J.APLY_RCPT_SN)
+	    OR (BB.CASE_MNG_NO = J.CASE_MNG_NO AND BB.CASE_MNG_ODRNO = J.CASE_MNG_ODRNO)
+	    AND C.SRVC_EXCN_BIZ_NO = J.SRVC_EXCN_BIZ_NO
+	    LEFT JOIN (
+	        SELECT
+	                TRPR_INFO_NO
+	            ,   APLY_RCPT_SN
+	            ,   SRVC_EXCN_BIZ_NO
+	            ,   YNGBGS_SCORE    AS YNGBGS_GRDNG
+	            ,   PRTCR_SCORE     AS PRTCR_GRDNG
+	            ,   GRDNG_SCORE     AS GRDNG_SCORE
+	            ,   RANK() OVER(PARTITION BY SRVC_EXCN_BIZ_NO ORDER BY GRDNG_SCORE) AS GRDNG_NUM
+	        FROM (  
+	            SELECT
+	                    A.TRPR_INFO_NO
+	                ,   A.APLY_RCPT_SN
+	                ,   A.SRVC_EXCN_BIZ_NO
+	                ,   A.YNGBGS_SCORE
+	                ,   A.PRTCR_SCORE
+	                ,   A.YNGBGS_SCORE + A.PRTCR_SCORE AS GRDNG_SCORE
+	            FROM AFA100 A
+	            LEFT JOIN SAA000 B
+	            ON A.RSFR_INST_NO = B.INST_NO   
+	            WHERE B.UNT_TASKWK_SE_CD = 'U07'
+	        )
+	    ) K
+	    ON A.TRPR_INFO_NO = K.TRPR_INFO_NO
+	    AND A.APLY_RCPT_SN = K.APLY_RCPT_SN
+	    AND C.SRVC_EXCN_BIZ_NO = K.SRVC_EXCN_BIZ_NO
+	)
+	WHERE APLY_SE_CD NOT IN ('01')
+	]]>
+	<if test="BIZ_YR != null">
+        AND BIZ_YR IN
+            <foreach collection="BIZ_YR" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <if test='INST_NO != null and INST_NO != "ALL"'>
+        AND INST_NO IN
+            <foreach collection="INST_NO" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <if test="SRVC_EXCN_BIZ_NO != null">
+        AND SRVC_EXCN_BIZ_NO IN
+            <foreach collection="SRVC_EXCN_BIZ_NO" item="arr" open="(" close=")" separator=",">
+                #{arr}
+            </foreach>
+    </if>
+    <if test='PAPERS_SRNG == "true"'>
+        AND APLY_STTS IN ('0203', '0401', '0202', '0402', '0303', '0201', '0403')
+    </if>
+    <trim prefix="AND (" prefixOverrides="OR" suffix=")">
+	    <if test='PAPERS_SRNG2 == "true"'>
+	        OR APLY_STTS IN ('0401', '0203') AND APLY_STTS NOT IN ('0402', '0303')
+	    </if>
+	    <if test='PAPERS_SRNG3 == "true"'>
+	        OR APLY_STTS IN ('0402', '0202')
+	    </if>
+	    <if test='PAPERS_SRNG4 == "true"'>
+	        OR APLY_STTS IN ('0303')
+	    </if>
+	    <if test='PAPERS_SRNG5 == "true"'>
+	        OR APLY_STTS IN ('0201') 
+	    </if>
+    </trim>
+   
+    <if test='INTRVW_SRNG == "true"'>
+        AND APLY_SE_CD IN ('05')
+    </if>
+    <trim prefix="AND (" prefixOverrides="OR" suffix=")">
+	    <if test='INTRVW_SRNG2 == "true"'>
+	        OR APLY_STTS IN ('0504')
+	    </if>
+	    <if test='INTRVW_SRNG3 == "true"'>
+	        OR APLY_STTS IN ('0503')
+	    </if>
+	    <if test='INTRVW_SRNG4 == "true"'>
+	        OR APLY_STTS IN ('0505')
+	    </if>
+	    <if test='INTRVW_SRNG5 == "true"'>
+	        OR APLY_STTS IN ('0502') 
+	    </if>
+	    <if test='INTRVW_SRNG6 == "true"'>
+	        OR APLY_STTS IN ('0501')
+	    </if>
+    </trim>
+    
+    <if test='LAST_ENTSC == "true"'>
+        AND APLY_SE_CD IN ('06')
+    </if>
+    <trim prefix="AND (" prefixOverrides="OR" suffix=")">
+	    <if test='LAST_ENTSC2 == "true"'>
+	        OR APLY_STTS IN ('0604') AND (TRMN_SE_CD NOT IN ('11') OR TRMN_SE_CD IS NULL)
+	    </if>
+	    <if test='LAST_ENTSC3 == "true"'>
+	        OR APLY_STTS IN ('0605')
+	    </if>
+	    <if test='LAST_ENTSC4 == "true"'>
+	        OR APLY_STTS IN ('0603')
+	    </if>
+	    <if test='LAST_ENTSC5 == "true"'>
+	        OR APLY_STTS IN ('0602')
+	    </if>
+	    <if test='LAST_ENTSC6 == "true"'>
+	        OR APLY_STTS IN ('0601')
+	    </if>
+	    <if test='LAST_ENTSC7 == "true"'>
+	        OR APLY_STTS IN ('0604') AND TRMN_SE_CD IN ('11')
+	    </if>
+    </trim>
+    
+    <if test='FNSH == "true"'>
+        AND APLY_SE_CD IN ('06') AND TRMN_SE_CD IN ('01','02','04')
+    </if>
+    <trim prefix="AND (" prefixOverrides="OR" suffix=")">
+	    <if test='FNSH2 == "true"'>
+	        OR APLY_SE_CD = '06' AND TRMN_SE_CD IN ('01')
+	    </if>
+	    <if test='FNSH3 == "true"'>
+	        OR APLY_SE_CD = '06' AND TRMN_SE_CD IN ('02')
+	    </if>
+	    <if test='FNSH4 == "true"'>
+	        OR APLY_SE_CD = '06' AND TRMN_SE_CD IN ('04') AND TRMN_CS_SE_CD = '063'
+	    </if>
+	    <if test='FNSH5 == "true"'>
+	        OR APLY_SE_CD = '06' AND TRMN_SE_CD IN ('04') AND TRMN_CS_SE_CD = '062'
+	    </if>
+    </trim>
+    <![CDATA[
+    ORDER BY BIZ_YR, INST_NO, SRVC_EXCN_BIZ_NO
+    ]]>
+	</select>
+</mapper>

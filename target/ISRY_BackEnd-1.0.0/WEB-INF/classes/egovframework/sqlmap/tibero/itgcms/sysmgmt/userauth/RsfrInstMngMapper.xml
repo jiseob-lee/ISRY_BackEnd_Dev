@@ -1,0 +1,776 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper">
+
+
+    <!-- 기관조회 -->
+    <sql id="SAA000List">
+        <![CDATA[
+        SELECT T1.INST_NO                           AS  INST_NO                     /* 기관번호*/
+             , T1.UNT_TASKWK_SE_CD                  AS  UNT_TASKWK_SE_CD            /* 단위업무구분코드*/
+             ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND X.CMMNS_CD_VALUE = T1.UNT_TASKWK_SE_CD) AS UNT_TASKWK_NM
+             , T1.INST_NM                           AS  INST_NM                     /* 기관명*/
+             , T1.UP_INST_NO                        AS  UP_INST_NO                  /* 상위기관번호*/
+             , T1.INST_TYPE_SE_CD                   AS  INST_TYPE_SE_CD             /* 기관유형구분코드*/
+             ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'INST_TYPE_SE_CD' AND X.CMMNS_CD_VALUE = T1.INST_TYPE_SE_CD) AS INST_TYPE_NM               
+             , T1.RGN_CD                            AS  RGN_CD                      /* 지역코드*/
+             , T1.HPGE_URL_ADDR                     AS  HPGE_URL_ADDR               /* 홈페이지주소*/
+             , T1.MAIN_ENFC_INST_SE_CD              AS  MAIN_ENFC_INST_SE_CD        /* 주요시행기관구분코드*/
+             , T1.CTPV_CD                           AS  CTPV_CD                     /* 시도코드*/
+             , T1.SGG_CD                            AS  SGG_CD                      /* 시군구코드*/
+             , T1.BPLC_ZIP                          AS  BPLC_ZIP                    /* 사업장우편번호*/
+             , T1.BPLC_PST_ADDR                     AS  BPLC_PST_ADDR               /* 사업장우편주소*/
+             , T1.BPLC_DADDR                        AS  BPLC_DADDR                  /* 사업장상세주소*/
+             , T1.RPRSV_NM_ENCPT                    AS  RPRSV_NM_ENCPT              /* 대표자명암호화*/
+             , T1.RPRS_TELNO                        AS  RPRS_TELNO                  /* 대표전화번호*/              
+             , T1.RPRS_FXNO                         AS  RPRS_FXNO                   /* 대표팩스번호*/ 
+             , T1.APLCN_BGNG_YMD                    AS  APLCN_BGNG_YMD              /* 적용시작일자*/
+             , T1.APLCN_END_YMD                     AS  APLCN_END_YMD               /* 적용종료일자*/
+             , T1.PIC_ENFSN_NO                      AS  PIC_ENFSN_NO                /* 담당자종사자번호*/
+             , T1.PIC_NM_ENCPT                      AS  PIC_NM_ENCPT                /* 담당자명암호화*/
+             , T1.PIC_TELNO                         AS  PIC_TELNO                   /* 담당자전화번호*/
+             , T1.PIC_MBL_TELNO_ENCPT               AS  PIC_MBL_TELNO_ENCPT         /* 담당자휴대전화번호암호화*/
+             , T1.PIC_EML_ADDR_ENCPT                AS  PIC_EML_ADDR_ENCPT          /* 담당자이메일주소암호화*/
+             , T1.CNSGN_YMD                         AS  CNSGN_YMD                   /* 위탁일자*/
+             , T1.APLY_YMD                          AS  APLY_YMD                    /* 신청일자*/                
+             , T1.APLCNT_ID                         AS  APLCNT_ID                   /* 신청자아이디*/
+             , T1.APRV_YN                           AS  APRV_YN                     /* 승인여부*/       
+             , T1.RJCT_CS_CN                        AS  RJCT_CS_CN                  /* 반려사유내용*/
+             , T1.PRCS_YMD                          AS  PRCS_YMD                    /* 처리일자*/
+             , T1.AUTZR_ID                          AS  AUTZR_ID                    /* 승인자아이디*/
+             , T1.CTPV_LINK_PBADMS_RGN_CD           AS  CTPV_LINK_PBADMS_RGN_CD     /* 시도연계행정지역코드*/
+             , T1.SGG_LINK_PBADMS_RGN_CD            AS  SGG_LINK_PBADMS_RGN_CD      /* 시군구연계행정지역코드*/
+             , T1.EMD_LINK_PBADMS_RGN_CD            AS  EMD_LINK_PBADMS_RGN_CD      /* 읍면동연계행정지역코드*/                 
+             , T1.ORGNL_INST_NO                     AS  ORGNL_INST_NO               /* 원본기관번호*/
+             , T1.OFFCS_SGNNG_NO                    AS  OFFCS_SGNNG_NO              /* 직인서명번호*/
+             , T1.ATFINO                            AS  ATFINO                      /* 첨부파일번호*/              
+             , T1.CNTER_PRECON_WRT_YN               AS  CNTER_PRECON_WRT_YN         /* 센터현황작성여부*/
+             , T1.RSFR_INST_YN                      AS  RSFR_INST_YN                /* 자원제공기관여부*/
+             , T1.DEL_YN                            AS  DEL_YN                      /* 삭제여부*/
+             , ''                                   AS  BRNO                        /* 사업자등록번호(순수자원주체SDA600)*/
+             , ''                                   AS  RSFR_MBY_SE_CD              /* 자원제공주체구분코드(순수자원주체SDA600)*/            
+             , ''                                   AS  BZMN_SE_CD                  /* 사업자구분코드(순수자원주체SDA600)*/
+             , ''                                   AS  FCLTY_INST_SE_CD            /* 시설기관구분코드(순수자원주체SDA600)*/
+             , ''                                   AS  PVSN_MBY_DSCRP_CN           /* 제공주체설명내용(순수자원주체SDA600)*/ 
+             , T1.FRST_RGTR_ID                      AS  FRST_RGTR_ID                /* 최초등록자아이디*/
+             , C##RG.SA_FN_GET_NAME(T1.FRST_RGTR_ID) AS FRST_RGTR_NM_ENCPT             /* 최초등록자명*/
+             , T1.FRST_REG_DT                       AS  FRST_REG_DT                 /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                      AS  LAST_MDFR_ID                /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                     AS  LAST_MDFCN_DT               /* 최종수정일시*/
+          FROM SAA000 T1
+         WHERE 1 = 1        
+         ]]>
+    </sql>
+    
+    <!-- 순수자원제공주체관리 조회 -->
+    <sql id="SDA600List">
+        <![CDATA[ 
+         SELECT T2.INST_NO                           AS  INST_NO                     /* 기관번호*/
+              , T2.UNT_TASKWK_SE_CD                  AS  UNT_TASKWK_SE_CD            /* 단위업무구분코드*/
+              ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND X.CMMNS_CD_VALUE = T2.UNT_TASKWK_SE_CD) AS UNT_TASKWK_NM                
+              , T2.INST_NM                           AS  INST_NM                     /* 기관명*/
+              , ''                                   AS  UP_INST_NO                  /* 상위기관번호(기관SAA000)*/
+              , T2.INST_TYPE_SE_CD                   AS  INST_TYPE_SE_CD             /* 기관유형구분코드*/
+              ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'INST_TYPE_SE_CD' AND X.CMMNS_CD_VALUE = T2.INST_TYPE_SE_CD) AS INST_TYPE_NM               
+              , T2.RGN_CD                            AS  RGN_CD                      /* 지역코드*/
+              , ''                                   AS  HPGE_URL_ADDR               /* 홈페이지주소(기관SAA000)*/
+              , ''                                   AS  MAIN_ENFC_INST_SE_CD        /* 주요시행기관구분코드 (기관SAA000)*/
+              , ''                                   AS  CTPV_CD                     /* 시도코드(기관SAA000)*/
+              , ''                                   AS  SGG_CD                      /* 시군구코드(기관SAA000)*/
+              , T2.BPLC_ZIP                          AS  BPLC_ZIP                    /* 사업장우편번호*/
+              , T2.BPLC_PST_ADDR                     AS  BPLC_PST_ADDR               /* 사업장우편주소*/
+              , T2.BPLC_DADDR                        AS  BPLC_DADDR                  /* 사업장상세주소*/    
+              , T2.RPRSV_NM_ENCPT                    AS  RPRSV_NM_ENCPT              /* 대표자명암호화*/
+              , T2.RPRS_TELNO                        AS  RPRS_TELNO                  /* 대표전화번호*/              
+              , ''                                   AS  RPRS_FXNO                   /* 대표팩스번호(기관SAA000)*/
+              , T2.APLCN_BGNG_YMD                    AS  APLCN_BGNG_YMD              /* 적용시작일자*/
+              , T2.APLCN_END_YMD                     AS  APLCN_END_YMD               /* 적용종료일자*/ 
+              , T2.PIC_ENFSN_NO                      AS  PIC_ENFSN_NO                /* 담당자종사자번호*/
+              , T2.PIC_NM_ENCPT                      AS  PIC_NM_ENCPT                /* 담당자명암호화*/
+              , T2.PIC_TELNO                         AS  PIC_TELNO                   /* 담당자전화번호*/
+              , T2.PIC_MBL_TELNO_ENCPT               AS  PIC_MBL_TELNO_ENCPT         /* 담당자휴대전화번호암호화*/
+              , T2.PIC_EML_ADDR_ENCPT                AS  PIC_EML_ADDR_ENCPT          /* 담당자이메일주소암호화*/
+              , ''                                   AS  CNSGN_YMD                   /* 위탁일자(기관SAA000)*/
+              , T2.APLY_YMD                          AS  APLY_YMD                    /* 신청일자*/                
+              , T2.APLCNT_ID                         AS  APLCNT_ID                   /* 신청자아이디*/          
+              , T2.APRV_YN                           AS  APRV_YN                     /* 승인여부*/       
+              , T2.RJCT_CS_CN                        AS  RJCT_CS_CN                  /* 반려사유내용*/
+              , T2.PRCS_YMD                          AS  PRCS_YMD                    /* 처리일자*/
+              , T2.AUTZR_ID                          AS  AUTZR_ID                    /* 승인자아이디*/
+              , ''                                   AS  CTPV_LINK_PBADMS_RGN_CD     /* 시도연계행정지역코드(기관SAA000)*/                
+              , T2.SGG_LINK_PBADMS_RGN_CD            AS  SGG_LINK_PBADMS_RGN_CD      /* 시군구연계행정지역코드*/
+              , T2.EMD_LINK_PBADMS_RGN_CD            AS  EMD_LINK_PBADMS_RGN_CD      /* 읍면동연계행정지역코드*/                 
+              , ''                                   AS  ORGNL_INST_NO               /* 원본기관번호(기관SAA000)*/
+              , ''                                   AS  OFFCS_SGNNG_NO              /* 직인서명번호(기관SAA000)*/                
+              , T2.ATFINO                            AS  ATFINO                      /* 첨부파일번호*/
+              , ''                                   AS  CNTER_PRECON_WRT_YN         /* 센터현황작성여부(기관SAA000)*/
+              , ''                                   AS  RSFR_INST_YN                /* 자원제공기관여부(기관SAA000)*/
+              , T2.DEL_YN                            AS  DEL_YN                      /* 삭제여부*/            
+              , T2.BRNO                              AS  BRNO                        /* 사업자등록번호*/
+              , T2.RSFR_MBY_SE_CD                    AS  RSFR_MBY_SE_CD              /* 자원제공주체구분코드*/          
+              , T2.BZMN_SE_CD                        AS  BZMN_SE_CD                  /* 사업자구분코드*/
+              , T2.FCLTY_INST_SE_CD                  AS  FCLTY_INST_SE_CD            /* 시설기관구분코드*/
+              , T2.PVSN_MBY_DSCRP_CN                 AS  PVSN_MBY_DSCRP_CN           /* 제공주체설명내용*/   
+              , T2.FRST_RGTR_ID                      AS  FRST_RGTR_ID                /* 최초등록자아이디*/
+              , C##RG.SA_FN_GET_NAME(T2.FRST_RGTR_ID) AS FRST_RGTR_NM_ENCPT             /* 최초등록자명*/              
+              , T2.FRST_REG_DT                       AS  FRST_REG_DT                 /* 최초등록일시*/
+              , T2.LAST_MDFR_ID                      AS  LAST_MDFR_ID                /* 최종수정자아이디*/
+              , T2.LAST_MDFCN_DT                     AS  LAST_MDFCN_DT               /* 최종수정일시*/
+           FROM SDA600 T2
+          WHERE 1 = 1        
+         ]]>
+    </sql>       
+
+    <!-- 자원제공주체기관관리 목록 -->
+    <select id="selectRsfrInstMngList" parameterType="HashMap" resultType="HashMap">
+        /* isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper.selectRsfrInstMngList(순수자원제공주체기관관리 목록)*/
+        <!-- WITH SAA000_LIST AS (
+	            <include refid="SAA000List" />
+               AND T1.APRV_YN           =   'Y'         /* 승인여부*/
+               AND T1.RSFR_INST_YN      =   'Y'         /* 자원제공주체여부*/
+               AND T1.DEL_YN            =   'N'         /* 삭제여부*/
+        ), SDA600_LIST AS (
+                <include refid="SDA600List" />
+               AND T2.APRV_YN           =   'Y'         /* 승인여부*/
+               AND T2.DEL_YN            =   'N'         /* 삭제여부*/              
+        ), RSFR_INST AS (
+
+        SELECT T11.*
+          FROM (
+                SELECT * FROM SDA600_LIST
+                ) T11
+          WHERE 1 = 1 -->
+        <include refid="ComPagingMapper.pageHeader" />           
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        <!-- 페이지 인덱서 헤더 -->      
+              T2.INST_NO                           AS  INST_NO                     /* 기관번호*/
+              , T2.UNT_TASKWK_SE_CD                  AS  UNT_TASKWK_SE_CD            /* 단위업무구분코드*/
+              , T2.UNT_TASKWK_NM AS UNT_TASKWK_NM                
+              , T2.INST_NM                           AS  INST_NM                     /* 기관명*/
+              , T2.UP_INST_NO                                   AS  UP_INST_NO                  /* 상위기관번호(기관SAA000)*/
+              , T2.INST_TYPE_SE_CD                   AS  INST_TYPE_SE_CD             /* 기관유형구분코드*/
+              , T2.INST_TYPE_NM AS INST_TYPE_NM               
+              , T2.RGN_CD                            AS  RGN_CD                      /* 지역코드*/
+              , T2.HPGE_URL_ADDR                                   AS  HPGE_URL_ADDR               /* 홈페이지주소(기관SAA000)*/
+              , T2.MAIN_ENFC_INST_SE_CD                                   AS  MAIN_ENFC_INST_SE_CD        /* 주요시행기관구분코드 (기관SAA000)*/
+              , T2.CTPV_CD                                   AS  CTPV_CD                     /* 시도코드(기관SAA000)*/
+              , T2.SGG_CD                                   AS  SGG_CD                      /* 시군구코드(기관SAA000)*/
+              , T2.BPLC_ZIP                          AS  BPLC_ZIP                    /* 사업장우편번호*/
+              , T2.BPLC_PST_ADDR                     AS  BPLC_PST_ADDR               /* 사업장우편주소*/
+              , T2.BPLC_DADDR                        AS  BPLC_DADDR                  /* 사업장상세주소*/    
+              , C##RG.DEC_B64(T2.RPRSV_NM_ENCPT)  AS  RPRSV_NM              /* 대표자명암호화*/
+              , T2.RPRS_TELNO                        AS  RPRS_TELNO                  /* 대표전화번호*/              
+              , T2.RPRS_FXNO                                   AS  RPRS_FXNO                   /* 대표팩스번호(기관SAA000)*/
+              , T2.APLCN_BGNG_YMD AS  APLCN_BGNG_YMD              /* 적용시작일자*/
+              , T2.APLCN_END_YMD AS  APLCN_END_YMD               /* 적용종료일자*/
+              , T2.OGDP_INST_NO                       AS  OGDP_INST_NO                /* 담당자소속기관번호*/      
+              , T2.PIC_ENFSN_NO                      AS  PIC_ENFSN_NO                /* 담당자종사자번호*/
+              , C##RG.DEC_B64(T2.PIC_NM_ENCPT)    AS  PIC_NM                /* 담당자명암호화*/
+              , T2.PIC_TELNO                         AS  PIC_TELNO                   /* 담당자전화번호*/
+              , C##RG.DEC_B64(T2.PIC_MBL_TELNO_ENCPT)               AS  PIC_MBL_TELNO         /* 담당자휴대전화번호암호화*/
+              , C##RG.DEC_B64(T2.PIC_EML_ADDR_ENCPT)                AS  PIC_EML_ADDR          /* 담당자이메일주소암호화*/
+              , T2.CNSGN_YMD                                   AS  CNSGN_YMD                   /* 위탁일자(기관SAA000)*/
+              , T2.APLY_YMD                          AS  APLY_YMD                    /* 신청일자*/                
+              , T2.APLCNT_ID                         AS  APLCNT_ID                   /* 신청자아이디*/          
+              , T2.APRV_YN                           AS  APRV_YN                     /* 승인여부*/       
+              , T2.APRV_STTS_SE_CD                   AS  APRV_STTS_SE_CD             /* 승인여부구분코드*/       
+              , T2.RJCT_CS_CN                        AS  RJCT_CS_CN                  /* 반려사유내용*/
+              , T2.PRCS_YMD                          AS  PRCS_YMD                    /* 처리일자*/
+              , T2.AUTZR_ID                          AS  AUTZR_ID                    /* 승인자아이디*/
+              , T2.CTPV_LINK_PBADMS_RGN_CD                                   AS  CTPV_LINK_PBADMS_RGN_CD     /* 시도연계행정지역코드(기관SAA000)*/                
+              , T2.SGG_LINK_PBADMS_RGN_CD            AS  SGG_LINK_PBADMS_RGN_CD      /* 시군구연계행정지역코드*/
+              , T2.EMD_LINK_PBADMS_RGN_CD            AS  EMD_LINK_PBADMS_RGN_CD      /* 읍면동연계행정지역코드*/                 
+              , T2.ORGNL_INST_NO                                   AS  ORGNL_INST_NO               /* 원본기관번호(기관SAA000)*/
+              , T2.OFFCS_SGNNG_NO                                   AS  OFFCS_SGNNG_NO              /* 직인서명번호(기관SAA000)*/                
+              , T2.ATFINO                            AS  ATFINO                      /* 첨부파일번호*/
+              , T2.CNTER_PRECON_WRT_YN                                   AS  CNTER_PRECON_WRT_YN         /* 센터현황작성여부(기관SAA000)*/
+              , T2.RSFR_INST_YN                                   AS  RSFR_INST_YN                /* 자원제공기관여부(기관SAA000)*/
+              , T2.DEL_YN                            AS  DEL_YN                      /* 삭제여부*/            
+              , T2.BRNO                              AS  BRNO                        /* 사업자등록번호*/
+              , T2.RSFR_MBY_SE_CD                    AS  RSFR_MBY_SE_CD              /* 자원제공주체구분코드*/          
+              , T2.BZMN_SE_CD                        AS  BZMN_SE_CD                  /* 사업자구분코드*/
+              , T2.FCLTY_INST_SE_CD                  AS  FCLTY_INST_SE_CD            /* 시설기관구분코드*/
+              , T2.PVSN_MBY_DSCRP_CN                 AS  PVSN_MBY_DSCRP_CN           /* 제공주체설명내용*/   
+              , T2.FRST_RGTR_ID                      AS  FRST_RGTR_ID                /* 최초등록자아이디*/
+              , C##RG.SA_FN_GET_NAME(T2.FRST_RGTR_ID) AS FRST_RGTR_NM_ENCPT             /* 최초등록자명*/              
+              , T2.FRST_REG_DT                       AS  FRST_REG_DT                 /* 최초등록일시*/
+              , T2.LAST_MDFR_ID                      AS  LAST_MDFR_ID                /* 최종수정자아이디*/
+              , T2.LAST_MDFCN_DT                     AS  LAST_MDFCN_DT               /* 최종수정일시*/
+              , T2.PIC_INST_NO                       AS  PIC_INST_NO                 /* 담당자 소속기관번호*/
+              , T2.PIC_INST_NM AS PIC_INST_NM /* 담당자 소속기관명 */ 
+            FROM ( 
+            SELECT 
+              T2.INST_NO                           AS  INST_NO                     /* 기관번호*/
+              , T2.UNT_TASKWK_SE_CD                  AS  UNT_TASKWK_SE_CD            /* 단위업무구분코드*/
+              ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND X.CMMNS_CD_VALUE = T2.UNT_TASKWK_SE_CD) AS UNT_TASKWK_NM                
+              , T2.INST_NM                           AS  INST_NM                     /* 기관명*/
+              , ''                                   AS  UP_INST_NO                  /* 상위기관번호(기관SAA000)*/
+              , T2.INST_TYPE_SE_CD                   AS  INST_TYPE_SE_CD             /* 기관유형구분코드*/
+              ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'INST_TYPE_SE_CD' AND X.CMMNS_CD_VALUE = T2.INST_TYPE_SE_CD) AS INST_TYPE_NM               
+              , T2.RGN_CD                            AS  RGN_CD                      /* 지역코드*/
+              , ''                                   AS  HPGE_URL_ADDR               /* 홈페이지주소(기관SAA000)*/
+              , ''                                   AS  MAIN_ENFC_INST_SE_CD        /* 주요시행기관구분코드 (기관SAA000)*/
+              , ''                                   AS  CTPV_CD                     /* 시도코드(기관SAA000)*/
+              , ''                                   AS  SGG_CD                      /* 시군구코드(기관SAA000)*/
+              , T2.BPLC_ZIP                          AS  BPLC_ZIP                    /* 사업장우편번호*/
+              , T2.BPLC_PST_ADDR                     AS  BPLC_PST_ADDR               /* 사업장우편주소*/
+              , T2.BPLC_DADDR                        AS  BPLC_DADDR                  /* 사업장상세주소*/    
+              , T2.RPRSV_NM_ENCPT                    AS  RPRSV_NM_ENCPT              /* 대표자명암호화*/
+              , T2.RPRS_TELNO                        AS  RPRS_TELNO                  /* 대표전화번호*/              
+              , ''                                   AS  RPRS_FXNO                   /* 대표팩스번호(기관SAA000)*/
+              , TO_CHAR(TO_DATE(T2.APLCN_BGNG_YMD, 'YYYYMMDD'), 'YYYY.MM.DD') AS  APLCN_BGNG_YMD              /* 적용시작일자*/
+              , TO_CHAR(TO_DATE(T2.APLCN_END_YMD, 'YYYYMMDD'), 'YYYY.MM.DD') AS  APLCN_END_YMD               /* 적용종료일자*/
+              , B.OGDP_INST_NO                       AS  OGDP_INST_NO                /* 담당자소속기관번호*/      
+              , T2.PIC_ENFSN_NO                      AS  PIC_ENFSN_NO                /* 담당자종사자번호*/
+              , T2.PIC_NM_ENCPT                      AS  PIC_NM_ENCPT                /* 담당자명암호화*/
+              , T2.PIC_TELNO                         AS  PIC_TELNO                   /* 담당자전화번호*/
+              , T2.PIC_MBL_TELNO_ENCPT               AS  PIC_MBL_TELNO_ENCPT         /* 담당자휴대전화번호암호화*/
+              , T2.PIC_EML_ADDR_ENCPT                AS  PIC_EML_ADDR_ENCPT          /* 담당자이메일주소암호화*/
+              , ''                                   AS  CNSGN_YMD                   /* 위탁일자(기관SAA000)*/
+              , T2.APLY_YMD                          AS  APLY_YMD                    /* 신청일자*/                
+              , T2.APLCNT_ID                         AS  APLCNT_ID                   /* 신청자아이디*/          
+              , T2.APRV_YN                           AS  APRV_YN                     /* 승인여부*/       
+              , T2.APRV_STTS_SE_CD                   AS  APRV_STTS_SE_CD             /* 승인여부구분코드*/       
+              , T2.RJCT_CS_CN                        AS  RJCT_CS_CN                  /* 반려사유내용*/
+              , T2.PRCS_YMD                          AS  PRCS_YMD                    /* 처리일자*/
+              , T2.AUTZR_ID                          AS  AUTZR_ID                    /* 승인자아이디*/
+              , ''                                   AS  CTPV_LINK_PBADMS_RGN_CD     /* 시도연계행정지역코드(기관SAA000)*/                
+              , T2.SGG_LINK_PBADMS_RGN_CD            AS  SGG_LINK_PBADMS_RGN_CD      /* 시군구연계행정지역코드*/
+              , T2.EMD_LINK_PBADMS_RGN_CD            AS  EMD_LINK_PBADMS_RGN_CD      /* 읍면동연계행정지역코드*/                 
+              , ''                                   AS  ORGNL_INST_NO               /* 원본기관번호(기관SAA000)*/
+              , ''                                   AS  OFFCS_SGNNG_NO              /* 직인서명번호(기관SAA000)*/                
+              , T2.ATFINO                            AS  ATFINO                      /* 첨부파일번호*/
+              , ''                                   AS  CNTER_PRECON_WRT_YN         /* 센터현황작성여부(기관SAA000)*/
+              , ''                                   AS  RSFR_INST_YN                /* 자원제공기관여부(기관SAA000)*/
+              , T2.DEL_YN                            AS  DEL_YN                      /* 삭제여부*/            
+              , T2.BRNO                              AS  BRNO                        /* 사업자등록번호*/
+              , T2.RSFR_MBY_SE_CD                    AS  RSFR_MBY_SE_CD              /* 자원제공주체구분코드*/          
+              , T2.BZMN_SE_CD                        AS  BZMN_SE_CD                  /* 사업자구분코드*/
+              , T2.FCLTY_INST_SE_CD                  AS  FCLTY_INST_SE_CD            /* 시설기관구분코드*/
+              , T2.PVSN_MBY_DSCRP_CN                 AS  PVSN_MBY_DSCRP_CN           /* 제공주체설명내용*/   
+              , T2.FRST_RGTR_ID                      AS  FRST_RGTR_ID                /* 최초등록자아이디*/
+              , T2.FRST_RGTR_ID AS FRST_RGTR_NM_ENCPT             /* 최초등록자명*/              
+              , T2.FRST_REG_DT                       AS  FRST_REG_DT                 /* 최초등록일시*/
+              , T2.LAST_MDFR_ID                      AS  LAST_MDFR_ID                /* 최종수정자아이디*/
+              , T2.LAST_MDFCN_DT                     AS  LAST_MDFCN_DT               /* 최종수정일시*/
+              , T2.PIC_INST_NO                       AS  PIC_INST_NO                 /* 담당자 소속기관번호*/
+              , (SELECT INST_NM FROM SAA000 S WHERE S.INST_NO = T2.PIC_INST_NO) AS PIC_INST_NM /* 담당자 소속기관명 */  
+           FROM SDA600 T2 
+           LEFT JOIN SCA100 B ON T2.PIC_ENFSN_NO = B.ENFSN_NO
+           ) T2
+           WHERE 1 = 1
+           AND T2.DEL_YN = 'N'
+         <if test = "INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != '' ">
+           <![CDATA[
+           AND T2.INST_TYPE_SE_CD = #{INST_TYPE_SE_CD}      /* 기관유형구분코드*/
+           ]]>
+         </if>
+         <if test = "UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != '' ">
+           <![CDATA[         
+           AND T2.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}    /* 단위업무구분코드*/
+            ]]>        
+         </if>
+         <if test = "INST_NM != null and INST_NM != '' ">
+           <![CDATA[         
+           AND T2.INST_NM LIKE '%'||#{INST_NM}||'%'         /* 기관명*/
+           ]]>
+         </if>                    
+         <if test = "PIC_INST_NM != null and PIC_INST_NM != '' ">
+           <![CDATA[         
+           AND T2.PIC_INST_NM LIKE '%'||#{PIC_INST_NM}||'%'         /* 기관명*/
+           ]]>
+         </if>                    
+         <if test = "APRV_STTS_SE_CD != null and APRV_STTS_SE_CD != '' ">
+           <![CDATA[         
+           AND T2.APRV_STTS_SE_CD = #{APRV_STTS_SE_CD}         /* 승인여부 */
+           ]]>
+         </if>                    
+         <if test = "FCLTY_INST_SE_CD != null and FCLTY_INST_SE_CD != '' ">
+           <![CDATA[         
+           AND T2.FCLTY_INST_SE_CD = #{FCLTY_INST_SE_CD}         /* 시설기관구분 */
+           ]]>
+         </if>                    
+         <if test = "RSFR_MBY_SE_CD != null and RSFR_MBY_SE_CD != '' ">
+           <![CDATA[         
+           AND T2.RSFR_MBY_SE_CD = #{RSFR_MBY_SE_CD}         /* 제공주체구분 */
+           ]]>
+         </if>                    
+         <if test = "PIC_NM != null and PIC_NM != '' ">
+           <![CDATA[         
+           AND T2.PIC_NM_ENCPT = ENC_B64(#{PIC_NM})         /* 담당자명 */
+           ]]>
+         </if>                    
+         <if test = "OGDP_INST_NO != null and OGDP_INST_NO != '' ">
+           <![CDATA[         
+           AND T2.PIC_INST_NO = #{OGDP_INST_NO}        /* 소속기관검색 */
+           ]]>
+         </if>                    
+        <!-- 페이지 인덱서 OFFSET 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>           
+    </select>   
+    
+    <!-- 자원제공주체기관 상세정보 -->
+    <select id="selectRsfrInstDetail" parameterType="HashMap" resultType="HashMap">
+        /* isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper.selectRsfrInstDetail(순수자원제공주체기관 상세정보)*/
+        SELECT
+                T2.INST_NO                           AS  INST_NO                     /* 기관번호*/
+              , T2.UNT_TASKWK_SE_CD                  AS  UNT_TASKWK_SE_CD            /* 단위업무구분코드*/
+              ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND X.CMMNS_CD_VALUE = T2.UNT_TASKWK_SE_CD) AS UNT_TASKWK_NM                
+              , T2.INST_NM                           AS  INST_NM                     /* 기관명*/
+              , ''                                   AS  UP_INST_NO                  /* 상위기관번호(기관SAA000)*/
+              , T2.INST_TYPE_SE_CD                   AS  INST_TYPE_SE_CD             /* 기관유형구분코드*/
+              ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'INST_TYPE_SE_CD' AND X.CMMNS_CD_VALUE = T2.INST_TYPE_SE_CD) AS INST_TYPE_NM               
+              , T2.RGN_CD                            AS  RGN_CD                      /* 지역코드*/
+              , ''                                   AS  HPGE_URL_ADDR               /* 홈페이지주소(기관SAA000)*/
+              , ''                                   AS  MAIN_ENFC_INST_SE_CD        /* 주요시행기관구분코드 (기관SAA000)*/
+              , ''                                   AS  CTPV_CD                     /* 시도코드(기관SAA000)*/
+              , ''                                   AS  SGG_CD                      /* 시군구코드(기관SAA000)*/
+              , T2.BPLC_ZIP                          AS  BPLC_ZIP                    /* 사업장우편번호*/
+              , T2.BPLC_PST_ADDR                     AS  BPLC_PST_ADDR               /* 사업장우편주소*/
+              , T2.BPLC_DADDR                        AS  BPLC_DADDR                  /* 사업장상세주소*/    
+              , C##RG.DEC_B64(T2.RPRSV_NM_ENCPT)                    AS  RPRSV_NM              /* 대표자명암호화*/
+              , T2.RPRS_TELNO                        AS  RPRS_TELNO                  /* 대표전화번호*/              
+              , ''                                   AS  RPRS_FXNO                   /* 대표팩스번호(기관SAA000)*/
+              , T2.APLCN_BGNG_YMD                    AS  APLCN_BGNG_YMD              /* 적용시작일자*/
+              , T2.APLCN_END_YMD                     AS  APLCN_END_YMD               /* 적용종료일자*/
+              , B.OGDP_INST_NO                       AS  OGDP_INST_NO                /* 담당자소속기관번호*/      
+              , (SELECT D.INST_NM FROM SAA000 D WHERE D.INST_NO = B.OGDP_INST_NO)  AS  OGDP_INSTD_NM                /* 담당자소속기관명 */      
+              , T2.PIC_ENFSN_NO                      AS  PIC_ENFSN_NO                /* 담당자종사자번호*/
+              , C##RG.DEC_B64(T2.PIC_NM_ENCPT)                      AS  PIC_NM                /* 담당자명암호화*/
+              , T2.PIC_TELNO                         AS  PIC_TELNO                   /* 담당자전화번호*/
+              , C##RG.DEC_B64(T2.PIC_MBL_TELNO_ENCPT)               AS  PIC_MBL_TELNO         /* 담당자휴대전화번호암호화*/
+              , C##RG.DEC_B64(T2.PIC_EML_ADDR_ENCPT)                AS  PIC_EML_ADDR          /* 담당자이메일주소암호화*/
+              , T2.PIC_INST_NO                       AS  PIC_INST_NO                 /* 담당자기관번호*/
+              , (SELECT D.INST_NM FROM SAA000 D WHERE D.INST_NO = T2.PIC_INST_NO) AS PIC_INST_NM /* 담당자기관명*/
+              , ''                                   AS  CNSGN_YMD                   /* 위탁일자(기관SAA000)*/
+              , T2.APLY_YMD                          AS  APLY_YMD                    /* 신청일자*/                
+              , T2.APLCNT_ID                         AS  APLCNT_ID                   /* 신청자아이디*/          
+              , T2.APRV_YN                           AS  APRV_YN                     /* 승인여부*/       
+              , T2.APRV_STTS_SE_CD                   AS  APRV_STTS_SE_CD             /* 승인여부구분코드*/       
+              , T2.RJCT_CS_CN                        AS  RJCT_CS_CN                  /* 반려사유내용*/
+              , T2.PRCS_YMD                          AS  PRCS_YMD                    /* 처리일자*/
+              , T2.AUTZR_ID                          AS  AUTZR_ID                    /* 승인자아이디*/
+              , ''                                   AS  CTPV_LINK_PBADMS_RGN_CD     /* 시도연계행정지역코드(기관SAA000)*/                
+              , T2.SGG_LINK_PBADMS_RGN_CD            AS  SGG_LINK_PBADMS_RGN_CD      /* 시군구연계행정지역코드*/
+              , T2.EMD_LINK_PBADMS_RGN_CD            AS  EMD_LINK_PBADMS_RGN_CD      /* 읍면동연계행정지역코드*/                 
+              , ''                                   AS  ORGNL_INST_NO               /* 원본기관번호(기관SAA000)*/
+              , ''                                   AS  OFFCS_SGNNG_NO              /* 직인서명번호(기관SAA000)*/                
+              , T2.ATFINO                            AS  ATFINO                      /* 첨부파일번호*/
+              , ''                                   AS  CNTER_PRECON_WRT_YN         /* 센터현황작성여부(기관SAA000)*/
+              , ''                                   AS  RSFR_INST_YN                /* 자원제공기관여부(기관SAA000)*/
+              , T2.DEL_YN                            AS  DEL_YN                      /* 삭제여부*/            
+              , T2.BRNO                              AS  BRNO                        /* 사업자등록번호*/
+              , T2.RSFR_MBY_SE_CD                    AS  RSFR_MBY_SE_CD              /* 자원제공주체구분코드*/          
+              , T2.BZMN_SE_CD                        AS  BZMN_SE_CD                  /* 사업자구분코드*/
+              , T2.FCLTY_INST_SE_CD                  AS  FCLTY_INST_SE_CD            /* 시설기관구분코드*/
+              , T2.PVSN_MBY_DSCRP_CN                 AS  PVSN_MBY_DSCRP_CN           /* 제공주체설명내용*/   
+              , T2.FRST_RGTR_ID                      AS  FRST_RGTR_ID                /* 최초등록자아이디*/
+              , C##RG.DEC_B64(C##RG.SA_FN_GET_NAME(T2.FRST_RGTR_ID)) AS FRST_RGTR_NM             /* 최초등록자명*/              
+              , T2.FRST_REG_DT                       AS  FRST_REG_DT                 /* 최초등록일시*/
+              , T2.LAST_MDFR_ID                      AS  LAST_MDFR_ID                /* 최종수정자아이디*/
+              , T2.LAST_MDFCN_DT                     AS  LAST_MDFCN_DT               /* 최종수정일시*/
+           FROM SDA600 T2 
+           LEFT JOIN SCA100 B ON T2.PIC_ENFSN_NO = B.ENFSN_NO
+           WHERE 1 = 1
+           AND T2.DEL_YN = 'N'
+           AND T2.INST_NO = #{INST_NO}      /* 기관번호*/
+    </select>
+    
+    <!-- 기관번호 확인 -->
+    <select id="selectInstNoExists" parameterType="Integer" resultType="Integer">
+        /* isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper.selectInstNoExists(기관번호 확인)*/
+        SELECT COUNT(INST_NO) AS CNT
+          FROM SAA000 T1/*기관*/
+         WHERE 1 = 1
+           AND T1.INST_NO = #{INST_NO}      /* 기관번호*/
+    </select>         
+    
+    <!-- 순수자원제공주체기관 등록 -->  
+    <insert id="insertRsfrInst" parameterType="HashMap">
+        INSERT /* isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper.insertRsfrInst(순수자원제공주체기관 등록)*/
+          INTO SDA600 T2
+             ( T2.INST_NO                    /* 기관번호*/
+             , T2.UNT_TASKWK_SE_CD           /* 단위업무구분코드*/
+             , T2.INST_NM                    /* 기관명*/
+             , T2.INST_TYPE_SE_CD            /* 기관유형구분코드*/
+             , T2.RGN_CD                     /* 지역코드*/
+             , T2.BPLC_ZIP                   /* 사업장우편번호*/
+             , T2.BPLC_PST_ADDR              /* 사업장우편주소*/
+             , T2.BPLC_DADDR                 /* 사업장상세주소*/    
+             , T2.RPRSV_NM_ENCPT             /* 대표자명암호화*/
+             , T2.RPRS_TELNO                 /* 대표전화번호*/              
+             , T2.APLCN_BGNG_YMD             /* 적용시작일자*/
+             , T2.APLCN_END_YMD              /* 적용종료일자*/ 
+             , T2.PIC_ENFSN_NO               /* 담당자종사자번호*/
+             , T2.PIC_NM_ENCPT               /* 담당자명암호화*/
+             , T2.PIC_TELNO                  /* 담당자전화번호*/
+             , T2.PIC_MBL_TELNO_ENCPT        /* 담당자휴대전화번호암호화*/
+             , T2.PIC_EML_ADDR_ENCPT         /* 담당자이메일주소암호화*/
+             , T2.PIC_INST_NO                /* 담당자기관번호 */
+             , T2.APLY_YMD                   /* 신청일자*/                
+             , T2.APLCNT_ID                  /* 신청자아이디*/          
+             , T2.APRV_YN                    /* 승인여부*/       
+             , T2.APRV_STTS_SE_CD            /* 승인여부구분코드*/       
+             , T2.RJCT_CS_CN                 /* 반려사유내용*/
+             , T2.PRCS_YMD                   /* 처리일자*/
+             , T2.AUTZR_ID                   /* 승인자아이디*/
+             , T2.SGG_LINK_PBADMS_RGN_CD     /* 시군구연계행정지역코드*/
+             , T2.EMD_LINK_PBADMS_RGN_CD     /* 읍면동연계행정지역코드*/                 
+             , T2.ATFINO                     /* 첨부파일번호*/
+             , T2.DEL_YN                     /* 삭제여부*/            
+             , T2.BRNO                       /* 사업자등록번호*/
+             , T2.RSFR_MBY_SE_CD             /* 자원제공주체구분코드*/          
+             , T2.BZMN_SE_CD                 /* 사업자구분코드*/
+             , T2.FCLTY_INST_SE_CD           /* 시설기관구분코드*/
+             , T2.PVSN_MBY_DSCRP_CN          /* 제공주체설명내용*/   
+             , T2.FRST_RGTR_ID               /* 최초등록자아이디*/
+             , T2.FRST_REG_DT                /* 최초등록일시*/
+             , T2.LAST_MDFR_ID               /* 최종수정자아이디*/
+             , T2.LAST_MDFCN_DT              /* 최종수정일시*/
+             )
+        VALUES
+             ( #{INST_NO}                    /* 기관번호*/
+             , #{UNT_TASKWK_SE_CD}           /* 단위업무구분코드*/
+             , #{INST_NM}                    /* 기관명*/
+             , '6'                           /* 기관유형구분코드*/
+             , #{RGN_CD}                     /* 지역코드*/
+             , #{BPLC_ZIP}                   /* 사업장우편번호*/
+             , #{BPLC_PST_ADDR}              /* 사업장우편주소*/
+             , #{BPLC_DADDR}                 /* 사업장상세주소*/    
+             , C##RG.ENC_B64(#{RPRSV_NM})             /* 대표자명암호화*/
+             , #{RPRS_TELNO}                 /* 대표전화번호*/              
+             , #{APLCN_BGNG_YMD}             /* 적용시작일자*/
+             , #{APLCN_END_YMD}              /* 적용종료일자*/ 
+             , #{PIC_ENFSN_NO}               /* 담당자종사자번호*/
+             , C##RG.ENC_B64(#{PIC_NM})               /* 담당자명암호화*/
+             , #{PIC_TELNO}                  /* 담당자전화번호*/
+             , C##RG.ENC_B64(#{PIC_MBL_TELNO})        /* 담당자휴대전화번호암호화*/
+             , C##RG.ENC_B64(#{PIC_EML_ADDR})         /* 담당자이메일주소암호화*/
+             , #{PIC_INST_NO}                /* 담당자기관번호*/
+             , #{APLY_YMD}                   /* 신청일자*/                
+             , #{APLCNT_ID}                  /* 신청자아이디*/          
+             , NVL(#{APRV_YN}, 'N')          /* 승인여부*/      
+             , NVL(#{APRV_STTS_SE_CD}, '1')  /* 승인여부구분코드 - 요청*/      
+             , #{RJCT_CS_CN}                 /* 반려사유내용*/
+             , #{PRCS_YMD}                   /* 처리일자*/
+             , #{AUTZR_ID}                   /* 승인자아이디*/
+             , #{SGG_LINK_PBADMS_RGN_CD}     /* 시군구연계행정지역코드*/
+             , #{EMD_LINK_PBADMS_RGN_CD}     /* 읍면동연계행정지역코드*/                 
+             , #{ATFINO}                     /* 첨부파일번호*/
+             , NVL(#{DEL_YN}, 'N')           /* 삭제여부*/            
+             , #{BRNO}                       /* 사업자등록번호*/
+             , #{RSFR_MBY_SE_CD}             /* 자원제공주체구분코드*/          
+             , #{BZMN_SE_CD}                 /* 사업자구분코드*/
+             , #{FCLTY_INST_SE_CD}           /* 시설기관구분코드*/
+             , #{PVSN_MBY_DSCRP_CN}          /* 제공주체설명내용*/ 
+             , #{FRST_RGTR_ID}               /* 최초등록자아이디*/
+             , SYSDATE                       /* 최초등록일시*/
+             , #{LAST_MDFR_ID}               /* 최종수정자아이디*/
+             , SYSDATE                       /* 최종수정일시*/
+              )
+    </insert>
+    
+    <!-- 순수자원제공주체기관 이력등록 -->    
+    <insert id="insertRsfrInstHistory" parameterType="HashMap">
+        INSERT /* isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper.insertRsfrInstHistory(순수자원제공주체기관 이력등록)*/
+          INTO SDA601 T2
+             ( T2.INST_NO                    /* 기관번호*/
+             , T2.MDFCN_DT                   /* 수정일시*/
+             , T2.DATAA_CHG_SE_CD            /* 데이터변경구분코드*/
+             , T2.UNT_TASKWK_SE_CD           /* 단위업무구분코드*/
+             , T2.INST_NM                    /* 기관명*/
+             , T2.INST_TYPE_SE_CD            /* 기관유형구분코드*/
+             , T2.RGN_CD                     /* 지역코드*/
+             , T2.BPLC_ZIP                   /* 사업장우편번호*/
+             , T2.BPLC_PST_ADDR              /* 사업장우편주소*/
+             , T2.BPLC_DADDR                 /* 사업장상세주소*/    
+             , T2.RPRSV_NM_ENCPT             /* 대표자명암호화*/
+             , T2.RPRS_TELNO                 /* 대표전화번호*/              
+             , T2.APLCN_BGNG_YMD             /* 적용시작일자*/
+             , T2.APLCN_END_YMD              /* 적용종료일자*/ 
+             , T2.PIC_ENFSN_NO               /* 담당자종사자번호*/
+             , T2.PIC_NM_ENCPT               /* 담당자명암호화*/
+             , T2.PIC_TELNO                  /* 담당자전화번호*/
+             , T2.PIC_MBL_TELNO_ENCPT        /* 담당자휴대전화번호암호화*/
+             , T2.PIC_EML_ADDR_ENCPT         /* 담당자이메일주소암호화*/
+             , T2.PIC_INST_NO                /* 담당자기관번호*/
+             , T2.APLY_YMD                   /* 신청일자*/                
+             , T2.APLCNT_ID                  /* 신청자아이디*/          
+             , T2.APRV_YN                    /* 승인여부*/       
+             , T2.APRV_STTS_SE_CD            /* 승인여부구분코드*/       
+             , T2.RJCT_CS_CN                 /* 반려사유내용*/
+             , T2.PRCS_YMD                   /* 처리일자*/
+             , T2.AUTZR_ID                   /* 승인자아이디*/
+             , T2.SGG_LINK_PBADMS_RGN_CD     /* 시군구연계행정지역코드*/
+             , T2.EMD_LINK_PBADMS_RGN_CD     /* 읍면동연계행정지역코드*/                 
+             , T2.ATFINO                     /* 첨부파일번호*/
+             , T2.DEL_YN                     /* 삭제여부*/            
+             , T2.BRNO                       /* 사업자등록번호*/
+             , T2.RSFR_MBY_SE_CD             /* 자원제공주체구분코드*/          
+             , T2.BZMN_SE_CD                 /* 사업자구분코드*/
+             , T2.FCLTY_INST_SE_CD           /* 시설기관구분코드*/
+             , T2.PVSN_MBY_DSCRP_CN          /* 제공주체설명내용*/   
+             , T2.FRST_RGTR_ID               /* 최초등록자아이디*/
+             , T2.FRST_REG_DT                /* 최초등록일시*/
+             , T2.LAST_MDFR_ID               /* 최종수정자아이디*/
+             , T2.LAST_MDFCN_DT              /* 최종수정일시*/
+             )
+        SELECT T1.INST_NO                    /* 기관번호*/
+             , SYSDATE                       /* 수정일시*/
+             , #{DATAA_CHG_SE_CD}            /* 데이터변경구분코드*/
+             , T1.UNT_TASKWK_SE_CD           /* 단위업무구분코드*/
+             , T1.INST_NM                    /* 기관명*/
+             , T1.INST_TYPE_SE_CD            /* 기관유형구분코드*/
+             , T1.RGN_CD                     /* 지역코드*/
+             , T1.BPLC_ZIP                   /* 사업장우편번호*/
+             , T1.BPLC_PST_ADDR              /* 사업장우편주소*/
+             , T1.BPLC_DADDR                 /* 사업장상세주소*/    
+             , T1.RPRSV_NM_ENCPT             /* 대표자명암호화*/
+             , T1.RPRS_TELNO                 /* 대표전화번호*/              
+             , T1.APLCN_BGNG_YMD             /* 적용시작일자*/
+             , T1.APLCN_END_YMD              /* 적용종료일자*/ 
+             , T1.PIC_ENFSN_NO               /* 담당자종사자번호*/
+             , T1.PIC_NM_ENCPT               /* 담당자명암호화*/
+             , T1.PIC_TELNO                  /* 담당자전화번호*/
+             , T1.PIC_MBL_TELNO_ENCPT        /* 담당자휴대전화번호암호화*/
+             , T1.PIC_EML_ADDR_ENCPT         /* 담당자이메일주소암호화*/
+             , T1.PIC_INST_NO                /* 담당자기관번호*/
+             , T1.APLY_YMD                   /* 신청일자*/                
+             , T1.APLCNT_ID                  /* 신청자아이디*/          
+             , T1.APRV_YN                    /* 승인여부*/       
+             , T1.APRV_STTS_SE_CD            /* 승인여부구분코드*/       
+             , T1.RJCT_CS_CN                 /* 반려사유내용*/
+             , T1.PRCS_YMD                   /* 처리일자*/
+             , T1.AUTZR_ID                   /* 승인자아이디*/
+             , T1.SGG_LINK_PBADMS_RGN_CD     /* 시군구연계행정지역코드*/
+             , T1.EMD_LINK_PBADMS_RGN_CD     /* 읍면동연계행정지역코드*/                 
+             , T1.ATFINO                     /* 첨부파일번호*/
+             , T1.DEL_YN                     /* 삭제여부*/            
+             , T1.BRNO                       /* 사업자등록번호*/
+             , T1.RSFR_MBY_SE_CD             /* 자원제공주체구분코드*/          
+             , T1.BZMN_SE_CD                 /* 사업자구분코드*/
+             , T1.FCLTY_INST_SE_CD           /* 시설기관구분코드*/
+             , T1.PVSN_MBY_DSCRP_CN          /* 제공주체설명내용*/   
+             , T1.FRST_RGTR_ID               /* 최초등록자아이디*/
+             , T1.FRST_REG_DT                /* 최초등록일시*/
+             , T1.LAST_MDFR_ID               /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT              /* 최종수정일시*/
+          FROM SDA600 T1
+         WHERE 1 = 1
+           AND T1.INST_NO = #{INST_NO}
+    </insert>   
+    
+    <!-- 순수자원제공주체기관 수정 -->
+    <update id="updateRsfrInst" parameterType="HashMap">
+        UPDATE /* isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper.updateRsfrInst(순수자원제공주체기관 수정)*/ 
+            SDA600 T2
+           SET  
+               T2.UNT_TASKWK_SE_CD           = #{UNT_TASKWK_SE_CD}      /* 단위업무구분코드*/
+             , T2.INST_NM                    = #{INST_NM}               /* 기관명*/
+             , T2.RGN_CD                     = #{RGN_CD}                /* 지역코드*/
+             , T2.BPLC_ZIP                   = #{BPLC_ZIP}              /* 사업장우편번호*/
+             , T2.BPLC_PST_ADDR              = #{BPLC_PST_ADDR}         /* 사업장우편주소*/
+             , T2.BPLC_DADDR                 = #{BPLC_DADDR}            /* 사업장상세주소*/    
+             , T2.RPRSV_NM_ENCPT             = C##RG.ENC_B64(#{RPRSV_NM})        /* 대표자명암호화*/
+             , T2.RPRS_TELNO                 = #{RPRS_TELNO}            /* 대표전화번호*/              
+             , T2.APLCN_BGNG_YMD             = #{APLCN_BGNG_YMD}        /* 적용시작일자*/
+             , T2.APLCN_END_YMD              = #{APLCN_END_YMD}         /* 적용종료일자*/ 
+             , T2.PIC_ENFSN_NO               = #{PIC_ENFSN_NO}          /* 담당자종사자번호*/
+             , T2.PIC_NM_ENCPT               = C##RG.ENC_B64(#{PIC_NM})          /* 담당자명암호화*/
+             , T2.PIC_TELNO                  = #{PIC_TELNO}             /* 담당자전화번호*/
+             , T2.PIC_MBL_TELNO_ENCPT        = C##RG.ENC_B64(#{PIC_MBL_TELNO})   /* 담당자휴대전화번호암호화*/
+             , T2.PIC_EML_ADDR_ENCPT         = C##RG.ENC_B64(#{PIC_EML_ADDR})    /* 담당자이메일주소암호화*/
+             , T2.PIC_INST_NO                = #{PIC_INST_NO}           /* 담당자기관번호*/
+             , T2.APLY_YMD                   = #{APLY_YMD}              /* 신청일자*/                
+             , T2.APLCNT_ID                  = #{APLCNT_ID}             /* 신청자아이디*/          
+             , T2.APRV_YN                    = 'N'                      /* 승인여부 - 수정시 미승인으로 변경.*/       
+             , T2.APRV_STTS_SE_CD            = '1'                      /* 승인여부구분코드*/       
+             , T2.RJCT_CS_CN                 = #{RJCT_CS_CN}            /* 반려사유내용*/
+             , T2.PRCS_YMD                   = #{PRCS_YMD}              /* 처리일자*/
+             , T2.AUTZR_ID                   = #{AUTZR_ID}              /* 승인자아이디*/
+             , T2.SGG_LINK_PBADMS_RGN_CD     = #{SGG_LINK_PBADMS_RGN_CD}/* 시군구연계행정지역코드*/
+             , T2.EMD_LINK_PBADMS_RGN_CD     = #{EMD_LINK_PBADMS_RGN_CD}/* 읍면동연계행정지역코드*/                 
+             , T2.ATFINO                     = #{ATFINO}                /* 첨부파일번호*/
+             , T2.BRNO                       = #{BRNO}                  /* 사업자등록번호*/
+             , T2.RSFR_MBY_SE_CD             = #{RSFR_MBY_SE_CD}        /* 자원제공주체구분코드*/          
+             , T2.BZMN_SE_CD                 = #{BZMN_SE_CD}            /* 사업자구분코드*/
+             , T2.FCLTY_INST_SE_CD           = #{FCLTY_INST_SE_CD}      /* 시설기관구분코드*/
+             , T2.PVSN_MBY_DSCRP_CN          = #{PVSN_MBY_DSCRP_CN}     /* 제공주체설명내용*/   
+             , T2.LAST_MDFR_ID               = #{LAST_MDFR_ID}          /* 최종수정자아이디*/
+             , T2.LAST_MDFCN_DT              = SYSDATE                  /* 최종수정일시*/
+         WHERE T2.INST_NO   =   #{INST_NO}                              /* 기관번호*/
+    </update>
+    
+    <!-- 순수자원제공주체기관 삭제 -->
+    <update id="deleteRsfrInst" parameterType="HashMap">
+        UPDATE  /* isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper.deleteRsfrInst(순수자원제공주체기관 삭제)*/  
+            SDA600 T1
+            SET
+               T1.APRV_YN                    = 'N'                  /* 승인여부*/
+             , T1.DEL_YN                     = 'Y'                  /* 삭제여부*/
+         WHERE T1.INST_NO               =   #{INST_NO}              /* 기관번호*/
+    </update>    
+    
+    <!-- 기관이력조회 -->
+    <sql id="SAA000HistoryList">
+        <![CDATA[
+        SELECT T1.INST_NO                           AS  INST_NO                     /* 기관번호*/
+             , T1.MDFCN_DT                          AS  MDFCN_DT                    /* 수정일시*/
+             , T1.UNT_TASKWK_SE_CD                  AS  UNT_TASKWK_SE_CD            /* 단위업무구분코드*/
+             , T1.DATAA_CHG_SE_CD                   AS  DATAA_CHG_SE_CD             /* 데이터변경구분코드*/       
+             , CASE WHEN T1.DATAA_CHG_SE_CD = 'I' THEN '등록'
+                    WHEN T1.DATAA_CHG_SE_CD = 'U' THEN '수정'
+                    WHEN T1.DATAA_CHG_SE_CD = 'D' THEN '삭제'
+               ELSE ''
+                    END                             AS DATAA_CHG_SE_NM              /* 데이터변경구분코드명*/              
+             ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND X.CMMNS_CD_VALUE = T1.UNT_TASKWK_SE_CD) AS UNT_TASKWK_NM
+             , T1.INST_NM                           AS  INST_NM                     /* 기관명*/
+             , T1.UP_INST_NO                        AS  UP_INST_NO                  /* 상위기관번호*/
+             , T1.INST_TYPE_SE_CD                   AS  INST_TYPE_SE_CD             /* 기관유형구분코드*/
+             ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'INST_TYPE_SE_CD' AND X.CMMNS_CD_VALUE = T1.INST_TYPE_SE_CD) AS INST_TYPE_NM               
+             , T1.RGN_CD                            AS  RGN_CD                      /* 지역코드*/
+             , T1.HPGE_URL_ADDR                     AS  HPGE_URL_ADDR               /* 홈페이지주소*/
+             , T1.MAIN_ENFC_INST_SE_CD              AS  MAIN_ENFC_INST_SE_CD        /* 주요시행기관구분코드*/
+             , T1.CTPV_CD                           AS  CTPV_CD                     /* 시도코드*/
+             , T1.SGG_CD                            AS  SGG_CD                      /* 시군구코드*/
+             , T1.BPLC_ZIP                          AS  BPLC_ZIP                    /* 사업장우편번호*/
+             , T1.BPLC_PST_ADDR                     AS  BPLC_PST_ADDR               /* 사업장우편주소*/
+             , T1.BPLC_DADDR                        AS  BPLC_DADDR                  /* 사업장상세주소*/
+             , T1.RPRSV_NM_ENCPT                    AS  RPRSV_NM_ENCPT              /* 대표자명암호화*/
+             , T1.RPRS_TELNO                        AS  RPRS_TELNO                  /* 대표전화번호*/              
+             , T1.RPRS_FXNO                         AS  RPRS_FXNO                   /* 대표팩스번호*/ 
+             , T1.APLCN_BGNG_YMD                    AS  APLCN_BGNG_YMD              /* 적용시작일자*/
+             , T1.APLCN_END_YMD                     AS  APLCN_END_YMD               /* 적용종료일자*/
+             , T1.PIC_ENFSN_NO                      AS  PIC_ENFSN_NO                /* 담당자종사자번호*/
+             , T1.PIC_NM_ENCPT                      AS  PIC_NM_ENCPT                /* 담당자명암호화*/
+             , T1.PIC_TELNO                         AS  PIC_TELNO                   /* 담당자전화번호*/
+             , T1.PIC_MBL_TELNO_ENCPT               AS  PIC_MBL_TELNO_ENCPT         /* 담당자휴대전화번호암호화*/
+             , T1.PIC_EML_ADDR_ENCPT                AS  PIC_EML_ADDR_ENCPT          /* 담당자이메일주소암호화*/
+             , T1.CNSGN_YMD                         AS  CNSGN_YMD                   /* 위탁일자*/
+             , T1.APLY_YMD                          AS  APLY_YMD                    /* 신청일자*/                
+             , T1.APLCNT_ID                         AS  APLCNT_ID                   /* 신청자아이디*/
+             , T1.APRV_YN                           AS  APRV_YN                     /* 승인여부*/       
+             , T1.RJCT_CS_CN                        AS  RJCT_CS_CN                  /* 반려사유내용*/
+             , T1.PRCS_YMD                          AS  PRCS_YMD                    /* 처리일자*/
+             , T1.AUTZR_ID                          AS  AUTZR_ID                    /* 승인자아이디*/
+             , T1.CTPV_LINK_PBADMS_RGN_CD           AS  CTPV_LINK_PBADMS_RGN_CD     /* 시도연계행정지역코드*/
+             , T1.SGG_LINK_PBADMS_RGN_CD            AS  SGG_LINK_PBADMS_RGN_CD      /* 시군구연계행정지역코드*/
+             , T1.EMD_LINK_PBADMS_RGN_CD            AS  EMD_LINK_PBADMS_RGN_CD      /* 읍면동연계행정지역코드*/                 
+             , T1.ORGNL_INST_NO                     AS  ORGNL_INST_NO               /* 원본기관번호*/
+             , T1.OFFCS_SGNNG_NO                    AS  OFFCS_SGNNG_NO              /* 직인서명번호*/
+             , T1.ATFINO                            AS  ATFINO                      /* 첨부파일번호*/              
+             , T1.CNTER_PRECON_WRT_YN               AS  CNTER_PRECON_WRT_YN         /* 센터현황작성여부*/
+             , T1.RSFR_INST_YN                      AS  RSFR_INST_YN                /* 자원제공기관여부*/
+             , T1.DEL_YN                            AS  DEL_YN                      /* 삭제여부*/
+             , ''                                   AS  BRNO                        /* 사업자등록번호(순수자원주체SDA600)*/
+             , ''                                   AS  RSFR_MBY_SE_CD              /* 자원제공주체구분코드(순수자원주체SDA600)*/            
+             , ''                                   AS  BZMN_SE_CD                  /* 사업자구분코드(순수자원주체SDA600)*/
+             , ''                                   AS  FCLTY_INST_SE_CD            /* 시설기관구분코드(순수자원주체SDA600)*/
+             , ''                                   AS  PVSN_MBY_DSCRP_CN           /* 제공주체설명내용(순수자원주체SDA600)*/ 
+             , T1.FRST_RGTR_ID                      AS  FRST_RGTR_ID                /* 최초등록자아이디*/
+             , C##RG.DEC_B64(C##RG.SA_FN_GET_NAME(T1.FRST_RGTR_ID)) AS FRST_RGTR_NM             /* 최초등록자명*/
+             , T1.FRST_REG_DT                       AS  FRST_REG_DT                 /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                      AS  LAST_MDFR_ID                /* 최종수정자아이디*/
+             , C##RG.DEC_B64(C##RG.SA_FN_GET_NAME(T1.LAST_MDFR_ID)) AS LAST_MDFR_NM             /* 최종수정자명*/
+             , T1.LAST_MDFCN_DT                     AS  LAST_MDFCN_DT               /* 최종수정일시*/
+          FROM SAA001 T1
+         WHERE 1 = 1        
+         ]]>
+    </sql>
+    
+    <!-- 순수자원제공주체관리 이력조회 -->
+    <sql id="SDA600HistoryList">
+        <![CDATA[ 
+         SELECT T2.INST_NO                           AS  INST_NO                     /* 기관번호*/
+              , T2.MDFCN_DT                          AS  MDFCN_DT                    /* 수정일시*/
+              , T2.UNT_TASKWK_SE_CD                  AS  UNT_TASKWK_SE_CD            /* 단위업무구분코드*/
+              , T2.DATAA_CHG_SE_CD                   AS  DATAA_CHG_SE_CD             /* 데이터변경구분코드*/       
+              , CASE WHEN T2.DATAA_CHG_SE_CD = 'I' THEN '등록'
+                     WHEN T2.DATAA_CHG_SE_CD  = 'U' THEN '수정'
+                     WHEN T2.DATAA_CHG_SE_CD  = 'D' THEN '삭제'
+                ELSE ''
+                    END                             AS DATAA_CHG_SE_NM              /* 데이터변경구분코드명*/        
+              ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND X.CMMNS_CD_VALUE = T2.UNT_TASKWK_SE_CD) AS UNT_TASKWK_NM                
+              , T2.INST_NM                           AS  INST_NM                     /* 기관명*/
+              , ''                                   AS  UP_INST_NO                  /* 상위기관번호(기관SAA000)*/
+              , T2.INST_TYPE_SE_CD                   AS  INST_TYPE_SE_CD             /* 기관유형구분코드*/
+              ,(SELECT X.CMMNS_CD_VALUE_NM FROM SAC100 X WHERE X.CMMNS_CD_ID = 'INST_TYPE_SE_CD' AND X.CMMNS_CD_VALUE = T2.INST_TYPE_SE_CD) AS INST_TYPE_NM               
+              , T2.RGN_CD                            AS  RGN_CD                      /* 지역코드*/
+              , ''                                   AS  HPGE_URL_ADDR               /* 홈페이지주소(기관SAA000)*/
+              , ''                                   AS  MAIN_ENFC_INST_SE_CD        /* 주요시행기관구분코드 (기관SAA000)*/
+              , ''                                   AS  CTPV_CD                     /* 시도코드(기관SAA000)*/
+              , ''                                   AS  SGG_CD                      /* 시군구코드(기관SAA000)*/
+              , T2.BPLC_ZIP                          AS  BPLC_ZIP                    /* 사업장우편번호*/
+              , T2.BPLC_PST_ADDR                     AS  BPLC_PST_ADDR               /* 사업장우편주소*/
+              , T2.BPLC_DADDR                        AS  BPLC_DADDR                  /* 사업장상세주소*/    
+              , T2.RPRSV_NM_ENCPT                    AS  RPRSV_NM_ENCPT              /* 대표자명암호화*/
+              , T2.RPRS_TELNO                        AS  RPRS_TELNO                  /* 대표전화번호*/              
+              , ''                                   AS  RPRS_FXNO                   /* 대표팩스번호(기관SAA000)*/
+              , T2.APLCN_BGNG_YMD                    AS  APLCN_BGNG_YMD              /* 적용시작일자*/
+              , T2.APLCN_END_YMD                     AS  APLCN_END_YMD               /* 적용종료일자*/ 
+              , T2.PIC_ENFSN_NO                      AS  PIC_ENFSN_NO                /* 담당자종사자번호*/
+              , T2.PIC_NM_ENCPT                      AS  PIC_NM_ENCPT                /* 담당자명암호화*/
+              , T2.PIC_TELNO                         AS  PIC_TELNO                   /* 담당자전화번호*/
+              , T2.PIC_MBL_TELNO_ENCPT               AS  PIC_MBL_TELNO_ENCPT         /* 담당자휴대전화번호암호화*/
+              , T2.PIC_EML_ADDR_ENCPT                AS  PIC_EML_ADDR_ENCPT          /* 담당자이메일주소암호화*/
+              , ''                                   AS  CNSGN_YMD                   /* 위탁일자(기관SAA000)*/
+              , T2.APLY_YMD                          AS  APLY_YMD                    /* 신청일자*/                
+              , T2.APLCNT_ID                         AS  APLCNT_ID                   /* 신청자아이디*/          
+              , T2.APRV_YN                           AS  APRV_YN                     /* 승인여부*/       
+              , T2.APRV_STTS_SE_CD                   AS  APRV_STTS_SE_CD             /* 승인상태구분코드*/       
+              , T2.RJCT_CS_CN                        AS  RJCT_CS_CN                  /* 반려사유내용*/
+              , T2.PRCS_YMD                          AS  PRCS_YMD                    /* 처리일자*/
+              , T2.AUTZR_ID                          AS  AUTZR_ID                    /* 승인자아이디*/
+              , ''                                   AS  CTPV_LINK_PBADMS_RGN_CD     /* 시도연계행정지역코드(기관SAA000)*/                
+              , T2.SGG_LINK_PBADMS_RGN_CD            AS  SGG_LINK_PBADMS_RGN_CD      /* 시군구연계행정지역코드*/
+              , T2.EMD_LINK_PBADMS_RGN_CD            AS  EMD_LINK_PBADMS_RGN_CD      /* 읍면동연계행정지역코드*/                 
+              , ''                                   AS  ORGNL_INST_NO               /* 원본기관번호(기관SAA000)*/
+              , ''                                   AS  OFFCS_SGNNG_NO              /* 직인서명번호(기관SAA000)*/                
+              , T2.ATFINO                            AS  ATFINO                      /* 첨부파일번호*/
+              , ''                                   AS  CNTER_PRECON_WRT_YN         /* 센터현황작성여부(기관SAA000)*/
+              , ''                                   AS  RSFR_INST_YN                /* 자원제공기관여부(기관SAA000)*/
+              , T2.DEL_YN                            AS  DEL_YN                      /* 삭제여부*/            
+              , T2.BRNO                              AS  BRNO                        /* 사업자등록번호*/
+              , T2.RSFR_MBY_SE_CD                    AS  RSFR_MBY_SE_CD              /* 자원제공주체구분코드*/          
+              , T2.BZMN_SE_CD                        AS  BZMN_SE_CD                  /* 사업자구분코드*/
+              , T2.FCLTY_INST_SE_CD                  AS  FCLTY_INST_SE_CD            /* 시설기관구분코드*/
+              , T2.PVSN_MBY_DSCRP_CN                 AS  PVSN_MBY_DSCRP_CN           /* 제공주체설명내용*/   
+              , T2.FRST_RGTR_ID                      AS  FRST_RGTR_ID                /* 최초등록자아이디*/
+              , C##RG.DEC_B64(C##RG.SA_FN_GET_NAME(T2.FRST_RGTR_ID)) AS FRST_RGTR_NM             /* 최초등록자명*/
+              , T2.FRST_REG_DT                       AS  FRST_REG_DT                 /* 최초등록일시*/
+              , T2.LAST_MDFR_ID                      AS  LAST_MDFR_ID                /* 최종수정자아이디*/
+              , C##RG.DEC_B64(C##RG.SA_FN_GET_NAME(T2.LAST_MDFR_ID)) AS LAST_MDFR_NM             /* 최종수정자명*/
+              , T2.LAST_MDFCN_DT                     AS  LAST_MDFCN_DT               /* 최종수정일시*/
+           FROM SDA601 T2
+          WHERE 1 = 1        
+         ]]>
+    </sql>          
+
+    <!-- 자원제공주체기관 이력조회 -->
+    <select id="selectRsfrInstHistory" parameterType="HashMap" resultType="HashMap">
+        /* isry.itgcms.sysmgmt.userauth.mapper.RsfrInstMngMapper.selectRsfrInstHistory(순수자원제공주체기관 이력조회)*/
+        WITH SAA000_HISTORY_LIST AS (
+                <include refid="SAA000HistoryList" />
+        ), SDA600_HISTORY_LIST AS (
+                <include refid="SDA600HistoryList" />
+        ), RSFR_INST_HISTORY AS (
+
+        SELECT T11.*
+          FROM (
+                SELECT * FROM SDA600_HISTORY_LIST
+                ) T11
+          WHERE 1 = 1
+            AND T11.INST_NO = #{INST_NO}     /* 기관번호*/
+        )
+         SELECT T.*
+           FROM RSFR_INST_HISTORY T
+          WHERE 1 = 1      
+    </select>
+    
+    
+    
+
+
+
+</mapper>

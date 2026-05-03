@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="eXCFrame" default="deploy" basedir="./">
+
+	<property name="build-lib.dir" location="ci-lib/clx"></property>
+	
+	<property name="workspace.dir" location="../ISRY_FrontEnd"></property>
+	
+	<property name="target.dir" location="."></property>
+
+	<taskdef name="clxcompile"
+      classname="kr.co.tomatosystem.exbuilder.cikit.build.ant.Compile"
+      classpath="${build-lib.dir}/e6-compiler.jar"
+	/>
+
+	<target name="deploy">
+		<clxcompile
+			src="${workspace.dir}"
+			out="${target.dir}/target/clx-build"
+			minify="true"
+			single="false"
+			language="true"
+			main=""
+			relativizelessurl="true"
+		>
+		<exclude pattern="**/.svn/**" />
+		</clxcompile>
+		<!-- 
+		<copy todir="${workspace.dir}/exbuilder/runtime" overwrite="true">
+			<fileset dir="${build-lib.dir}/runtime">
+                <exclude name="**/.svn/**" />
+                <exclude name="**/.gitignore" />
+                <exclude name="/conf/**" />
+                <include name="**" />
+            </fileset>
+        </copy>
+        -->
+	</target>
+
+</project>

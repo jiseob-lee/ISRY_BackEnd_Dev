@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry2.couns.mngr.atrzmng.mapper.WorkChgMng2Mapper">
+	
+	<select id="searchComboBoxAprv" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		searchComboBoxAprv : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 승인상태구분코드 조회
+	*/
+		SELECT 
+				AA.CMMNS_CD_VALUE			AS	CD_VALUE
+			,	AA.CMMNS_CD_VALUE_NM		AS	CD_NAME
+		FROM
+				SAC100	AA
+		WHERE 	1=1
+			AND	AA.CMMNS_CD_ID = 'APRV_STTS_SE_CD'
+			AND	AA.CMMNS_CD_VALUE IN ('0','2','3')
+	</select>
+	
+	
+	
+	<select id="selectWorkChgMngList" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		selectWorkChgMngList : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 목록조회
+	*/
+		SELECT
+				AA.INDEX_SN				AS		INDEX_SN			/** 일련번호(PK) **/
+			,	COUNT(*)	OVER()		AS		TOTAL_COUNT
+			,	AA.CHG_DMND_ID			AS		CNSLTNT_ID			/** 신청자ID **/
+			,	NVL(CC.FLNM_ENCPT,'신청자이름')			AS		CNSLTNT_NM			/** 신청자명 **/
+            ,   SUBSTR(AA.CHG_DMND_WORK_YMD, 1,4)||'-'||SUBSTR(AA.CHG_DMND_WORK_YMD, 5,2)||'-'||SUBSTR(AA.CHG_DMND_WORK_YMD, 7,2)   AS      CHG_DMND_WORK_YMD   
+            ,   AA.CHG_DMND_WORK_HR_CN  AS      CHG_DMND_WORK_HR_CN 
+            ,   AA.CHG_TRGT_ID          AS      CHG_TRGT_ID         
+            ,   SUBSTR(AA.CHG_TRGT_WORK_YMD, 1,4)||'-'||SUBSTR(AA.CHG_TRGT_WORK_YMD, 5,2)||'-'||SUBSTR(AA.CHG_TRGT_WORK_YMD, 7,2)   AS      CHG_TRGT_WORK_YMD
+			,	AA.CHG_TRGT_WORK_HR_CN	AS		CHG_TRGT_WORK_HR_CN 
+			,	(
+					SELECT		A1.FLNM_ENCPT
+					FROM
+							SCA100	A1
+						,	SAA200	B1
+					WHERE	1=1
+						AND	A1.ENFSN_NO	=	B1.ENFSN_NO
+						AND	B1.USER_ID	=	AA.CHG_TRGT_ID
+				)						AS		CHG_TRGT_NM
+			,	TO_CHAR(AA.FRST_REG_DT, 'YYYYMMDD')		AS		REG_YMD				/** 등록일 **/
+			,	(
+					SELECT
+							A1.CMMNS_CD_VALUE_NM
+					FROM
+							SAC100	A1
+					WHERE	1=1
+						AND	A1.CMMNS_CD_ID = 'APRV_STTS_SE_CD'
+						AND	A1.CMMNS_CD_VALUE = AA.APRV_STTS_SE_CD
+				)						AS		PRCS_STTS_SE_CD		/** 상태 **/			
+			,	AA.SMS_SNDNG_YN			AS		SMS_SNDNG_YN		/** 발송상태 **/
+			,	DECODE(AA.APRV_STTS_SE_CD,'0','Y','N')	AS P_YN		/** 상태가 대기(1)일 경우 check **/
+			,	CASE
+					WHEN ((AA.APRV_STTS_SE_CD = '2' OR AA.APRV_STTS_SE_CD = '3') AND AA.SMS_SNDNG_YN = 'N') THEN 'Y'
+					ELSE 'N'
+				END						AS		MSG_YN				/** 처리상태가 승인(2) or 반려(3) 이고 문자발송이 N인 경우 check  **/
+		FROM 
+				AYC140		AA
+			,	SAA200		BB
+			,	SCA100		CC
+		WHERE	1=1
+			AND	AA.CHG_DMND_ID	=	BB.USER_ID
+			AND	BB.ENFSN_NO		=	CC.ENFSN_NO(+)			/* 종사자번호 */
+            AND CC.DEL_YN = 'N'                            /* 종사자 삭제여부 */
+		<if test="deptCd != null and deptCd != ''">
+			<![CDATA[
+			AND	CC.OGDP_DEPT_CD	=	#{deptCd}
+			]]>
+		</if>
+		<if test="userId != null and userId != ''">
+			<![CDATA[
+			AND	AA.CHG_DMND_ID		LIKE	'%' || #{userId} || '%'
+			]]>
+		</if>
+		<if test="userNm != null and userNm != ''">
+			<![CDATA[
+			AND	CC.FLNM_ENCPT	=	#{userNm}
+			]]>
+		</if>
+		<if test='prcsSttsSeCd != "all"'>
+			<![CDATA[
+			AND	AA.APRV_STTS_SE_CD	=	#{prcsSttsSeCd}
+			]]>
+		</if>
+		<if test="bgngYmd != null and bgngYmd != ''">
+			<![CDATA[
+			AND	AA.FRST_REG_DT			>=	TO_DATE(#{bgngYmd} || '000000', 'YYYYMMDDHH24MISS')
+			]]>
+		</if>
+		<if test="endYmd != null and endYmd != ''">
+			<![CDATA[
+			AND	AA.FRST_REG_DT			<	TO_DATE(#{endYmd} || '000000', 'YYYYMMDDHH24MISS')+1
+			]]>
+		</if>
+		ORDER BY AA.FRST_REG_DT DESC
+		OFFSET 
+				#{START_IDX}	ROWS FETCH NEXT
+				#{ROW_COUNT}	ROWS ONLY	/** 페이징 처리 **/
+		
+	</select>
+			
+	<select id="selectWorkChgMngDetail" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		selectWorkChgMngDetail : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 상세조회
+	*/
+		WITH
+			MAIN_DATA
+		AS
+				(
+					SELECT 
+							AA.*
+						,	CC.FLNM_ENCPT	AS	CHG_REQUES_NM
+					FROM 
+							AYC140		AA		/** 근무변경허가원 **/
+						,	SAA200		BB
+						,	SCA100		CC
+					WHERE 	1=1
+						AND	AA.CHG_DMND_ID	=	BB.USER_ID
+						AND	BB.ENFSN_NO		=	CC.ENFSN_NO
+						
+					<if test="indexSn != null and indexSn != ''">
+						<![CDATA[
+						AND	AA.INDEX_SN = #{indexSn}
+						]]>
+					</if>
+					<if test="userId != null and userId != ''">
+						<![CDATA[
+						AND	AA.CHG_DMND_ID = #{userId}
+						]]>
+					</if>
+				)
+		SELECT 
+				MD.INDEX_SN											AS		INDEX_SN
+			,	MD.CHG_DMND_ID										AS		CHG_DMND_ID			/** 변경요청아이디 **/
+			,	MD.CHG_REQUES_NM									AS		CHG_REQUES_NM		/** 변경요청자명 **/
+			,	MD.CHG_CS_CN										AS		CHG_CS_CN			/** 변경사유내용 **/
+			,	MD.FRST_REG_DT										AS		REG_YMD				/** 등록일자 **/
+			,	MD.RJCT_CS_CN										AS		RJCT_CS_CN			/** 반려사유내용 **/
+			,   MD.APRV_PSBLTY_YN                                   AS      APRV_PSBLTY_YN      /** 승인가능여부 **/
+			,	MD.APRV_STTS_SE_CD									AS		APRV_STTS_SE_CD		/** 처리상태구분코드 **/
+			,	MD.CHG_TRGT_SN										AS		CHG_TRGT_SN			/**변경대상 일련번호**/
+			,	MD.CHG_DMND_SN										AS		CHG_DMND_SN			/**변경요청 일련번호**/
+			,	MD.CHG_TRGT_WORK_YMD								AS		CHG_TRGT_WORK_YMD
+			,	MD.CHG_TRGT_WORK_HR_CN								AS		CHG_TRGT_WORK_HR_CN
+			,	MD.CHG_DMND_WORK_YMD								AS		CHG_DMND_WORK_YMD
+			,	MD.CHG_DMND_WORK_HR_CN								AS		CHG_DMND_WORK_HR_CN
+			,	MD.CHG_TRGT_ID
+			,	(
+					SELECT	B1.FLNM_ENCPT	AS	CHG_TRGT_NM
+					FROM	
+							SAA200	A1
+						,	SCA100	B1
+					WHERE	1=1
+						AND	A1.USER_ID	=	MD.CHG_TRGT_ID
+						AND	A1.ENFSN_NO	=	B1.ENFSN_NO
+				)													AS		CHG_TRGT_NM
+			,	WORK_DEMAND.YMD_HR									AS		WORK_YMD_DEMAND
+			,	WORK_TARGET.YMD_HR									AS		WORK_YMD_TARGET			
+			,	WORK_DEMAND.TASKWK_SCHDL_SN_DEMAND					AS		TASKWK_SCHDL_SN_DEMAND		/**근무배정표 일별(AYC100) 근무변경 요청자의 업무일정 일련번호**/
+			,	WORK_TARGET.TASKWK_SCHDL_SN_TARGET					AS		TASKWK_SCHDL_SN_TARGET		/**근무배정표 일별(AYC100) 근무변경 대상자의 업무일정 일련번호**/
+			,	WORK_TARGET.USER_ID_TARGET							AS		USER_ID_TARGET
+			,	WORK_DEMAND.USER_ID_DEMAND							AS		USER_ID_DEMAND
+			,	WORK_TARGET.USER_NM_TARGET							AS		USER_NM_TARGET
+			,	WORK_DEMAND.USER_NM_DEMAND							AS		USER_NM_DEMAND
+		FROM
+				MAIN_DATA	MD
+			,	(
+				SELECT
+						AA1.WORK_YMD || '('|| BB1.BGNG_HR || '~' || BB1.END_HR || ')'		AS YMD_HR
+					,	AA1.TASKWK_SCHDL_SN		AS	TASKWK_SCHDL_SN_DEMAND		/** 업무일정일련번호 **/
+					,	AA1.USER_ID				AS	USER_ID_DEMAND
+					,	AA1.TASKWK_TYPE_DEPT_CD	AS	TASKWK_TYPE_DEPT_CD_DEMAND
+					,	DD1.FLNM_ENCPT			AS	USER_NM_DEMAND
+				FROM
+						AYC100		AA1		/**근무배정표일별**/
+					,	MAIN_DATA	MD
+					,	AYC110		BB1		/**근무배정표월별**/
+					,	SAA200		CC1
+					,	SCA100		DD1
+				WHERE 	1=1
+					AND	MD.CHG_DMND_SN		=	AA1.TASKWK_SCHDL_SN
+					AND	AA1.BIZ_PLAN_MNG_NO	=	BB1.BIZ_PLAN_MNG_NO
+					AND	AA1.USER_ID			=	CC1.USER_ID
+					AND	CC1.ENFSN_NO		=	DD1.ENFSN_NO
+			)		AS	WORK_DEMAND
+		,	(
+				SELECT
+						AA2.WORK_YMD || '('|| BB2.BGNG_HR || '~' || BB2.END_HR || ')'		AS YMD_HR
+					,	AA2.TASKWK_SCHDL_SN		AS	TASKWK_SCHDL_SN_TARGET		/** 업무일정일련번호 **/
+					,	AA2.USER_ID				AS	USER_ID_TARGET
+					,	AA2.TASKWK_TYPE_DEPT_CD	AS	TASKWK_TYPE_DEPT_CD_TARGET
+					,	DD2.FLNM_ENCPT			AS	USER_NM_TARGET
+				FROM
+						AYC100		AA2		/**근무배정표일별**/
+					,	MAIN_DATA	MD
+					,	AYC110		BB2		/**근무배정표월별**/
+					,	SAA200		CC2
+					,	SCA100		DD2
+				WHERE 	1=1
+					AND	MD.CHG_TRGT_SN		=	AA2.TASKWK_SCHDL_SN
+					AND	AA2.BIZ_PLAN_MNG_NO	=	BB2.BIZ_PLAN_MNG_NO
+					AND	AA2.USER_ID			=	CC2.USER_ID
+					AND	CC2.ENFSN_NO		=	DD2.ENFSN_NO
+			)		AS	WORK_TARGET
+		WHERE	1=1
+			AND	MD.CHG_DMND_SN = WORK_DEMAND.TASKWK_SCHDL_SN_DEMAND(+)
+			AND	MD.CHG_TRGT_SN = WORK_TARGET.TASKWK_SCHDL_SN_TARGET(+)
+	</select>
+	
+	<update id="processWorkChgMng1" parameterType="HashMap">
+	/**
+	*		processWorkChgMng1 : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 상태변경 AYC140
+	*/
+		UPDATE 
+				AYC140		AA		/** 근무변경허가원 **/
+		SET
+				AA.APRV_STTS_SE_CD	=	#{prcsSttsSeCd}
+			,	AA.LAST_MDFR_ID		=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+			<if test='prcsSttsSeCd == "3"'>
+				<![CDATA[
+			,	AA.RJCT_CS_CN		=	#{rjctCsCn}
+				]]>
+			</if>
+			<if test='(prePrcsSttsSeCd == "3" and prcsSttsSeCd == "2") or (prePrcsSttsSeCd == "3" and prcsSttsSeCd == "0")'>
+			,   AA.RJCT_CS_CN       =   null
+			</if>
+		WHERE	1=1
+			AND	AA.INDEX_SN			=	#{indexSn}
+	</update>
+	<update id="processWorkChgMng2" parameterType="HashMap">
+	/**
+	*		processWorkChgMng2 : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 상태변경 AYC100
+	*/
+		UPDATE
+				AYC100		AA		/** 근무배정표 일별 **/
+		SET
+				AA.USER_ID			=	#{demandId}
+			,	AA.LAST_MDFR_ID		=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+		WHERE	1=1
+			AND	AA.TASKWK_SCHDL_SN	=	#{targetSn}
+	</update>
+	<update id="processWorkChgMng3" parameterType="HashMap">
+	/**
+	*		processWorkChgMng3 : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 상태변경 AYC100
+	*/
+		UPDATE
+				AYC100		AA		/** 근무배정표 일별 **/
+		SET
+				AA.USER_ID			=	#{targetId}
+			,	AA.LAST_MDFR_ID		=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+		WHERE	1=1
+			AND	AA.TASKWK_SCHDL_SN	=	#{demandSn}
+	</update>
+	<update id="processWorkChgMng4" parameterType="HashMap">
+	/**
+	*		processWorkChgMng4 : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 상태변경 AYC120
+	*/
+		UPDATE
+				AYC120		AA		/** 근무배정표 아웃리치 **/
+		SET
+				AA.USER_ID			=	#{demandId}
+			,	AA.LAST_MDFR_ID		=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+		WHERE	1=1
+			AND	AA.TASKWK_SCHDL_SN	=	#{targetSn}
+	</update>
+	<update id="processWorkChgMng5" parameterType="HashMap">
+	/**
+	*		processWorkChgMng5 : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 상태변경 AYC120
+	*/
+		UPDATE
+				AYC120		AA		/** 근무배정표 아웃리치 **/
+		SET
+				AA.USER_ID			=	#{targetId}
+			,	AA.LAST_MDFR_ID		=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+		WHERE	1=1
+			AND	AA.TASKWK_SCHDL_SN	=	#{demandSn}
+	</update>
+	
+	<select id="processWorkChgMngBatch" statementType="CALLABLE" parameterType="HashMap">
+	/**
+	*		processWorkChgMngBatch : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 일괄승인
+	*/
+		{call AY_SP_UPDATE_WORK_CHG_BATCH(			
+				#{loginId, mode=IN, jdbcType=VARCHAR}
+			,	#{retVal, mode=OUT, jdbcType=VARCHAR}
+		)}
+	
+	</select>
+	
+	<select id="selectWorkChgMngSms" parameterType="HashMap" resultType="HashMap">
+	<!-- SELECT
+            AA.INDEX_SN                     AS      INDEX_SN
+        ,   AA.CHG_DMND_ID                  AS      CHG_DMND_ID
+        ,   AA.APRV_STTS_SE_CD              AS      APRV_STTS_SE_CD
+        ,   AA.SMS_SNDNG_YN                 AS      SMS_SNDNG_YN    
+        ,   (
+                SELECT
+                        REPLACE(
+                                A1.ADDTNG_MNG_VALUE3,
+                                '{time}(변경희망 근무일)',
+                                ' '||AA.CHG_DMND_WORK_HR_CN||' ('||AA.CHG_DMND_WORK_YMD||') '
+                                )           
+                FROM
+                        SAC100  A1
+                WHERE   1=1
+                    AND A1.CMMNS_CD_ID = 'CHRCTR_ATMTC_SNDNG_SE_CD'
+                    AND A1.CMMNS_CD_VALUE = DECODE(AA.APRV_STTS_SE_CD,'2','01','3','02')
+            )                                   AS  MSG_CONTENTS
+        ,   '[청소년사이버상담센터]근무변경신청 결과'     AS  MSG_SUBJECT
+        ,   CC.MBL_TELNO_ENCPT                  AS  CALL_TO
+    FROM
+            AYC140      AA
+        ,   SAA200      BB
+        ,   SCA100      CC
+    WHERE   1=1
+    AND AA.DEL_YN   =   'N'
+    AND AA.SMS_SNDNG_YN =   'N'
+    AND AA.APRV_STTS_SE_CD IN   ('2','3')
+    AND AA.CHG_DMND_ID  =   BB.USER_ID
+    AND BB.ENFSN_NO     =   CC.ENFSN_NO
+    <![CDATA[
+    AND AA.FRST_REG_DT          >=  TO_DATE(#{bgngYmd} || '000000', 'YYYYMMDDHH24MISS')
+    AND AA.FRST_REG_DT          <   TO_DATE(#{endYmd} || '000000', 'YYYYMMDDHH24MISS')+1
+    ]]> -->
+	/**
+	*		selectWorkChgMngSms : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 일괄 문자발송 조회
+	*/
+        SELECT
+		        T1.INDEX_SN                     AS      INDEX_SN
+		    ,   T1.CHG_DMND_ID                  AS      CHG_DMND_ID
+		    ,   T1.APRV_STTS_SE_CD              AS      APRV_STTS_SE_CD
+		    ,   T1.SMS_SNDNG_YN                 AS      SMS_SNDNG_YN
+		    ,   '청소년상담-근무변경신청결과'     AS      MSG_SUBJECT
+		    ,   (
+		            SELECT
+		                    REPLACE(
+		                            A1.ADDTNG_MNG_VALUE3,
+		                            '{time}',
+		                            substr(T1.CHG_DMND_WORK_YMD, 0, 4) || '-' || substr(T1.CHG_DMND_WORK_YMD, 5, 2) || '-' || substr(T1.CHG_DMND_WORK_YMD, 7, 2)
+		                            )           
+		            FROM
+		                    SAC100  A1
+		            WHERE   1=1
+		                AND A1.CMMNS_CD_ID = 'CHRCTR_ATMTC_SNDNG_SE_CD'
+		                AND A1.CMMNS_CD_VALUE = DECODE(T1.APRV_STTS_SE_CD,'2','01','3','02')
+		        )                                   AS  DEMAND_MSG_CONTENTS
+		    ,   T3.MBL_TELNO_ENCPT                  AS  DEMAND_CALL_TO
+		    ,   (
+		            SELECT
+		                    REPLACE(
+		                            A1.ADDTNG_MNG_VALUE3,
+		                            '{time}',
+		                            substr(T1.CHG_TRGT_WORK_YMD, 0, 4) || '-' || substr(T1.CHG_TRGT_WORK_YMD, 5, 2) || '-' || substr(T1.CHG_TRGT_WORK_YMD, 7, 2)
+		                            )           
+		            FROM
+		                    SAC100  A1
+		            WHERE   1=1
+		                AND A1.CMMNS_CD_ID = 'CHRCTR_ATMTC_SNDNG_SE_CD'
+		                AND A1.CMMNS_CD_VALUE = DECODE(T1.APRV_STTS_SE_CD,'2','01','3','02')
+		        )                                   AS  TARGET_MSG_CONTENTS
+		    ,   T5.MBL_TELNO_ENCPT                  AS  TARGET_CALL_TO
+		FROM
+		        AYC140      T1
+		    ,   SAA200      T2
+		    ,   SCA100      T3
+		    ,   SAA200      T4
+		    ,   SCA100      T5
+		WHERE   1=1
+		AND T1.DEL_YN   =   'N'
+		AND T1.SMS_SNDNG_YN =   'N'
+		AND T1.APRV_STTS_SE_CD IN   ('2','3')
+		AND T1.CHG_DMND_ID  =   T2.USER_ID
+		AND T2.ENFSN_NO     =   T3.ENFSN_NO
+		AND T1.CHG_TRGT_ID  =   T4.USER_ID
+		AND T4.ENFSN_NO     =   T5.ENFSN_NO
+		<![CDATA[
+        AND T1.FRST_REG_DT          >=  TO_DATE(#{bgngYmd} || '000000', 'YYYYMMDDHH24MISS')
+        AND T1.FRST_REG_DT          <   TO_DATE(#{endYmd} || '000000', 'YYYYMMDDHH24MISS')+1
+        ]]>
+	</select>
+	
+	<insert id="processWorkChgMngSms1" parameterType="HashMap" keyProperty="CONT_SEQ" useGeneratedKeys="true">
+	<selectKey resultType="String" keyProperty="CONT_SEQ" order="AFTER">
+    	SELECT 
+    			ISRY_SMS.MMS_CONTENTS_INFO_SEQ.CURRVAL		AS	CONT_SEQ
+    	FROM
+    			DUAL
+    </selectKey>
+	/**
+	*		processWorkChgMngSms1 : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 일괄 문자발송 등록1
+	*/
+		INSERT	INTO
+				ISRY_SMS.MMS_CONTENTS_INFO
+				(
+						CONT_SEQ
+					,	FILE_CNT
+					,	MMS_SUBJECT
+					,	MMS_BODY
+				)
+		VALUES
+				(
+						ISRY_SMS.MMS_CONTENTS_INFO_SEQ.NEXTVAL
+					,	'1'
+					,	#{MSG_SUBJECT}
+					,	#{MSG_CONTENTS}
+				)
+	</insert>
+	<insert id="processWorkChgMngSms2" parameterType="HashMap">
+	/**
+	*		processWorkChgMngSms2 : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 일괄 문자발송 등록2
+	*/
+		INSERT	INTO
+				ISRY_SMS.MSG_DATA
+				(
+						MSG_SEQ
+					,	REQ_DATE
+					,	CUR_STATE
+					,	CALL_TO
+					,	CALL_FROM
+					,	MSG_TYPE
+					,	USER_ID
+					,	CONT_SEQ
+				)
+		VALUES
+				(
+						ISRY_SMS.MSG_DATA_SEQ.NEXTVAL
+					,	SYSDATE
+					,	'0'
+					,	#{CALL_TO}
+					,	'0516623229'
+					,	'6'
+					,	#{loginId}
+					,	#{CONT_SEQ}
+				)
+	</insert>
+	<update id="processWorkChgMngSms3" parameterType="HashMap">
+	/**
+	*		processWorkChgMngSms3 : isry.couns.mngr.atrzmng.mapper.WorkChgMngMapper : 근무변경 일괄 문자발송 수정3
+	*/
+		UPDATE
+				AYC140		AA		/**근무변경허가원**/
+		SET
+				AA.SMS_SNDNG_YN	=	'Y'
+			,	AA.SNDNG_DT		=	SYSDATE
+			,	AA.LAST_MDFR_ID	=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+		WHERE	1=1
+			AND	AA.INDEX_SN	=	#{INDEX_SN}
+	</update>
+	
+    <select id="processWorkChgMngBatchList" parameterType="HashMap" resultType="HashMap">
+<!--         {call AY_SP_UPDATE_WORK_CHG_BATCH(           -->
+<!--                 #{loginId, mode=IN, jdbcType=VARCHAR} -->
+<!--             ,   #{retVal, mode=OUT, jdbcType=VARCHAR} -->
+<!--         )} -->
+	SELECT
+	        AA.INDEX_SN                AS      INDEX_SN
+	    ,   AA.CHG_DMND_SN             AS      SRC_DMND_SN             /** 변경요청일련번호 **/
+	    ,   AA.CHG_TRGT_SN             AS      SRC_TRGT_SN             /** 변경대상일련번호 **/
+	    ,   AA.CHG_DMND_ID             AS      DMND_ID                     /** 요청자아이디 **/
+	    ,   BB.USER_ID                 AS      TARGET_DMND_ID
+	    ,   BB.TASKWK_SCHDL_SN         AS      TARGET_DMND_SN
+	    ,   BB.TASKWK_TYPE_DEPT_CD     AS      TARGET_DMND_DEPT_CD
+	    ,   CC.USER_ID                 AS      TARGET_TRGT_ID
+	    ,   CC.TASKWK_SCHDL_SN         AS      TARGET_TRGT_SN
+	    ,   CC.TASKWK_TYPE_DEPT_CD     AS      TARGET_TRGT_DEPT_CD
+	FROM
+	        AYC140      AA
+	    ,   AYC100      BB
+	    ,   AYC100      CC
+	WHERE   1=1
+	    AND AA.DEL_YN           =   'N'
+	    AND AA.APRV_STTS_SE_CD  =   '0' /** 대기(0) 상태인 경우 - 일괄승인 **/
+	    AND BB.TASKWK_SCHDL_SN  =   AA.CHG_DMND_SN
+	    AND CC.TASKWK_SCHDL_SN  =   AA.CHG_TRGT_SN
+	    <![CDATA[
+        AND AA.FRST_REG_DT          >=  TO_DATE(#{bgngYmd} || '000000', 'YYYYMMDDHH24MISS')
+        AND AA.FRST_REG_DT          <   TO_DATE(#{endYmd} || '000000', 'YYYYMMDDHH24MISS')+1
+        ]]>
+        <!-- <![CDATA[
+        AND AA.REG_YMD          >=  TO_DATE(#{bgngYmd} || '000000', 'YYYYMMDDHH24MISS')
+        AND AA.REG_YMD          <   TO_DATE(#{endYmd} || '000000', 'YYYYMMDDHH24MISS')+1
+        ]]> -->
+    
+    </select>
+    
+    <update id="processWorkChgMngBatchUpdate1" parameterType="HashMap">
+        UPDATE
+                AYC100      TARGET1
+        SET
+                TARGET1.USER_ID         =   #{TARGET_DMND_ID}
+            ,   TARGET1.LAST_MDFR_ID    =   #{VAR_P_IN_LOGINID}
+            ,   TARGET1.LAST_MDFCN_DT   =   SYSDATE
+        WHERE   1=1
+            AND TARGET1.TASKWK_SCHDL_SN =   #{TARGET_TRGT_SN}
+    </update>
+    
+    <update id="processWorkChgMngBatchUpdate2" parameterType="HashMap">
+        UPDATE
+                AYC100      TARGET2
+        SET
+                TARGET2.USER_ID         =   #{TARGET_TRGT_ID}
+            ,   TARGET2.LAST_MDFR_ID    =   #{VAR_P_IN_LOGINID}
+            ,   TARGET2.LAST_MDFCN_DT   =   SYSDATE
+        WHERE   1=1
+            AND TARGET2.TASKWK_SCHDL_SN =   #{TARGET_DMND_SN}
+    </update>
+    
+    <update id="processWorkChgMngBatchUpdate3" parameterType="HashMap">
+        UPDATE
+                AYC140      AA_SRC
+        SET
+                AA_SRC.APRV_STTS_SE_CD  =   #{VAR_PRC_SE_CD}
+            ,   AA_SRC.LAST_MDFR_ID     =   #{VAR_P_IN_LOGINID}
+            ,   AA_SRC.LAST_MDFCN_DT    =   SYSDATE
+        WHERE   1=1
+            AND AA_SRC.INDEX_SN         =   #{INDEX_SN}
+    </update>
+    
+    <update id="processWorkChgMngBatchUpdate4" parameterType="HashMap">
+        UPDATE 
+                AYC120      TARGET_OUTREACH1
+        SET
+                TARGET_OUTREACH1.USER_ID            =   #{TARGET_DMND_ID}
+            ,   TARGET_OUTREACH1.LAST_MDFR_ID       =   #{VAR_P_IN_LOGINID}
+            ,   TARGET_OUTREACH1.LAST_MDFCN_DT      =   SYSDATE
+        WHERE   1=1
+            AND TARGET_OUTREACH1.TASKWK_SCHDL_SN    =   #{TARGET_TRGT_SN}
+    </update>
+    
+    <update id="processWorkChgMngBatchUpdate5" parameterType="HashMap">
+        UPDATE 
+                AYC120      TARGET_OUTREACH2
+        SET
+                TARGET_OUTREACH2.USER_ID            =   #{TARGET_TRGT_ID}
+            ,   TARGET_OUTREACH2.LAST_MDFR_ID       =   #{VAR_P_IN_LOGINID}
+            ,   TARGET_OUTREACH2.LAST_MDFCN_DT      =   SYSDATE
+        WHERE   1=1
+            AND TARGET_OUTREACH2.TASKWK_SCHDL_SN    =   #{TARGET_DMND_SN}
+    </update>
+    
+	
+	
+	
+</mapper>

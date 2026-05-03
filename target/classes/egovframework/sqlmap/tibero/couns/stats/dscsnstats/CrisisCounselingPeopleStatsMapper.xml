@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.stats.dscsnstats.mapper.CrisisCounselingPeopleStatsMapper">
+
+    <select id="selectcrisisCounselingPeopleStats" parameterType="HashMap" resultType="HashMap">
+    
+    /*SQL-ID :isry.couns.stats.dscsnstats.mapper.CrisisCounselingPeopleStatsMapper.selectcrisisCounselingPeopleStats : 위기상담 유형별 통계*/
+    SELECT KBN AS GUBUN
+      ,  SUM(CASE WHEN CRISIS = '01' THEN CNT ELSE 0 END) AS W01      /* 임신 */
+      ,  SUM(CASE WHEN CRISIS = '02' THEN CNT ELSE 0 END) AS W02      /* 자살·자해 */
+      ,  SUM(CASE WHEN CRISIS = '03' THEN CNT ELSE 0 END) AS W03      /* 가출 */
+      ,  SUM(CASE WHEN CRISIS = '04' THEN CNT ELSE 0 END) AS W04      /* 가정폭력 */
+      ,  SUM(CASE WHEN CRISIS = '05' THEN CNT ELSE 0 END) AS W05      /* 학교폭력 */
+      ,  SUM(CASE WHEN CRISIS = '06' THEN CNT ELSE 0 END) AS W06      /* 사이버 */
+      ,  SUM(CASE WHEN CRISIS = '07' THEN CNT ELSE 0 END) AS W07      /* 성희롱 */
+      ,  SUM(CASE WHEN CRISIS = '08' THEN CNT ELSE 0 END) AS W08      /* 성폭력 */
+      ,  SUM(CASE WHEN CRISIS = '09' THEN CNT ELSE 0 END) AS W09      /* 폭력기타 */
+      ,  SUM(CASE WHEN CRISIS = '10' THEN CNT ELSE 0 END) AS W10      /* 일반 */
+      ,  SUM(CASE WHEN CRISIS = '99' OR CRISIS IS NULL THEN CNT ELSE 0 END) AS W99      /* 기타 */
+      ,  SUM(CNT) AS SSUM      
+	FROM 
+	(  
+	    SELECT  
+	    '1' NO1, 
+	    MAX(CHTT_TYPE_SE_CD) NO2, 
+	    CMMNS_CD_VALUE_NM KBN, 
+	    CRISIS_TYPE_SE_CD CRISIS, 
+	    COUNT(*)  CNT     
+	    FROM
+	    (            
+	       SELECT * FROM AYA120 A, AYB200 B,  SAC100 C  
+	       WHERE 1=1 
+	       <![CDATA[
+	       AND A.BBSCTT_ESNTAL_NO = B.CHRO_NO
+	       AND B.CHTT_TYPE_SE_CD = C.CMMNS_CD_VALUE
+	       AND A.FRST_REG_DT BETWEEN TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS') AND TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS') 
+	       AND C.CMMNS_CD_ID = 'CHTT_TYPE_SE_CD'  
+	       AND A.DEL_YN ='N'
+	       ]]>
+	    )         
+	    GROUP BY CRISIS_TYPE_SE_CD, CMMNS_CD_VALUE_NM
+	       
+	UNION ALL      
+	
+	SELECT '2' NO1, MAX(B.BBSCTT_TYPE_SE_CD) NO2, C.CMMNS_CD_VALUE_NM KBN, A.CRISIS_TYPE_SE_CD CRISIS, COUNT(*)  CNT
+	  FROM AYA120 A, AYE100 B,  SAC100 C    
+	  WHERE 1=1
+	       <![CDATA[
+	       AND A.FRST_REG_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+	       AND A.FRST_REG_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS')  
+	       AND A.BBSCTT_ESNTAL_NO = B.BBSCTT_ESNTAL_NO
+	       AND A.BBSCTT_TYPE_SE_CD = B.BBSCTT_TYPE_SE_CD
+	       AND A.DEL_YN = 'N'  AND B.DEL_YN = 'N' 
+	       AND C.CMMNS_CD_ID = 'BBSCTT_TYPE_SE_CD' 
+	       AND B.BBSCTT_TYPE_SE_CD = C.CMMNS_CD_VALUE
+	       ]]>
+	       GROUP BY A.CRISIS_TYPE_SE_CD, C.CMMNS_CD_VALUE_NM 
+	 ) 
+	 GROUP  BY  NO1, NO2 ,KBN ORDER BY NO1, NO2 ,KBN 
+   </select>
+
+    <select id="selectcrisisCounselingPeopleStats2" parameterType="HashMap" resultType="HashMap">        
+	
+	/*SQL-ID :isry.couns.stats.dscsnstats.mapper.CrisisCounselingPeopleStatsMapper.selectcrisisCounselingPeopleStats2 : 위기상담 상담자별 통계*/
+	SELECT C##RG.DEC_B64(MAX(NM))   AS GUBUN
+      ,  SUM(CASE WHEN CRISIS = '01' THEN CNT ELSE 0 END) AS W01      /* 임신 */
+      ,  SUM(CASE WHEN CRISIS = '02' THEN CNT ELSE 0 END) AS W02      /* 자살·자해 */
+      ,  SUM(CASE WHEN CRISIS = '03' THEN CNT ELSE 0 END) AS W03      /* 가출 */
+      ,  SUM(CASE WHEN CRISIS = '04' THEN CNT ELSE 0 END) AS W04      /* 가정폭력 */
+      ,  SUM(CASE WHEN CRISIS = '05' THEN CNT ELSE 0 END) AS W05      /* 학교폭력 */
+      ,  SUM(CASE WHEN CRISIS = '06' THEN CNT ELSE 0 END) AS W06      /* 사이버 */
+      ,  SUM(CASE WHEN CRISIS = '07' THEN CNT ELSE 0 END) AS W07      /* 성희롱 */
+      ,  SUM(CASE WHEN CRISIS = '08' THEN CNT ELSE 0 END) AS W08      /* 성폭력 */
+      ,  SUM(CASE WHEN CRISIS = '09' THEN CNT ELSE 0 END) AS W09      /* 폭력기타 */
+      ,  SUM(CASE WHEN CRISIS = '10' THEN CNT ELSE 0 END) AS W10      /* 일반 */
+      ,  SUM(CASE WHEN CRISIS = '99' OR CRISIS IS NULL THEN CNT ELSE 0 END) AS W99      /* 기타 */
+      ,  SUM(CNT)  AS SSUM    
+	FROM 
+	(
+	 -- 채팅
+	SELECT   A.FRST_RGTR_ID ID,MAX(E.FLNM_ENCPT) NM, A.CRISIS_TYPE_SE_CD CRISIS, COUNT(*)  CNT
+	  FROM AYA120 A, AYB200 B, SAA200 D, SCA100 E
+	  WHERE 1=1
+	       <![CDATA[
+	       AND A.FRST_REG_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+	       AND A.FRST_REG_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS') 
+	       AND A.BBSCTT_ESNTAL_NO = B.CHRO_NO
+	       AND A.DEL_YN = 'N'  AND B.DEL_YN = 'N' 
+	       AND D.USER_ID = A.FRST_RGTR_ID
+	       AND D.ENFSN_NO = E.ENFSN_NO
+	       ]]>
+	       GROUP BY A.FRST_RGTR_ID, A.CRISIS_TYPE_SE_CD
+	 UNION ALL      
+	 -- 게시판
+	SELECT  A.FRST_RGTR_ID ID,MAX(E.FLNM_ENCPT) NM, A.CRISIS_TYPE_SE_CD CRISIS, COUNT(*)  CNT
+	  FROM AYA120 A, AYE100 B, SAA200 D, SCA100 E
+	  WHERE 1=1
+	       <![CDATA[
+	       AND A.FRST_REG_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+	       AND A.FRST_REG_DT <  TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS') 
+	       AND A.BBSCTT_ESNTAL_NO = B.BBSCTT_ESNTAL_NO
+	       AND A.BBSCTT_TYPE_SE_CD = B.BBSCTT_TYPE_SE_CD
+	       AND A.DEL_YN = 'N'  AND B.DEL_YN = 'N' 
+	       AND D.USER_ID = A.FRST_RGTR_ID
+	       AND D.ENFSN_NO = E.ENFSN_NO
+	       ]]>
+	       GROUP BY A.FRST_RGTR_ID, A.CRISIS_TYPE_SE_CD
+	 ) 
+	 GROUP  BY ID ORDER BY ID
+   </select>
+
+</mapper>

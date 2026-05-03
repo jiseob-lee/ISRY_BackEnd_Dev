@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.aimns.opermgmt.transportation.mapper.TransPortationMapper">
+	
+    <select id="selectTransFoodList" parameterType="HashMap" resultType="HashMap">
+        /* selectTransFoodList (교통비및식대 조회) - Lee Hye Sun */
+        <![CDATA[
+            /* 교통비 및 식대 기준
+			    - 대면출석 (식비 5,000 + 교통비 3,000)    = 8,000
+			    - 비대면출석 (식비 5,000 + 교통비 2,000)  = 7,000 
+			    - 지각('03'), 조퇴('04'), 외출('05'), 지조('07'), 지외('08'), 외조('09') => 3번 누적 시 -8,000원
+			*/
+            SELECT
+		       C.INST_NO                                                                     /*기관번호*/  
+		     , C.INST_NM                                                                     /*기관명*/   
+		     , E.BIZ_YR                                                                      /*사업연도*/  
+		     , B.PVSN_RESRCE_NM                                                              /*제공자원명*/ 
+		     , B.PVSN_BGNG_YMD    AS PVSN_YMD_FROM                                           /*제공시작일자*/
+		     , B.PVSN_END_YMD     AS PVSN_YMD_TO                                             /*제공종료일자*/
+		     , DEC_B64(G.TRPR_NM_ENCPT) AS TRPR_NM_ENCPT                                     /*대상자명암호화*/
+		     , G.TRPR_BRTH_YMD                                                               /*대상자출생일자*/
+		     , G.TRPR_INFO_NO                                                                /*대상자정보번호*/
+		     , A.SRVC_PVSN_NO                                                                /*서비스제공번호*/
+		     , A.CASE_MNG_NO                                                                 /*사례관리번호*/
+		     , A.CASE_MNG_ODRNO                                                              /*사례관리차수*/
+		     , B.RESRCE_NO                                                                   /*자원번호*/
+		     , CASE WHEN NVL(AA.M1,0) - NVL(BB.DE1,0) > 160000 THEN 160000 ELSE NVL(AA.M1,0) - NVL(BB.DE1,0) END AS GIVE_MM_1       /*1월*/
+		     , CASE WHEN NVL(AA.M2,0) - NVL(BB.DE2,0) > 160000 THEN 160000 ELSE NVL(AA.M2,0) - NVL(BB.DE2,0) END AS GIVE_MM_2       /*2월*/
+		     , CASE WHEN NVL(AA.M3,0) - NVL(BB.DE3,0) > 160000 THEN 160000 ELSE NVL(AA.M3,0) - NVL(BB.DE3,0) END AS GIVE_MM_3       /*3월*/
+		     , CASE WHEN NVL(AA.M4,0) - NVL(BB.DE4,0) > 160000 THEN 160000 ELSE NVL(AA.M4,0) - NVL(BB.DE4,0) END AS GIVE_MM_4       /*4월*/
+		     , CASE WHEN NVL(AA.M5,0) - NVL(BB.DE5,0) > 160000 THEN 160000 ELSE NVL(AA.M5,0) - NVL(BB.DE5,0) END AS GIVE_MM_5       /*5월*/
+		     , CASE WHEN NVL(AA.M6,0) - NVL(BB.DE6,0) > 160000 THEN 160000 ELSE NVL(AA.M6,0) - NVL(BB.DE6,0) END AS GIVE_MM_6       /*6월*/
+		     , CASE WHEN NVL(AA.M7,0) - NVL(BB.DE7,0) > 160000 THEN 160000 ELSE NVL(AA.M7,0) - NVL(BB.DE7,0) END AS GIVE_MM_7       /*7월*/
+		     , CASE WHEN NVL(AA.M8,0) - NVL(BB.DE8,0) > 160000 THEN 160000 ELSE NVL(AA.M8,0) - NVL(BB.DE8,0) END AS GIVE_MM_8       /*8월*/
+		     , CASE WHEN NVL(AA.M9,0) - NVL(BB.DE9,0) > 160000 THEN 160000 ELSE NVL(AA.M9,0) - NVL(BB.DE9,0) END AS GIVE_MM_9       /*9월*/
+		     , CASE WHEN NVL(AA.M10,0) - NVL(BB.DE10,0) > 160000 THEN 160000 ELSE NVL(AA.M10,0) - NVL(BB.DE10,0) END AS GIVE_MM_10  /*10월*/
+		     , CASE WHEN NVL(AA.M11,0) - NVL(BB.DE11,0) > 160000 THEN 160000 ELSE NVL(AA.M11,0) - NVL(BB.DE11,0) END AS GIVE_MM_11  /*11월*/
+		     , CASE WHEN NVL(AA.M12,0) - NVL(BB.DE12,0) > 160000 THEN 160000 ELSE NVL(AA.M12,0) - NVL(BB.DE12,0) END AS GIVE_MM_12  /*12월*/
+		 FROM SEB510 A  /*서비스제공대상자*/
+		 JOIN SEB500 T0 /*서비스제공*/ ON T0.SRVC_PVSN_NO = A.SRVC_PVSN_NO
+		                              AND T0.RESRCE_NO = A.RESRCE_NO
+		 JOIN SDA100 B  /*자원기본*/ ON B.RESRCE_NO = A.RESRCE_NO
+		 JOIN SAA000 C  /*통합기관*/ ON C.INST_NO = B.RSFR_INST_NO
+		 JOIN SDA420 D  /*서비스실행사업*/ ON B.SRVC_EXCN_BIZ_NO = D.SRVC_EXCN_BIZ_NO
+		 JOIN SDA400 E  /*서비스사업*/ ON E.SRVC_BIZ_NO = D.SRVC_BIZ_NO
+		 JOIN SEB100 F  /*사례기본*/ ON F.CASE_MNG_NO = A.CASE_MNG_NO
+		                            AND F.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+		 JOIN SEA200 G  /*대상자정보*/ ON G.TRPR_INFO_NO = F.TRPR_INFO_NO
+		 JOIN SEB530 H  /*자원프로그램제공*/ ON H.CASE_MNG_NO = A.CASE_MNG_NO
+		                                    AND H.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+		                                    AND H.SRVC_PVSN_NO = A.SRVC_PVSN_NO
+		 LEFT JOIN AFA330 I /*교육이수일정내역*/ ON A.CASE_MNG_NO = I.CASE_MNG_NO
+		                                        AND A.CASE_MNG_ODRNO = I.CASE_MNG_ODRNO
+		 LEFT JOIN (
+		    SELECT
+		          A.CASE_MNG_NO
+		        , A.CASE_MNG_ODRNO
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '01', ATNC_SE_CD))/3)*8000 AS DE1     /*1월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '02', ATNC_SE_CD))/3)*8000 AS DE2     /*2월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '03', ATNC_SE_CD))/3)*8000 AS DE3     /*3월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '04', ATNC_SE_CD))/3)*8000 AS DE4     /*4월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '05', ATNC_SE_CD))/3)*8000 AS DE5     /*5월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '06', ATNC_SE_CD))/3)*8000 AS DE6     /*6월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '07', ATNC_SE_CD))/3)*8000 AS DE7     /*7월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '08', ATNC_SE_CD))/3)*8000 AS DE8     /*8월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '09', ATNC_SE_CD))/3)*8000 AS DE9     /*9월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '10', ATNC_SE_CD))/3)*8000 AS DE10    /*10월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '11', ATNC_SE_CD))/3)*8000 AS DE11    /*11월*/
+		        , TRUNC(COUNT(DECODE(SUBSTR(PTCPTN_YMD, 5,2), '12', ATNC_SE_CD))/3)*8000 AS DE12    /*12월*/
+		    FROM SEB530 A
+		    INNER JOIN SEB510 B
+            ON A.CASE_MNG_NO = B.CASE_MNG_NO
+            AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+            
+		    WHERE ATNC_SE_CD IN ('03', '04', '05', '07', '08', '09')
+		    AND B.RESRCE_NO = #{RESRCE_NO}
+		    AND B.DEL_YN = 'N'
+		    AND PTCPTN_YMD BETWEEN #{BIZ_YR} || '0101' AND #{BIZ_YR} || '1231'
+		    
+		    GROUP BY A.CASE_MNG_NO, A.CASE_MNG_ODRNO
+		 )BB
+		 ON A.CASE_MNG_ODRNO = BB.CASE_MNG_ODRNO
+		 AND A.CASE_MNG_NO = BB.CASE_MNG_NO
+		 LEFT JOIN (
+		    SELECT
+		          CASE_MNG_NO
+		        , CASE_MNG_ODRNO
+		        , TO_CHAR(TO_DATE(PTCPTN_YMD), 'YYYYMM') AS PMONTH
+		        , COUNT(PTCPTN_YMD) AS PTCPTN_YMD
+		    FROM SEB530
+		    WHERE 1=1
+            AND RESRCE_NO = #{RESRCE_NO}
+            AND PTCPTN_YMD BETWEEN #{BIZ_YR} || '0101' AND #{BIZ_YR} || '1231'
+            
+		    GROUP BY CASE_MNG_NO, CASE_MNG_ODRNO, TO_CHAR(TO_DATE(PTCPTN_YMD), 'YYYYMM')
+		 ) DD
+		 ON A.CASE_MNG_NO = DD.CASE_MNG_NO
+		 AND A.CASE_MNG_ODRNO = DD.CASE_MNG_ODRNO
+		 LEFT JOIN (
+		    /* 월별 총 교통비및식대(결석일수 빼기전)  */
+		    SELECT
+		          A.CASE_MNG_ODRNO
+		        , A.CASE_MNG_NO,
+		        /*1월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '01'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END
+                END) AS M1,
+                /*2월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '02'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END
+                END) AS M2,
+                /*3월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '03'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END
+                END) AS M3,
+                /*4월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '04'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END
+                END) AS M4,
+                /*5월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '05'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END                   
+                END) AS M5,
+                /*6월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '06'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END
+                END) AS M6,
+                /*7월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '07'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END                     
+                END) AS M7,
+                /*8월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '08' THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END
+                END) AS M8,
+                /*9월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '09'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END
+                END) AS M9,
+                /*10월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                        CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '10'THEN
+                            CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                 WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                            ELSE 0 END
+                     END
+                END) AS M10,
+                /*11월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '11'THEN
+                            CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                 WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                            ELSE 0 END
+                         END
+                END) AS M11,
+                /*12월*/
+                SUM(CASE WHEN ATNC_SE_CD IN ('01', '03', '04', '05', '07', '08', '09') THEN --출석
+                         CASE WHEN SUBSTR(PTCPTN_YMD, 5, 2) = '12'THEN
+                             CASE WHEN ONLINE_CLASS_YN = 'Y' THEN 7000 --비대면
+                                  WHEN ONLINE_CLASS_YN = 'N' THEN 8000 --대면
+                             ELSE 0 END
+                         END
+                END) AS M12
+		    FROM SEB530 A
+		    INNER JOIN SEB510 B
+		    ON A.SRVC_PVSN_NO = B.SRVC_PVSN_NO
+		    AND A.CASE_MNG_NO = B.CASE_MNG_NO
+		    AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+		    
+		    WHERE 1=1
+		    AND B.RESRCE_NO = #{RESRCE_NO}
+		    AND B.DEL_YN ='N'
+		    AND PTCPTN_YMD BETWEEN #{BIZ_YR} || '0101' AND #{BIZ_YR} || '1231'
+		    
+		    GROUP BY A.CASE_MNG_NO, A.CASE_MNG_ODRNO
+		 ) AA
+		 ON A.CASE_MNG_ODRNO = AA.CASE_MNG_ODRNO
+		 AND A.CASE_MNG_NO = AA.CASE_MNG_NO
+		    
+		WHERE 1=1
+		AND C.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+		AND A.DEL_YN = 'N'
+		AND T0.DEL_YN = 'N'
+		AND E.BIZ_YR LIKE #{BIZ_YR} || '%'
+		AND C.INST_NO LIKE #{INST_NO} || '%'
+		AND B.RESRCE_NO LIKE #{RESRCE_NO} || '%'
+		
+		GROUP BY C.INST_NO, C.INST_NM, E.BIZ_YR, B.PVSN_RESRCE_NM, B.PVSN_BGNG_YMD, B.PVSN_END_YMD, G.TRPR_NM_ENCPT
+		    , G.TRPR_BRTH_YMD, G.TRPR_INFO_NO, A.SRVC_PVSN_NO, A.CASE_MNG_NO, A.CASE_MNG_ODRNO, B.RESRCE_NO           
+		    , AA.M1, AA.M2, AA.M3, AA.M4, AA.M5, AA.M6, AA.M7, AA.M8, AA.M9, AA.M10, AA.M11, AA.M12
+		    , BB.DE1, BB.DE2 , BB.DE3, BB.DE4, BB.DE5, BB.DE6, BB.DE7, BB.DE8, BB.DE9, BB.DE10, BB.DE11, BB.DE12
+		   
+		ORDER BY B.PVSN_RESRCE_NM
+        ]]>
+    </select>
+</mapper>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.aimns.attendmgmt.atend.mapper.AtboYrPreconMapper">
+
+	<select id="selectAtboPcList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.aimns.attendmgmt.atend.mapper.AtboYrPreconMapper.selectAtboPcList - [응용3팀] 이상훈 */
+    
+    SELECT
+        INST_NM                                                                         --기관
+    ,   PVSN_RESRCE_NM                                                                  --과정명
+    ,   TRPR_NM                                                                         --대상자명
+    ,   TRPR_INFO_NO                                                                    --대상자정보번호
+    ,   TRMN_SE_CD_NM                                                                   --상태
+    ,   SUM(ATEND_TIMECNT)                                          AS ATEND_TIMECNT    --출석시수
+    ,   SUM(CLASS_TIMECNT)                                          AS CLASS_TIMECNT    --총수업시수
+    ,   CASE SUM(CLASS_TIMECNT)
+        WHEN 0 THEN 0
+        ELSE ROUND(SUM(ATEND_TIMECNT)/SUM(CLASS_TIMECNT)*10000)/100
+        END                                                         AS ATEND_RATE       --출석률
+    FROM (
+        SELECT
+            D.INST_NM                                                                   --기관
+        ,   C.PVSN_RESRCE_NM                                                            --과정명
+        ,   DEC_B64(F.TRPR_NM_ENCPT) AS TRPR_NM                                         --대상자명
+        ,   F.TRPR_INFO_NO                                                              --대상자정보번호
+        ,   (SELECT CMMNS_CD_VALUE_NM FROM SAC100   /*공통코드값*/
+            WHERE   CMMNS_CD_ID = 'TRMN_SE_CD'
+                AND CMMNS_CD_VALUE = G.TRMN_SE_CD) AS TRMN_SE_CD_NM-- 상태
+        ,   NVL(SUM(CASE WHEN J.ATNC_SE_CD IN ('01','03','04','05','07','08','09') THEN I.LCTRE_HR END),0)
+        -   TRUNC(COUNT(CASE WHEN J.ATNC_SE_CD IN ('03','04','05','07','08','09') THEN 1 END)/3)*MAX(I.LCTRE_HR)
+                                                                    AS ATEND_TIMECNT    --월별출석시간
+        ,   NVL(SUM(I.LCTRE_HR),0)                                  AS CLASS_TIMECNT    --월별총수업시간
+        ,   A.SRVC_PVSN_NO      -- 서비스제공번호
+        ,   A.CASE_MNG_NO       -- 사례관리번호
+        ,   A.CASE_MNG_ODRNO    -- 사례관리차수
+        ,   A.RESRCE_NO         -- 자원번호
+        FROM SEB510 A       /*서비스제공대상자*/
+        JOIN SEB500 B       /*서비스제공*/
+            ON  B.SRVC_PVSN_NO              =   A.SRVC_PVSN_NO
+            AND B.RESRCE_NO                 =   A.RESRCE_NO
+            AND B.DEL_YN                    =   'N'
+        JOIN SDA100 C       /*자원기본*/
+            ON  C.RESRCE_NO                 =   B.RESRCE_NO
+            AND C.SRVC_RESRCE_LCLAS_SE_CD   !=  '01'
+            AND C.APRV_STTS_SE_CD           =   '2'
+        JOIN SAA000 D       /*통합기관*/
+            ON  D.INST_NO                   =   C.RSFR_INST_NO
+            AND D.DEL_YN                    =   'N'
+            AND D.APRV_YN                   =   'Y'
+            AND D.UNT_TASKWK_SE_CD          =   #{UNT_TASKWK_SE_CD}
+        JOIN SEB100 E       /*사례기본*/
+            ON  E.CASE_MNG_NO               =   A.CASE_MNG_NO
+            AND E.CASE_MNG_ODRNO            =   A.CASE_MNG_ODRNO
+        JOIN SEA200 F       /*대상자정보*/
+            ON  F.TRPR_INFO_NO              =   E.TRPR_INFO_NO
+            AND F.DEL_YN                    =   'N'
+        LEFT JOIN (
+            SELECT G1.*
+            ,   ROW_NUMBER() OVER(PARTITION BY G1.CASE_MNG_NO, G1.CASE_MNG_ODRNO ORDER BY G1.CASE_TRMN_NO DESC) AS ROW_NUMBER
+            FROM SEC100 G1  /*사례종결(신청)*/
+            JOIN SEC100 G2  /*사례종결(승인)*/
+                ON  G2.CASE_MNG_NO              =   G1.CASE_MNG_NO
+                AND G2.CASE_MNG_ODRNO           =   G2.CASE_MNG_ODRNO
+            WHERE   G2.TRMN_SRNG_RESULT_SE_CD   =   '02'
+                AND G1.TRMN_SRNG_RESULT_SE_CD   =   '01'
+            ) G
+            ON  G.CASE_MNG_NO               =   E.CASE_MNG_NO
+            AND G.CASE_MNG_ODRNO            =   E.CASE_MNG_ODRNO
+            AND G.ROW_NUMBER = 1
+        LEFT JOIN AFA330 H  /*교육이수일정*/
+            ON H.CASE_MNG_NO                =   E.CASE_MNG_NO
+            AND H.CASE_MNG_ODRNO            =   E.CASE_MNG_ODRNO
+        LEFT JOIN (
+            SELECT
+                I3.RESRCE_NO
+            ,   I3.LCTRE_YMD
+            ,   SUM(I3.LCTRE_HR)    AS LCTRE_HR
+            FROM SDA300 I1  /*자원프로그램*/
+            JOIN SDA340 I2  /*자원프로그램상세일정*/
+                ON  I2.PROGRM_NO    =   I1.PROGRM_NO
+                AND I2.RESRCE_NO    =   I1.RESRCE_NO
+            JOIN SDA320 I3  /*자원프로그램실행시간*/
+                ON  I3.PROGRM_NO    =   I2.PROGRM_NO
+                AND I3.RESRCE_NO    =   I2.RESRCE_NO
+                AND I3.LCTRE_SN     =   I2.LCTRE_SN
+            WHERE   I1.DEL_YN       =   'N'
+                AND I2.DEL_YN       =   'N'
+            GROUP BY I3.RESRCE_NO, I3.LCTRE_YMD
+            ) I
+            ON  I.RESRCE_NO                 =   C.RESRCE_NO
+            AND I.LCTRE_YMD
+                BETWEEN NVL(NVL(H.BGNG_YMD,E.CASE_BGNG_YMD),B.SRVC_PVSN_BGNG_YMD)
+                    AND NVL(NVL(H.END_YMD,E.CASE_TRMN_YMD),B.SRVC_PVSN_END_YMD)
+        LEFT JOIN SEB530 J  /*자원프로그램제공*/
+            ON  J.SRVC_PVSN_NO              =   A.SRVC_PVSN_NO
+            AND J.CASE_MNG_NO               =   A.CASE_MNG_NO
+            AND J.CASE_MNG_ODRNO            =   A.CASE_MNG_ODRNO
+            AND J.RESRCE_NO                 =   A.RESRCE_NO
+            AND J.PTCPTN_YMD                =   I.LCTRE_YMD
+            AND J.PROGRM_CRSE_SE_CD         =   '1'
+        WHERE   1=1
+            AND (SELECT BIZ_YR FROM SDA400  /*서비스사업*/
+                WHERE SRVC_BIZ_NO = (SELECT SRVC_BIZ_NO FROM SDA420 /*서비스실행사업*/
+                                    WHERE SRVC_EXCN_BIZ_NO = C.SRVC_EXCN_BIZ_NO)) = #{BIZ_YR}   -- 사업연도
+            AND D.INST_NO = #{INST_NO}                                                          -- 기관번호
+    ]]>
+    <if test='RESRCE_NO != NULL and RESRCE_NO != ""'>
+            AND C.RESRCE_NO = #{RESRCE_NO}                                                      -- 자원번호
+    </if>
+    <if test='TRPR_NM != NULL and TRPR_NM != ""'>
+            AND F.TRPR_NM_ENCPT = ENC_B64(#{TRPR_NM})                              -- 대상자명[암호화]
+    </if>
+    <![CDATA[
+            AND A.DEL_YN = 'N'
+            AND D.INST_NO IN    (SELECT PIC_INST_NO FROM SEB150 /*사례담당자*/
+                                WHERE CASE_MNG_NO = E.CASE_MNG_NO
+                                AND CASE_MNG_ODRNO = E.CASE_MNG_ODRNO)
+        GROUP BY
+            D.INST_NM
+        ,   C.PVSN_RESRCE_NM
+        ,   F.TRPR_NM_ENCPT
+        ,   F.TRPR_INFO_NO
+        ,   G.TRMN_SE_CD
+        ,   A.SRVC_PVSN_NO
+        ,   A.CASE_MNG_NO
+        ,   A.CASE_MNG_ODRNO
+        ,   A.RESRCE_NO
+        ,   SUBSTR(I.LCTRE_YMD,1,6)
+        )
+    GROUP BY
+        INST_NM
+    ,   PVSN_RESRCE_NM
+    ,   TRPR_NM
+    ,   TRPR_INFO_NO
+    ,   TRMN_SE_CD_NM
+    ,   SRVC_PVSN_NO
+    ,   CASE_MNG_NO
+    ,   CASE_MNG_ODRNO
+    ,   RESRCE_NO
+    ORDER BY PVSN_RESRCE_NM, TRPR_NM
+    ]]>      
+	</select>
+</mapper>

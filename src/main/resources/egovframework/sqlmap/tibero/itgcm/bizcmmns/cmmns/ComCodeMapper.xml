@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : ComCodeMapper.xml
+* @Description : 공통코드조회 SQL Mapper
+*
+* @author  : Seo.Hae.Seok
+* @since   : 2022. 05. 12.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 05. 12.  Seo.Hae.Seok    최초작성
+* </pre>
+-->
+<mapper namespace="isry.itgcm.bizcmmns.cmmns.mapper.ComCodeMapper">
+
+    <!-- 공통코드 목록조회 -->
+    <select id="selectComCodeList" parameterType="HashMap" resultType="HashMap">
+        WITH /* isry.itgcm.bizcmmns.cmmns.ComCodeMapper.selectComCodeList(공통코드조회) */
+            V_CMMNS_CD AS (
+            SELECT T21.CMMNS_CD_ID                  AS CMMNS_CD_ID                  -- 공통코드아이디
+                 , T21.CMMNS_CD_VALUE               AS CMMNS_CD_VALUE               -- 공통코드값
+                 , T21.CMMNS_CD_VALUE_NM            AS CMMNS_CD_VALUE_NM            -- 공통코드값명
+                 , T21.ADDTNG_MNG_VALUE1            AS ADDTNG_MNG_VALUE1            -- 추가관리값1
+                 , T21.ADDTNG_MNG_VALUE2            AS ADDTNG_MNG_VALUE2            -- 추가관리값2
+                 , T21.ADDTNG_MNG_VALUE3            AS ADDTNG_MNG_VALUE3            -- 추가관리값3
+                 , T21.ADDTNG_MNG_VALUE4            AS ADDTNG_MNG_VALUE4            -- 추가관리값4
+                 , T21.ADDTNG_MNG_VALUE5            AS ADDTNG_MNG_VALUE5            -- 추가관리값5
+                 , CASE WHEN T21.UP_CMMNS_CD_VALUE = '0' THEN NULL
+                        ELSE T21.UP_CMMNS_CD_VALUE
+                   END                              AS UP_CMMNS_CD_VALUE            -- 상위공통코드값
+                 , T21.SRTNG_SQNCE                  AS SRTNG_SQNCE                  -- 정렬순서
+                 , T21.USE_YN                       AS USE_YN                       -- 사용여부
+              FROM SAC100 T21  /* 공통코드값 */
+             WHERE 1 = 1
+               AND T21.CMMNS_CD_ID       = #{CMMNS_CD_ID}                        -- 공통코드아이디
+           <if test="CMMNS_CD_VALUE != null and CMMNS_CD_VALUE != ''"> 
+               AND T21.CMMNS_CD_VALUE    LIKE '%' || #{CMMNS_CD_VALUE} || '%'    -- 공통코드값
+           </if>
+           <if test="CMMNS_CD_VALUE_NM != null and CMMNS_CD_VALUE_NM != ''"> 
+               AND T21.CMMNS_CD_VALUE_NM LIKE '%' || #{CMMNS_CD_VALUE_NM} || '%' -- 공통코드값명
+           </if>
+           <if test="ADDTNG_MNG_VALUE1 != null and ADDTNG_MNG_VALUE1 != ''"> 
+               AND T21.ADDTNG_MNG_VALUE1 LIKE '%' || #{ADDTNG_MNG_VALUE1} || '%' -- 추가관리값1
+           </if>
+           <if test="ADDTNG_MNG_VALUE2 != null and ADDTNG_MNG_VALUE2 != ''"> 
+               AND T21.ADDTNG_MNG_VALUE2 LIKE '%' || #{ADDTNG_MNG_VALUE2} || '%' -- 추가관리값2
+           </if>
+           <if test="ADDTNG_MNG_VALUE3 != null and ADDTNG_MNG_VALUE3 != ''"> 
+               AND T21.ADDTNG_MNG_VALUE3 LIKE '%' || #{ADDTNG_MNG_VALUE3} || '%' -- 추가관리값3
+           </if>
+           <if test="ADDTNG_MNG_VALUE4 != null and ADDTNG_MNG_VALUE4 != ''"> 
+               AND T21.ADDTNG_MNG_VALUE4 LIKE '%' || #{ADDTNG_MNG_VALUE4} || '%' -- 추가관리값4
+           </if>
+           <if test="ADDTNG_MNG_VALUE5 != null and ADDTNG_MNG_VALUE5 != ''"> 
+               AND T21.ADDTNG_MNG_VALUE5 LIKE '%' || #{ADDTNG_MNG_VALUE5} || '%' -- 추가관리값4
+           </if>
+           <if test="USE_YN != null and USE_YN != ''"> 
+               AND NVL(T21.USE_YN,'N')   = #{USE_YN}                             -- 사용여부
+           </if>
+          ORDER BY T21.SRTNG_SQNCE
+        ) , V_CMMNS_CTPV AS (
+            SELECT DISTINCT
+                   'CTPV_SE_CD'                     AS CMMNS_CD_ID                  -- 공통코드아이디
+                 , SUBSTR(T21.SGG_CD,1,2)           AS CMMNS_CD_VALUE               -- 공통코드값(시도코드)
+                 , T21.CTPV_NM                      AS CMMNS_CD_VALUE_NM            -- 공통코드값명(시도명)
+                 , NULL                             AS ADDTNG_MNG_VALUE1            -- 추가관리값1
+                 , NULL                             AS ADDTNG_MNG_VALUE2            -- 추가관리값2
+                 , NULL                             AS ADDTNG_MNG_VALUE3            -- 추가관리값3
+                 , NULL                             AS ADDTNG_MNG_VALUE4            -- 추가관리값4
+                 , NULL                             AS ADDTNG_MNG_VALUE5            -- 추가관리값5
+                 , NULL                             AS UP_CMMNS_CD_VALUE            -- 상위공통코드값
+                 , CASE WHEN SUBSTR(T21.SGG_CD,1,2) = '11' THEN 1
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '26' THEN 2
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '27' THEN 3
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '28' THEN 4
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '29' THEN 5
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '30' THEN 6
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '31' THEN 7
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '36' THEN 8
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '41' THEN 9
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '42' THEN 10
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '43' THEN 11
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '44' THEN 12
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '45' THEN 13
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '46' THEN 14
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '47' THEN 15
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '48' THEN 16
+                        WHEN SUBSTR(T21.SGG_CD,1,2) = '50' THEN 17
+                        ELSE 99
+                  END                               AS SRTNG_SQNCE                  -- 정렬순서
+                 , CASE WHEN NVL(T21.DEL_YN,'N') = 'N' THEN 'Y' ELSE 'N'
+                   END                              AS USE_YN                       -- 사용여부
+              FROM SAA020 T21  /* 시군구코드 */
+             WHERE 1 = 1
+           <if test="USE_YN != null and USE_YN != ''"> 
+               AND NVL(T21.DEL_YN,'N')   != #{USE_YN}                                -- 사용여부
+           </if>
+        ) , V_CMMNS_LIST AS (
+            SELECT T11.* FROM V_CMMNS_CD T11   WHERE 1 = 1
+         UNION
+            SELECT T12.* FROM V_CMMNS_CTPV T12 WHERE 1 = 1
+        ) 
+            SELECT T1.CMMNS_CD_ID                   AS CMMNS_CD_ID                  -- 공통코드아이디
+                 , T1.CMMNS_CD_VALUE                AS CMMNS_CD_VALUE               -- 공통코드값
+                 , T1.CMMNS_CD_VALUE_NM             AS CMMNS_CD_VALUE_NM            -- 공통코드값명
+                 , T1.ADDTNG_MNG_VALUE1             AS ADDTNG_MNG_VALUE1            -- 추가관리값1
+                 , T1.ADDTNG_MNG_VALUE2             AS ADDTNG_MNG_VALUE2            -- 추가관리값2
+                 , T1.ADDTNG_MNG_VALUE3             AS ADDTNG_MNG_VALUE3            -- 추가관리값3
+                 , T1.ADDTNG_MNG_VALUE4             AS ADDTNG_MNG_VALUE4            -- 추가관리값4
+                 , T1.ADDTNG_MNG_VALUE5             AS ADDTNG_MNG_VALUE5            -- 추가관리값5
+                 , T1.UP_CMMNS_CD_VALUE             AS UP_CMMNS_CD_VALUE            -- 상위공통코드값
+                 , T1.SRTNG_SQNCE                   AS SRTNG_SQNCE                  -- 정렬순서
+                 , T1.USE_YN                        AS USE_YN                       -- 사용여부
+              FROM V_CMMNS_LIST T1
+             WHERE 1 = 1
+               AND T1.CMMNS_CD_ID = #{CMMNS_CD_ID}                        -- 공통코드아이디
+          ORDER BY T1.SRTNG_SQNCE
+    </select>
+            
+</mapper>

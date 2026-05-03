@@ -1,0 +1,748 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="isry.csems.mngrpage.aplcnttrprdtlinfomng.mapper.AplcntTrprDtlInfoMngMapper">
+   
+    <insert id="insertCompnoChcTypeMngNo" parameterType="HashMap">
+    /* insertCompnoChcTypeMngNo (복수선택유형 테이블 PK insert) - Lee Hye Sun */
+    INSERT INTO AFA130(
+         COMPNO_CHC_TYPE_MNG_NO
+         , FRST_RGTR_ID
+         , FRST_REG_DT
+         , LAST_MDFR_ID
+         , LAST_MDFCN_DT
+    ) VALUES (
+           #{COMPNO_CHC_TYPE_MNG_NO}
+         , #{FRST_RGTR_ID}
+         , SYSDATE
+         , #{LAST_MDFR_ID}
+         , SYSDATE
+    )
+    </insert>
+    
+     <insert id="insertCompnoChcTypeDtl" parameterType="HashMap">
+    /* insertCompnoChcTypeDtl (복수선택유형상세 insert) - Lee Hye Sun */
+    INSERT INTO AFA131 (
+          COMPNO_CHC_TYPE_MNG_NO        /*복수선택유형관리번호*/
+        , COMPNO_CHC_TYPE_DTL_SN        /*복수선택유형상세일련번호*/
+        , COMPNO_TYPE_LCLAS_SE_CD       /*복수유형대분류구분코드*/
+        , COMPNO_TYPE_MLSFC_SE_CD       /*복수유형중분류구분코드*/
+        , COMPNO_TYPE_SCLAS_SE_CD       /*복수유형소분류구분코드*/
+        , COMPNO_CHC_TYPE_ETC_NM        /*복수선택유형기타명*/
+        , FRST_RGTR_ID              
+        , FRST_REG_DT
+        , LAST_MDFR_ID
+        , LAST_MDFCN_DT
+    ) VALUES (
+          #{COMPNO_CHC_TYPE_MNG_NO}
+        , (SELECT NVL(MAX(CAST(COMPNO_CHC_TYPE_DTL_SN AS NUMBER)),0) +1 FROM AFA131
+          WHERE COMPNO_CHC_TYPE_MNG_NO = #{COMPNO_CHC_TYPE_MNG_NO})
+        , SUBSTR(#{COMPNO_TYPE_SCLAS_SE_CD}, 0, 2)
+        , SUBSTR(#{COMPNO_TYPE_SCLAS_SE_CD}, 0, 4)
+        , #{COMPNO_TYPE_SCLAS_SE_CD}
+        , #{COMPNO_CHC_TYPE_ETC_NM}
+        , #{FRST_RGTR_ID}
+        , SYSDATE
+        , #{LAST_MDFR_ID}
+        , SYSDATE
+    )
+    </insert>
+    
+    <delete id="deleteCompnoChcTypeMngNoAFA131" parameterType="HashMap">
+    /* deleteCompnoChcTypeMngNoAFA131 (복수선택유형상세 삭제) - Lee Hye Sun */
+    DELETE FROM AFA131 WHERE COMPNO_CHC_TYPE_MNG_NO = #{COMPNO_CHC_TYPE_MNG_NO}
+    </delete>
+    
+    <select id="selectPtcptReqstdAplcntPop" parameterType="HashMap" resultType="HashMap">
+    /* selectPtcptReqstdAplcntPop (참가자신청서_신청자용(드림) 조회) - Lee Hye Sun */
+    SELECT 
+          MM.TRPR_INFO_NO                       --대상자정보번호
+        , MM.APLY_RCPT_SN                       --신청접수일련번호
+        , MM.SMKNG_YN_SE_CD                     --흡연여부구분코드
+        , MM.AMOFSM_DTL_NM                      --흡연량상세명
+        , MM.DRNKG_YN_SE_CD                     --음주여부구분코드
+        , MM.VOOFDR_DTL_NM                      --음주량상세명
+        , MM.TEACHR_REL_SE_CD                   --교사관계구분코드
+        , MM.FRID_REL_SE_CD                     --친구관계구분코드
+        , MM.SOCTY_REL_SE_CD                    --어른과의관계구분코드
+        , MM.FRID_CNT_SE_CD                     --친구수구분코드
+        , MM.DEVLPA_TROBL_SE_CD                 --발달장애구분코드
+        , MM.DEVLPA_TROBL_ETC_NM                --발달장애기타명
+        , MM.VIOLNC_INCLN_SE_CD                 --폭력성향구분코드
+        , MM.SLFIJR_CTPV_YN_SE_CD               --자살시도여부구분코드
+        , MM.SLFIJR_CTPV_CONT                   --자살시도횟수
+        , MM.SLFIJR_CTPV_ETC_NM                 --자살시도기타명
+        , MM.SUCDE_CTPV_YN_SE_CD                --자해시도여부구분코드
+        , MM.SUCDE_CTPV_CONT                    --자해시도횟수
+        , MM.SUCDE_CTPV_ETC_NM                  --자해시도기타명
+        , MM.LGSLTN_PROBM_PRD_NM                --법률문제기간명
+        , MM.LGSLTN_PROBM_CN                    --법률문제내용
+        , MM.DSCSN_PRD_NM                       --상담기간명
+        , MM.DSCSN_CONT                         --상담횟수
+        , MM.TTM_APEAL_PROBM_CN                 --당시호소문제내용
+        , MM.NOW_TAKNG_DRFSTF_YN_SE_CD          --현재복용약물여부구분코드
+        , MM.NOW_TAKNG_PRD_NM                   --현재복용기간명
+        , MM.NOW_TAKNG_DRFSTF_NM                --현재복용약물명
+        , MM.TRL_EVL_SE_CD                      --심리평가여부구분코드
+        , MM.TRL_EVL_INSP_KND_NM                --심리평가검사종류명
+        , MM.TRL_EVL_DGNSS_NM                   --심리평가진단명
+        , MM.PROBM_RELM_RESULT_SE_CD1           --문제1영역결과구분코드
+        , MM.PROBM_RELM_RESULT_SE_CD2           --문제2영역결과구분코드
+        , MM.PROBM_RELM_RESULT_SE_CD3           --문제3영역결과구분코드
+        , MM.PROBM_RELM_RESULT_SE_CD4           --문제4영역결과구분코드
+        , MM.PROBM_RELM_RESULT_SE_CD5           --문제5영역결과구분코드
+        , MM.PROBM_RELM_RESULT_SE_CD6           --문제6영역결과구분코드
+        , MM.PROBM_RELM_RESULT_SE_CD7           --문제7영역결과구분코드
+        , MM.PROBM_RELM_RESULT_SE_CD8           --문제8영역결과구분코드
+        , MM.PROBM_RELM_RESULT_SE_CD9           --문제9영역결과구분코드
+        , MM.RPRS_MAAP_PROBM_SE_CD              --대표주호소문제구분코드
+        , MM.MAAP_ETC_NM                        --주호소기타명
+        , MM.WKDAY_USE_HR_CNT                   --평일사용시간수
+        , MM.WKEND_USE_HR_CNT                   --주말사용시간수
+        , MM.RQST_CS_CN                         --의뢰사유내용
+        , MM.GHVR_CHARCT_CHAR_CN                --행동성격특성내용
+        , MM.FAM_ENVRN_GROWTH_CN                --가족환경성장내용
+        , MM.ETC_PRTCLR_MATTER_CN               --기타특이사항내용
+        , MM.COMPNO_CHC_TYPE_MNG_NO             --복수선택유형관리번호
+        , A.LGSLTN                              --법률문제처분 복수선택항목
+        , B.DSCSN                               --상담경험 복수선택항목
+        , C.DISS                                --질병상태 복수선택항목
+        , D.DISS_ETC                            --질병상태 기타
+        , E.PRTCR                               --보호자참석여부 복수선택항목
+    FROM AFA120 MM
+           LEFT JOIN(
+                    /*법률문제처분 복수선택항목*/
+                    SELECT
+                    COMPNO_CHC_TYPE_MNG_NO
+                    , LISTAGG(COMPNO_TYPE_SCLAS_SE_CD, ',') WITHIN GROUP (ORDER BY COMPNO_TYPE_MLSFC_SE_CD) AS LGSLTN
+                    FROM AFA131
+                    WHERE COMPNO_TYPE_MLSFC_SE_CD = '0103'
+                    GROUP BY COMPNO_CHC_TYPE_MNG_NO
+                    ) A 
+           ON MM.COMPNO_CHC_TYPE_MNG_NO = A.COMPNO_CHC_TYPE_MNG_NO
+           LEFT JOIN(
+                    /*상담경험 복수선택항목*/
+                    SELECT
+                    COMPNO_CHC_TYPE_MNG_NO
+                    , LISTAGG(COMPNO_TYPE_SCLAS_SE_CD, ',') WITHIN GROUP (ORDER BY COMPNO_CHC_TYPE_MNG_NO) AS DSCSN
+                    FROM AFA131
+                    WHERE COMPNO_TYPE_MLSFC_SE_CD = '0104'
+                    GROUP BY COMPNO_CHC_TYPE_MNG_NO
+                    ) B
+           ON MM.COMPNO_CHC_TYPE_MNG_NO = B.COMPNO_CHC_TYPE_MNG_NO
+           LEFT JOIN(
+                     /*질병상태 복수선택항목*/
+                    SELECT
+                    COMPNO_CHC_TYPE_MNG_NO
+                    , LISTAGG(COMPNO_TYPE_SCLAS_SE_CD, ',') WITHIN GROUP (ORDER BY COMPNO_CHC_TYPE_MNG_NO) AS DISS
+                    FROM AFA131
+                    WHERE COMPNO_TYPE_MLSFC_SE_CD = '0201'
+                    GROUP BY COMPNO_CHC_TYPE_MNG_NO
+                    ) C
+           ON MM.COMPNO_CHC_TYPE_MNG_NO = C.COMPNO_CHC_TYPE_MNG_NO
+           LEFT JOIN(
+                    /*질병상태 기타*/
+                    SELECT
+                    COMPNO_CHC_TYPE_MNG_NO
+                    , LISTAGG(COMPNO_CHC_TYPE_ETC_NM, ',') WITHIN GROUP (ORDER BY COMPNO_TYPE_MLSFC_SE_CD) AS DISS_ETC
+                    FROM AFA131
+                    WHERE COMPNO_TYPE_MLSFC_SE_CD = '0201'
+                    GROUP BY COMPNO_CHC_TYPE_MNG_NO
+                    ) D
+           ON MM.COMPNO_CHC_TYPE_MNG_NO = D.COMPNO_CHC_TYPE_MNG_NO
+           LEFT JOIN (
+                    /*보호자참석여부 복수선택항목*/
+                    SELECT
+                    COMPNO_CHC_TYPE_MNG_NO
+                    , LISTAGG(COMPNO_TYPE_SCLAS_SE_CD, ',') WITHIN GROUP (ORDER BY COMPNO_TYPE_MLSFC_SE_CD) AS PRTCR
+                    FROM AFA131
+                    WHERE COMPNO_TYPE_MLSFC_SE_CD = '0202'
+                    GROUP BY COMPNO_CHC_TYPE_MNG_NO
+                    ) E
+           ON MM.COMPNO_CHC_TYPE_MNG_NO = E.COMPNO_CHC_TYPE_MNG_NO
+    WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+    AND APLY_RCPT_SN = #{APLY_RCPT_SN}
+    </select>
+    
+    <update id="updatePtcptReqstdAplcntPop">
+    /* updatePtcptReqstdAplcntPop (참가신청서_신청자용 수정(드림)) - Lee Hye Sun */
+    UPDATE AFA120 SET 
+          TRPR_INFO_NO = #{TRPR_INFO_NO}                                --대상자정보번호
+        , APLY_RCPT_SN = #{APLY_RCPT_SN}                                --신청접수일련번호
+        , CASE_MNG_NO = #{CASE_MNG_NO}                                  --사례관리번호
+        , CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}                            --사례관리차수
+        , SMKNG_YN_SE_CD = #{SMKNG_YN_SE_CD}                            --흡연여부구분코드
+        , AMOFSM_DTL_NM = #{AMOFSM_DTL_NM}                              --흡연량상세명
+        , DRNKG_YN_SE_CD = #{DRNKG_YN_SE_CD}                            --음주여부구분코드
+        , VOOFDR_DTL_NM = #{VOOFDR_DTL_NM}                              --음주량상세명
+        , TEACHR_REL_SE_CD = #{TEACHR_REL_SE_CD}                        --교사관계구분코드
+        , FRID_REL_SE_CD = #{FRID_REL_SE_CD}                            --친구관계구분코드
+        , SOCTY_REL_SE_CD = #{SOCTY_REL_SE_CD}                          --어른과의관계구분코드
+        , FRID_CNT_SE_CD = #{FRID_CNT_SE_CD}                            --친구수구분코드
+        , DEVLPA_TROBL_SE_CD = #{DEVLPA_TROBL_SE_CD}                    --발달장애구분코드
+        , DEVLPA_TROBL_ETC_NM = #{DEVLPA_TROBL_ETC_NM}                  --발달장애기타명
+        , VIOLNC_INCLN_SE_CD = #{VIOLNC_INCLN_SE_CD}                    --폭력성향구분코드
+        , SLFIJR_CTPV_YN_SE_CD = #{SLFIJR_CTPV_YN_SE_CD}                --자살시도여부구분코드
+        , SLFIJR_CTPV_CONT = #{SLFIJR_CTPV_CONT}                        --자살시도횟수
+        , SLFIJR_CTPV_ETC_NM = #{SLFIJR_CTPV_ETC_NM}                    --자살시도기타명
+        , SUCDE_CTPV_YN_SE_CD = #{SUCDE_CTPV_YN_SE_CD}                  --자해시도여부구분코드
+        , SUCDE_CTPV_CONT = #{SUCDE_CTPV_CONT}                          --자해시도횟수
+        , SUCDE_CTPV_ETC_NM = #{SUCDE_CTPV_ETC_NM}                      --자해시도기타명
+        , LGSLTN_PROBM_PRD_NM = #{LGSLTN_PROBM_PRD_NM}                  --법률문제기간명
+        , LGSLTN_PROBM_CN = #{LGSLTN_PROBM_CN}                          --법률문제내용
+        , DSCSN_PRD_NM = #{DSCSN_PRD_NM}                                --상담기간명
+        , DSCSN_CONT = #{DSCSN_CONT}                                    --상담횟수
+        , TTM_APEAL_PROBM_CN = #{TTM_APEAL_PROBM_CN}                    --당시호소문제내용
+        , NOW_TAKNG_DRFSTF_YN_SE_CD = #{NOW_TAKNG_DRFSTF_YN_SE_CD}      --현재복용약물여부구분코드
+        , NOW_TAKNG_PRD_NM = #{NOW_TAKNG_PRD_NM}                        --현재복용기간명
+        , NOW_TAKNG_DRFSTF_NM = #{NOW_TAKNG_DRFSTF_NM}                  --현재복용약물명
+        , TRL_EVL_SE_CD = #{TRL_EVL_SE_CD}                              --심리평가여부구분코드
+        , TRL_EVL_INSP_KND_NM = #{TRL_EVL_INSP_KND_NM}                  --심리평가검사종류명
+        , TRL_EVL_DGNSS_NM = #{TRL_EVL_DGNSS_NM}                        --심리평가진단명
+        , PROBM_RELM_RESULT_SE_CD1 = #{PROBM_RELM_RESULT_SE_CD1}        --문제1영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD2 = #{PROBM_RELM_RESULT_SE_CD2}        --문제2영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD3 = #{PROBM_RELM_RESULT_SE_CD3}        --문제3영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD4 = #{PROBM_RELM_RESULT_SE_CD4}        --문제4영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD5 = #{PROBM_RELM_RESULT_SE_CD5}        --문제5영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD6 = #{PROBM_RELM_RESULT_SE_CD6}        --문제6영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD7 = #{PROBM_RELM_RESULT_SE_CD7}        --문제7영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD8 = #{PROBM_RELM_RESULT_SE_CD8}        --문제8영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD9 = #{PROBM_RELM_RESULT_SE_CD9}        --문제9영역결과구분코드
+        , RPRS_MAAP_PROBM_SE_CD = #{RPRS_MAAP_PROBM_SE_CD}              --대표주호소문제구분코드
+        , MAAP_ETC_NM = #{MAAP_ETC_NM}                                  --주호소기타명
+        , WKDAY_USE_HR_CNT = #{WKDAY_USE_HR_CNT}                        --평일사용시간수
+        , WKEND_USE_HR_CNT = #{WKEND_USE_HR_CNT}                        --주말사용시간수
+        , RQST_CS_CN = #{RQST_CS_CN}                                    --의뢰사유내용
+        , GHVR_CHARCT_CHAR_CN = #{GHVR_CHARCT_CHAR_CN}                  --행동성격특성내용
+        , FAM_ENVRN_GROWTH_CN = #{FAM_ENVRN_GROWTH_CN}                  --가족환경성장내용
+        , ETC_PRTCLR_MATTER_CN = #{ETC_PRTCLR_MATTER_CN}                --기타특이사항내용
+        , COMPNO_CHC_TYPE_MNG_NO = #{COMPNO_CHC_TYPE_MNG_NO}            --복수선택유형관리번호
+        , FRST_RGTR_ID = (SELECT FRST_RGTR_ID FROM AFA120
+                         WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+                         AND APLY_RCPT_SN = #{APLY_RCPT_SN})
+        , FRST_REG_DT = (SELECT FRST_REG_DT FROM AFA120
+                         WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+                         AND APLY_RCPT_SN = #{APLY_RCPT_SN})
+        , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        , LAST_MDFCN_DT = SYSDATE
+    WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+    AND APLY_RCPT_SN = #{APLY_RCPT_SN}
+    </update>
+    
+     <insert id="insertPtcptReqstdAplcntPop" parameterType="HashMap">
+    /* insertPtcptReqstdAplcntPop (참가신청서_신청자용 저장 (드림)) - Lee Hye Sun */
+    INSERT INTO AFA120 ( 
+          TRPR_INFO_NO                       --대상자정보번호
+        , APLY_RCPT_SN                       --신청접수일련번호
+        , SMKNG_YN_SE_CD                     --흡연여부구분코드
+        , AMOFSM_DTL_NM                      --흡연량상세명
+        , DRNKG_YN_SE_CD                     --음주여부구분코드
+        , VOOFDR_DTL_NM                      --음주량상세명
+        , TEACHR_REL_SE_CD                   --교사관계구분코드
+        , FRID_REL_SE_CD                     --친구관계구분코드
+        , SOCTY_REL_SE_CD                    --어른과의관계구분코드
+        , FRID_CNT_SE_CD                     --친구수구분코드
+        , DEVLPA_TROBL_SE_CD                 --발달장애구분코드
+        , DEVLPA_TROBL_ETC_NM                --발달장애기타명
+        , VIOLNC_INCLN_SE_CD                 --폭력성향구분코드
+        , SLFIJR_CTPV_YN_SE_CD               --자살시도여부구분코드
+        , SLFIJR_CTPV_CONT                   --자살시도횟수
+        , SLFIJR_CTPV_ETC_NM                 --자살시도기타명
+        , SUCDE_CTPV_YN_SE_CD                --자해시도여부구분코드
+        , SUCDE_CTPV_CONT                    --자해시도횟수
+        , SUCDE_CTPV_ETC_NM                  --자해시도기타명
+        , LGSLTN_PROBM_PRD_NM                --법률문제기간명
+        , LGSLTN_PROBM_CN                    --법률문제내용
+        , DSCSN_PRD_NM                       --상담기간명
+        , DSCSN_CONT                         --상담횟수
+        , TTM_APEAL_PROBM_CN                 --당시호소문제내용
+        , NOW_TAKNG_DRFSTF_YN_SE_CD          --현재복용약물여부구분코드
+        , NOW_TAKNG_PRD_NM                   --현재복용기간명
+        , NOW_TAKNG_DRFSTF_NM                --현재복용약물명
+        , TRL_EVL_SE_CD                      --심리평가여부구분코드
+        , TRL_EVL_INSP_KND_NM                --심리평가검사종류명
+        , TRL_EVL_DGNSS_NM                   --심리평가진단명
+        , PROBM_RELM_RESULT_SE_CD1           --문제1영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD2           --문제2영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD3           --문제3영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD4           --문제4영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD5           --문제5영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD6           --문제6영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD7           --문제7영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD8           --문제8영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD9           --문제9영역결과구분코드
+        , RPRS_MAAP_PROBM_SE_CD              --대표주호소문제구분코드
+        , MAAP_ETC_NM                        --주호소기타명
+        , WKDAY_USE_HR_CNT                   --평일사용시간수
+        , WKEND_USE_HR_CNT                   --주말사용시간수
+        , RQST_CS_CN                         --의뢰사유내용
+        , GHVR_CHARCT_CHAR_CN                --행동성격특성내용
+        , FAM_ENVRN_GROWTH_CN                --가족환경성장내용
+        , ETC_PRTCLR_MATTER_CN               --기타특이사항내용
+        , COMPNO_CHC_TYPE_MNG_NO             --복수선택유형관리번호
+        , FRST_RGTR_ID
+        , FRST_REG_DT
+        , LAST_MDFR_ID
+        , LAST_MDFCN_DT
+    ) VALUES (
+          #{TRPR_INFO_NO}                       --대상자정보번호
+        , #{APLY_RCPT_SN}                       --신청접수일련번호
+        , #{SMKNG_YN_SE_CD}                     --흡연여부구분코드
+        , #{AMOFSM_DTL_NM}                      --흡연량상세명
+        , #{DRNKG_YN_SE_CD}                     --음주여부구분코드
+        , #{VOOFDR_DTL_NM}                      --음주량상세명
+        , #{TEACHR_REL_SE_CD}                   --교사관계구분코드
+        , #{FRID_REL_SE_CD}                     --친구관계구분코드
+        , #{SOCTY_REL_SE_CD}                    --어른과의관계구분코드
+        , #{FRID_CNT_SE_CD}                     --친구수구분코드
+        , #{DEVLPA_TROBL_SE_CD}                 --발달장애구분코드
+        , #{DEVLPA_TROBL_ETC_NM}                --발달장애기타명
+        , #{VIOLNC_INCLN_SE_CD}                 --폭력성향구분코드
+        , #{SLFIJR_CTPV_YN_SE_CD}               --자살시도여부구분코드
+        , #{SLFIJR_CTPV_CONT}                   --자살시도횟수
+        , #{SLFIJR_CTPV_ETC_NM}                 --자살시도기타명
+        , #{SUCDE_CTPV_YN_SE_CD}                --자해시도여부구분코드
+        , #{SUCDE_CTPV_CONT}                    --자해시도횟수
+        , #{SUCDE_CTPV_ETC_NM}                  --자해시도기타명
+        , #{LGSLTN_PROBM_PRD_NM}                --법률문제기간명
+        , #{LGSLTN_PROBM_CN}                    --법률문제내용
+        , #{DSCSN_PRD_NM}                       --상담기간명
+        , #{DSCSN_CONT}                         --상담횟수
+        , #{TTM_APEAL_PROBM_CN}                 --당시호소문제내용
+        , #{NOW_TAKNG_DRFSTF_YN_SE_CD}          --현재복용약물여부구분코드
+        , #{NOW_TAKNG_PRD_NM}                   --현재복용기간명
+        , #{NOW_TAKNG_DRFSTF_NM}                --현재복용약물명
+        , #{TRL_EVL_SE_CD}                      --심리평가여부구분코드
+        , #{TRL_EVL_INSP_KND_NM}                --심리평가검사종류명
+        , #{TRL_EVL_DGNSS_NM}                   --심리평가진단명
+        , #{PROBM_RELM_RESULT_SE_CD1}           --문제1영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD2}           --문제2영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD3}           --문제3영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD4}           --문제4영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD5}           --문제5영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD6}           --문제6영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD7}           --문제7영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD8}           --문제8영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD9}           --문제9영역결과구분코드
+        , #{RPRS_MAAP_PROBM_SE_CD}              --대표주호소문제구분코드
+        , #{MAAP_ETC_NM}                        --주호소기타명
+        , #{WKDAY_USE_HR_CNT}                   --평일사용시간수
+        , #{WKEND_USE_HR_CNT}                   --주말사용시간수
+        , #{RQST_CS_CN}                         --의뢰사유내용
+        , #{GHVR_CHARCT_CHAR_CN}                --행동성격특성내용
+        , #{FAM_ENVRN_GROWTH_CN}                --가족환경성장내용
+        , #{ETC_PRTCLR_MATTER_CN}               --기타특이사항내용
+        , #{COMPNO_CHC_TYPE_MNG_NO}             --복수선택유형관리번호
+        , #{FRST_RGTR_ID}
+        , SYSDATE
+        , #{LAST_MDFR_ID}
+        , SYSDATE
+        )
+    </insert>
+    
+    <insert id="insertPtcptReqstdAplcntPopHstr">
+    /* insertPtcptReqstdAplcntPopHstr (대상자문제상태내역 이력) - Lee Hye Sun */
+    INSERT INTO AFA121 ( 
+          TRPR_INFO_NO                       --대상자정보번호
+        , APLY_RCPT_SN                       --신청접수일련번호
+        , CASE_MNG_NO                        --사례관리번호
+        , CASE_MNG_ODRNO                     --사례관리차수
+        , MDFCN_DT                           --수정일시
+        , SMKNG_YN_SE_CD                     --흡연여부구분코드
+        , AMOFSM_DTL_NM                      --흡연량상세명
+        , DRNKG_YN_SE_CD                     --음주여부구분코드
+        , VOOFDR_DTL_NM                      --음주량상세명
+        , TEACHR_REL_SE_CD                   --교사관계구분코드
+        , FRID_REL_SE_CD                     --친구관계구분코드
+        , SOCTY_REL_SE_CD                    --어른과의관계구분코드
+        , FRID_CNT_SE_CD                     --친구수구분코드
+        , DEVLPA_TROBL_SE_CD                 --발달장애구분코드
+        , DEVLPA_TROBL_ETC_NM                --발달장애기타명
+        , VIOLNC_INCLN_SE_CD                 --폭력성향구분코드
+        , SLFIJR_CTPV_YN_SE_CD               --자살시도여부구분코드
+        , SLFIJR_CTPV_CONT                   --자살시도횟수
+        , SLFIJR_CTPV_ETC_NM                 --자살시도기타명
+        , SUCDE_CTPV_YN_SE_CD                --자해시도여부구분코드
+        , SUCDE_CTPV_CONT                    --자해시도횟수
+        , SUCDE_CTPV_ETC_NM                  --자해시도기타명
+        , LGSLTN_PROBM_PRD_NM                --법률문제기간명
+        , LGSLTN_PROBM_CN                    --법률문제내용
+        , DSCSN_PRD_NM                       --상담기간명
+        , DSCSN_CONT                         --상담횟수
+        , TTM_APEAL_PROBM_CN                 --당시호소문제내용
+        , NOW_TAKNG_DRFSTF_YN_SE_CD          --현재복용약물여부구분코드
+        , NOW_TAKNG_PRD_NM                   --현재복용기간명
+        , NOW_TAKNG_DRFSTF_NM                --현재복용약물명
+        , TRL_EVL_SE_CD                      --심리평가여부구분코드
+        , TRL_EVL_INSP_KND_NM                --심리평가검사종류명
+        , TRL_EVL_DGNSS_NM                   --심리평가진단명
+        , PROBM_RELM_RESULT_SE_CD1           --문제1영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD2           --문제2영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD3           --문제3영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD4           --문제4영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD5           --문제5영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD6           --문제6영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD7           --문제7영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD8           --문제8영역결과구분코드
+        , PROBM_RELM_RESULT_SE_CD9           --문제9영역결과구분코드
+        , RPRS_MAAP_PROBM_SE_CD              --대표주호소문제구분코드
+        , MAAP_ETC_NM                        --주호소기타명
+        , WKDAY_USE_HR_CNT                   --평일사용시간수
+        , WKEND_USE_HR_CNT                   --주말사용시간수
+        , RQST_CS_CN                         --의뢰사유내용
+        , GHVR_CHARCT_CHAR_CN                --행동성격특성내용
+        , FAM_ENVRN_GROWTH_CN                --가족환경성장내용
+        , ETC_PRTCLR_MATTER_CN               --기타특이사항내용
+        , COMPNO_CHC_TYPE_MNG_NO             --복수선택유형관리번호
+        , FRST_RGTR_ID
+        , FRST_REG_DT
+        , LAST_MDFR_ID
+        , LAST_MDFCN_DT
+    ) VALUES (
+          #{TRPR_INFO_NO}                       --대상자정보번호
+        , #{APLY_RCPT_SN}                       --신청접수일련번호
+        , #{CASE_MNG_NO}                        --사례관리번호
+        , #{CASE_MNG_ODRNO}                     --사례관리차수
+        , SYSDATE                               --수정일시
+        , #{SMKNG_YN_SE_CD}                     --흡연여부구분코드
+        , #{AMOFSM_DTL_NM}                      --흡연량상세명
+        , #{DRNKG_YN_SE_CD}                     --음주여부구분코드
+        , #{VOOFDR_DTL_NM}                      --음주량상세명
+        , #{TEACHR_REL_SE_CD}                   --교사관계구분코드
+        , #{FRID_REL_SE_CD}                     --친구관계구분코드
+        , #{SOCTY_REL_SE_CD}                    --어른과의관계구분코드
+        , #{FRID_CNT_SE_CD}                     --친구수구분코드
+        , #{DEVLPA_TROBL_SE_CD}                 --발달장애구분코드
+        , #{DEVLPA_TROBL_ETC_NM}                --발달장애기타명
+        , #{VIOLNC_INCLN_SE_CD}                 --폭력성향구분코드
+        , #{SLFIJR_CTPV_YN_SE_CD}               --자살시도여부구분코드
+        , #{SLFIJR_CTPV_CONT}                   --자살시도횟수
+        , #{SLFIJR_CTPV_ETC_NM}                 --자살시도기타명
+        , #{SUCDE_CTPV_YN_SE_CD}                --자해시도여부구분코드
+        , #{SUCDE_CTPV_CONT}                    --자해시도횟수
+        , #{SUCDE_CTPV_ETC_NM}                  --자해시도기타명
+        , #{LGSLTN_PROBM_PRD_NM}                --법률문제기간명
+        , #{LGSLTN_PROBM_CN}                    --법률문제내용
+        , #{DSCSN_PRD_NM}                       --상담기간명
+        , #{DSCSN_CONT}                         --상담횟수
+        , #{TTM_APEAL_PROBM_CN}                 --당시호소문제내용
+        , #{NOW_TAKNG_DRFSTF_YN_SE_CD}          --현재복용약물여부구분코드
+        , #{NOW_TAKNG_PRD_NM}                   --현재복용기간명
+        , #{NOW_TAKNG_DRFSTF_NM}                --현재복용약물명
+        , #{TRL_EVL_SE_CD}                      --심리평가여부구분코드
+        , #{TRL_EVL_INSP_KND_NM}                --심리평가검사종류명
+        , #{TRL_EVL_DGNSS_NM}                   --심리평가진단명
+        , #{PROBM_RELM_RESULT_SE_CD1}           --문제1영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD2}           --문제2영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD3}           --문제3영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD4}           --문제4영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD5}           --문제5영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD6}           --문제6영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD7}           --문제7영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD8}           --문제8영역결과구분코드
+        , #{PROBM_RELM_RESULT_SE_CD9}           --문제9영역결과구분코드
+        , #{RPRS_MAAP_PROBM_SE_CD}              --대표주호소문제구분코드
+        , #{MAAP_ETC_NM}                        --주호소기타명
+        , #{WKDAY_USE_HR_CNT}                   --평일사용시간수
+        , #{WKEND_USE_HR_CNT}                   --주말사용시간수
+        , #{RQST_CS_CN}                         --의뢰사유내용
+        , #{GHVR_CHARCT_CHAR_CN}                --행동성격특성내용
+        , #{FAM_ENVRN_GROWTH_CN}                --가족환경성장내용
+        , #{ETC_PRTCLR_MATTER_CN}               --기타특이사항내용
+        , #{COMPNO_CHC_TYPE_MNG_NO}             --복수선택유형관리번호
+        , #{FRST_RGTR_ID}
+        , SYSDATE
+        , #{LAST_MDFR_ID}
+        , SYSDATE
+        )
+    </insert>
+    
+    <select id="selectAdhrncWrtcns" parameterType="HashMap" resultType="HashMap">
+    /* selectAdhrncWrtcns (참가자동의서 조회 (드림)) - Lee Hye Sun */
+    SELECT
+          A.TRPR_INFO_NO                                  --대상자정보번호
+        , A.APLY_RCPT_SN                                  --신청접수일련번호
+        , A.PTCPT_AGRE_YN                                 --참가동의여부
+        , A.VLDT_UTZTN_PRMSN_AGRE_YN                      --영상물이용허가동의여부
+        , A.RSRCH_PTCPTN_DATA_PRCUSE_AGRE_YN              --연구참여자료활용동의여부
+        , A.CMPN_ALTMNT_AFTFCT_PROGRM_PTCPTN_AGRE_YN      --동반자배정사후프로그램참여동의여부
+        , A.FRSAID_AGRE_YN                                --응급처치동의여부
+        , A.PRVC_AGRE_YN                                  --개인정보동의여부
+        , A.PRTCR_INST_PTCPT_AGRE_YN                      --보호자기관참가동의여부
+        , A.BDP_NM                                        --혈액형명
+        , A.PRTCLR_DISS_NM                                --특이질병명
+        , DEC_B64(A.ETRSTD_FLNM_ENCPT) AS ETRSTD_FLNM_ENCPT                      --입소생성명암호화
+        , DEC_B64(A.RRNO_ENCPT) AS RRNO_ENCPT                                    --주민등록번호암호화
+        , DEC_B64(A.LGL_AGT_FLNM_ENCPT) AS LGL_AGT_FLNM_ENCPT                    --법적대리인성명암호화
+        , A.REL_NM                                        --관계명
+        , DEC_B64(A.CTTPC_ENCPT) AS CTTPC_ENCPT           --연락처암호화
+        , A.AGRE_YMD                                      --동의일자
+        , A.FRST_RGTR_ID
+        , A.FRST_REG_DT
+    FROM AFA110 A
+        LEFT JOIN AFA100 B
+        ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+        AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+    WHERE A.TRPR_INFO_NO = #{TRPR_INFO_NO}
+    AND A.APLY_RCPT_SN = #{APLY_RCPT_SN}
+    </select>
+    
+    <insert id="insertAdhrncWrtcns" parameterType="HashMap">
+    /* insertAdhrncWrtcns (참가자동의서 저장 (드림)) - Lee Hye Sun */
+    INSERT INTO AFA110 (
+          TRPR_INFO_NO                                     --대상자정보번호
+        , APLY_RCPT_SN                                     --신청접수일련번호
+        , PTCPT_AGRE_YN                                    --참가동의여부
+        , VLDT_UTZTN_PRMSN_AGRE_YN                         --영상물이용허가동의여부
+        , RSRCH_PTCPTN_DATA_PRCUSE_AGRE_YN                 --연구참여자료활용동의여부
+        , CMPN_ALTMNT_AFTFCT_PROGRM_PTCPTN_AGRE_YN         --동반자배정사후프로그램참여동의여부
+        , FRSAID_AGRE_YN                                   --응급처치동의여부
+        , PRVC_AGRE_YN                                     --개인정보동의여부
+        , PRTCR_INST_PTCPT_AGRE_YN                         --보호자기관참가동의여부
+        , BDP_NM                                           --혈액형명
+        , PRTCLR_DISS_NM                                   --특이질병명
+        , ETRSTD_FLNM_ENCPT                                --입소생성명암호화
+        , RRNO_ENCPT                                       --주민등록번호암호화
+        , LGL_AGT_FLNM_ENCPT                               --법적대리인성명암호화
+        , REL_NM                                           --관계명
+        , CTTPC_ENCPT                                      --연락처암호화
+        , AGRE_YMD                                         --동의일자
+        , FRST_RGTR_ID
+        , FRST_REG_DT
+        , LAST_MDFR_ID
+        , LAST_MDFCN_DT
+    )VALUES(
+          #{TRPR_INFO_NO}                                  --대상자정보번호
+        , #{APLY_RCPT_SN}                                  --신청접수일련번호
+        , #{PTCPT_AGRE_YN}                                 --참가동의여부
+        , #{VLDT_UTZTN_PRMSN_AGRE_YN}                      --영상물이용허가동의여부
+        , #{RSRCH_PTCPTN_DATA_PRCUSE_AGRE_YN}              --연구참여자료활용동의여부
+        , #{CMPN_ALTMNT_AFTFCT_PROGRM_PTCPTN_AGRE_YN}      --동반자배정사후프로그램참여동의여부
+        , #{FRSAID_AGRE_YN}                                --응급처치동의여부
+        , #{PRVC_AGRE_YN}                                  --개인정보동의여부
+        , #{PRTCR_INST_PTCPT_AGRE_YN}                      --보호자기관참가동의여부
+        , #{BDP_NM}                                        --혈액형명
+        , #{PRTCLR_DISS_NM}                                --특이질병명
+        , ENC_B64(#{ETRSTD_FLNM_ENCPT})                             --입소생성명암호화
+        , ENC_B64(#{RRNO_ENCPT})                                    --주민등록번호암호화
+        , ENC_B64(#{LGL_AGT_FLNM_ENCPT})                            --법적대리인성명암호화
+        , #{REL_NM}                                        --관계명
+        , ENC_B64(#{CTTPC_ENCPT})                                   --연락처암호화
+        , TO_CHAR(SYSDATE, 'YYYYMMDD')                     --동의일자
+        , #{FRST_RGTR_ID}
+        , SYSDATE
+        , #{LAST_MDFR_ID}
+        , SYSDATE
+        )
+    </insert>
+    
+    <update id="updateAdhrncWrtcns">
+    /* updateAdhrncWrtcns (참가자동의서 수정 (드림))  - Lee Hye Sun */
+    UPDATE AFA110 SET
+          TRPR_INFO_NO = #{TRPR_INFO_NO}                                                            --대상자정보번호
+        , APLY_RCPT_SN = #{APLY_RCPT_SN}                                                            --신청접수일련번호
+        , PTCPT_AGRE_YN = #{PTCPT_AGRE_YN}                                                          --참가동의여부
+        , VLDT_UTZTN_PRMSN_AGRE_YN = #{VLDT_UTZTN_PRMSN_AGRE_YN}                                    --영상물이용허가동의여부
+        , RSRCH_PTCPTN_DATA_PRCUSE_AGRE_YN = #{RSRCH_PTCPTN_DATA_PRCUSE_AGRE_YN}                    --연구참여자료활용동의여부
+        , CMPN_ALTMNT_AFTFCT_PROGRM_PTCPTN_AGRE_YN = #{CMPN_ALTMNT_AFTFCT_PROGRM_PTCPTN_AGRE_YN}    --동반자배정사후프로그램참여동의여부
+        , FRSAID_AGRE_YN = #{FRSAID_AGRE_YN}                                                        --응급처치동의여부
+        , PRVC_AGRE_YN = #{PRVC_AGRE_YN}                                                            --개인정보동의여부
+        , PRTCR_INST_PTCPT_AGRE_YN = #{PRTCR_INST_PTCPT_AGRE_YN}                                    --보호자기관참가동의여부
+        , BDP_NM = #{BDP_NM}                                                                        --혈액형명
+        , PRTCLR_DISS_NM = #{PRTCLR_DISS_NM}                                                        --특이질병명
+        , ETRSTD_FLNM_ENCPT = ENC_B64(#{ETRSTD_FLNM_ENCPT})                                                  --입소생성명암호화
+        , RRNO_ENCPT = ENC_B64(#{RRNO_ENCPT})                                                                --주민등록번호암호화
+        , LGL_AGT_FLNM_ENCPT = ENC_B64(#{LGL_AGT_FLNM_ENCPT})                                                --법적대리인성명암호화
+        , REL_NM = #{REL_NM}                                                                        --관계명
+        , CTTPC_ENCPT = ENC_B64(#{CTTPC_ENCPT})                                                              --연락처암호화
+        , AGRE_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD')                                                   --동의일자
+        , FRST_RGTR_ID = (SELECT FRST_RGTR_ID FROM AFA110
+                         WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+                         AND APLY_RCPT_SN = #{APLY_RCPT_SN})
+        , FRST_REG_DT = (SELECT FRST_REG_DT FROM AFA110
+                         WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+                         AND APLY_RCPT_SN = #{APLY_RCPT_SN})
+        , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        , LAST_MDFCN_DT = SYSDATE
+    WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+    AND APLY_RCPT_SN = #{APLY_RCPT_SN}
+    </update>
+
+    <!-- 참가자동의서 작성상태 체크 > AFA110 체크 -->
+    <select id="selectAdhrncWrtcnsChck" parameterType="HashMap"
+        resultType="int">
+    <![CDATA[
+        /* selectAdhrncWrtcnsChck 참가자동의서 작성상태 체크 > AFA110 체크 - Lee Seoung Jae */
+        
+        SELECT
+           COUNT(*)
+        FROM AFA110     /* 참가자동의내역 */
+        
+        WHERE 1=1
+        AND TRPR_INFO_NO = #{TRPR_INFO_NO}
+        AND APLY_RCPT_SN = #{APLY_RCPT_SN}
+        ]]>
+
+    </select>
+    
+    
+    
+    <!-- 설문지관리번호 생성 조회 > SBB110 체크 -->
+    <select id="chkCreateQustnbMngNoYn" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* chkCreateQustnbMngNoYn 설문지관리번호 생성 조회 > SBB110 체크 - Kim Seong Ok */
+        
+        SELECT 
+            QUSTNB_MNG_NO           /* 설문지관리번호 */
+            , QUSTNB_TMPT_MNG_NO    /* 설문지템플릿관리번호 */
+        FROM SBB110 
+			WHERE 1=1
+			AND CASE_MNG_NO = #{CASE_MNG_NO}
+			AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+			AND TRPR_INFO_NO = #{TRPR_INFO_NO}
+			AND QUSTNB_TMPT_MNG_NO = #{QUSTNB_TMPT_MNG_NO}
+			AND TRPR_REL_SE_CD = #{TRPR_REL_SE_CD}
+		
+        ]]>
+
+    </select>
+    
+    
+    
+    <!-- 설문대상자(SBB110) 정보 -->
+    <insert id="insertQustnbTrprInfo" parameterType="HashMap">  
+    <![CDATA[
+        /*SQL-ID : isry.csems.mngrpage.aplcnttrprdtlinfomng.mapper.AplcntTrprDtlInfoMngMapper insertQustnbTrprInfo : 설문대상자(SBB110) 정보 */
+
+        INSERT INTO SBB110
+        (
+            QUSTNB_MNG_NO                                       /* 설문지관리번호                  */
+            ,QUSTNB_TMPT_MNG_NO                                 /* 설문지템플릿관리번호               */
+            ,CASE_MNG_NO                                       /* 사례관리번호              */
+            ,CASE_MNG_ODRNO                                       /* 사례관리차수              */
+            ,TRPR_INFO_NO                                       /* 대상자정보번호              */
+            ,CASE_TRPR_NM_ENCPT                                       /* 사례대상자명암호화                */
+            ,ENFSN_NO                                     /* 종사자번호                  */
+            ,TRPR_REL_SE_CD                                     /* 대상자관계구분코드                  */
+            ,FRST_RGTR_ID                                       /* 최초등록자아이디               */
+            ,FRST_REG_DT                                        /* 최초등록일시                  */
+            ,LAST_MDFR_ID                                       /* 최종수정자아이디               */
+            ,LAST_MDFCN_DT                                      /* 최종수정일시                  */   
+        )
+        VALUES
+        (
+            #{QUSTNB_MNG_NO}                                    /* 설문지관리번호                   */
+            ,#{QUSTNB_TMPT_MNG_NO}                              /* 설문지템플릿관리번호               */
+            ,#{CASE_MNG_NO}                                    /* 사례관리번호              */
+            ,#{CASE_MNG_ODRNO}                                    /* 사례관리차수              */
+            ,#{TRPR_INFO_NO}                                    /* 대상자정보번호              */
+            ,ENC_B64(#{CASE_TRPR_NM_ENCPT})                                    /* 사례대상자명암호화                */
+            ,#{ENFSN_NO}                                  /* 종사자번호                  */
+            ,#{TRPR_REL_SE_CD}                                  /* 대상자관계구분코드                  */
+            ,#{FRST_RGTR_ID}                                    /* 최초등록자아이디               */
+            ,SYSDATE                                            /* 최초등록일시                  */
+            ,#{LAST_MDFR_ID}                                    /* 최종수정자아이디               */
+            ,SYSDATE                                            /* 최종수정일시                  */
+        )
+        
+    ]]>
+    </insert>
+    
+    
+    <!-- 설문발송이력 SBB600 -->
+    <insert id="insertQustnbSndngHstr" parameterType="HashMap"
+        useGeneratedKeys="true" keyProperty="MNG_SN">
+        <selectKey keyProperty="MNG_SN" resultType="int"
+            order="BEFORE">
+            SELECT NVL(MAX(MNG_SN)+1 ,1) FROM SBB600 WHERE INST_NO = #{INST_NO} AND REG_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+        </selectKey> 
+    <![CDATA[
+        /*SQL-ID : isry.csems.mngrpage.aplcnttrprdtlinfomng.mapper.AplcntTrprDtlInfoMngMapper insertQustnbSndngHstr : 설문발송이력 SBB600 */
+
+        INSERT INTO SBB600
+        (
+            INST_NO                                  /* 기관번호 */
+            ,REG_YMD                                 /* 등록일자 */
+            ,MNG_SN                                 /* 관리일련번호 */
+            ,UNT_TASKWK_SE_CD                        /* 단위업무구분코드 */
+            ,TRPR_INFO_NO               /* 대상자정보번호 */
+            ,CASE_MNG_NO                           /* 사례관리번호 */
+            ,CASE_MNG_ODRNO                           /* 사례관리차수 */
+            ,TRPR_REL_SE_CD                           /* 대상자관계구분코드 */
+            ,QUSTNB_MNG_NO                            /* 설문지관리번호 */
+            ,QUSTNB_TMPT_MNG_NO                            /* 설문지템플릿관리번호 */
+            ,SRVY_ERA_SE_CD                                 /*  설문시기구분코드 */
+            ,NO_INPT_SNDNG_YN                             /* 번호입력발송여부 */
+            ,SRVY_RSPDNT_NM_ENCPT                      /* 설문응답자명암호화 */
+            ,SRVY_RSPNS_RCPTN_MBL_TELNO_ENCPT                            /* 설문응답수신휴대전화번호암호화 */
+            ,SNDNG_DT                                   /* 발송일시 */
+            ,SRVY_RCPTN_MTHD_SE_CD                      /* 설문수신방법구분코드 */
+            ,FRST_RGTR_ID                            /* 최초등록자아이디 */
+            ,FRST_REG_DT                             /* 최초등록일시 */
+            ,LAST_MDFR_ID                            /* 최종수정자아이디 */
+            ,LAST_MDFCN_DT                           /* 최종수정일시 */
+        )
+        VALUES
+        (
+            #{INST_NO},                                 /* 기관번호 */
+            TO_CHAR(SYSDATE, 'YYYYMMDD'),               /* 등록일자 */
+            #{MNG_SN},                                 /* 관리일련번호 */
+            (SELECT
+                UNT_TASKWK_SE_CD
+                FROM SBB000
+                WHERE QUSTNB_TMPT_MNG_NO = #{QUSTNB_TMPT_MNG_NO}),
+            #{TRPR_INFO_NO},               /* 대상자정보번호 */
+            #{CASE_MNG_NO},                           /* 사례관리번호 */
+            #{CASE_MNG_ODRNO},                           /* 사례관리차수 */
+            #{TRPR_REL_SE_CD},                           /* 대상자관계구분코드 */
+            #{QUSTNB_MNG_NO},                            /* 설문지관리번호 */
+            #{QUSTNB_TMPT_MNG_NO},                            /* 설문지템플릿관리번호 */
+            #{SRVY_ERA_SE_CD},                                  /*  설문시기구분코드 */
+            #{NO_INPT_SNDNG_YN},                             /* 번호입력발송여부 */
+            ENC_B64(#{SRVY_RSPDNT_NM_ENCPT}),                      /* 설문응답자명암호화 */
+            ENC_B64(#{SRVY_RSPNS_RCPTN_MBL_TELNO_ENCPT}),                            /* 설문응답수신휴대전화번호암호화 */
+            SYSDATE,                                   /* 발송일시 */
+            #{SRVY_RCPTN_MTHD_SE_CD},                            /* 설문수신방법구분코드 */
+            #{FRST_RGTR_ID},                                 /* 최초등록자아이디 */
+            SYSDATE,                                    /* 최초등록일시 */
+            #{LAST_MDFR_ID},                                 /* 최종수정자아이디 */
+            SYSDATE                                     /* 최종수정일시 */
+        )
+        
+    ]]>
+    </insert>
+    
+    
+    <!-- 설문작성여부 조회 > SBB500 체크 -->
+    <select id="srvyWrtStts" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* srvyWrtStts 설문작성여부 생성 조회 > SBB500 체크 - Kim Seong Ok */
+        
+        SELECT
+		     CASE WHEN COUNT(*) IS NULL THEN '02'
+		     ELSE '01'
+		     END AS  SRVY_WRT_STTS_SE_CD
+		 FROM (
+		    SELECT
+		        RSPNS_DT
+		     FROM SBB500 
+		     WHERE 1=1
+		     AND QUSTNB_MNG_NO = #{QUSTNB_MNG_NO}
+		     AND QUSTNB_TMPT_MNG_NO = #{QUSTNB_TMPT_MNG_NO}
+		     AND USER_ID = #{USER_ID}
+		     AND UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+		     AND CASE_MNG_NO = #{CASE_MNG_NO}
+		     AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+		 ) T
+        
+        ]]>
+
+    </select>
+    
+    
+    <select id="selectUntTaskwkSeCd" resultType="String" parameterType="HashMap">
+        SELECT UNT_TASKWK_SE_CD FROM SBB000
+        WHERE QUSTNB_TMPT_MNG_NO = #{QUSTNB_TMPT_MNG_NO}
+    </select>
+    
+    
+</mapper>

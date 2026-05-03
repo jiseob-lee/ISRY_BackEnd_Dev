@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.taskwksprt.etxpyaplyandinq.mapper.OvtiWorkEtxpyAplyMapper">
+
+    <!-- <select id="selectOvtiWorkEtxpyAplyList1" parameterType="HashMap" resultType="HashMap">
+    
+    /*SQL-ID : isry.couns.taskwksprt.etxpyaplyandinq.mapper.OvtiWorkEtxpyAplyMapper.selectOvtiWorkEtxpyAplyList1 
+             : 주간시간외수당 LIST */
+    WITH    ZZ  AS
+    (
+            SELECT
+                    #{YYYYMM}       AS  YYYYMM
+            FROM
+                    DUAL
+    )
+    ,   Z1  AS
+            <if test=' DEPT_CD == "326" '>
+    (
+            SELECT  
+                    BB.USER_ID
+                ,   EE.FLNM_ENCPT       AS  FLNM
+                ,   BB.WORK_YMD
+                ,   CASE
+                    WHEN    AA.END_HR   =   '07:30'    THEN    FF.HR_ELSE_WORK_APLY_HR
+                    WHEN    AA.END_HR   =   '11:00'    THEN    FF.HR_ELSE_WORK_APLY_HR
+                    WHEN    AA.END_HR   =   '14:30'    THEN    FF.HR_ELSE_WORK_APLY_HR
+                    WHEN    AA.END_HR   =   '18:00'    THEN    FF.HR_ELSE_WORK_APLY_HR
+                    WHEN    AA.END_HR   =   '21:30'    THEN    CASE
+                                                                WHEN    FF.HR_ELSE_WORK_APLY_HR > 31 THEN    30
+                                                                ELSE    FF.HR_ELSE_WORK_APLY_HR
+                                                                END
+                    ELSE    0
+                    END                                 AS  WTIME
+                ,   TO_CHAR(GG.CHTT_END_DT, 'YYYY-MM-DD AM HH24:MI:SS')     AS  END_DT
+                ,   AA.BGNG_HR || ' ~' || AA.END_HR     AS  BIGO
+            FROM
+                    ZZ
+                ,   AYC110      AA          /* 근무배정표_월별 */
+                ,   AYC100      BB          /* 근무배정표_일별 */
+                ,   SAA200      DD          /* 사용자 */
+                ,   SCA100      EE          /* 종사자 */
+                ,   AYC300      FF          /* 업무보고서 */
+                ,   AYB200      GG          /* 채팅이력 */
+            WHERE   1=1
+                AND AA.CRTR_YM          =       ZZ.YYYYMM
+                AND BB.BIZ_PLAN_MNG_NO  =       AA.BIZ_PLAN_MNG_NO
+                AND DD.USER_ID          =       BB.USER_ID
+                AND EE.ENFSN_NO         =       DD.ENFSN_NO
+                AND FF.CNSLTNT_ID       =       BB.USER_ID
+                AND FF.CRT_YMD          LIKE    ZZ.YYYYMM ||'%'
+                AND GG.CNSLTNT_ID       =       BB.USER_ID
+                AND GG.CHTT_END_DT      BETWEEN FF.WORK_END_DT - (1/24)
+                AND                             FF.WORK_END_DT + (3/24)
+                AND GG.OVTIME_WORK_YMD  IS NOT NULL
+    )
+            </if>
+            <if test=' DEPT_CD == "324" || DEPT_CD == "325" '>
+    (
+		    SELECT  
+		            BB.USER_ID
+		        ,   EE.FLNM_ENCPT       AS  FLNM
+		        ,   BB.WORK_YMD
+		        ,   CASE
+		            WHEN    AA.BGNG_HR   =   '03:30'    THEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60))
+		            WHEN    AA.BGNG_HR   =   '07:00'    THEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60))
+		            WHEN    AA.BGNG_HR   =   '10:30'    THEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60))
+		            WHEN    AA.BGNG_HR   =   '14:00'    THEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60))
+		            WHEN    AA.BGNG_HR   =   '17:30'    THEN    CASE
+		                                                        WHEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60)) > 31 THEN    30
+		                                                        ELSE    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60))
+		                                                        END
+		            ELSE    0
+		            END                                 AS  WTIME
+		        ,   TO_CHAR(GG.CHTT_END_DT, 'YYYY-MM-DD AM HH24:MI:SS')     AS  END_DT
+		        ,   AA.BGNG_HR || ' ~' || AA.END_HR     AS  BIGO
+		    FROM
+		            ZZ
+		        ,   AYC110      AA          /* 근무배정표_월별 */
+		        ,   AYC100      BB          /* 근무배정표_일별 */
+		        ,   SAA200      DD          /* 사용자 */
+		        ,   SCA100      EE          /* 종사자 */
+		        ,   AYC300      FF          /* 업무보고서 */
+		        ,   AYB200      GG          /* 채팅이력 */
+		    WHERE   1=1
+		        AND AA.CRTR_YM          =       ZZ.YYYYMM
+		        AND BB.BIZ_PLAN_MNG_NO  =       AA.BIZ_PLAN_MNG_NO
+		        AND DD.USER_ID          =       BB.USER_ID
+		        AND EE.ENFSN_NO         =       DD.ENFSN_NO
+		        AND FF.CNSLTNT_ID       =       BB.USER_ID
+		        AND FF.CRT_YMD          LIKE    ZZ.YYYYMM ||'%'
+		        AND GG.CNSLTNT_ID       =       BB.USER_ID
+		        AND GG.CHTT_END_DT      BETWEEN FF.WORK_END_DT - (1/24)
+		        AND                             FF.WORK_END_DT + (3/24)
+		        AND GG.OVTIME_WORK_YMD  IS NOT NULL
+    )
+            </if>
+    SELECT  
+            Z1.USER_ID
+        ,   Z1.FLNM
+        ,   SUBSTR(Z1.WORK_YMD,1,6)     AS  CRTR_YM
+        ,   Z1.WORK_YMD
+        ,   Z1.WTIME                    AS  EXCESS_WORK_HR
+        ,   Z1.END_DT                   AS  DSCSN_END_DT
+        ,   Z1.BIGO
+        ,   SUM(Z1.WTIME) OVER()                              AS  SSUM
+        ,   SUM(Z1.WTIME * FF.WIK_OVTIME_UNTPC_AMT) OVER()    AS  AAMT
+    FROM
+            Z1
+    INNER JOIN
+            AYC380      FF      /* 근무수당단가관리 */    
+    ON      1=1
+        AND FF.CRTR_YR      =       SUBSTR(Z1.WORK_YMD, 1, 4)
+    WHERE   1=1
+
+    </select> -->
+    
+    <select id="selectOvtiWorkEtxpyAplyList1" parameterType = "HashMap" resultType="HashMap">
+    
+    /*SQL-ID : isry.couns.taskwksprt.etxpyaplyandinq.mapper.OvtiWorkEtxpyAplyMapper.selectOvtiWorkEtxpyAplyList1 
+             : 주간시간외수당 LIST */
+    WITH ZZ AS
+    (
+        SELECT
+                #{YYYYMM}        AS      YYYYMM
+                , #{USER_ID}       AS      USER_ID
+        FROM
+                DUAL
+    )
+    ,   Z1  AS 
+    (
+	    SELECT
+	            T5.USER_ID                  
+	            , T4.FLNM_ENCPT             AS      FLNM
+	            , T2.WORK_YMD               
+	            , CASE
+	              WHEN    T3.BGNG_HR   =   '03:30'    THEN    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60)
+	              WHEN    T3.BGNG_HR   =   '07:00'    THEN    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60)
+	              WHEN    T3.BGNG_HR   =   '10:30'    THEN    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60)
+	              WHEN    T3.BGNG_HR   =   '14:00'    THEN    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60)
+	              WHEN    T3.BGNG_HR   =   '17:30'    THEN    CASE
+	                                                                               WHEN    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60) > 31 THEN    30
+	                                                                               ELSE    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60)
+	                                                                               END
+	              ELSE    0
+	              END                       AS  WTIME
+	            , to_char(to_date((T2.WORK_YMD || replace(T3.BGNG_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS'), 'YYYY-MM-DD AM HH24:MI:SS')          AS      WORK_BGNG_DT
+	            , to_char(T1.CHTT_END_DT, 'YYYY-MM-DD AM HH24:MI:SS')                                                                               AS      CHTT_END_DT
+		FROM    
+		        ZZ
+	            , AYB200      T1          /* 채팅이력 */
+	            , AYC100    T2          /* 근무배정표_일별 */
+	            , AYC110    T3          /* 근무배정표_월별 */
+	            , SCA100    T4          /* 종사자 테이블 */
+	            , SAA200    T5          /* 사용자 테이블 */
+		WHERE   1=1
+		AND     T3.BIZ_PLAN_MNG_NO                              =                       T2.BIZ_PLAN_MNG_NO
+		AND     T2.WORK_YMD                                     =                       T1.OVTIME_WORK_YMD
+		AND     T2.USER_ID                                      =                       T1.CNSLTNT_ID
+		AND     T5.ENFSN_NO                                     =                       T4.ENFSN_NO
+		AND     T5.USER_ID                                      =                       T1.CNSLTNT_ID
+		AND     T1.CNSLTNT_ID                                   =                       ZZ.USER_ID
+		AND     substr(T1.OVTIME_WORK_YMD, 0, 6)                =                       ZZ.YYYYMM
+		AND     T1.OVTIME_WORK_YMD IS NOT NULL
+    )
+    
+    SELECT  
+            Z1.USER_ID
+        ,   Z1.FLNM
+        ,   Z1.WORK_YMD
+        ,   Z1.WTIME                                                                     AS  EXCESS_WORK_HR
+        ,   Z1.WORK_BGNG_DT
+        ,   Z1.CHTT_END_DT
+        ,   SUM(Z1.WTIME) OVER()                                                         AS  SSUM
+        ,   TRUNC(SUM(Z1.WTIME) OVER(), -1)                                              AS  RCGNTN_HR
+        ,   SUM(Z1.WTIME /10 * FF.WIK_OVTIME_UNTPC_AMT) OVER()                           AS  AAMT
+        ,   TRUNC(TRUNC(SUM(Z1.WTIME) OVER(), -1) / 10 * FF.WIK_OVTIME_UNTPC_AMT, -1)  AS  RCGNTN_AMT
+    FROM
+            Z1
+    INNER JOIN
+            AYC380      FF      /* 근무수당단가관리 */    
+    ON      1=1
+        AND FF.CRTR_YR      =       SUBSTR(Z1.WORK_YMD, 1, 4)
+    WHERE   1=1
+    AND     Z1.WTIME    !=  0
+    </select>
+
+    <!-- <select id="selectOvtiWorkEtxpyAplyList2" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            SELECT
+                    #{YYYYMM}       AS  YYYYMM
+            FROM
+                    DUAL
+    )
+    ,   Z1  AS
+    (
+            <if test=' DEPT_CD == "326" '>
+            SELECT  
+                    BB.USER_ID
+                ,   EE.FLNM_ENCPT       AS  FLNM
+                ,   BB.WORK_YMD
+                ,   CASE
+                    WHEN    AA.END_HR   =   '00:00'    THEN    FF.HR_ELSE_WORK_APLY_HR
+                    WHEN    AA.END_HR   =   '00:30'    THEN    FF.HR_ELSE_WORK_APLY_HR
+                    WHEN    AA.END_HR   =   '04:00'    THEN    FF.HR_ELSE_WORK_APLY_HR
+                    WHEN    AA.END_HR   =   '21:30'    THEN    CASE
+                                                                WHEN    FF.HR_ELSE_WORK_APLY_HR > 31 
+                                                                        THEN    FF.HR_ELSE_WORK_APLY_HR - 30
+                                                                ELSE    0
+                                                                END
+                    ELSE    0
+                    END                                 AS  WTIME
+                ,   TO_CHAR(GG.CHTT_END_DT, 'YYYY-MM-DD AM HH24:MI:SS')     AS  END_DT
+                ,   AA.BGNG_HR || ' ~' || AA.END_HR     AS  BIGO
+            FROM
+                    ZZ
+                ,   AYC110      AA          /* 근무배정표_월별 */
+                ,   AYC100      BB          /* 근무배정표_일별 */
+                ,   SAA200      DD          /* 사용자 */
+                ,   SCA100      EE          /* 종사자 */
+                ,   AYC300      FF          /* 업무보고서 */
+                ,   AYB200      GG          /* 채팅이력 */
+            WHERE   1=1
+                AND AA.CRTR_YM          =       ZZ.YYYYMM
+                AND BB.BIZ_PLAN_MNG_NO  =       AA.BIZ_PLAN_MNG_NO
+                AND DD.USER_ID          =       BB.USER_ID
+                AND EE.ENFSN_NO         =       DD.ENFSN_NO
+                AND FF.CNSLTNT_ID       =       BB.USER_ID
+                AND FF.CRT_YMD          LIKE    ZZ.YYYYMM ||'%'
+                AND GG.CNSLTNT_ID       =       BB.USER_ID
+                AND GG.CHTT_END_DT      BETWEEN FF.WORK_END_DT - (1/24)
+                AND                             FF.WORK_END_DT + (3/24)
+                AND GG.OVTIME_WORK_YMD  IS NOT NULL
+            </if>
+            <if test=' DEPT_CD == "324" || DEPT_CD == "325" '>
+		    SELECT  
+		            BB.USER_ID
+		        ,   EE.FLNM_ENCPT       AS  FLNM
+		        ,   BB.WORK_YMD
+		        ,   CASE
+		            WHEN    AA.BGNG_HR   =   '20:30'    THEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60))
+		            WHEN    AA.BGNG_HR   =   '00:00'    THEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60))
+		            WHEN    AA.BGNG_HR   =   '20:00'    THEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60))
+		            WHEN    AA.BGNG_HR   =   '17:30'    THEN    CASE
+		                                                        WHEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60)) > 31 
+		                                                                THEN    FLOOR((FF.WORK_BGNG_DT - GG.CHTT_END_DT) * (24 * 60)) - 30
+		                                                        ELSE    0
+		                                                        END
+		            ELSE    0
+		            END                                 AS  WTIME
+		        ,   TO_CHAR(GG.CHTT_END_DT, 'YYYY-MM-DD AM HH24:MI:SS')     AS  END_DT
+		        ,   AA.BGNG_HR || ' ~' || AA.END_HR     AS  BIGO
+		    FROM
+		            ZZ
+		        ,   AYC110      AA          /* 근무배정표_월별 */
+		        ,   AYC100      BB          /* 근무배정표_일별 */
+		        ,   SAA200      DD          /* 사용자 */
+		        ,   SCA100      EE          /* 종사자 */
+		        ,   AYC300      FF          /* 업무보고서 */
+		        ,   AYB200      GG          /* 채팅이력 */
+		    WHERE   1=1
+		        AND AA.CRTR_YM          =       ZZ.YYYYMM
+		        AND BB.BIZ_PLAN_MNG_NO  =       AA.BIZ_PLAN_MNG_NO
+		        AND DD.USER_ID          =       BB.USER_ID
+		        AND EE.ENFSN_NO         =       DD.ENFSN_NO
+		        AND FF.CNSLTNT_ID       =       BB.USER_ID
+		        AND FF.CRT_YMD          LIKE    ZZ.YYYYMM ||'%'
+		        AND GG.CNSLTNT_ID       =       BB.USER_ID
+		        AND GG.CHTT_END_DT      BETWEEN FF.WORK_END_DT - (1/24)
+		        AND                             FF.WORK_END_DT + (3/24)
+		        AND GG.OVTIME_WORK_YMD  IS NOT NULL
+            </if>
+    )       
+    SELECT  /*SQL-ID : isry.couns.taskwksprt.etxpyaplyandinq.mapper.OvtiWorkEtxpyAplyMapperMapper.selectOvtiWorkEtxpyAplyList2 : 야간시간외수당 LIST */
+            Z1.USER_ID
+        ,   Z1.FLNM
+        ,   SUBSTR(Z1.WORK_YMD,1,6)     AS  CRTR_YM
+        ,   Z1.WORK_YMD
+        ,   Z1.WTIME                    AS  EXCESS_WORK_HR
+        ,   Z1.END_DT                   AS  DSCSN_END_DT
+        ,   Z1.BIGO
+        ,   SUM(Z1.WTIME) OVER()                              AS  SSUM
+        ,   SUM(Z1.WTIME * FF.NIGHT_OVTIME_UNTPC_AMT) OVER()  AS  AAMT
+    FROM
+            Z1
+    INNER JOIN
+            AYC380      FF      /* 근무수당단가관리 */    
+    ON      1=1
+        AND FF.CRTR_YR      =       SUBSTR(Z1.WORK_YMD, 1, 4)
+    WHERE   1=1
+
+    </select> -->
+    
+    <select id="selectOvtiWorkEtxpyAplyList2" parameterType="HashMap" resultType="HashMap">
+    WITH ZZ AS
+	(
+	    SELECT
+               #{YYYYMM}        AS      YYYYMM
+               , #{USER_ID}       AS      USER_ID
+	    FROM
+               DUAL
+	)
+	,   Z1      AS
+	(
+	    SELECT
+	                T5.USER_ID              
+	                , T4.FLNM_ENCPT         AS      FLNM
+	                , T2.WORK_YMD           
+	                , CASE
+	                  WHEN    T3.BGNG_HR   =   '20:30'    THEN    FLOOR((T1.CHTT_END_DT - (to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')+1)) * 24 * 60)
+	                  WHEN    T3.BGNG_HR   =   '00:00'    THEN    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60)
+	                  WHEN    T3.BGNG_HR   =   '20:00'    THEN    FLOOR((T1.CHTT_END_DT - (to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')+1)) * 24 * 60)
+	                  WHEN    T3.BGNG_HR   =   '17:30'    THEN    CASE
+	                                                                                   WHEN    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60) > 31 
+	                                                                                        THEN    FLOOR((T1.CHTT_END_DT - to_date((T2.WORK_YMD || replace(T3.END_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS')) * 24 * 60) -30
+	                                                                                   ELSE     0
+	                                                                                   END
+	                  ELSE    0
+	                  END                   AS  WTIME
+	                , to_char(to_date((T2.WORK_YMD || replace(T3.BGNG_HR,':','') || '00'), 'YYYY-MM-DD HH24MISS'), 'YYYY-MM-DD AM HH24:MI:SS')          AS          WORK_BGNG_DT
+	                , to_char(T1.CHTT_END_DT, 'YYYY-MM-DD AM HH24:MI:SS')           AS      CHTT_END_DT
+	    FROM    
+	                ZZ
+	                , AYB200    T1          /* 채팅이력 */
+	                , AYC100    T2          /* 근무배정표_일별 */
+	                , AYC110    T3          /* 근무배정표_월별 */
+	                , SCA100    T4          /* 종사자 테이블 */
+	                , SAA200    T5          /* 사용자 테이블 */
+	    WHERE 1=1
+	    AND     T3.BIZ_PLAN_MNG_NO                             =                       T2.BIZ_PLAN_MNG_NO
+	    AND     T2.WORK_YMD                                    =                       T1.OVTIME_WORK_YMD
+	    AND     T2.USER_ID                                     =                       T1.CNSLTNT_ID
+	    AND     T5.ENFSN_NO                                    =                       T4.ENFSN_NO
+	    AND     T5.USER_ID                                     =                       T1.CNSLTNT_ID
+	    AND     T1.CNSLTNT_ID                                  =                       ZZ.USER_ID
+	    AND     substr(T1.OVTIME_WORK_YMD, 0, 6)               =                       ZZ.YYYYMM
+	    AND     T1.OVTIME_WORK_YMD IS NOT NULL
+	)
+	
+	SELECT
+           Z1.USER_ID
+           ,   Z1.FLNM
+           ,   Z1.WORK_YMD
+           ,   Z1.WTIME                                                                     AS  EXCESS_WORK_HR
+           ,   Z1.WORK_BGNG_DT                   
+           ,   Z1.CHTT_END_DT
+           ,   SUM(Z1.WTIME) OVER()                                                         AS  SSUM
+           ,   TRUNC(SUM(Z1.WTIME) OVER(), -1)                                              AS  RCGNTN_HR
+           ,   SUM(Z1.WTIME / 10 * FF.NIGHT_OVTIME_UNTPC_AMT) OVER()                        AS  AAMT
+           ,   TRUNC(TRUNC(SUM(Z1.WTIME) OVER(), -1) / 10 * FF.NIGHT_OVTIME_UNTPC_AMT, -1)  AS  RCGNTN_AMT
+	FROM
+	            Z1
+	INNER JOIN
+	            AYC380      FF          /* 근무수당단가관리 */
+	ON      1=1
+	AND     FF.CRTR_YR      =       SUBSTR(Z1.WORK_YMD, 1, 4)
+	WHERE 1=1
+    AND     Z1.WTIME    !=  0
+    </select>
+    
+    <select id="selectOvtiWorkEtxpyAplyList3" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            SELECT
+                    SUBSTR(#{YYYYMM}, 1, 4)     AS  YYYY
+                    , #{YYYYMM}                 AS  YYYYMM
+                    , #{USER_ID}                AS  USER_ID
+            FROM
+                    DUAL
+    )
+    SELECT 
+            SUBSTR(AA.RLVT_YM, 1, 4)||'년 '||SUBSTR(AA.RLVT_YM, 5, 2) || '월'                  AS  GIVE_YM
+        ,   SUBSTR(AA.APRV_YMD, 1, 4)||'년 '||SUBSTR(AA.APRV_YMD, 5, 2) || '월'                  AS  APRV_YM
+        ,   AA.OVTIME_WORK_SHAPE_SE_CD
+        ,   AA.EXCESS_WORK_HR
+        ,   FLOOR(AA.EXCESS_WORK_HR)    AS  INJUNG
+        ,   AA.PENSN_SUM_AMT
+        ,   AA.APRV_YN  
+    FROM
+            ZZ
+        ,   AYC370      AA      /* 시간외근무수당 */
+    WHERE   1=1
+    AND AA.CONSTT_ID   =   ZZ.USER_ID
+    AND AA.RLVT_YM      BETWEEN     ZZ.YYYY||'01'
+                        AND         ZZ.YYYYMM      
+
+    </select>
+    
+    <select id="selectOvtiWorkEtxpyAplyList4" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            SELECT
+                    #{YYYYMM}       AS  YYYYMM
+                    , #{USER_ID}      AS  USER_ID
+            FROM
+                    DUAL
+    )
+    SELECT 
+            COUNT(*)    CCNT
+    FROM
+            ZZ
+        ,   AYC370      AA      /* 시간외근무수당 */
+    WHERE   1=1
+        AND AA.RLVT_YM      =       ZZ.YYYYMM
+        AND AA.CONSTT_ID    =       ZZ.USER_ID
+
+    </select>
+    
+    <insert id="insertOvtiWorkEtxpyAply" parameterType="HashMap" >
+    /* 
+     * SQL-ID : isry.couns.taskwksprt.etxpyaplyandinq.mapper.NgtmWorkEtxpyAplyMapper.insertNgtmWorkEtxpyAply : 저장 
+     */
+        INSERT 
+        INTO AYC370 
+        (
+			 RLVT_YM
+			 , CONSTT_ID
+			 , OVTIME_WORK_SHAPE_SE_CD
+			 , EXCESS_WORK_HR
+			 , PENSN_RCGNTN_HR
+			 , PENSN_SUM_AMT
+			 , APRV_YN
+			 , RM_CN
+			 , APRV_YMD
+			 , FRST_RGTR_ID
+			 , FRST_REG_DT
+			 , LAST_MDFR_ID
+			 , LAST_MDFCN_DT
+		) 
+		VALUES 
+		(
+			 #{RLVT_YM}
+			 , #{USER_ID}
+			 , #{OVTIME_WORK_SHAPE_SE_CD}
+			 , #{EXCESS_WORK_HR}
+			 , #{PENSN_RCGNTN_HR}
+			 , #{PENSN_SUM_AMT}
+			 , 'Y'
+			 , #{RLVT_YM}||'월 '||#{OVTIME_WORK_SHAPE_VALUE}||' 금액'
+			 , TO_CHAR(SYSDATE, 'YYYYMMDD')
+			 , #{SESSION_ID}
+			 , SYSDATE
+			 , #{SESSION_ID}
+			 , SYSDATE
+		)
+    </insert>
+
+</mapper>

@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : EmdInqMapper.xml
+* @Description : 읍면동 조회 팝업 SQL Mapper
+*
+* @author  : Kwon.Min.Seo
+* @since   : 2022. 10. 14.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 10. 14.  Kwon.Min.Seo    최초작성
+* </pre>
+-->
+
+<mapper namespace="isry.itgcm.bizcmmns.cmmns.mapper.EmdInqMapper">
+    <!-- 시군구/읍면동목록 조회  -->
+    <select id="selectEmdInqList" parameterType="HashMap" resultType="HashMap">
+    /* selectEmdInqList Kwon.Min.Seo */   
+    SELECT T1.STDG_CD                   AS STDG_CD      /* 법정동코드 */
+	     , T1.CTPV_NM                   AS CTPV_NM      /* 시도명 */
+	     , T1.SGG_NM                    AS SGG_NM       /* 시군구명 */
+	     , T1.CTPV_NM || ' '|| SGG_NM   AS RGN_NM       /* 시도명 || 시군구명 */
+	     , T1.STTY_EMD_NM               AS STTY_EMD_NM  /* 법정읍면동명 */
+	     , T1.STLI_NM                   AS STLI_NM      /* 법정리명 */
+	  FROM ( SELECT RPAD(SUBSTR(STDG_CD,1,5),10,'0') AS STDG_CD     /* 법정동코드 */
+	              , CTPV_NM                                         /* 시도명 */
+	              , SGG_NM                                          /* 시군구명 */
+	              , ''                               AS STTY_EMD_NM /* 법정읍면동명 */
+	              , ''                               AS STLI_NM     /* 법정리명 */
+	           FROM SAD000
+	          GROUP BY SUBSTR(STDG_CD,1,5)
+	                 , CTPV_NM
+	                 , SGG_NM
+	         UNION ALL
+	         SELECT STDG_CD
+	              , CTPV_NM
+	              , SGG_NM
+	              , STTY_EMD_NM
+	              , STLI_NM
+	           FROM SAD000 
+	       ) T1
+	 WHERE 1 = 1
+     <if test ="STDG_CD != '' and STDG_CD != 'null'">
+       AND T1.STDG_CD             = #{STDG_CD} /* 법정동코드*/
+     </if>
+     <if test ="SGG_CD != '' and SGG_CD != 'null'">  
+       AND SUBSTR(T1.STDG_CD,0,5) = #{SGG_CD}  /* 시군구코드 */
+     </if>
+     ORDER BY T1.STDG_CD
+    </select>
+    
+    <sql id="stdgCode_SQL">
+        SELECT NULL                                 AS SGG_CD                   /* 시군구코드 */
+            , T1.STDG_CD||'-'||T1.DONG_CD          AS STDG_CD                  /* 법정동코드 */
+            , T1.CTPV_NM                           AS CTPV_NM                  /* 시도명 */ 
+            , NULL                                 AS ENG_CTPV_NM             /* 영문시도명*/            
+            , CASE WHEN T1.SGG_NM = '*'  THEN NULL
+                   ELSE T1.SGG_NM         
+               END                                 AS SGG_NM                   /* 시군구명 */
+            , T1.STTY_EMD_NM || '['||T1.DONG_NM||'-'||T1.DONG_CD ||']' AS STTY_EMD_NM              /* 법정읍면동명 */
+            , NULL                                 AS CTPV_SE_CD               /* 시도구분코드*/
+            , 'STDG_CD'                            AS CMMNS_CD_ID              /* 공통코드아이디 : 법정읍면동명) */
+            , T1.DONG_NM
+            , T1.DONG_CD 
+         FROM SAD100 T1 /* 법정동코드*/
+        WHERE 1 = 1       
+        AND T1.DONG_CD IS NOT NULL
+        GROUP BY T1.STDG_CD, T1.CTPV_NM, T1.SGG_NM, T1.STTY_EMD_NM, T1.DONG_NM, T1.DONG_CD 
+    </sql>
+    
+    <sql id="sggCode_SQL">
+        SELECT T1.SGG_CD                          AS SGG_CD                   /* 시군구코드*/
+           , NULL                                 AS STDG_CD                  /* 법정동코드 */
+           , T1.CTPV_NM                           AS CTPV_NM                  /* 시도명*/
+           , T1.ENG_CTPV_NM                       AS ENG_CTPV_NM             /* 영문시도명*/                
+           , CASE WHEN T1.SGG_NM = '*'  THEN NULL
+                  ELSE T1.SGG_NM
+              END                                 AS SGG_NM                   /* 시군구명 */
+           , NULL                                 AS STTY_EMD_NM              /* 법정읍면동명 */
+           , T1.CTPV_SE_CD                        AS CTPV_SE_CD               /* 시도구분코드*/
+           , 'SGG_CD'                             AS CMMNS_CD_ID              /* 공통코드아이디 : 시군구코드)*/    
+           , NULL                                 AS DONG_NM
+           , NULL                                 AS DONG_CD
+          FROM SAA020 T1 /* 시군구코드*/
+         WHERE 1 = 1
+           AND T1.DEL_YN = 'N' /* 삭제여부*/
+    </sql>
+    
+    <sql id="sggCtpvCode_SQL">
+        /* 16개시도만 조회(세종시제외)*/
+        SELECT 
+             CONCAT(T1.CTPV_SE_CD , '000')        AS SGG_CD                   /* 시도코드*/    
+           , NULL                                 AS STDG_CD                  /* 법정동코드 */        
+           , T1.CTPV_NM                           AS CTPV_NM                  /* 시도명*/
+           , T1.ENG_CTPV_NM                       AS ENG_CTPV_NM             /* 영문시도명*/              
+           , NULL                                 AS SGG_NM                   /* 시군구명 */
+           , NULL                                 AS STTY_EMD_NM              /* 법정읍면동명 */                           
+           , T1.CTPV_SE_CD                        AS CTPV_SE_CD
+           , NULL                                 AS CMMNS_CD_ID              /* 공통코드아이디 : 시군구코드)*/               
+           , NULL                                 AS DONG_NM
+           , NULL                                 AS DONG_CD
+          FROM SAA020 T1 /* 시군구코드*/
+         WHERE 1 = 1
+           AND T1.DEL_YN = 'N' /* 삭제여부*/
+           GROUP BY T1.CTPV_SE_CD, T1.CTPV_NM, T1.ENG_CTPV_NM
+    </sql>
+
+    <select id="selectSggCtpvCodeList" parameterType="HashMap" resultType="HashMap">
+        WITH /* selectSggCtpvCodeList 시도코드 조회 Yoo ChiHoon */    
+        V_CTPV_LIST AS (
+        <include refid="sggCtpvCode_SQL"></include>
+        ) 
+        SELECT T.SGG_CD      /* 시군구코드 */
+             , T.CTPV_SE_CD  /* 시도구분코드 */
+             , T.CTPV_NM     /* 시도명 */
+             , T.ENG_CTPV_NM /* 영문시도명*/
+             , T.SGG_NM      /* 시군구명 */
+             , T.STDG_CD     /* 법정동코드 */
+             , T.STTY_EMD_NM /* 법정읍면동명 */
+             , T.DONG_NM   /*행정동명*/
+             , T.DONG_CD   /*행정동코드*/
+          FROM V_CTPV_LIST T
+         ORDER BY T.CTPV_SE_CD, T.SGG_CD
+    </select>
+    
+    <select id="selectSggCodeList" parameterType="HashMap" resultType="HashMap">
+        WITH /* selectSggCodeList 시도법정동코드 조회 Kang Hwayoung */    
+        V_EMD_LIST AS (
+        <include refid="sggCode_SQL"></include>
+         <if test ="CTPV_NM != '' and CTPV_NM != 'null'">
+           AND T1.CTPV_NM        = #{CTPV_NM}        /* 시도명*/
+         </if>
+         <if test ="SGG_NM != '' and SGG_NM != 'null'">  
+           AND T1.SGG_NM         = #{SGG_NM}          /* 시군구명 */
+         </if>
+        ) 
+        SELECT T.SGG_CD      /* 시군구코드 */
+             , T.CTPV_SE_CD  /* 시도구분코드 */
+             , T.CTPV_NM     /* 시도명 */
+             , T.ENG_CTPV_NM /* 영문시도명*/             
+             , T.SGG_NM      /* 시군구명 */
+             , T.STDG_CD     /* 법정동코드 */
+             , T.STTY_EMD_NM /* 법정읍면동명 */
+             , T.DONG_NM   /*행정동명*/
+             , T.DONG_CD   /*행정동코드*/
+          FROM V_EMD_LIST T
+         ORDER BY T.SGG_CD, T.CTPV_SE_CD
+    </select>
+    
+    <select id="selectStdgCodeList" parameterType="HashMap" resultType="HashMap">
+        /* selectStdgCodeList 시군구 행정동코드 조회 Kang Hwayoung */
+        WITH V_EMD_LIST AS (
+        <include refid="stdgCode_SQL"></include>
+        ) 
+        SELECT T.SGG_CD      /* 시군구코드 */
+             , T.CTPV_SE_CD  /* 시도구분코드 */
+             , T.CTPV_NM     /* 시도명 */
+             , T.ENG_CTPV_NM /* 영문시도명*/             
+             , T.SGG_NM      /* 시군구명 */
+             , T.STDG_CD     /* 법정동코드 */
+             , T.STTY_EMD_NM /* 법정읍면동명 */
+             , T.DONG_NM   /*행정동명*/
+             , T.DONG_CD   /*행정동코드*/
+          FROM V_EMD_LIST T
+         ORDER BY T.DONG_CD
+    </select>
+
+    <select id="selectEmdCodeList" parameterType="HashMap" resultType="HashMap">
+        /* selectEmdCodeList Kwon.Min.Seo */    
+        WITH /* isry.itgcm.bizcmmns.cmmns.EmdInqMapper.selectEmdCodeList(법정동코드 조회)*/
+		     V_EMD_LIST AS (
+		        <include refid="stdgCode_SQL"></include>
+             ),
+             V_SGG_LIST AS (
+                <include refid="sggCode_SQL"></include>
+             ), 
+             V_EMD_SGG_LIST AS (
+                SELECT T3.* 
+                  FROM V_EMD_LIST T3 
+                 WHERE T3.CMMNS_CD_ID = #{CMMNS_CD_ID}
+                UNION ALL
+                SELECT T4.* 
+                  FROM V_SGG_LIST T4
+                 WHERE T4.CMMNS_CD_ID = #{CMMNS_CD_ID}
+             )
+             SELECT T.SGG_CD      /* 시군구코드 */
+                  , T.CTPV_SE_CD  /* 시도구분코드 */
+                  , T.CTPV_NM     /* 시도명 */
+                  , T.ENG_CTPV_NM /* 영문시도명*/                  
+                  , T.SGG_NM      /* 시군구명 */
+                  , T.STDG_CD     /* 법정동코드 */
+                  , T.STTY_EMD_NM /* 법정읍면동명 */
+                  , T.DONG_NM   /*행정동명*/
+                  , T.DONG_CD   /*행정동코드*/
+               FROM V_EMD_SGG_LIST T
+              ORDER BY T.CTPV_SE_CD
+                     , T.STDG_CD
+    </select>
+    
+    <!-- 법정동코드(복지부연계 서비스의뢰접수) 조회  -->
+    <select id="selectDongInqList" parameterType="HashMap" resultType="HashMap">
+        SELECT 
+              T1.STDG_CD||'-'||T1.DONG_CD          AS STDG_CD                  /* 법정동코드 */
+            , T1.CTPV_NM                           AS CTPV_NM                  /* 시도명 */             
+            , CASE WHEN T1.SGG_NM = '*'  THEN NULL
+                   ELSE T1.SGG_NM         
+               END                                 AS SGG_NM                   /* 시군구명 */
+            , T1.STTY_EMD_NM || '['||T1.DONG_NM||'-'||T1.DONG_CD ||']' AS STTY_EMD_NM              /* 법정읍면동명 */
+            , NULL                                 AS CTPV_SE_CD               /* 시도구분코드*/
+            , 'STDG_CD'                            AS CMMNS_CD_ID              /* 공통코드아이디 : 법정읍면동명) */
+            , T1.DONG_NM
+            , T1.DONG_CD 
+         FROM SAD100 T1 /* 법정동코드*/
+        WHERE 1 = 1       
+        AND T1.DONG_CD IS NOT NULL
+	     <if test ="CTPV_NM != '' and CTPV_NM != 'null'">
+	       AND T1.CTPV_NM        = #{CTPV_NM}        /* 시도명*/
+	     </if>
+	     <if test ="SGG_NM != '' and SGG_NM != 'null'">  
+	       AND T1.SGG_NM        = #{SGG_NM}          /* 시군구명 */
+	     </if>
+        GROUP BY T1.STDG_CD, T1.CTPV_NM, T1.SGG_NM, T1.STTY_EMD_NM, T1.DONG_NM, T1.DONG_CD 
+     ORDER BY T1.STDG_CD
+    </select>    
+    
+    
+    
+</mapper>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : ProbmSttsInqMapper.xml
+* @Description : 문제상태 및 원인분류(팝업) SQL Mapper
+*
+* @author  : Kwon.Min.Seo
+* @since   : 2022. 07. 29.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 05. 11.  Kwon.Min.Seo    최초작성
+* </pre>
+-->
+<mapper namespace="isry.itgcm.bizcmmns.cmmns.mapper.ProbmSttsInqMapper">
+
+    <!-- 문제상태 및 원인 대,중,소분류 목록조회 -->
+    <select id="selectProbmSttsInqList" parameterType="HashMap" resultType="HashMap">
+      SELECT
+      S1.CMMNS_CD_VALUE AS PROBM_STTS_LCLAS_SE_CD
+    , S1.CMMNS_CD_VALUE_NM AS PROBM_STTS_LCLAS_SE_NM
+    , S2.CMMNS_CD_VALUE AS PROBM_STTS_MLSFC_SE_CD
+    , S2.CMMNS_CD_VALUE_NM AS PROBM_STTS_MLSFC_SE_NM
+    , S3.CMMNS_CD_VALUE AS PROBM_STTS_SCLAS_SE_CD
+    , S3.CMMNS_CD_VALUE_NM AS PROBM_STTS_SCLAS_SE_NM
+    , C1.CMMNS_CD_VALUE AS PROBM_CAS_LCLAS_SE_CD
+    , C1.CMMNS_CD_VALUE_NM AS PROBM_CAS_LCLAS_SE_NM
+    , C2.CMMNS_CD_VALUE AS PROBM_CAS_SCLAS_SE_CD
+    , C2.CMMNS_CD_VALUE_NM AS PROBM_CAS_SCLAS_SE_NM
+    FROM
+        (SELECT T1.CMMNS_CD_VALUE, T1.CMMNS_CD_VALUE_NM, T1.SRTNG_SQNCE 
+           FROM SAC100 T1
+          WHERE T1.CMMNS_CD_ID = 'PROBM_STTS_LCLAS_SE_CD' 
+            AND T1.USE_YN      = 'Y'
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''"> 
+            AND EXISTS (SELECT X.UNT_TASKWK_SE_CD 
+                          FROM SAC110 X /* 공통코드값 사용시스템 */ 
+			             WHERE X.CMMNS_CD_ID      = T1.CMMNS_CD_ID 
+			               AND X.CMMNS_CD_VALUE   = T1.CMMNS_CD_VALUE
+			               AND X.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD})
+			</if>
+	    ) S1
+    LEFT JOIN
+        (SELECT CMMNS_CD_VALUE, CMMNS_CD_VALUE_NM, UP_CMMNS_CD_VALUE, SRTNG_SQNCE  FROM SAC100 WHERE CMMNS_CD_ID = 'PROBM_STTS_MLSFC_SE_CD' AND USE_YN = 'Y') S2
+        ON S2.UP_CMMNS_CD_VALUE = S1.CMMNS_CD_VALUE
+    LEFT JOIN
+        (SELECT CMMNS_CD_VALUE, CMMNS_CD_VALUE_NM, UP_CMMNS_CD_VALUE, SRTNG_SQNCE  FROM SAC100 WHERE CMMNS_CD_ID = 'PROBM_STTS_SCLAS_SE_CD' AND USE_YN = 'Y') S3
+        ON S3.UP_CMMNS_CD_VALUE = S2.CMMNS_CD_VALUE
+    LEFT JOIN
+        (SELECT CMMNS_CD_VALUE, CMMNS_CD_VALUE_NM, UP_CMMNS_CD_VALUE, SRTNG_SQNCE  FROM SAC100 WHERE CMMNS_CD_ID = 'PROBM_CAS_LCLAS_SE_CD'  AND USE_YN = 'Y') C1
+        ON C1.UP_CMMNS_CD_VALUE IN(S1.CMMNS_CD_VALUE, S2.CMMNS_CD_VALUE, S3.CMMNS_CD_VALUE)
+    LEFT JOIN
+        (SELECT CMMNS_CD_VALUE, CMMNS_CD_VALUE_NM, UP_CMMNS_CD_VALUE, SRTNG_SQNCE  FROM SAC100 WHERE CMMNS_CD_ID = 'PROBM_CAS_SCLAS_SE_CD'  AND USE_YN = 'Y') C2
+        ON C2.UP_CMMNS_CD_VALUE = C1.CMMNS_CD_VALUE
+    WHERE 1 = 1
+       <if test="PROBM_STTS_LCLAS_SE_CD != null and PROBM_STTS_LCLAS_SE_CD != ''"> 
+           AND NVL(S1.CMMNS_CD_VALUE,'X') LIKE #{PROBM_STTS_LCLAS_SE_CD} || '%'
+       </if>
+       <if test="PROBM_STTS_MLSFC_SE_CD != null and PROBM_STTS_MLSFC_SE_CD != ''"> 
+           AND NVL(S2.CMMNS_CD_VALUE,'X') LIKE #{PROBM_STTS_MLSFC_SE_CD} || '%'
+       </if>
+       <if test="PROBM_STTS_SCLAS_SE_CD != null and PROBM_STTS_SCLAS_SE_CD != ''"> 
+           AND NVL(S3.CMMNS_CD_VALUE,'X') LIKE #{PROBM_STTS_SCLAS_SE_CD} || '%'
+       </if>
+       <if test="PROBM_CAS_LCLAS_SE_CD != null and PROBM_CAS_LCLAS_SE_CD != ''"> 
+           AND NVL(C1.CMMNS_CD_VALUE,'X') LIKE #{PROBM_CAS_LCLAS_SE_CD} || '%'
+       </if>
+       <if test="PROBM_CAS_SCLAS_SE_CD != null and PROBM_CAS_SCLAS_SE_CD != ''"> 
+           AND NVL(C2.CMMNS_CD_VALUE,'X') LIKE #{PROBM_CAS_SCLAS_SE_CD} || '%'
+       </if>
+      ORDER BY S1.SRTNG_SQNCE, S2.SRTNG_SQNCE, S3.SRTNG_SQNCE, C1.SRTNG_SQNCE, C2.SRTNG_SQNCE
+    </select>
+    
+</mapper>

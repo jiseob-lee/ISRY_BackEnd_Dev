@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.stats.dscsnstats.mapper.KakaoStatusMapper">
+
+    <select id="selectkakaoStatus" parameterType="HashMap" resultType="HashMap">        
+
+			
+			WITH  LIST_A  AS(
+			                 SELECT  CASE WHEN SXDC_SE_CD  = 'M'  THEN  '1'  
+			                              WHEN SXDC_SE_CD  = 'F'  THEN  '2'
+			                              ELSE  '3'
+			                         END                 AS  GENDER  
+			                       , COUNT(PROBM_STTS_LCLAS_SE_CD)         AS  TOTAL 
+			                       , PROBM_STTS_LCLAS_SE_CD                AS  PROBM_STTS_LCLAS_SE_CD   
+			                 FROM    AYE120
+			                 WHERE   BBSCTT_TYPE_SE_CD    =  '18'
+			                 AND     DEL_YN               =  'N'
+                             AND     FRST_REG_DT    BETWEEN   TO_DATE(#{startDate}, 'YYYYMMDD')
+                                                    AND       TO_DATE(#{endDate},  'YYYYMMDD') + 0.99999
+			                 GROUP BY CASE WHEN SXDC_SE_CD  = 'M'  THEN  '1'  
+			                               WHEN SXDC_SE_CD  = 'F'  THEN  '2'
+			                               ELSE  '3'
+			                          END
+			                        , PROBM_STTS_LCLAS_SE_CD 
+			)
+			,      LIST_B  AS( 
+			SELECT  GENDER            AS GENDER   
+			      , SUM(TOTAL)  AS TOTAL
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '01'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L1 /*가출*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '02'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L2 /*학업중단*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '03'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L3 /*이주배경*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '04'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L4 /*폭력*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '05'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L5 /*비행*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '06'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L6 /*성*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '07'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L7 /*정신건강*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '08'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L8 /*과의존*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '09'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L9 /*신체건강*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '10'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L10 /*학업및자립*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '11'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L11 /*경제*/
+			        , CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '99'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L12 /*기타*/
+			FROM    LIST_A
+			GROUP   BY  GENDER            
+			        ,   PROBM_STTS_LCLAS_SE_CD
+			ORDER   BY  GENDER        
+			)
+
+			SELECT  /*SQL-ID :isry.couns.stats.dscsnstats.mapper.KakaoStatusMapper."selectkakaoStatus" : (모바일)카카오톡 오픈채팅통계*/
+			        '남자'                                        AS  GENDER
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.GENDER   =  '1'
+			UNION   ALL
+			SELECT '여자'                                        AS  GENDER
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.GENDER   =  '2'
+			UNION   ALL
+			SELECT '미분류'                                        AS  GENDER
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.GENDER   =  '3'
+ 
+  </select>
+ 
+  <select id="selectkakaoStatusAge" parameterType="HashMap" resultType="HashMap">        
+ 
+/*연령별 상담실적*/
+			WITH  LIST_A  AS( 
+			SELECT 
+<![CDATA[
+			        CASE WHEN TRPR_AGE <   9                          THEN  '1'  
+			             WHEN TRPR_AGE >=  9   AND  TRPR_AGE <=  10   THEN  '2'  
+			             WHEN TRPR_AGE >=  11  AND  TRPR_AGE <=  13   THEN  '3'  
+			             WHEN TRPR_AGE >=  14  AND  TRPR_AGE <=  16   THEN  '4'  
+			             WHEN TRPR_AGE >=  17  AND  TRPR_AGE <=  19   THEN  '5' 
+			             WHEN TRPR_AGE >=  20  AND  TRPR_AGE <=  24   THEN  '6' 
+			             WHEN TRPR_AGE >   24  AND  TRPR_AGE <=  999  THEN  '7' 
+			             ELSE                                               '8'
+]]> 
+			        END                                         AS TRPR_AGE 
+			      , COUNT(PROBM_STTS_LCLAS_SE_CD)               AS TOTAL  
+			      , PROBM_STTS_LCLAS_SE_CD                      AS PROBM_STTS_LCLAS_SE_CD
+			FROM    AYE120
+			WHERE   BBSCTT_TYPE_SE_CD    =  '18'
+			AND     DEL_YN               =  'N'
+            AND     FRST_REG_DT    BETWEEN   TO_DATE(#{startDate}, 'YYYYMMDD')
+                                   AND       TO_DATE(#{endDate},  'YYYYMMDD') + 0.99999
+<![CDATA[
+			GROUP   BY  CASE WHEN TRPR_AGE <   9                          THEN  '1'  
+			                 WHEN TRPR_AGE >=  9   AND  TRPR_AGE <=  10   THEN  '2'  
+			                 WHEN TRPR_AGE >=  11  AND  TRPR_AGE <=  13   THEN  '3'  
+			                 WHEN TRPR_AGE >=  14  AND  TRPR_AGE <=  16   THEN  '4'  
+			                 WHEN TRPR_AGE >=  17  AND  TRPR_AGE <=  19   THEN  '5' 
+			                 WHEN TRPR_AGE >=  20  AND  TRPR_AGE <=  24   THEN  '6' 
+			                 WHEN TRPR_AGE >   24  AND  TRPR_AGE <=  999  THEN  '7' 
+			                 ELSE                                               '8'
+]]>
+			         END                                        
+			      ,  PROBM_STTS_LCLAS_SE_CD
+			ORDER BY 1
+			)
+			,     LIST_B  AS( 
+			SELECT  TRPR_AGE                               AS  AGE                 
+			     ,  SUM(TOTAL)                             AS  TOTAL 
+			      , SUM(L1)                                AS  L1
+			      , SUM(L2)                                AS  L2
+			      , SUM(L3)                                AS  L3
+			      , SUM(L4)                                AS  L4
+			      , SUM(L5)                                AS  L5
+			      , SUM(L6)                                AS  L6
+			      , SUM(L7)                                AS  L7
+			      , SUM(L8)                                AS  L8
+			      , SUM(L9)                                AS  L9
+			      , SUM(L10)                               AS  L10
+			      , SUM(L11)                               AS  L11
+			      , SUM(L12)                               AS  L12
+			FROM  (
+			SELECT  TRPR_AGE                               AS TRPR_AGE       
+			, SUM(TOTAL)                                   AS TOTAL                                  
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '01'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L1 /*가출*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '02'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L2 /*학업중단*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '03'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L3 /*이주배경*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '04'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L4 /*폭력*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '05'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L5 /*비행*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '06'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L6 /*성*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '07'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L7 /*정신건강*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '08'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L8 /*과의존*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '09'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L9 /*신체건강*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '10'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L10 /*학업및자립*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '11'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L11 /*경제*/
+			, CASE  WHEN  PROBM_STTS_LCLAS_SE_CD  =  '99'  THEN  COUNT(PROBM_STTS_LCLAS_SE_CD) ELSE 0 END   AS L12 /*기타*/
+			FROM    LIST_A
+			GROUP   BY  TRPR_AGE 
+			          , PROBM_STTS_LCLAS_SE_CD
+			     )
+			GROUP  BY TRPR_AGE
+			        , TOTAL 
+			ORDER BY 1  
+			)
+			SELECT '9세 미만'                                        AS  AGE
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.AGE   =  '1'
+			UNION   ALL 
+			SELECT '9-10세'                                         AS  AGE
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.AGE   =  '2'
+			UNION   ALL 
+			SELECT '11-13세'                                        AS  AGE
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.AGE   =  '3'
+			UNION   ALL 
+			SELECT '14-16세'                                        AS  AGE
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.AGE   =  '4'
+			UNION   ALL 
+			SELECT '17-19세'                                        AS  AGE
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.AGE   =  '5'
+			UNION   ALL 
+			SELECT '20-24세'                                        AS  AGE
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.AGE   =  '6'
+			UNION   ALL 
+			SELECT '24세 초과'                                       AS  AGE
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.AGE   =  '7'
+			UNION   ALL 
+			SELECT '미분류'                                          AS  AGE
+			      , NVL(SUM(TOTAL),0)                              AS  TOTAL 
+			      , NVL(SUM(L1),0)                                 AS  L1
+			      , NVL(SUM(L2),0)                                 AS  L2
+			      , NVL(SUM(L3),0)                                 AS  L3
+			      , NVL(SUM(L4),0)                                 AS  L4
+			      , NVL(SUM(L5),0)                                 AS  L5
+			      , NVL(SUM(L6),0)                                 AS  L6
+			      , NVL(SUM(L7),0)                                 AS  L7
+			      , NVL(SUM(L8),0)                                 AS  L8
+			      , NVL(SUM(L9),0)                                 AS  L9
+			      , NVL(SUM(L10),0)                                AS  L10
+			      , NVL(SUM(L11),0)                                AS  L11
+			      , NVL(SUM(L12),0)                                AS  L12
+			FROM    LIST_B 
+			WHERE   LIST_B.AGE   =  '8'
+ 
+  </select>    
+
+  <select id="selectkakaoStatusCounselor" parameterType="HashMap" resultType="HashMap">        
+
+/*상담사별*/
+			WITH   LIST_A   AS( 
+			SELECT  FRST_RGTR_ID                                AS  FRST_RGTR_ID
+			      , COUNT(BBSCTT_ESNTAL_NO)                     AS  RETE_COUNT
+			      , 0                                           AS  CMNT_COUNT
+			FROM    AYE120
+			WHERE   BBSCTT_TYPE_SE_CD    =  '18'
+			AND     DEL_YN               =  'N'
+            AND     FRST_REG_DT    BETWEEN   TO_DATE(#{startDate}, 'YYYYMMDD')
+                                   AND       TO_DATE(#{endDate},  'YYYYMMDD') + 0.99999
+			GROUP   BY  FRST_RGTR_ID
+			UNION  ALL   
+			SELECT  FRST_RGTR_ID                                AS  FRST_RGTR_ID
+			      , 0                                           AS  RETE_COUNT
+			      , COUNT(BBSCTT_ESNTAL_NO)                     AS  CMNT_COUNT
+			FROM    AYE110
+			WHERE   BBSCTT_TYPE_SE_CD    =  '18'
+			AND     DEL_YN               =  'N'
+            AND     FRST_REG_DT    BETWEEN   TO_DATE(#{startDate}, 'YYYYMMDD')
+                                   AND       TO_DATE(#{endDate},  'YYYYMMDD') + 0.99999
+			GROUP   BY  FRST_RGTR_ID
+			)
+			SELECT  (SELECT  C##RG.DEC_B64(SCA100.FLNM_ENCPT) 
+			         FROM    SCA100          
+			               , SAA200 
+			          WHERE  LIST_A.FRST_RGTR_ID  =  SAA200.USER_ID
+			          AND    SAA200.ENFSN_NO      =  SCA100.ENFSN_NO
+			          AND    DEL_YN      =   'N'
+			         )                                          AS  COUNSELOR
+			       , '(' || LIST_A.FRST_RGTR_ID || ')'          AS  ID
+			       , NVL(SUM(RETE_COUNT),0)                     AS  RETECOUNT
+			       , NVL(SUM(CMNT_COUNT),0)                     AS  CMNTCOUNT			FROM     LIST_A 
+						GROUP    BY  FRST_RGTR_ID
+						ORDER    BY  1
+
+  </select>    
+
+</mapper>

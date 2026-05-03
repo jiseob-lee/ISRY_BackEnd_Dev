@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.itgcms.sysmgmt.userauth.mapper.MgmtOrgDeptMapper">
+
+
+    <delete id="deleteAllOrgDept" parameterType="HashMap">
+    <![CDATA[
+        /* deleteAllOrgDept - Lee Ji.Seob */
+        
+        DELETE FROM SAA300 /* 기관부서 */
+        WHERE INST_NO = #{INST_NO}
+        
+    ]]>
+    </delete>
+
+    
+    <insert id="saveOrgDept">
+    <![CDATA[
+        /* saveOrgDept - Lee JiSeob */
+
+        INSERT INTO SAA300 /* 기관부서 */
+        (
+            DEPT_CD,
+            INST_NO,
+            DEPT_NM,
+            MAIN_TASKWK_CN,
+            DEPT_TELNO,
+            DEPT_FXNO,
+            DEL_YN,
+            SRTNG_SQNCE,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT,
+            UNT_TASKWK_SE_CD
+        )
+        VALUES
+        (
+            #{DEPT_CD},
+            #{INST_NO},
+            #{DEPT_NM},
+            #{MAIN_TASKWK_CN},
+            #{DEPT_TELNO},
+            #{DEPT_FXNO},
+            #{DEL_YN},
+            #{SRTNG_SQNCE},
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE,
+            '1'
+        )
+    ]]>
+    </insert>
+    
+    
+    <insert id="saveOrgDept_backup">
+    <![CDATA[
+        /* saveOrgDept_backup - Lee JiSeob */
+
+        INSERT INTO SAA300
+        (
+			DEPT_CD,
+			INST_NO,
+			DEPT_NM,
+			MAIN_TASKWK_CN,
+			DEL_YN,
+			SRTNG_SQNCE,
+			FRST_RGTR_ID,
+			FRST_REG_DT,
+			LAST_MDFR_ID,
+			LAST_MDFCN_DT
+        )
+        VALUES
+    ]]>
+        <foreach collection="list" item="receiver" index="index" separator=",">
+    <![CDATA[
+        (
+            #{receiver.DEPT_CD},
+            #{receiver.INST_CD},
+            #{receiver.DEPT_NM},
+            #{receiver.MAIN_TASKWK_CN},
+            #{receiver.DEL_YN},
+            #{receiver.SRTNG_SQNCE},
+            #{USER_ID}
+        )
+    ]]>
+       </foreach>
+    </insert>
+    
+    <insert id="insertOrgDeptHistory">
+    <![CDATA[
+        /* insertOrgDeptHistory - Park KyuYoung */
+
+        INSERT INTO SAA301 /* 기관부서 이력 */
+        (
+            DEPT_CD,
+            INST_NO,
+            MDFCN_DT,
+            DATAA_CHG_SE_CD,
+            UP_DEPT_CD,
+            DEPT_NM,
+            MAIN_TASKWK_CN,
+            DEPT_TELNO,
+            DEPT_FXNO,
+            DEL_YN,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT,
+            UNT_TASKWK_SE_CD
+        )
+        VALUES
+        (
+            #{DEPT_CD},
+            #{INST_NO},
+            SYSDATE,
+            #{DATAA_CHG_SE_CD},
+            #{UP_DEPT_CD},
+            #{DEPT_NM},
+            #{MAIN_TASKWK_CN},
+            #{DEPT_TELNO},
+            #{DEPT_FXNO},
+            #{DEL_YN},
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE,
+            '1'
+        )
+    ]]>
+    </insert>
+
+</mapper>

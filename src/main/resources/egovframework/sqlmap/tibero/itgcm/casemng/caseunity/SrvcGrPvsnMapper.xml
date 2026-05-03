@@ -1,0 +1,757 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : SrvcGrPvsnMapper.xml
+* @Description : 서비스집단제공 SQL Mapper
+*
+* @author  : Lee.Jun.Yeong
+* @since   : 2022. 6. 30.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 2022. 6. 30.  Lee.Jun.Yeong    최초작성
+* 
+* </pre>
+-->
+<mapper namespace="isry.itgcm.casemng.caseunity.mapper.SrvcGrPvsnMapper">
+
+
+    <sql id="SRVC_GR_PVSN_LIST">
+        <![CDATA[
+            SELECT /* isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectSrvcGrPvsnList(서비스집단제공목록조회) */
+                   ROWNUM AS SEQ
+                 , T1.REG_DT                                                     AS REG_DT                   -- 등록일자
+                 , T1.RESRCE_NO                                                  AS RESRCE_NO                -- 자원번호
+                 , T1.RESRCE_NM                                                  AS RESRCE_NM                -- 자원명
+                 , T1.SRVC_TYPE_SE_CD                                            AS SRVC_TYPE_SE_CD          -- 서비스유형구분코드  
+                 , T1.SRVC_PVSN_TTL_NM                  AS SRVC_EXCN_BIZ_NM         -- 서비스실행사업명
+                 , T1.SRVC_PVSN_MTHD_SE_CD                                       AS SRVC_PVSN_MTHD_SE_CD     -- 서비스제공방법구분코드
+                 , T1.SRVC_PVSN_BGNG_YMD                                         AS SRVC_PVSN_BGNG_YMD       -- 서비스제공시작일자
+                 , T1.SRVC_PVSN_END_YMD                                          AS SRVC_PVSN_END_YMD        -- 서비스제공종료일자
+                 , T1.SRVC_PVSN_BGNG_HR                                          AS SRVC_PVSN_BGNG_HR        -- 서비스제공시작시간
+                 , T1.SRVC_PVSN_END_HR                                           AS SRVC_PVSN_END_HR         -- 서비스제공종료시간 
+                 , T1.RSFR_INST_NO                                               AS RSFR_INST_NO             -- 자원제공주체번호
+                 , NVL((SELECT INST_NM FROM SAA000 WHERE INST_NO = T1.RSFR_INST_NO),
+                  (SELECT INST_NM FROM SDA600 WHERE INST_NO = T1.RSFR_INST_NO))  AS RSFR_INST_NM             -- 자원제공주체명
+                 , T1.PIC_NO                                                     AS PIC_NO                   -- 담당자번호
+                 , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100 WHERE ENFSN_NO = T1.PIC_NO)    AS PIC_NM                   -- 담당자명
+                 , T1.SRVC_PVSN_NO                                               AS SRVC_PVSN_NO             -- 서비스제공번호 
+                 , T1.SRVC_PVSN_WHDA_YN                                          AS SRVC_PVSN_WHDA_YN        -- 서비스제공전일여부
+                 , CASE WHEN T1.TRPR_CNT > 1 THEN C##RG.DEC_B64(T1.TRPR_NM_ENCPT) || ' 외 ' || T1.CNT || '명' ELSE C##RG.DEC_B64(T1.TRPR_NM_ENCPT) END AS TRPR_CNT --대상자
+                 , T1.FRST_REG_DT
+              FROM (
+                     SELECT TO_CHAR(T2.FRST_REG_DT, 'YYYYMMDD')                     AS REG_DT                   -- 등록일자
+                                  , T2.RESRCE_NO                                            AS RESRCE_NO                -- 자원번호
+                                  , T2.SRVC_PVSN_TTL_NM                             AS SRVC_PVSN_TTL_NM -- 서비스제공제목명
+                                  , T2.FRST_REG_DT                                  AS FRST_REG_DT
+                                  , T3.PVSN_RESRCE_NM                                       AS RESRCE_NM                -- 자원명
+                                  , T3.SRVC_TYPE_SE_CD                                      AS SRVC_TYPE_SE_CD          -- 서비스유형구분코드     
+                                  , T2.SRVC_PVSN_MTHD_SE_CD                                 AS SRVC_PVSN_MTHD_SE_CD     -- 서비스제공방법구분코드
+                                  , TO_CHAR(TO_DATE(T2.SRVC_PVSN_BGNG_YMD), 'YYYYMMDD')     AS SRVC_PVSN_BGNG_YMD       -- 서비스제공시작일자
+                                  , TO_CHAR(TO_DATE(T2.SRVC_PVSN_END_YMD) , 'YYYYMMDD')     AS SRVC_PVSN_END_YMD        -- 서비스제공종료일자
+                                  , T2.SRVC_PVSN_BGNG_HR                                    AS SRVC_PVSN_BGNG_HR        -- 서비스제공시작시간
+                                  , T2.SRVC_PVSN_END_HR                                     AS SRVC_PVSN_END_HR         -- 서비스제공종료시간
+                                  , T3.RSFR_INST_NO                                         AS RSFR_INST_NO             -- 자원제공주체번호
+                                  , T2.PIC_NO                                               AS PIC_NO                   -- 담당자번호
+                                  , T2.TKCG_INST_NO                                         AS TKCG_INST_NO             -- 담당기관
+                                  , T2.SRVC_PVSN_NO                                         AS SRVC_PVSN_NO             -- 서비스제공번호
+                                  , T2.SRVC_PVSN_WHDA_YN                                    AS SRVC_PVSN_WHDA_YN        -- 서비스제공전일여부
+                                  , T2.SRVC_EXCN_BIZ_NO                                     AS SEB500_SRVC_EXCN_BIZ_NO
+                                  , T3.SRVC_EXCN_BIZ_NO                                     AS SDA100_SRVC_EXCN_BIZ_NO
+                                  , X.TRPR_CNT
+                                  , X.TRPR_NM_ENCPT
+                                  , X.CNT
+                    FROM SEB500 T2
+                    JOIN SDA100 T3 ON T2.RESRCE_NO = T3.RESRCE_NO
+                    LEFT JOIN (
+                        SELECT
+                            A.SRVC_PVSN_NO
+                            , COUNT(A.CASE_MNG_NO) AS TRPR_CNT
+                            , COUNT(A.CASE_MNG_NO) -1 AS CNT
+                            , MAX(C.TRPR_NM_ENCPT) AS TRPR_NM_ENCPT
+                        FROM SEB510 A
+                        LEFT JOIN SEB100 B
+                        ON A.CASE_MNG_NO = B.CASE_MNG_NO
+                        AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+                        LEFT JOIN SEA200 C
+                        ON B.TRPR_INFO_NO = C.TRPR_INFO_NO
+                        
+                        WHERE 1=1
+                        AND A.DEL_YN != 'Y'
+                        
+                        GROUP BY A.SRVC_PVSN_NO
+                    ) X
+                    ON T2.SRVC_PVSN_NO = X.SRVC_PVSN_NO
+                    
+                    WHERE 1=1
+                    
+                        ]]>
+                      <if test="START_DATE != null and START_DATE != ''">
+                      <![CDATA[
+                        AND TO_CHAR(T2.FRST_REG_DT, 'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE}
+                      ]]>
+                      </if>
+                      <if test="PVSN_RESRCE_NM != null and PVSN_RESRCE_NM != ''">
+                      <![CDATA[
+                        AND T3.PVSN_RESRCE_NM                   LIKE '%'||#{PVSN_RESRCE_NM}||'%'
+                      ]]>
+                      </if>
+                      <if test="SRVC_TYPE_SE_CD != null and SRVC_TYPE_SE_CD != ''">
+                      <![CDATA[
+                        AND T3.SRVC_TYPE_SE_CD                  = #{SRVC_TYPE_SE_CD}
+                      ]]>
+                      </if>
+                      <if test="SRVC_PVSN_MTHD_SE_CD != null and SRVC_PVSN_MTHD_SE_CD != ''">
+                      <![CDATA[
+                        AND T2.SRVC_PVSN_MTHD_SE_CD             = #{SRVC_PVSN_MTHD_SE_CD}
+                      ]]>
+                      </if>
+                      <if test="SRVC_EXCN_BIZ_NM != null and SRVC_EXCN_BIZ_NM != ''">
+                      <![CDATA[
+                        AND T2.SRVC_PVSN_TTL_NM             LIKE '%'||#{SRVC_EXCN_BIZ_NM}||'%'
+                      ]]>
+                      </if>
+                      <![CDATA[
+                        AND T2.DEL_YN            != 'Y'
+                        AND T2.SRVC_GR_PVSN_YN    = 'Y' /* 집단제공 */
+                        AND T3.USE_YN             = 'Y'
+                   ) T1
+               WHERE 1 = 1
+               ]]>
+               
+                /* 20230203_유치훈_권한 쿼리 최종변경사항 수정_권한쿼리시작*/                               
+               <include refid="GroupAuthrtMapper.srvcGrPvsnGropuAuthrt"/>                                   
+               /* 20230203_유치훈_권한 쿼리 최종변경사항 수정_권한쿼리종료*/                
+               
+               
+               <if test="RSFR_INST_NM != null and RSFR_INST_NM != ''">
+               <![CDATA[
+                 AND((SELECT INST_NM FROM SAA000
+                       WHERE INST_NO = T1.RSFR_INST_NO) LIKE '%'||#{RSFR_INST_NM}||'%'
+                     OR T1.RSFR_INST_NO = #{RSFR_INST_NO})
+               ]]>
+               </if>
+    </sql>
+
+
+
+    <!-- 서비스집단제공 목록건수조회 -->
+    <select id="getSrvcGrPvsnList" parameterType="HashMap" resultType="Integer">
+           SELECT COUNT(*)
+             FROM (   
+	        <include refid="SRVC_GR_PVSN_LIST"/>
+           ) T    
+           WHERE 1 = 1    
+    </select>
+    
+    <!-- 서비스집단제공 목록조회 -->
+    <select id="selectSrvcGrPvsnList" parameterType="HashMap" resultType="HashMap">
+           SELECT #{TOT_CNT} AS TOT_CNT
+                , T.*
+             FROM (   
+        <include refid="SRVC_GR_PVSN_LIST"/> 
+           ) T    
+           WHERE 1 = 1
+           <![CDATA[
+            AND T.SEQ >= #{START_IDX} AND T.SEQ <= #{LAST_IDX}
+            ]]>
+            ORDER BY T.FRST_REG_DT DESC                    
+    </select>    
+
+
+    <!-- 서비스집단제공 목록조회 -->
+    <select id="selectSrvcGrPvsnList_original" parameterType="HashMap" resultType="HashMap">
+    
+        <!-- 페이지 인덱서 헤더 -->            
+        <include refid="ComPagingMapper.pageDistinctHeader"/>
+        
+        <![CDATA[
+            SELECT /* isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectSrvcGrPvsnList(서비스집단제공목록조회) */
+			       COUNT(*) OVER() AS TOT_CNT --공통추가
+                 , T1.REG_DT                                                     AS REG_DT                   -- 등록일자
+                 , T1.RESRCE_NO                                                  AS RESRCE_NO                -- 자원번호
+                 , T1.RESRCE_NM                                                  AS RESRCE_NM                -- 자원명
+                 , T1.SRVC_TYPE_SE_CD                                            AS SRVC_TYPE_SE_CD          -- 서비스유형구분코드  
+                 , T1.SRVC_PVSN_TTL_NM                  AS SRVC_EXCN_BIZ_NM         -- 서비스실행사업명
+                 , T1.SRVC_PVSN_MTHD_SE_CD                                       AS SRVC_PVSN_MTHD_SE_CD     -- 서비스제공방법구분코드
+                 , T1.SRVC_PVSN_BGNG_YMD                                         AS SRVC_PVSN_BGNG_YMD       -- 서비스제공시작일자
+                 , T1.SRVC_PVSN_END_YMD                                          AS SRVC_PVSN_END_YMD        -- 서비스제공종료일자
+                 , T1.SRVC_PVSN_BGNG_HR                                          AS SRVC_PVSN_BGNG_HR        -- 서비스제공시작시간
+                 , T1.SRVC_PVSN_END_HR                                           AS SRVC_PVSN_END_HR         -- 서비스제공종료시간 
+                 , T1.RSFR_INST_NO                                               AS RSFR_INST_NO             -- 자원제공주체번호
+                 , NVL((SELECT INST_NM FROM SAA000 WHERE INST_NO = T1.RSFR_INST_NO),
+                  (SELECT INST_NM FROM SDA600 WHERE INST_NO = T1.RSFR_INST_NO))  AS RSFR_INST_NM             -- 자원제공주체명
+                 , T1.PIC_NO                                                     AS PIC_NO                   -- 담당자번호
+                 , (SELECT FLNM_ENCPT FROM SCA100 WHERE ENFSN_NO = T1.PIC_NO)    AS PIC_NM                   -- 담당자명
+                 , T1.SRVC_PVSN_NO                                               AS SRVC_PVSN_NO             -- 서비스제공번호 
+                 , T1.SRVC_PVSN_WHDA_YN                                          AS SRVC_PVSN_WHDA_YN        -- 서비스제공전일여부
+                 , CASE WHEN T1.TRPR_CNT > 1 THEN C##RG.DEC_B64(T1.TRPR_NM_ENCPT) || ' 외 ' || T1.CNT || '명' ELSE C##RG.DEC_B64(T1.TRPR_NM_ENCPT) END AS TRPR_CNT --대상자
+			  FROM (
+			         SELECT TO_CHAR(T2.FRST_REG_DT, 'YYYYMMDD')                     AS REG_DT                   -- 등록일자
+					              , T2.RESRCE_NO                                            AS RESRCE_NO                -- 자원번호
+					              , T2.SRVC_PVSN_TTL_NM                             AS SRVC_PVSN_TTL_NM -- 서비스제공제목명
+					              , T3.PVSN_RESRCE_NM                                       AS RESRCE_NM                -- 자원명
+					              , T3.SRVC_TYPE_SE_CD                                      AS SRVC_TYPE_SE_CD          -- 서비스유형구분코드     
+					              , T2.SRVC_PVSN_MTHD_SE_CD                                 AS SRVC_PVSN_MTHD_SE_CD     -- 서비스제공방법구분코드
+					              , TO_CHAR(TO_DATE(T2.SRVC_PVSN_BGNG_YMD), 'YYYYMMDD')     AS SRVC_PVSN_BGNG_YMD       -- 서비스제공시작일자
+					              , TO_CHAR(TO_DATE(T2.SRVC_PVSN_END_YMD) , 'YYYYMMDD')     AS SRVC_PVSN_END_YMD        -- 서비스제공종료일자
+					              , T2.SRVC_PVSN_BGNG_HR                                    AS SRVC_PVSN_BGNG_HR        -- 서비스제공시작시간
+					              , T2.SRVC_PVSN_END_HR                                     AS SRVC_PVSN_END_HR         -- 서비스제공종료시간
+					              , T3.RSFR_INST_NO                                         AS RSFR_INST_NO             -- 자원제공주체번호
+					              , T2.PIC_NO                                               AS PIC_NO                   -- 담당자번호
+					              , T2.TKCG_INST_NO                                         AS TKCG_INST_NO             -- 담당기관
+					              , T2.SRVC_PVSN_NO                                         AS SRVC_PVSN_NO             -- 서비스제공번호
+					              , T2.SRVC_PVSN_WHDA_YN                                    AS SRVC_PVSN_WHDA_YN        -- 서비스제공전일여부
+					              , T2.SRVC_EXCN_BIZ_NO                                     AS SEB500_SRVC_EXCN_BIZ_NO
+					              , T3.SRVC_EXCN_BIZ_NO                                     AS SDA100_SRVC_EXCN_BIZ_NO
+					              , X.TRPR_CNT
+                                  , X.TRPR_NM_ENCPT
+                                  , X.CNT
+					FROM SEB500 T2
+					JOIN SDA100 T3 ON T2.RESRCE_NO = T3.RESRCE_NO
+					LEFT JOIN (
+                        SELECT
+                            A.SRVC_PVSN_NO
+                            , COUNT(A.CASE_MNG_NO) AS TRPR_CNT
+                            , COUNT(A.CASE_MNG_NO) -1 AS CNT
+                            , MAX(C.TRPR_NM_ENCPT) AS TRPR_NM_ENCPT
+                        FROM SEB510 A
+                        LEFT JOIN SEB100 B
+                        ON A.CASE_MNG_NO = B.CASE_MNG_NO
+                        AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+                        LEFT JOIN SEA200 C
+                        ON B.TRPR_INFO_NO = C.TRPR_INFO_NO
+                        
+                        WHERE 1=1
+                        AND A.DEL_YN != 'Y'
+                        
+                        GROUP BY A.SRVC_PVSN_NO
+                    ) X
+                    ON T2.SRVC_PVSN_NO = X.SRVC_PVSN_NO
+                    
+					WHERE 1=1
+					
+			            ]]>
+			          <if test="START_DATE != null and START_DATE != ''">
+				      <![CDATA[
+				        AND TO_CHAR(T2.FRST_REG_DT, 'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE}
+				      ]]>
+				      </if>
+				      <if test="PVSN_RESRCE_NM != null and PVSN_RESRCE_NM != ''">
+				      <![CDATA[
+				        AND T3.PVSN_RESRCE_NM                   LIKE '%'||#{PVSN_RESRCE_NM}||'%'
+				      ]]>
+				      </if>
+				      <if test="SRVC_TYPE_SE_CD != null and SRVC_TYPE_SE_CD != ''">
+				      <![CDATA[
+				        AND T3.SRVC_TYPE_SE_CD                  = #{SRVC_TYPE_SE_CD}
+				      ]]>
+				      </if>
+				      <if test="SRVC_PVSN_MTHD_SE_CD != null and SRVC_PVSN_MTHD_SE_CD != ''">
+				      <![CDATA[
+				        AND T2.SRVC_PVSN_MTHD_SE_CD             = #{SRVC_PVSN_MTHD_SE_CD}
+				      ]]>
+				      </if>
+				      <if test="SRVC_EXCN_BIZ_NM != null and SRVC_EXCN_BIZ_NM != ''">
+				      <![CDATA[
+				        AND T2.SRVC_PVSN_TTL_NM             LIKE '%'||#{SRVC_EXCN_BIZ_NM}||'%'
+				      ]]>
+				      </if>
+				      <![CDATA[
+			            AND T2.DEL_YN            != 'Y'
+			            AND T2.SRVC_GR_PVSN_YN    = 'Y' /* 집단제공 */
+			            AND T3.USE_YN             = 'Y'
+			          ORDER BY T2.FRST_REG_DT
+			       ) T1
+			   WHERE 1 = 1
+	           ]]>
+	           
+	            /* 20230203_유치훈_권한 쿼리 최종변경사항 수정_권한쿼리시작*/                               
+               <include refid="GroupAuthrtMapper.srvcGrPvsnGropuAuthrt"/>                                   
+               /* 20230203_유치훈_권한 쿼리 최종변경사항 수정_권한쿼리종료*/                
+               
+	           
+               <if test="RSFR_INST_NM != null and RSFR_INST_NM != ''">
+               <![CDATA[
+                 AND((SELECT INST_NM FROM SAA000
+                       WHERE INST_NO = T1.RSFR_INST_NO) LIKE '%'||#{RSFR_INST_NM}||'%'
+                     OR T1.RSFR_INST_NO = #{RSFR_INST_NO})
+               ]]>
+               </if>
+	           ORDER BY T1.SRVC_PVSN_NO DESC
+	           
+	           <!-- 페이지 인덱서 OFFSET 조건 -->
+               <include refid="ComPagingMapper.pageDistinctOffset"/>
+    </select>
+
+    <!-- 서비스집단제공 상세조회 -->
+    <select id="selectCaseGrExcnDetail" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            SELECT /* isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectCaseGrExcnDetail(서비스집단제공상세조회) */
+			       DISTINCT
+			       T1.REG_DATE                                                  AS REG_DATE                     -- 등록일자
+			     , T1.RESRCE_NO                                                 AS RESRCE_NO                    -- 자원번호
+			     , T1.ORG_RESRCE_NO                                             AS ORG_RESRCE_NO                -- 자원번호
+			     , T1.RESRCE_NM                                                 AS RESRCE_NM                    -- 자원명
+			     , CASE WHEN T1.SRVC_EXCN_BIZ_CHC_PSBLTY_YN = 'Y' THEN T1.SEB500_SRVC_EXCN_BIZ_NO
+			            ELSE ''
+			        END                                                         AS SRVC_EXCN_BIZ_NO             -- 서비스실행사업번호
+			     , (SELECT X.SRVC_EXCN_BIZ_NM FROM SDA420 X
+			         WHERE X.SRVC_EXCN_BIZ_NO = CASE WHEN T1.SRVC_EXCN_BIZ_CHC_PSBLTY_YN = 'Y' THEN T1.SEB500_SRVC_EXCN_BIZ_NO
+			                                         ELSE T1.SDA100_SRVC_EXCN_BIZ_NO
+			                                     END)                           AS SRVC_EXCN_BIZ_NM             -- 서비스실행사업명 
+			     , T1.SRVC_PVSN_MTHD_SE_CD                                      AS SRVC_PVSN_MTHD_SE_CD         -- 서비스제공방법구분코드
+			     , T1.SRVC_PVSN_BGNG_YMD                                        AS SRVC_PVSN_BGNG_YMD           -- 서비스제공시작일자
+			     , T1.SRVC_PVSN_END_YMD                                         AS SRVC_PVSN_END_YMD            -- 서비스제공종료일자
+			     , T1.SRVC_PVSN_BGNG_HR                                         AS SRVC_PVSN_BGNG_HR            -- 서비스제공시작시간
+			     , T1.SRVC_PVSN_END_HR                                          AS SRVC_PVSN_END_HR             -- 서비스제공종료시간
+			     , T1.RSFR_INST_NO                                              AS RSFR_INST_NO                 -- 자원제공주체번호
+			     , NVL((SELECT INST_NM FROM SAA000 WHERE INST_NO = T1.RSFR_INST_NO),
+			      (SELECT INST_NM FROM SDA600 WHERE INST_NO = T1.RSFR_INST_NO)) AS RSFR_INST_NM                 -- 자원제공주체명
+			     , T1.SRVC_TYPE_SE_CD                                           AS SRVC_TYPE_SE_CD              -- 서비스유형구분코드
+			     , T1.PIC_NO                                                    AS PIC_NO                       -- 담당자번호
+			     , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100
+			         WHERE ENFSN_NO = T1.PIC_NO)                                AS PIC_NM                       -- 담당자명
+			     , T1.TKCG_INST_NO                                              AS TKCG_INST_NO                 -- 담당기관번호
+			     , (SELECT INST_NM FROM SAA000 WHERE INST_NO = T1.TKCG_INST_NO) AS TKCG_INST_NM                 -- 담당기관명
+			     , T1.SRVC_PVSN_CN                                              AS SRVC_PVSN_CN                 -- 서비스목표내용
+			     , T1.SRVC_PVSN_TTL_NM                                          AS SRVC_PVSN_TTL_NM             -- 서비스제공제목명
+			     , T1.SRVC_PVSN_NO                                              AS SRVC_PVSN_NO                 -- 서비스제공번호
+			     , T1.SRVC_PVSN_WHDA_YN                                         AS SRVC_PVSN_WHDA_YN            -- 서비스제공전일여부
+			     , T1.SRVC_EXCN_BIZ_CHC_PSBLTY_YN                               AS SRVC_EXCN_BIZ_CHC_PSBLTY_YN  -- 서비스실행사업선택가능여부
+			     , T1.SRVC_GR_PVSN_YN                                           AS SRVC_GR_PVSN_YN              -- 서비스집단제공여부
+			     , T1.ATFINO                                                    AS ATFINO                       -- 첨부파일번호
+			     , T1.SRVC_RESRCE_LCLAS_SE_CD                                   AS SRVC_RESRCE_LCLAS_SE_CD      -- 서비스자원대분류구분코드
+                 , T1.APRV_STTS_SE_CD                                           AS APRV_STTS_SE_CD              -- 승인상태구분코드
+			  FROM (
+			         SELECT TO_CHAR(T2.FRST_REG_DT, 'YYYY-MM-DD')                       AS REG_DATE             -- 등록일자
+			              , T1.RESRCE_NO                                                AS RESRCE_NO            -- 자원번호
+			              , T1.RESRCE_NO                                                AS ORG_RESRCE_NO        -- 자원번호
+			              , T3.PVSN_RESRCE_NM                                           AS RESRCE_NM            -- 자원명
+			              , T2.SRVC_PVSN_MTHD_SE_CD                                     AS SRVC_PVSN_MTHD_SE_CD -- 서비스제공방법구분코드
+			              , TO_CHAR(TO_DATE(T2.SRVC_PVSN_BGNG_YMD), 'YYYYMMDD')         AS SRVC_PVSN_BGNG_YMD   -- 서비스제공시작일자
+			              , TO_CHAR(TO_DATE(T2.SRVC_PVSN_END_YMD) , 'YYYYMMDD')         AS SRVC_PVSN_END_YMD    -- 서비스제공종료일자
+			              , T2.SRVC_PVSN_BGNG_HR                                        AS SRVC_PVSN_BGNG_HR    -- 서비스제공시작시간
+			              , T2.SRVC_PVSN_END_HR                                         AS SRVC_PVSN_END_HR     -- 서비스제공종료시간
+			              , T3.RSFR_INST_NO                                             AS RSFR_INST_NO         -- 자원제공주체번호
+			              , T3.SRVC_TYPE_SE_CD                                          AS SRVC_TYPE_SE_CD      -- 서비스유형구분코드
+			              , T3.SRVC_RESRCE_LCLAS_SE_CD                                  AS SRVC_RESRCE_LCLAS_SE_CD-- 서비스자원대분류구분코드
+                          , T3.APRV_STTS_SE_CD                                          AS APRV_STTS_SE_CD      -- 승인상태구분코드
+			              , T2.PIC_NO                                                   AS PIC_NO               -- 담당자번호
+			              , T2.TKCG_INST_NO                                             AS TKCG_INST_NO         -- 담당기관번호
+			              , T2.SRVC_PVSN_CN                                             AS SRVC_PVSN_CN         -- 서비스목표내용
+			              , T2.SRVC_PVSN_TTL_NM                                         AS SRVC_PVSN_TTL_NM     -- 서비스제공제목명
+			              , T1.SRVC_PVSN_NO                                             AS SRVC_PVSN_NO         -- 서비스제공번호
+			              , T2.SRVC_PVSN_WHDA_YN                                        AS SRVC_PVSN_WHDA_YN    -- 서비스제공전일여부
+			              , NVL(( SELECT Z.ADDTNG_MNG_VALUE3
+			                        FROM SAC100 Z
+			                       WHERE Z.CMMNS_CD_ID    = 'UNT_TASKWK_SE_CD'
+			                         AND Z.CMMNS_CD_VALUE = #{UNT_TASKWK_SE_CD}
+			                    ), 'N')                                                 AS SRVC_EXCN_BIZ_CHC_PSBLTY_YN  -- 서비스실행사업선택가능여부
+			              , T2.SRVC_GR_PVSN_YN                                          AS SRVC_GR_PVSN_YN              -- 서비스집단제공여부
+			              , T2.ATFINO                                                   AS ATFINO                       -- 첨부파일번호
+			              , T2.SRVC_EXCN_BIZ_NO                                         AS SEB500_SRVC_EXCN_BIZ_NO
+			              , T3.SRVC_EXCN_BIZ_NO                                         AS SDA100_SRVC_EXCN_BIZ_NO
+			          FROM SEB510 T1    /* 서비스제공대상자 */
+			             , SEB500 T2    /* 서비스제공 */
+			             , SDA100 T3    /* 자원기본 */
+			         WHERE T1.SRVC_PVSN_NO      = T2.SRVC_PVSN_NO
+			           AND T1.RESRCE_NO         = T2.RESRCE_NO
+			           AND T1.RESRCE_NO         = T3.RESRCE_NO
+			           AND T1.SRVC_PVSN_NO      = #{SRVC_PVSN_NO}
+			         ]]>
+			         <if test="RESRCE_NO != null and RESRCE_NO != ''">
+                     <![CDATA[
+			           AND T1.RESRCE_NO         = #{RESRCE_NO}
+			         ]]>
+			         </if>
+			         <![CDATA[
+			           AND T1.DEL_YN           != 'Y'
+			           AND T2.DEL_YN           != 'Y'
+			           AND T2.SRVC_GR_PVSN_YN   = 'Y'
+			           AND T3.USE_YN            = 'Y'
+			       ) T1
+                     ]]>
+    </select>
+
+    <!-- 프로그램 목록조회 -->
+    <select id="selectGrExcnProgramList" parameterType="HashMap" resultType="HashMap">
+      <![CDATA[
+        SELECT /* isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectGrExcnProgramList(프로그램목록조회) */
+                DISTINCT
+                T1.RESRCE_NO                AS RESRCE_NO                -- 자원번호
+              , T1.PROGRM_NO                AS PROGRM_NO                -- 프로그램번호
+              , T1.PROGRM_TTL_NM            AS PROGRM_TTL_NM            -- 프로그램제목명
+              , T1.PROGRM_DSCRP_CN          AS PROGRM_DSCRP_CN          -- 프로그램설명내용
+              , T1.PROGRM_DGSTFN_CN         AS PROGRM_DGSTFN_CN         -- 프로그램만족도내용
+              , T1.EDU_PROGRM_SE_CD         AS EDU_PROGRM_SE_CD         -- 교육프로그램구분코드
+              , T1.PROGRM_CN                AS PROGRM_CN                -- 프로그램내용
+              , T1.PROGRM_BGNG_YMD          AS PROGRM_BGNG_YMD          -- 프로그램시작일자
+              , T1.PROGRM_END_YMD           AS PROGRM_END_YMD           -- 프로그램종료일자
+              , T1.PROGRM_SUM_HR            AS PROGRM_SUM_HR            -- 프로그램합계시간
+              , T1.SRVC_RESRCE_LCLAS_SE_CD  AS SRVC_RESRCE_LCLAS_SE_CD  -- 자원제공서비스대분류구분코드
+              , T1.SRVC_RESRCE_MLSFC_SE_CD  AS SRVC_RESRCE_MLSFC_SE_CD  -- 자원제공서비스중분류구분코드
+              , T1.SRVC_RESRCE_SCLAS_SE_CD  AS SRVC_RESRCE_SCLAS_SE_CD  -- 자원제공서비스소분류구분코드
+              , T1.SRVC_RESRCE_DTL_SE_CD    AS SRVC_RESRCE_DTL_SE_CD    -- 자원제공서비스상세구분코드
+              , T1.DEL_YN                   AS DEL_YN                   -- 삭제여부
+              , T1.FRST_RGTR_ID             AS FRST_RGTR_ID             -- 최초등록자아이디
+              , T1.FRST_REG_DT              AS FRST_REG_DT              -- 최초등록일시
+              , T1.LAST_MDFR_ID             AS LAST_MDFR_ID             -- 최종수정자아이디
+              , T1.LAST_MDFCN_DT            AS LAST_MDFCN_DT            -- 최종수정일시
+      ]]>
+    <if test="SRVC_PVSN_NO == null or SRVC_PVSN_NO == ''">
+      <![CDATA[
+              , ''                          AS SRVC_PVSN_NO             -- 서비스제공번호
+      ]]>
+    </if>
+    <if test="SRVC_PVSN_NO != null and SRVC_PVSN_NO != ''">
+      <![CDATA[
+              , T2.SRVC_PVSN_NO             AS SRVC_PVSN_NO             -- 서비스제공번호
+      ]]>
+    </if>
+
+          FROM SDA300 T1 /* 자원프로그램 */
+
+    <if test="SRVC_PVSN_NO == null or SRVC_PVSN_NO == ''">
+      <![CDATA[
+         WHERE 1 = 1
+           AND T1.DEL_YN(+)      != 'Y'
+      ]]>
+    </if>
+    <if test="SRVC_PVSN_NO != null and SRVC_PVSN_NO != ''">
+      <![CDATA[
+             , SEB520 T2 /* 자원프로그램제공대상자 */
+             , SEB510 T3 /* 서비스제공대상자 */
+         WHERE T1.DEL_YN         != 'Y'
+           AND T1.RESRCE_NO       = T2.RESRCE_NO
+           AND T1.PROGRM_NO       = T2.PROGRM_NO
+           AND T2.SRVC_PVSN_NO    = #{SRVC_PVSN_NO}
+           AND T2.DEL_YN         != 'Y'
+           AND T2.SRVC_PVSN_NO    = T3.SRVC_PVSN_NO
+           AND T2.CASE_MNG_NO     = T3.CASE_MNG_NO
+           AND T2.CASE_MNG_ODRNO  = T3.CASE_MNG_ODRNO
+           AND T3.RESRCE_NO       = T3.RESRCE_NO
+           AND T3.DEL_YN         != 'Y'
+      ]]>
+    </if>
+      <![CDATA[
+           AND T1.RESRCE_NO       = #{RESRCE_NO}
+         ORDER BY T1.RESRCE_NO, T1.PROGRM_NO
+      ]]>
+    </select>
+
+    <!-- 서비스집단제공 사례대상자 목록조회 -->
+    <select id="selectExcnCaseTrprList" parameterType="HashMap" resultType="HashMap">
+      <![CDATA[
+		SELECT /* isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectExcnCaseTrprList(사례대상자목록조회) */
+               T1.TRPR_INFO_NO                                    AS TRPR_INFO_NO                 -- 대상자정보번호
+             , C##RG.DEC_B64(T1.TRPR_NM_ENCPT)                 AS TRPR_NM                      -- 대상자명
+             , T1.TRPR_BRTH_YMD                                   AS TRPR_BRTH_YMD                -- 대상자출생일자
+             , T1.SXDC_SE_CD                                      AS SXDC_SE_CD                   -- 성별구분코드
+             , T1.CASE_TRPR_SLCTN_YMD                             AS CASE_TRPR_SLCTN_YMD          -- 사례대상자선정일자
+             , T2.CASE_MNG_NO                                     AS CASE_MNG_NO                  -- 사례관리번호
+             , T2.CASE_MNG_ODRNO                                  AS CASE_MNG_ODRNO               -- 사례관리차수
+             , T2.CASE_BGNG_YMD                                   AS CASE_BGNG_YMD                -- 사례시작일자
+             , T2.CASE_TRMN_YMD                                   AS CASE_TRMN_YMD                -- 사례종결일자
+             , T2.UNT_TASKWK_SE_CD                                AS UNT_TASKWK_SE_CD             -- 단위업무구분코드
+             , T2.CASE_PRGRS_STTS_SE_CD                           AS CASE_PRGRS_STTS_SE_CD        -- 사례진행상태구분코드
+             , T5.UP_CMMNS_CD_VALUE                               AS CASE_PRGRS_STTS_TYPE_SE_CD   -- 사례진행상태유형구분코드
+             , T3.CASE_PIC_NO                                     AS CASE_PIC_NO                  -- 사례담당자번호
+             , C##RG.DEC_B64(T6.FLNM_ENCPT)                    AS CASE_PIC_NM                  -- 사례담당자명
+             , T3.PIC_INST_NO                                     AS PIC_INST_NO                  -- 담당자기관번호
+             , T7.INST_NM                                         AS PIC_INST_NM                  -- 담당자기관명
+             , T4.SRVC_PVSN_NO                                    AS SRVC_PVSN_NO                 -- 서비스제공번호
+             , T4.RESRCE_NO                                       AS RESRCE_NO                    -- 자원번호
+             , T4.SRVC_PVSN_YN                                    AS SRVC_PVSN_YN                 -- 서비스제공여부
+             , T1.ACBG_SE_CD                                      AS ACBG_SE_CD                   -- 학력구분코드
+             , T1.GRDTN_STTS_SE_CD                                AS GRDTN_STTS_SE_CD             -- 졸업상태구분코드
+             , T2.CASE_MNG_NO||T2.CASE_MNG_ODRNO                  AS CASE_MNG_NO_ODRNO
+             , T8.DDLN_CRTR_YMD
+             , T8.INST_NO
+             , T8.DDLN_YM
+             , T8.DDLN_YN
+             , T8.DDLN_APLCN_CRTR_SE_CD
+          FROM SEA200 T1
+             , SEB100 T2
+             , SEB150 T3
+             , SEB510 T4
+             , SAC100 T5
+             , SCA100 T6
+             , SAA000 T7
+             , (SELECT 
+                    CASE WHEN A.DDLN_APLCN_CRTR_SE_CD = '00' THEN TO_CHAR(LAST_DAY(TO_DATE(A.DDLN_YM,'YYYYMM')),'YYYYMMDD')
+                        WHEN A.DDLN_APLCN_CRTR_SE_CD = '99' THEN TO_CHAR(LAST_DAY(ADD_MONTHS(TO_DATE(A.DDLN_YM,'YYYYMM'), 1)),'YYYYMMDD')
+                        ELSE TO_CHAR(ADD_MONTHS(TO_DATE(A.DDLN_YM,'YYYYMM'), 1), 'YYYYMM') || A.DDLN_APLCN_CRTR_SE_CD
+                    END                      AS DDLN_CRTR_YMD         /* 마감기준년월 */
+                 , A.INST_NO                AS INST_NO               /* 기관번호 */
+                 , A.UNT_TASKWK_SE_CD       AS UNT_TASKWK_SE_CD      /* 단위업무구분코드 */
+                 , A.DDLN_YM                AS DDLN_YM               /* 마감년월 */
+                 , A.DDLN_YN                AS DDLN_YN               /* 마감여부 */
+                 , A.DDLN_APLCN_CRTR_SE_CD  AS DDLN_APLCN_CRTR_SE_CD /* 마감적용기준구분코드 */
+              FROM SEC330 A /* 사례관리마감 */
+               WHERE A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+               AND A.DDLN_YM          = ( SELECT MAX(DDLN_YM)
+                                             FROM SEC330
+                                            WHERE INST_NO          = A.INST_NO
+                                              AND UNT_TASKWK_SE_CD = A.UNT_TASKWK_SE_CD )
+               AND A.DDLN_YN          = 'Y'      ) T8
+         WHERE T1.TRPR_INFO_NO      = T2.TRPR_INFO_NO
+           AND T2.CASE_MNG_NO       = T3.CASE_MNG_NO
+           AND T2.CASE_MNG_NO       = T4.CASE_MNG_NO
+           AND T2.CASE_MNG_ODRNO    = T3.CASE_MNG_ODRNO
+           AND T2.CASE_MNG_ODRNO    = T4.CASE_MNG_ODRNO
+           AND T2.UNT_TASKWK_SE_CD  = #{UNT_TASKWK_SE_CD}
+           AND T4.SRVC_PVSN_NO      = #{SRVC_PVSN_NO}
+           AND T3.PCHPRS_YN         = 'Y'
+           AND T4.DEL_YN           != 'Y'
+           AND 'CASE_PRGRS_STTS_SE_CD' = T5.CMMNS_CD_ID(+)
+           AND T2.CASE_PRGRS_STTS_SE_CD= T5.CMMNS_CD_VALUE(+)
+           AND T3.CASE_PIC_NO       = T6.ENFSN_NO(+)
+           AND T3.PIC_INST_NO       = T7.INST_NO(+)
+           AND T6.OGDP_INST_NO      = T8.INST_NO(+)
+         ORDER BY T1.TRPR_INFO_NO DESC
+      ]]>
+    </select>
+
+    <!-- 서비스집단제공 이력 불러오기 -->
+    <select id="selectSrvcGrPvsnHstrList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            SELECT /* isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectSrvcGrPvsnHstrList(서비스집단제공 이력 불러오기) */
+			       DISTINCT
+			       T1.SRVC_PVSN_NO                      AS SRVC_PVSN_NO                 -- 서비스제공번호
+			     , T1.RESRCE_NO                         AS RESRCE_NO                    -- 자원번호
+			     , T1.RESRCE_NM                         AS RESRCE_NM                    -- 자원명
+			     , T1.RSFR_INST_NO                      AS RSFR_INST_NO                 -- 자원제공주체번호
+			     , NVL((SELECT INST_NM FROM SAA000 WHERE INST_NO = T1.RSFR_INST_NO),
+                  (SELECT INST_NM FROM SDA600 WHERE INST_NO = T1.RSFR_INST_NO)) AS RSFR_INST_NM                 -- 자원제공주체명
+			     , CASE WHEN T1.SRVC_EXCN_BIZ_CHC_PSBLTY_YN = 'Y' THEN T1.SEB500_SRVC_EXCN_BIZ_NO
+			            ELSE ''
+			        END                                 AS SRVC_EXCN_BIZ_NO             -- 서비스실행사업번호
+			     , (SELECT X.SRVC_EXCN_BIZ_NM FROM SDA420 X
+			         WHERE X.SRVC_EXCN_BIZ_NO = CASE WHEN T1.SRVC_EXCN_BIZ_CHC_PSBLTY_YN = 'Y' THEN T1.SEB500_SRVC_EXCN_BIZ_NO
+			                                         ELSE T1.SDA100_SRVC_EXCN_BIZ_NO
+			                                     END)   AS SRVC_EXCN_BIZ_NM             -- 서비스실행사업명
+			     , T1.SRVC_TYPE_SE_CD                   AS SRVC_TYPE_SE_CD              -- 서비스유형구분코드
+			     , T1.SRVC_PVSN_MTHD_SE_CD              AS SRVC_PVSN_MTHD_SE_CD         -- 서비스제공방법구분코드
+			     , T1.SRVC_PVSN_CN                      AS SRVC_PVSN_CN                 -- 서비스제공내용
+			     , T1.SRVC_PVSN_TTL_NM                  AS SRVC_PVSN_TTL_NM             -- 서비스제공제목명
+			     , T1.SRVC_PVSN_BGNG_YMD                AS SRVC_PVSN_BGNG_YMD           -- 서비스제공시작일자
+			     , T1.SRVC_PVSN_END_YMD                 AS SRVC_PVSN_END_YMD            -- 서비스제공종료일자
+			     , T1.SRVC_PVSN_BGNG_HR                 AS SRVC_PVSN_BGNG_HR            -- 서비스제공시작시간
+			     , T1.SRVC_PVSN_END_HR                  AS SRVC_PVSN_END_HR             -- 서비스제공종료시간
+			     , T1.PIC_NO                            AS PIC_NO                       -- 담당자번호
+			     , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100
+			         WHERE ENFSN_NO = T1.PIC_NO)        AS PIC_NM                       -- 담당자명
+			     , T1.TKCG_INST_NO                      AS TKCG_INST_NO                 -- 담당기관번호
+			     , (SELECT INST_NM FROM SAA000
+			         WHERE INST_NO = T1.TKCG_INST_NO)   AS TKCG_INST_NM                 -- 담당기관명
+			     , T1.SRVC_PVSN_WHDA_YN                 AS SRVC_PVSN_WHDA_YN            -- 서비스제공전일여부
+			     , T1.SRVC_GR_PVSN_YN                   AS SRVC_GR_PVSN_YN              -- 서비스집단제공여부
+			     , T1.ATFINO                            AS ATFINO                       -- 첨부파일번호
+			  FROM (
+			         SELECT T1.SRVC_PVSN_NO                      AS SRVC_PVSN_NO                    -- 서비스제공번호
+			              , T1.RESRCE_NO                         AS RESRCE_NO                       -- 자원번호
+			              , T2.PVSN_RESRCE_NM                    AS RESRCE_NM                       -- 자원명
+			              , T2.RSFR_INST_NO                      AS RSFR_INST_NO
+			              , T2.SRVC_EXCN_BIZ_NO                  AS SDA100_SRVC_EXCN_BIZ_NO
+			              , T1.SRVC_EXCN_BIZ_NO                  AS SEB500_SRVC_EXCN_BIZ_NO
+			              , T2.SRVC_TYPE_SE_CD                   AS SRVC_TYPE_SE_CD                 -- 서비스유형구분코드
+			              , T1.SRVC_PVSN_MTHD_SE_CD              AS SRVC_PVSN_MTHD_SE_CD            -- 서비스제공방법구분코드
+			              , T1.SRVC_PVSN_CN                      AS SRVC_PVSN_CN                    -- 서비스제공내용
+			              , T1.SRVC_PVSN_TTL_NM                  AS SRVC_PVSN_TTL_NM                -- 서비스제공제목명
+			              , T1.SRVC_PVSN_BGNG_YMD                AS SRVC_PVSN_BGNG_YMD              -- 서비스제공시작일자
+			              , T1.SRVC_PVSN_END_YMD                 AS SRVC_PVSN_END_YMD               -- 서비스제공종료일자
+			              , T1.SRVC_PVSN_BGNG_HR                 AS SRVC_PVSN_BGNG_HR               -- 서비스제공시작시간
+			              , T1.SRVC_PVSN_END_HR                  AS SRVC_PVSN_END_HR                -- 서비스제공종료시간
+			              , T1.PIC_NO                            AS PIC_NO                          -- 담당자번호             
+			              , T1.TKCG_INST_NO                      AS TKCG_INST_NO                    -- 담당기관번호
+			              , T1.SRVC_PVSN_WHDA_YN                 AS SRVC_PVSN_WHDA_YN               -- 서비스제공전일여부
+			              , NVL(( SELECT Z.ADDTNG_MNG_VALUE3
+			                        FROM SAC100 Z
+			                       WHERE Z.CMMNS_CD_ID    = 'UNT_TASKWK_SE_CD'
+			                         AND Z.CMMNS_CD_VALUE = #{UNT_TASKWK_SE_CD}
+			                    ), 'N')                          AS SRVC_EXCN_BIZ_CHC_PSBLTY_YN     -- 서비스실행사업선택가능여부
+			              , T1.SRVC_GR_PVSN_YN                   AS SRVC_GR_PVSN_YN                 -- 서비스집단제공여부
+			              , T1.ATFINO                            AS ATFINO                          -- 첨부파일번호
+			           FROM SEB500 T1 /* 서비스제공 */
+			              , SDA100 T2 /* 자원기본 */
+			          WHERE T1.RESRCE_NO           =  T2.RESRCE_NO
+			            AND T1.DEL_YN             !=  'Y'
+			            AND T2.USE_YN              =  'Y'
+			            AND (T1.SRVC_PVSN_BGNG_YMD BETWEEN #{SRVC_PVSN_BGNG_YMD} AND #{SRVC_PVSN_END_YMD}
+                         OR  T1.SRVC_PVSN_END_YMD  BETWEEN #{SRVC_PVSN_BGNG_YMD} AND #{SRVC_PVSN_END_YMD}
+                         OR  #{SRVC_PVSN_BGNG_YMD} BETWEEN T1.SRVC_PVSN_BGNG_YMD AND T1.SRVC_PVSN_END_YMD
+                         OR  #{SRVC_PVSN_END_YMD}  BETWEEN T1.SRVC_PVSN_BGNG_YMD AND T1.SRVC_PVSN_END_YMD)
+			            AND #{UNT_TASKWK_SE_CD}    IN ( SELECT Y.UNT_TASKWK_SE_CD
+			                                              FROM SEB510 X /* 서비스제공대상자 */
+			                                                 , SEB100 Y /* 사례기본 */
+			                                              WHERE X.SRVC_PVSN_NO   = T1.SRVC_PVSN_NO
+			                                                AND X.RESRCE_NO      = T1.RESRCE_NO
+			                                                AND X.CASE_MNG_NO    = Y.CASE_MNG_NO
+			                                                AND X.CASE_MNG_ODRNO = Y.CASE_MNG_ODRNO
+			                                              GROUP BY Y.UNT_TASKWK_SE_CD )
+			             and T1.TKCG_INST_NO = #{TKCG_INST_NO}
+			          ]]>
+			          <if test="RESRCE_NM != null and RESRCE_NM != ''">
+                      <![CDATA[
+                        AND T2.PVSN_RESRCE_NM LIKE '%'||#{RESRCE_NM}||'%'
+                      ]]>
+                      </if>
+			          ORDER BY T1.SRVC_PVSN_BGNG_YMD DESC
+			       ) T1
+    </select>
+    
+    <!-- 서비스집단제공 서비스실행사업번호 기준 사례대상자 목록조회 -->
+    <select id="selectBizNoExcnCaseTrprList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            SELECT /* isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectBizNoExcnCaseTrprList(서비스집단제공 서비스실행사업번호 기준 사례대상자 목록조회) */
+			       DISTINCT
+			       T1.TRPR_INFO_NO                                    AS TRPR_INFO_NO                -- 대상자정보번호
+			     , C##RG.DEC_B64(T1.TRPR_NM_ENCPT)                 AS TRPR_NM                     -- 대상자명
+			     , T1.TRPR_BRTH_YMD                                   AS TRPR_BRTH_YMD               -- 대상자출생일자
+			     , T1.SXDC_SE_CD                                      AS SXDC_SE_CD                  -- 성별구분코드
+			     , T1.CASE_TRPR_SLCTN_YMD                             AS CASE_TRPR_SLCTN_YMD         -- 사례대상자선정일자
+			     , T2.CASE_MNG_NO                                     AS CASE_MNG_NO                 -- 사례관리번호
+			     , T2.CASE_MNG_ODRNO                                  AS CASE_MNG_ODRNO              -- 사례관리차수
+			     , T2.CASE_BGNG_YMD                                   AS CASE_BGNG_YMD               -- 사례시작일자
+			     , T2.CASE_TRMN_YMD                                   AS CASE_TRMN_YMD               -- 사례종결일자
+			     , T2.CASE_PRGRS_STTS_SE_CD                           AS CASE_PRGRS_STTS_SE_CD       -- 사례진행상태구분코드
+			     , (SELECT UP_CMMNS_CD_VALUE
+                      FROM SAC100
+                     WHERE CMMNS_CD_ID    = 'CASE_PRGRS_STTS_SE_CD'
+                       AND CMMNS_CD_VALUE = T2.CASE_PRGRS_STTS_SE_CD) AS CASE_PRGRS_STTS_TYPE_SE_CD  -- 사례진행상태유형구분코드
+			     , T3.CASE_PIC_NO                                     AS CASE_PIC_NO                 -- 사례담당자번호
+			     , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100
+			         WHERE ENFSN_NO = T3.CASE_PIC_NO)                 AS CASE_PIC_NM                 -- 사례담당자명
+			     , T3.PIC_INST_NO                                     AS PIC_INST_NO                 -- 담당자기관번호
+			     , (SELECT INST_NM FROM SAA000
+			         WHERE INST_NO = T3.PIC_INST_NO)                  AS PIC_INST_NM                 -- 담당자기관명
+			     , #{SRVC_EXCN_BIZ_NO}                                AS SRVC_EXCN_BIZ_NO            -- 서비스실행사업번호
+			 ]]>
+			 <if test="RESRCE_NO == null or RESRCE_NO == ''">
+             <![CDATA[
+                 , ''                                                 AS RESRCE_NO                   -- 자원번호
+             ]]>
+             </if>
+             <if test="RESRCE_NO != null and RESRCE_NO != ''">
+             <![CDATA[
+                 , T4.RESRCE_NO                                       AS RESRCE_NO                   -- 자원번호
+             ]]>
+             </if>
+             <![CDATA[
+			  FROM SEA200 T1 /* 대상자정보 */
+			     , SEB100 T2 /* 사례기본 */
+			     , SEB150 T3 /* 사례담당자 */
+			     , SEB510 T4 /* 서비스제공대상자 */
+			     , SEB500 T5 /* 서비스제공 */
+			     , SDA100 T6 /* 자원기본 */
+			 WHERE T1.TRPR_INFO_NO           = T2.TRPR_INFO_NO
+			   AND T2.CASE_MNG_NO            = T3.CASE_MNG_NO
+			   AND T2.CASE_MNG_ODRNO         = T3.CASE_MNG_ODRNO
+			   AND T2.CASE_MNG_NO            = T4.CASE_MNG_NO
+			   AND T2.CASE_MNG_ODRNO         = T4.CASE_MNG_ODRNO
+			   AND T4.SRVC_PVSN_NO           = T5.SRVC_PVSN_NO
+			   AND T4.RESRCE_NO              = T5.RESRCE_NO
+			   AND T4.RESRCE_NO              = T6.RESRCE_NO
+			   AND T2.UNT_TASKWK_SE_CD       = #{UNT_TASKWK_SE_CD}
+			   AND T2.CASE_PRGRS_STTS_SE_CD IN ('01','02','03','05','12')
+			   AND #{SRVC_EXCN_BIZ_NO}       = ( SELECT CASE WHEN X.SRVC_EXCN_BIZ_CHC_PSBLTY_YN = 'Y' THEN T5.SRVC_EXCN_BIZ_NO
+				                                             ELSE T6.SRVC_EXCN_BIZ_NO
+				                                         END
+				                                   FROM ( SELECT Y.ADDTNG_MNG_VALUE3 AS SRVC_EXCN_BIZ_CHC_PSBLTY_YN
+				                                            FROM SAC100 Y
+				                                           WHERE Y.CMMNS_CD_ID    = 'UNT_TASKWK_SE_CD'
+				                                             AND Y.CMMNS_CD_VALUE = #{UNT_TASKWK_SE_CD}
+				                                        ) X
+				                               )
+			 ]]>
+			 <if test="RESRCE_NO != null and RESRCE_NO != ''">
+			 <![CDATA[
+			   AND T4.RESRCE_NO              = #{RESRCE_NO}
+             ]]>
+             </if>
+             <![CDATA[
+			   AND T3.PCHPRS_YN              = 'Y'
+			   AND T4.DEL_YN                != 'Y'
+			   AND T5.DEL_YN                != 'Y'
+			 ORDER BY T1.TRPR_INFO_NO DESC
+        ]]>
+    </select>
+
+    <!-- 서비스실행사업번호 기준 사례대상자 목록조회 -->
+    <select id="selectBizNoCaseTrprList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            SELECT /* isry.itgcm.casemng.caseunity.SrvcGrPvsnMapper.selectBizNoCaseTrprList(서비스실행사업번호 기준 사례대상자 목록조회) */
+			       DISTINCT
+			       T1.TRPR_INFO_NO                                    AS TRPR_INFO_NO                -- 대상자정보번호
+			     , T1.CASE_TRPR_SLCTN_YMD                             AS CASE_TRPR_SLCTN_YMD         -- 사례대상자선정일자
+			     , C##RG.DEC_B64(T1.TRPR_NM_ENCPT)                 AS TRPR_NM                     -- 대상자명
+			     , T1.TRPR_BRTH_YMD                                   AS TRPR_BRTH_YMD               -- 대상자출생일자
+			     , T1.SXDC_SE_CD                                      AS SXDC_SE_CD                  -- 성별구분코드
+			     , T2.CASE_MNG_NO                                     AS CASE_MNG_NO                 -- 사례관리번호
+			     , T2.CASE_MNG_ODRNO                                  AS CASE_MNG_ODRNO              -- 사례관리차수
+			     , T2.CASE_BGNG_YMD                                   AS CASE_BGNG_YMD               -- 사례시작일자
+			     , T2.CASE_TRMN_YMD                                   AS CASE_TRMN_YMD               -- 사례종결일자
+			     , T2.CASE_PRGRS_STTS_SE_CD                           AS CASE_PRGRS_STTS_SE_CD       -- 사례진행상태구분코드
+			     , (SELECT UP_CMMNS_CD_VALUE
+	                  FROM SAC100
+	                 WHERE CMMNS_CD_ID    = 'CASE_PRGRS_STTS_SE_CD'
+	                   AND CMMNS_CD_VALUE = T2.CASE_PRGRS_STTS_SE_CD) AS CASE_PRGRS_STTS_TYPE_SE_CD  -- 사례진행상태유형구분코드
+			     
+			     , T3.CASE_PIC_NO                                     AS CASE_PIC_NO                 -- 사례담당자번호
+			     , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100
+			         WHERE ENFSN_NO = T3.CASE_PIC_NO)                 AS CASE_PIC_NM                 -- 사례담당자명
+			     , T3.PIC_INST_NO                                     AS PIC_INST_NO                 -- 담당자기관번호
+			     , (SELECT INST_NM FROM SAA000
+			         WHERE INST_NO = T3.PIC_INST_NO)                  AS PIC_INST_NM                 -- 담당자기관명
+			     , T4.SRVC_EXCN_BIZ_NO                                AS SRVC_EXCN_BIZ_NO            -- 서비스실행사업번호
+			  FROM SEA200 T1 /* 대상자정보 */
+			     , SEB100 T2 /* 사례기본 */
+			     , SEB150 T3 /* 사례담당자 */
+			     , SEB120 T4 /* 서비스사업대상자 */
+			 WHERE T1.TRPR_INFO_NO           = T2.TRPR_INFO_NO
+			   AND T2.CASE_MNG_NO            = T3.CASE_MNG_NO
+			   AND T2.CASE_MNG_ODRNO         = T3.CASE_MNG_ODRNO
+			   AND T3.PCHPRS_YN              = 'Y' /*주담당자기준*/
+			   AND T2.CASE_MNG_NO            = T4.CASE_MNG_NO
+			   AND T2.CASE_MNG_ODRNO         = T4.CASE_MNG_ODRNO
+			   AND T4.DEL_YN                != 'Y'
+			   AND T2.UNT_TASKWK_SE_CD       = #{UNT_TASKWK_SE_CD}
+			   AND T4.SRVC_EXCN_BIZ_NO       = #{SRVC_EXCN_BIZ_NO}
+			   AND T2.CASE_PRGRS_STTS_SE_CD IN ('01','02','03','05','12')
+			   AND T3.PIC_INST_NO = #{INST_NO}
+			 ORDER BY T1.TRPR_INFO_NO DESC
+        ]]>
+    </select>
+
+    <select id="selectGrExcnSrvcBizClList" parameterType="HashMap" resultType="HashMap">
+        SELECT DISTINCT A.SRVC_PVSN_NO
+            , (SELECT SRVC_PVSN_TTL_NM FROM SEB500 WHERE SRVC_PVSN_NO = A.SRVC_PVSN_NO AND RESRCE_NO = A.RESRCE_NO) AS SRVC_PVSN_TTL_NM
+            , A.RESRCE_NO
+            , (SELECT PVSN_RESRCE_NM FROM SDA100 WHERE RESRCE_NO = A.RESRCE_NO) AS RESRCE_NM
+            , B.BIZ_YR
+            , B.BIZ_CL_SE_CD
+            , B.EXCN_SRVC_BIZ_CL_NO
+            , B.SRVC_BIZ_NM
+            , C.EXCN_SRVC_DETAIA_BIZ_NO
+            , C.EXCN_SRVC_DETAIA_BIZ_NM
+            , C.BIZ_BGNG_YMD
+            , C.BIZ_END_YMD
+            , C.BGT_EXCN_AMT
+            , A.GR_TRGT_SRVC_YN
+        FROM SEB540 A, SDA430 B, SDA440 C
+        WHERE A.DEL_YN = 'N'
+        AND A.EXCN_SRVC_BIZ_CL_NO = B.EXCN_SRVC_BIZ_CL_NO
+        AND A.EXCN_SRVC_BIZ_CL_NO = C.EXCN_SRVC_BIZ_CL_NO
+        AND A.EXCN_SRVC_DETAIA_BIZ_NO = C.EXCN_SRVC_DETAIA_BIZ_NO
+        AND A.SRVC_PVSN_NO = #{SRVC_PVSN_NO}
+        AND A.RESRCE_NO = #{RESRCE_NO}
+    </select>
+</mapper>

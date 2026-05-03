@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.drmgs.cnter.mapper.CnterPreconEnfsnMapper">
+    <select id="selectEnfsnInfo" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconEnfsnMapper.selectEnfsnInfo - HeeSung Yoon */
+        SELECT A.ENFSN_NO, /* 종사자번호 */
+            G.UNT_TASKWK_SE_CD , /* 단위업무구분코드 */
+            (SELECT C.CMMNS_CD_VALUE_NM FROM SAC100 C WHERE 'UNT_TASKWK_SE_CD' = C.CMMNS_CD_ID AND G.UNT_TASKWK_SE_CD = C.CMMNS_CD_VALUE )   AS UNT_TASKWK_SE_NM, /* 단위업무구분명 */ 
+            A2.GROUP_AUTHRT_SE_CD, /* 종사자역할구분코드 */
+            (SELECT D.CMMNS_CD_VALUE_NM FROM SAC100 D WHERE 'GROUP_AUTHRT_SE_CD' = D.CMMNS_CD_ID AND A2.GROUP_AUTHRT_SE_CD = D.CMMNS_CD_VALUE) AS GROUP_AUTHRT_SE_NM, /* 종사자역할구분코드명 */ 
+            A.INDV_IDNTFC_NO, /* 개인식별번호 */
+            A.QLFC_SE_CD, /* 자격구분코드 */
+            (SELECT E.CMMNS_CD_VALUE_NM FROM SAC100 E WHERE 'QLFC_SE_CD' = E.CMMNS_CD_ID AND A.QLFC_SE_CD = E.CMMNS_CD_VALUE) AS QLFC_SE_NM, /* 자격구분명 */
+            A.DEL_YN, /* 삭제여부 */
+            C##RG.DEC_B64(A.FLNM_ENCPT) AS FLNM, /* 성명 */
+            A.BRTH_YMD, /* 출생일자 */
+            A.SXDC_SE_CD, /* 성별구분코드 */
+            DECODE(A.SXDC_SE_CD, 'M', '남성', 'F', '여성', '') AS SXDC_SE_NM, /* 성별구분명 */
+            A.WRD_TELNO, /* 유선전화번호 */
+            C##RG.DEC_B64(A.MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT, /* 휴대전화번호 */
+            C##RG.DEC_B64(A.EML_ADDR_ENCPT) AS EML_ADDR_ENCPT, /* 이메일주소 */
+            A.SNS_SE_CD, /* SNS구분코드 */
+            (SELECT F.CMMNS_CD_VALUE_NM FROM SAC100 F WHERE 'SNS_SE_CD' = F.CMMNS_CD_ID AND A.SNS_SE_CD = F.CMMNS_CD_VALUE) AS SNS_SE_NM, /* SNS구분명 */
+            C##RG.DEC_B64(A.MSNGR_ID_ENCPT) AS MSNGR_ID_ENCPT, /* 메신저아이디암호화 */
+            A.QLFC_INFO_MNG_NO, /* 자격정보관리번호 */
+            A.NCKN_NM, /* 닉네임명 */
+            A.ATFINO, /* 첨부파일번호 */
+            A.CNSLTNT_USE_VCATN_DAYCNT, /* 상담사사용휴가일수 */
+            A.CNSLTNT_USE_PSBLTY_YRYC_DAYCNT, /* 상담사사용가능연차일수 */
+            A.TASKWK_TYPE_INST_NO, /* 업무유형기관번호 */
+            A.SRASH_WRT_YN, /* 자기평가표작성여부 */
+            A.SRASH_WRT_BGNG_YMD, /* 자기평가표작성시작일자 */
+            A.SRASH_WRT_END_YMD, /* 자기평가표작성종료일자 */
+            A.DSCSN_PRFMNC_HSTR_BGNG_YMD, /* 상담실적이력시작일자 */
+            A.DSCSN_PRFMNC_HSTR_END_YMD, /* 상담실적이력종료일자 */
+            A.VCATN_DAYCNT, /* 휴가일수 */
+            A.ERP_EMPLA_NO, /* ERP사원번호 */
+            A.OGDP_INST_NO, /* 소속기관번호 */
+            G.INST_NM, /* 기관명 */
+            G.INST_TYPE_SE_CD, /* 기관유형구분코드 */
+            A.OGDP_DEPT_CD, /* 소속부서코드 */
+            (SELECT H.DEPT_NM FROM SAA300 H WHERE DEPT_CD=A.OGDP_DEPT_CD AND A.OGDP_INST_NO = H.INST_NO) DEPT_NM, /* 소속부서명 */
+            A.JBPS_NM, /* 직위명 */
+            A.ISTDR_YN, /* 기관장여부 */
+            A.JNCMP_YMD, /* 입사일자 */
+            A.RETIRE_YMD, /* 퇴사일자 */
+            A.ORGNL_ENFSN_NO, /* 원본종사자번호 */
+            DECODE(A.RETIRE_YMD, NULL, 'N', 'Y') AS RETIRE_YN, /* 퇴직여부 */
+            B.JBPS_SE_CD, /* 직위구분코드 */
+            (SELECT I.CMMNS_CD_VALUE_NM FROM SAC100 I WHERE 'JBPS_SE_CD' = I.CMMNS_CD_ID AND B.JBPS_SE_CD = I.CMMNS_CD_VALUE) AS JBPS_SE_NM, /* 직위구분명 */
+            B.JBPS_ETC_CN, /* 직위기타내용 */
+            B.YNGBGS_CMPN_SE_CD, /* 청소년동반자구분코드 */
+            (SELECT J.CMMNS_CD_VALUE_NM FROM SAC100 J WHERE 'YNGBGS_CMPN_SE_CD' = J.CMMNS_CD_ID AND B.YNGBGS_CMPN_SE_CD = J.CMMNS_CD_VALUE) AS YNGBGS_CMPN_SE_NM, /* 청소년동반자구분명 */
+            B.RTRM_CS_SE_CD, /* 퇴직사유구분코드 */
+            (SELECT K.CMMNS_CD_VALUE_NM FROM SAC100 K WHERE 'RTRM_CS_SE_CD' = K.CMMNS_CD_ID AND B.RTRM_CS_SE_CD = K.CMMNS_CD_VALUE) AS RTRM_CS_SE_NM, /* 퇴직사유구분명 */
+            B.RTRM_CS_ETC_CN, /* 퇴직사유기타내용 */
+            B.LABOR_SHAPE_SE_CD, /* 근로형태구분코드 */
+            (SELECT L.CMMNS_CD_VALUE_NM FROM SAC100 L WHERE 'LABOR_SHAPE_SE_CD' = L.CMMNS_CD_ID AND B.LABOR_SHAPE_SE_CD = L.CMMNS_CD_VALUE) AS LABOR_SHAPE_SE_NM, /* 근로형태구분명 */         
+            B.ENFSN_WORK_SHAPE_SE_CD, /* 종사자근무형태구분코드 */
+            (SELECT M.CMMNS_CD_VALUE_NM FROM SAC100 M WHERE 'ENFSN_WORK_SHAPE_SE_CD' = M.CMMNS_CD_ID AND B.LABOR_SHAPE_SE_CD = M.CMMNS_CD_VALUE) AS ENFSN_WORK_SHAPE_SE_NM, /* 종사자근무형태구분명 */            
+            B.FTE_YN, /* 상근여부 */
+            B.FT_YN, /* 전임여부 */
+            B.CTS_INST_NM, /* 겸직기관명 */
+            B.CTS_INST_JBPS_NM, /* 겸직기관직위명 */
+            B.EMPMN_INFO_MAJOR_SE_CD, /* 채용정보전공구분코드 */
+            (SELECT N.CMMNS_CD_VALUE_NM FROM SAC100 N WHERE 'EMPMN_INFO_MAJOR_SE_CD' = N.CMMNS_CD_ID AND B.EMPMN_INFO_MAJOR_SE_CD = N.CMMNS_CD_VALUE) AS EMPMN_INFO_MAJOR_SE_NM, /* 채용정보전공구분명 */                        
+            B.EMPMN_INFO_MAJOR_SE_ETC_CN, /* 채용정보전공구분기타내용 */
+            B.TLPHON_DSCSN_WORK_DT_SE_CD, /* 전화상담근무일시구분코드 */
+            (SELECT O.CMMNS_CD_VALUE_NM FROM SAC100 O WHERE 'TLPHON_DSCSN_WORK_DT_SE_CD' = O.CMMNS_CD_ID AND B.TLPHON_DSCSN_WORK_DT_SE_CD = O.CMMNS_CD_VALUE) AS TLPHON_DSCSN_WORK_DT_SE_NM, /* 전화상담근무일시구분명 */          
+            B.TLPHON_DSCSN_WORK_DT_ETC_CN, /* 전화상담근무일시기타내용 */
+            B.WIK_TLPHON_DSCSN_HR, /* 주간전화상담시간 */
+            B.SUBJCT_NM, /* 학과명 */
+            B.LAST_ACBG_SE_CD, /* 최종학력구분코드 */
+            (SELECT P.CMMNS_CD_VALUE_NM FROM SAC100 P WHERE 'LAST_ACBG_SE_CD' = P.CMMNS_CD_ID AND B.LAST_ACBG_SE_CD = P.CMMNS_CD_VALUE) AS LAST_ACBG_SE_NM, /* 최종학력구분명 */           
+            B.NEW_EMP_INTROD_EDU_COMPL_YMD, /* 신규직원입문교육이수일자 */
+            B.MENDNG_EDU_COMPL_YMD /* 보수교육이수일자 */
+        FROM SCA100 A, AKA600 B, SAA000 G, SAA200 A1, SAB230 A2
+        WHERE G.UNT_TASKWK_SE_CD  IN (SELECT CMMNS_CD_VALUE FROM SAC100 WHERE CMMNS_CD_ID = 'CNTER_PRECON_UNT_TASKWK_SE_CD')
+        AND A.ENFSN_NO = B.ENFSN_NO(+)
+        AND A2.INST_NO = G.INST_NO
+        AND A.ENFSN_NO = A1.ENFSN_NO
+        AND A1.USER_ID = A2.USER_ID
+        AND (NVL(A.JNCMP_YMD, TO_CHAR(SYSDATE, 'YYYYMMDD')) BETWEEN #{STR_DT} AND #{END_DT} OR NVL(A.RETIRE_YMD, TO_CHAR(SYSDATE, 'YYYYMMDD')) BETWEEN #{STR_DT} AND #{END_DT})
+        ]]>
+        /* 20230313_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+        AND A2.INST_NO IN
+        <foreach collection="INST_NOS" item="item" open="("
+            separator="," close=")">
+            #{item}
+        </foreach>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+            /*종사자*/
+            AND A.ENFSN_NO = #{ENFSN_NO}
+        </if>  
+        /* 20230313_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+        <if test="SIDO_GUBN == 'SIDO'">
+            <![CDATA[
+                AND G.INST_TYPE_SE_CD = '5'
+            ]]>
+        </if>
+        <if test="SIDO_GUBN == 'SIGUNGU'">
+            <![CDATA[
+                AND G.INST_TYPE_SE_CD = '8'
+            ]]>
+        </if>
+        <if test="INST_NO != null and INST_NO != ''">
+            <![CDATA[
+                AND G.INST_NO = #{INST_NO}
+            ]]>
+        </if>
+        <if test="CNTER_PRECON_UNT_TASKWK_SE_CD != null and CNTER_PRECON_UNT_TASKWK_SE_CD != ''">
+            <![CDATA[
+                AND G.UNT_TASKWK_SE_CD = #{CNTER_PRECON_UNT_TASKWK_SE_CD}
+            ]]>
+        </if>
+        <if test="CTPV_SE_CD != null and CTPV_SE_CD != ''">
+            <![CDATA[
+                AND G.RGN_CD LIKE #{CTPV_SE_CD}||'%'
+            ]]>
+        </if>
+        <if test="SGG_CD != null and SGG_CD != ''">
+            <![CDATA[
+                AND G.SGG_CD = #{SGG_CD}
+            ]]>
+        </if>
+        <if test="FLNM_ENCPT != null and FLNM_ENCPT != ''">
+            <![CDATA[
+                AND A.FLNM_ENCPT = C##RG.ENC_B64(#{FLNM_ENCPT})
+            ]]>
+        </if>
+        <choose>
+            <when test="RETIRE_YN == 1">
+                <![CDATA[
+                    AND A.RETIRE_YMD IS NOT NULL
+                ]]>
+            </when>
+            <when test="RETIRE_YN == 0">
+                <![CDATA[
+                    AND A.RETIRE_YMD IS NULL
+                ]]>
+            </when>
+            <when test="RETIRE_YN == -1">
+                <![CDATA[
+                    AND 1=1
+                ]]>
+            </when>
+        </choose>
+        <choose>
+            <when test="PRECON_WRT_YN == 1">
+                <![CDATA[
+                    AND (SELECT COUNT(*) FROM AKA600 WHERE ENFSN_NO = A.ENFSN_NO AND CNTER_PRECON_UNT_TASKWK_SE_CD  = #{CNTER_PRECON_UNT_TASKWK_SE_CD}) > 0
+                ]]>
+            </when>
+            <when test="PRECON_WRT_YN == 0">
+                <![CDATA[
+                    AND (SELECT COUNT(*) FROM AKA600 WHERE ENFSN_NO = A.ENFSN_NO AND CNTER_PRECON_UNT_TASKWK_SE_CD  = #{CNTER_PRECON_UNT_TASKWK_SE_CD}) = 0
+                ]]>
+            </when>
+            <when test="PRECON_WRT_YN == -1">
+                <![CDATA[
+                    AND 1=1
+                ]]>
+            </when>
+        </choose>
+        ) T1
+        <!-- 페이지 인덱서 WHERE 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectEnfsnCerti" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconEnfsnMapper.selectEnfsnCerti - HeeSung Yoon */
+        SELECT A.ENFSN_NO,
+            A.CNTER_PRECON_UNT_TASKWK_SE_CD,
+            B.CMMNS_CD_VALUE_NM AS CNTER_PRECON_UNT_TASKWK_SE_NM,
+            C##RG.DEC_B64(D.FLNM_ENCPT) AS FLNM,
+            A.INDEX_SN,
+            A.ENFSN_NTN_CERTI_SE_CD,
+            C.CMMNS_CD_VALUE_NM AS ENFSN_NTN_CERTI_SE_NM, 
+            A.ENFSN_NTN_CERTI_SE_ETC_CN,
+            A.ACQS_YMD,
+            A.DEL_YN
+        FROM AKA610 A, SAC100 B, SAC100 C, SCA100 D
+        WHERE A.CNTER_PRECON_UNT_TASKWK_SE_CD = B.CMMNS_CD_VALUE
+        AND B.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD'
+        AND A.ENFSN_NTN_CERTI_SE_CD = C.CMMNS_CD_VALUE(+)
+        AND 'ENFSN_NTN_CERTI_SE_CD' = C.CMMNS_CD_ID(+) 
+        AND A.ENFSN_NO = D.ENFSN_NO 
+        ]]>
+        /* 20230313_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+        <include refid="GroupAuthrtMapper.cnterPreconEnfsnListGropuAuthrt"/>                                   
+        /* 20230313_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+        <if test="ENFSN_LIST.size  != 0">
+            AND A.ENFSN_NO IN 
+            <foreach collection="ENFSN_LIST" item="enfsnList" index="index" separator="," open="(" close=")">
+                #{enfsnList}
+            </foreach>
+        </if>
+        ) T1
+        <!-- 페이지 인덱서 WHERE 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectEnfsnPrvateCerti" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconEnfsnMapper.selectEnfsnPrvateCerti - HeeSung Yoon */
+        SELECT A.ENFSN_NO,
+            A.CNTER_PRECON_UNT_TASKWK_SE_CD,
+            B.CMMNS_CD_VALUE_NM AS CNTER_PRECON_UNT_TASKWK_SE_NM,
+            C##RG.DEC_B64(C.FLNM_ENCPT) AS FLNM,
+            A.INDEX_SN,
+            A.CERTI_NM,
+            A.ACQS_YMD,
+            A.ISSU_INST_NM,
+            A.CERTI_REG_NO,
+            A.DEL_YN
+        FROM AKA640 A, SAC100 B, SCA100 C
+        WHERE A.CNTER_PRECON_UNT_TASKWK_SE_CD = B.CMMNS_CD_VALUE
+        AND B.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD'
+        AND A.ENFSN_NO = C.ENFSN_NO 
+        ]]>
+        /* 20230313_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+        <include refid="GroupAuthrtMapper.cnterPreconEnfsnListGropuAuthrt"/>                                   
+        /* 20230313_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+        <if test="ENFSN_LIST.size  != 0">
+            AND A.ENFSN_NO IN 
+            <foreach collection="ENFSN_LIST" item="enfsnList" index="index" separator="," open="(" close=")">
+                #{enfsnList}
+            </foreach>
+        </if>
+        ) T1
+        <!-- 페이지 인덱서 WHERE 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectTrnngEdu" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconEnfsnMapper.selectTrnngEdu - HeeSung Yoon */
+        SELECT A.ENFSN_NO,
+            A.CNTER_PRECON_UNT_TASKWK_SE_CD,
+            B.CMMNS_CD_VALUE_NM AS CNTER_PRECON_UNT_TASKWK_SE_NM,
+            C##RG.DEC_B64(D.FLNM_ENCPT) AS FLNM,
+            A.INDEX_SN,
+            A.SPCLTY_HNF_TRNNG_EDU_SE_CD,
+            C.CMMNS_CD_VALUE_NM AS ENFSN_NTN_CERTI_SE_NM, 
+            A.SPCLTY_HNF_TRNNG_EDU_COMPL_YMD,
+            A.DEL_YN
+        FROM AKA620 A, SAC100 B, SAC100 C, SCA100 D
+        WHERE A.CNTER_PRECON_UNT_TASKWK_SE_CD = B.CMMNS_CD_VALUE
+        AND B.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD'
+        AND A.SPCLTY_HNF_TRNNG_EDU_SE_CD = C.CMMNS_CD_VALUE(+)
+        AND 'SPCLTY_HNF_TRNNG_EDU_SE_CD' = C.CMMNS_CD_ID(+) 
+        AND A.ENFSN_NO = D.ENFSN_NO 
+        ]]>
+        /* 20230313_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+        <include refid="GroupAuthrtMapper.cnterPreconEnfsnListGropuAuthrt"/>                                   
+        /* 20230313_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+        <if test="ENFSN_LIST.size  != 0">
+            AND A.ENFSN_NO IN 
+            <foreach collection="ENFSN_LIST" item="enfsnList" index="index" separator="," open="(" close=")">
+                #{enfsnList}
+            </foreach>
+        </if>
+        ) T1
+        <!-- 페이지 인덱서 WHERE 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+</mapper>
+

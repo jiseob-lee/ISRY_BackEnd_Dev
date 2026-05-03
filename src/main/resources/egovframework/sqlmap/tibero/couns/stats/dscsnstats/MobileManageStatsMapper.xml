@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.stats.dscsnstats.mapper.MobileManageStatsMapper">
+
+    <select id="selectTrgtAndResponseYnStatsList" parameterType="HashMap" resultType="HashMap">
+    /*
+     * isry.couns.stats.dscsnstats.mapper.MobileManageStatsMapper.selectTrgtAndResponseYnStatsList : 사후관리 대상 및 응답 여부
+     */
+		SELECT 
+				CASE 
+					WHEN BBSCTT_TYPE_SE_CD = '01' THEN '솔로봇게시판'
+					WHEN BBSCTT_TYPE_SE_CD = '05' THEN '비밀게시판' 
+					WHEN BBSCTT_TYPE_SE_CD = '18' THEN '오픈채팅게시판' 
+					WHEN BBSCTT_TYPE_SE_CD = '24' THEN '채팅' 
+					WHEN BBSCTT_TYPE_SE_CD = '31' THEN '비밀게시판' 
+					WHEN BBSCTT_TYPE_SE_CD = '35' THEN '아웃리치게시판' 
+				ELSE ' ' END                                                                        AS  NM,     /* 구분 */
+				COUNT(*)                                                                            AS  TCNT,   
+				SUM(CASE WHEN RSPNS_YN = 'Y' THEN 1 ELSE 0 END)                                     AS  YCNT,   /* 전체실적(응답) */
+				SUM(CASE WHEN RSPNS_YN = 'N' THEN 1 ELSE 0 END)                                     AS  NCNT,   /* 전체실적(미응답) */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '01'                    THEN 1 ELSE 0 END)    AS  TCNT1,  /* 내담자 */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '01' AND RSPNS_YN = 'Y' THEN 1 ELSE 0 END)    AS  YCNT1,  /* 기타(응답) */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '01' AND RSPNS_YN = 'N' THEN 1 ELSE 0 END)    AS  NCNT1,  /* 기타(미응답) */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '02'                    THEN 1 ELSE 0 END)    AS  TCNT2,  /* 보호자 */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '02' AND RSPNS_YN = 'Y' THEN 1 ELSE 0 END)    AS  YCNT2,  /* 기타(응답) */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '02' AND RSPNS_YN = 'N' THEN 1 ELSE 0 END)    AS  NCNT2,  /* 기타(미응답) */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '03'                    THEN 1 ELSE 0 END)    AS  TCNT3,  /* 연계기관 */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '03' AND RSPNS_YN = 'Y' THEN 1 ELSE 0 END)    AS  YCNT3,  /* 기타(응답) */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '03' AND RSPNS_YN = 'N' THEN 1 ELSE 0 END)    AS  NCNT3,  /* 기타(미응답) */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '99'                    THEN 1 ELSE 0 END)    AS  TCNT4,  /* 기타 */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '99' AND RSPNS_YN = 'Y' THEN 1 ELSE 0 END)    AS  YCNT4,  /* 기타(응답) */
+				SUM(CASE WHEN AFTFCT_MNG_TRGT_SE_CD = '99' AND RSPNS_YN = 'N' THEN 1 ELSE 0 END)    AS  NCNT4   /* 기타(미응답) */
+		FROM    AYA190
+		WHERE   1=1
+		AND     BBSCTT_TYPE_SE_CD     IN      ('01','05','18','24','31','35') /* 게시글유형구분(오픈채팅18)(네이버31)(아웃리치35)(채팅24)(비밀05)(솔로봇01) */
+		<![CDATA[
+		AND     FRST_REG_DT           >=      TO_DATE(#{START_DT} || '000000', 'YYYYMMDDHH24MISS')
+		AND     FRST_REG_DT           <=      TO_DATE(#{END_DT} || '235959', 'YYYYMMDDHH24MISS')
+		]]> 
+		AND     DEL_YN                =       'N'
+		GROUP BY BBSCTT_TYPE_SE_CD
+    </select>
+    
+    <select id="selectNonResponseCsStatsList" parameterType="HashMap" resultType="HashMap">
+    /*
+     * isry.couns.stats.dscsnstats.mapper.MobileManageStatsMapper.selectNonResponseCsStatsList : 사후관리 미응답 사유
+     */
+		SELECT 
+				MAX(TO_CHAR(FRST_REG_DT,'YYYY')) ||'년 ' || MAX(TO_CHAR(FRST_REG_DT,'MM')) ||'월'   AS  YM,
+				COUNT(*)                                                                            AS  TCNT, /* TOTAL */
+				SUM(CASE WHEN NORA_CS_SE_CD = '01'                    THEN 1 ELSE 0 END)            AS  CNT1, /* 세션종료 */
+				SUM(CASE WHEN NORA_CS_SE_CD = '02'                    THEN 1 ELSE 0 END)            AS  CNT2, /* 응답불가시간 */
+				SUM(CASE WHEN NORA_CS_SE_CD = '03'                    THEN 1 ELSE 0 END)            AS  CNT3, /* 담당자부재 */
+				SUM(CASE WHEN NORA_CS_SE_CD = '99'                    THEN 1 ELSE 0 END)            AS  CNT4  /* 기타 */
+		FROM    AYA190
+		WHERE   1=1
+		AND     BBSCTT_TYPE_SE_CD     IN      ('01','05','18','24','31','35')  /* 게시글유형구분(오픈채팅18)(네이버31)(아웃리치35)(채팅24)(비밀05)(솔로봇01) */
+		<![CDATA[
+		AND     FRST_REG_DT           >=      TO_DATE(#{START_DT} || '000000', 'YYYYMMDDHH24MISS')
+		AND     FRST_REG_DT           <=      TO_DATE(#{END_DT} || '235959', 'YYYYMMDDHH24MISS')
+		]]> 
+		AND     DEL_YN                =       'N'
+		AND     NORA_CS_SE_CD         IS NOT NULL
+		GROUP BY TO_CHAR(FRST_REG_DT,'YYYYMM')
+    </select>
+    
+    <select id="selectResponseCnStatsList" parameterType="HashMap" resultType="HashMap">
+    /*
+     * isry.couns.stats.dscsnstats.mapper.MobileManageStatsMapper.selectResponseCnStatsList : 사후관리 응답 내용
+     */
+		SELECT
+				AA.YM                                 AS YM,   /* 년월 */
+				AA.CNT1 + AA.CNT2 + AA.CNT3 + AA.CNT4 AS TCNT, /* OTAL */
+				AA.CNT1                               AS CNT1, /* 전화안전확인여부 */
+				AA.CNT2                               AS CNT2, /* 보호자보호요청여부 */
+				AA.CNT3                               AS CNT3, /* 전문기관서비스이용확인여부 */
+				AA.CNT4                               AS CNT4  /* 사후관리기타여부 */
+		FROM
+				(
+				 SELECT  
+						 MAX(TO_CHAR(FRST_REG_DT,'YYYY')) ||'년 ' || MAX(TO_CHAR(FRST_REG_DT,'MM')) ||'월'   YM,
+						 SUM(DECODE(TLPHON_SAFETY_IDNTY_YN          ,'Y',1,0))                             CNT1, /* 전화안전확인여부 */
+						 SUM(DECODE(PRTCR_PRTCTN_DMND_YN            ,'Y',1,0))                             CNT2, /* 보호자보호요청여부 */
+						 SUM(DECODE(SPCLTY_INST_SRVC_UTZTN_IDNTY_YN ,'Y',1,0))                             CNT3, /* 전문기관서비스이용확인여부 */
+						 SUM(DECODE(AFTFCT_MNG_ETC_YN               ,'Y',1,0))                             CNT4  /* 사후관리기타여부 */
+				 FROM    AYA190
+				 WHERE   1=1
+				 AND     BBSCTT_TYPE_SE_CD  IN      ('01','05','18','24','31','35')     /* 게시글유형구분(오픈채팅18)(네이버31)(아웃리치35)(채팅24)(비밀05)(솔로봇01) */
+				 <![CDATA[
+				 AND     FRST_REG_DT        >=      TO_DATE(#{START_DT} || '000000', 'YYYYMMDDHH24MISS')
+				 AND     FRST_REG_DT        <=      TO_DATE(#{END_DT} || '235959', 'YYYYMMDDHH24MISS')
+				 ]]> 
+				 AND     DEL_YN             =       'N'
+				 GROUP BY TO_CHAR(FRST_REG_DT,'YYYYMM') 
+				)   AA
+    </select>
+    
+    <select id="selectCnsltntPerformanceStatsList" parameterType="HashMap" resultType="HashMap">
+    /*
+     * isry.couns.stats.dscsnstats.mapper.MobileManageStatsMapper.selectCnsltntPerformanceStatsList : 사후관리 상담사별 실적
+     */
+		SELECT
+				D.FRST_RGTR_ID                                                      AS  ID,
+				C##RG.DEC_B64(MAX(C.FLNM_ENCPT))                                 AS  NM,
+				COUNT(*)                                                            AS  TCNT,   /* TOTAL */
+				SUM(CASE WHEN A.AFTFCT_MNG_TRGT_SE_CD = '01' THEN 1 ELSE 0 END)     AS  CNT1,   /* 내담자 */
+				SUM(CASE WHEN A.AFTFCT_MNG_TRGT_SE_CD = '02' THEN 1 ELSE 0 END)     AS  CNT2,   /* 보호자 */
+				SUM(CASE WHEN A.AFTFCT_MNG_TRGT_SE_CD = '03' THEN 1 ELSE 0 END)     AS  CNT3,   /* 연계기관 */
+				SUM(CASE WHEN A.AFTFCT_MNG_TRGT_SE_CD = '99' THEN 1 ELSE 0 END)     AS  CNT4,   /* 기타 */
+				SUM(CASE WHEN A.RSPNS_YN = 'Y'               THEN 1 ELSE 0 END)     AS  CNT5,   /* 전체실적(응답) */
+				SUM(DECODE(A.YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD,'1',1,0) +
+				    DECODE(A.FAM_RQST_MTHD_SE_CD                     ,'1',1,0) +
+				    DECODE(A.DT_CACE_SHELTR_RQST_MTHD_SE_CD          ,'1',1,0) +
+				    DECODE(A.EMRG_RESC_RQST_MTHD_SE_CD               ,'1',1,0) +
+				    DECODE(A.LEADER_RQST_MTHD_SE_CD                  ,'1',1,0) +
+				    DECODE(A.ETC_SPCLTY_INST_RQST_MTHD_SE_CD         ,'1',1,0))     AS  CNT6,   /* 직접연계 */
+				SUM(DECODE(A.YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD,'2',1,0) +
+				    DECODE(A.FAM_RQST_MTHD_SE_CD                     ,'2',1,0) +
+				    DECODE(A.DT_CACE_SHELTR_RQST_MTHD_SE_CD          ,'2',1,0) +
+				    DECODE(A.EMRG_RESC_RQST_MTHD_SE_CD               ,'2',1,0) +
+				    DECODE(A.LEADER_RQST_MTHD_SE_CD                  ,'2',1,0) +
+				    DECODE(A.ETC_SPCLTY_INST_RQST_MTHD_SE_CD         ,'2',1,0))     AS  CNT7    /* 정보제공 */        
+		FROM    AYA190    A
+		        , SAA200  B
+		        , SCA100  C
+		        , AYA120  D
+		WHERE   1=1
+		AND     B.USER_ID                 =       D.FRST_RGTR_ID
+		AND     C.ENFSN_NO                =       B.ENFSN_NO 
+		AND     A.BBSCTT_TYPE_SE_CD       IN      ('01','05','18','24','31','35')
+		<![CDATA[
+		AND     A.FRST_REG_DT             >=      TO_DATE(#{START_DT} || '000000', 'YYYYMMDDHH24MISS')
+		AND     A.FRST_REG_DT             <=      TO_DATE(#{END_DT} || '235959', 'YYYYMMDDHH24MISS')
+		]]>
+		AND     A.AFTFCT_MNG_TRGT_SE_CD   IS NOT NULL
+		AND     A.DEL_YN                  =       'N'
+		AND     A.INDEX_SN                =       D.INDEX_SN
+		GROUP BY D.FRST_RGTR_ID
+    </select>
+    
+</mapper>

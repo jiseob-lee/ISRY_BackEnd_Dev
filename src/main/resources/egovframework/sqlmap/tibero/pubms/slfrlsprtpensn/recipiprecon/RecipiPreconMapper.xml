@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubms.slfrlsprtpensn.recipiprecon.mapper.RecipiPreconMapper">
+
+    <select id="selectRecipiPreconListCount" parameterType="HashMap" resultType="int">
+        /* selectRecipiPreconListCount - BaekGyuHa */       
+        SELECT
+            COUNT(*) AS TOT_CNT
+        FROM
+        (    
+			SELECT
+			    *
+			FROM
+			(
+			    SELECT
+			        Z.*
+			    FROM
+			    (
+			       <include refid="PRECON_LIST"></include>
+			    )Z
+			    WHERE 1=1
+			    <include refid="PRECON_LIST_WHERE"></include>
+			)
+        )
+    </select>
+
+    <select id="selectRecipiPreconList" parameterType="HashMap" resultType="HashMap">
+        /* selectRecipiPreconList - BaekGyuHa */       
+        SELECT
+            *
+        FROM
+        (
+	        SELECT
+	            Z.*
+	            ,ROWNUM AS SEQ
+	        FROM
+	        (
+               <include refid="PRECON_LIST"></include>
+	        )Z
+	        WHERE 1=1
+            <include refid="PRECON_LIST_WHERE"></include>
+        )
+        WHERE SEQ <![CDATA[>=]]> #{START_IDX} AND SEQ <![CDATA[<=]]> #{LAST_IDX}
+    </select>
+    
+    <sql id="PRECON_LIST">
+        <![CDATA[
+        WITH BASE_TBL AS (
+          SELECT ROW_NUMBER() OVER (PARTITION BY A.RECIPI_MNG_NO
+                 ORDER BY A.PENSN_GIVE_STTS_OCRN_YMD DESC, A.TASKWK_OCRN_SQNCE DESC) AS RNO
+               , A.*
+            FROM (
+                   SELECT DISTINCT B.PIC_INST_NO AS INST_NO
+                        , C.TRPR_INFO_NO
+                        , C.RECIPI_MNG_NO
+                        , D.PENSN_GIVE_STTS_SE_CD
+                        , D.PENSN_GIVE_STTS_OCRN_YMD
+                        , D.RCMDTN_SHELTR_NO
+                        , D.RCMDTN_YMD
+                        , D.PENSN_GIVE_STTS_BGNG_YM
+                        , D.MM_PENSN_GIVE_AMT
+                        , D.PENSN_GIVE_CHG_LCGOV_NO
+                        , D.PENSN_GIVE_CHG_BFE_LCGOV_NO
+                        , D.STTS_OCRN_CS_SE_CD
+                        , D.STTS_OCRN_CS_CN
+                        , D.PIC_ENFSN_NO
+                        , D.PIC_INST_NO
+                        , D.PIC_TELNO
+                        , D.TASKWK_OCRN_SQNCE
+                     FROM SEB100 A
+                        , SEB150 B
+                        , AEB130 C
+                        , AEB131 D
+                    WHERE A.CASE_MNG_NO      = B.CASE_MNG_NO
+                      AND A.CASE_MNG_ODRNO   = B.CASE_MNG_ODRNO
+                      AND A.UNT_TASKWK_SE_CD = 'U04'
+                      AND A.TRPR_INFO_NO     = C.TRPR_INFO_NO
+                      AND C.RECIPI_MNG_NO    = D.RECIPI_MNG_NO(+)
+                      AND D.DEL_YN(+)        = 'N'
+                 ) A
+        )
+        , LAST_TBL AS (
+          SELECT *
+            FROM BASE_TBL
+           WHERE RNO = 1
+        ]]>
+        <if test="GROUP_AUTHRT_SE_CD gt 300">
+        <![CDATA[
+             AND INST_NO IN
+                 (
+                   SELECT INST_NO
+                     FROM SAA000
+                    WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+                    START WITH INST_NO IN
+                        (
+                          SELECT INST_NO
+                            FROM SAB230
+                           WHERE USER_ID = #{USER_ID2}
+                          UNION
+                          SELECT INST_NO
+                            FROM SAA000
+                           WHERE 1=1
+                             AND UNT_TASKWK_SE_CD = 'U04'
+                             AND RGN_CD IN
+                                 (
+                                   SELECT B.RGN_CD
+                                     FROM SAB230 A
+                                        , SAA000 B
+                                    WHERE A.USER_ID          = #{USER_ID2}
+                                      AND A.INST_NO          = B.INST_NO
+                                      AND B.UNT_TASKWK_SE_CD = 'U05'
+                                 )
+                        )
+                  CONNECT BY UP_INST_NO = PRIOR INST_NO
+                 )
+          UNION
+          SELECT *
+            FROM BASE_TBL
+           WHERE RNO = 1
+        ]]>
+        </if>
+        <if test="GROUP_AUTHRT_SE_CD gt 300">
+        <![CDATA[
+             AND PENSN_GIVE_CHG_BFE_LCGOV_NO IN
+                 (
+                   SELECT INST_NO
+                     FROM SAA000
+                    WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+                    START WITH INST_NO IN
+                        (
+                          SELECT INST_NO
+                            FROM SAB230 WHERE USER_ID = #{USER_ID2}
+                          UNION
+                          SELECT INST_NO
+                            FROM SAA000
+                           WHERE 1=1
+                             AND UNT_TASKWK_SE_CD = 'U04'
+                             AND RGN_CD IN
+                                 (
+                                   SELECT B.RGN_CD
+                                     FROM SAB230 A
+                                        , SAA000 B
+                                    WHERE A.USER_ID          = #{USER_ID2}
+                                      AND A.INST_NO          = B.INST_NO
+                                      AND B.UNT_TASKWK_SE_CD = 'U05'
+                                 )
+                        )
+                  CONNECT BY UP_INST_NO = PRIOR INST_NO
+                 )
+          UNION
+          SELECT *
+            FROM BASE_TBL
+           WHERE RNO = 1
+        ]]>
+        </if>
+        <if test="GROUP_AUTHRT_SE_CD gt 300">
+        <![CDATA[
+             AND PENSN_GIVE_CHG_LCGOV_NO IN
+                 (
+                   SELECT INST_NO
+                     FROM SAA000
+                    WHERE UNT_TASKWK_SE_CD IN ('U01','U04')
+                    START WITH INST_NO IN
+                        (
+                            SELECT INST_NO
+                              FROM SAB230 WHERE USER_ID = #{USER_ID2}
+                            UNION
+                            SELECT INST_NO
+                              FROM SAA000
+                             WHERE 1=1
+                               AND UNT_TASKWK_SE_CD = 'U04'
+                               AND RGN_CD IN
+                                   (
+                                     SELECT B.RGN_CD
+                                       FROM SAB230 A
+                                          , SAA000 B
+                                      WHERE A.USER_ID          = #{USER_ID2}
+                                        AND A.INST_NO          = B.INST_NO
+                                        AND B.UNT_TASKWK_SE_CD = 'U05'
+                                   )
+                        )
+                  CONNECT BY UP_INST_NO = PRIOR INST_NO
+                 )
+        ]]>
+        </if>
+        <![CDATA[
+        )
+        , FIRST_TBL AS (
+          SELECT RECIPI_MNG_NO
+               , PENSN_GIVE_CHG_LCGOV_NO
+               , PENSN_GIVE_CHG_BFE_LCGOV_NO
+               , MM_PENSN_GIVE_AMT
+               , PENSN_GIVE_STTS_OCRN_YMD
+               , PENSN_GIVE_STTS_BGNG_YM
+            FROM (
+                   SELECT ROW_NUMBER() OVER (PARTITION BY A.RECIPI_MNG_NO
+                                                 ORDER BY RNO DESC)       AS RRNO
+                        , A.*
+                     FROM BASE_TBL A
+                 )
+           WHERE RRNO = 1
+        )
+        , CHG_TBL AS (
+          SELECT RECIPI_MNG_NO
+               , PENSN_GIVE_CHG_LCGOV_NO
+               , PENSN_GIVE_STTS_OCRN_YMD
+               , PENSN_GIVE_STTS_BGNG_YM
+            FROM (
+                   SELECT ROW_NUMBER() OVER (PARTITION BY A.RECIPI_MNG_NO
+                                                 ORDER BY RNO)            AS RRNO
+                        , A.*
+                     FROM BASE_TBL A
+                    WHERE A.PENSN_GIVE_STTS_SE_CD = '02'
+                 )
+           WHERE RRNO = 1
+        )
+        SELECT A.RECIPI_MNG_NO                                                                        -- 수급자관리번호
+             , D.TRPR_NM_ENCPT                                                                        -- 수급자명암호화
+             , C##RG.DEC_B64(D.TRPR_NM_ENCPT)                  AS TRPR_NM                          -- 수급자명
+             , E.RRNO_ENCPT                                                                           -- 주민등록번호암호화
+             , REPLACE(C##RG.DEC_B64(E.RRNO_ENCPT), '-', '') AS RRNO                               -- 주민등록번호
+             , D.TRPR_BRTH_YMD                                                                        -- 출생일자
+             , A.TRPR_INFO_NO                                                                         -- 대상자정보번호
+             , D.INDV_IDNTFC_NO                                                                       -- 개인식별번호
+             , A.PENSN_GIVE_STTS_SE_CD                                                                -- 수당지급상태구분코드
+             , CASE WHEN A.PENSN_GIVE_STTS_SE_CD IN ('03','05','06') OR A.PENSN_GIVE_STTS_SE_CD IS NULL
+                    THEN 'N' ELSE 'Y' END                         AS NOW_PENSN_GIVE_YN                -- 현재수당지급여부
+             , CASE WHEN A.PENSN_GIVE_STTS_SE_CD IN ('03','05','06') OR A.PENSN_GIVE_STTS_SE_CD IS NULL
+                    THEN '아니오' ELSE '예' END                   AS NOW_PENSN_GIVE_YN_NM             -- 현재수당지급여부명
+             , A.RCMDTN_SHELTR_NO                                                                     -- 추천쉼터번호
+             , REPLACE(A.RCMDTN_YMD, '-', '') AS RCMDTN_YMD                                           -- 추천일자
+             , (SELECT INST_NM FROM SAA000 F /* 기관 */
+                 WHERE F.INST_NO = A.RCMDTN_SHELTR_NO)            AS RCMDTN_SHELTR_NM                 -- 추천쉼터명
+             , B.PENSN_GIVE_STTS_OCRN_YMD                                                             -- 수당지급결정일자
+             , B.PENSN_GIVE_STTS_BGNG_YM                                                              -- 수당지급결정월
+             , B.MM_PENSN_GIVE_AMT                                                                    -- 월수당지급금액
+             , B.PENSN_GIVE_CHG_LCGOV_NO                                                              -- 수당지급지자체
+             , (SELECT INST_NM FROM SAA000 F /* 기관 */
+                 WHERE F.INST_NO = B.PENSN_GIVE_CHG_LCGOV_NO)     AS PENSN_GIVE_CHG_LCGOV_NM          -- 수당지급지자체명
+             , B.PENSN_GIVE_CHG_BFE_LCGOV_NO                                                          -- 이전수당지급지자체
+             , (SELECT INST_NM FROM SAA000 F /* 기관 */
+                 WHERE F.INST_NO = B.PENSN_GIVE_CHG_BFE_LCGOV_NO) AS PENSN_GIVE_CHG_LCGOV_NM          -- 이전수당지급지자체명
+             , CASE WHEN A.PENSN_GIVE_STTS_SE_CD IN ('03','05','06')
+                    THEN ( SELECT CMMNS_CD_VALUE_NM FROM SAC100
+                            WHERE CMMNS_CD_ID    = 'PENSN_GIVE_STTS_SE_CD'
+                              AND CMMNS_CD_VALUE = A.PENSN_GIVE_STTS_SE_CD )
+                    ELSE '' END                                   AS STTS_SE_NM                       -- 정지,상실,만료 구분
+             , CASE WHEN A.PENSN_GIVE_STTS_SE_CD IN ('03','05','06')
+                    THEN A.PENSN_GIVE_STTS_SE_CD
+                    ELSE '' END                                   AS STTS_SE_CD                       -- 정지,상실,만료 상태코드
+             , CASE WHEN A.PENSN_GIVE_STTS_SE_CD IN ('03','05','06')
+                    THEN A.PENSN_GIVE_STTS_OCRN_YMD
+                    ELSE '' END                                   AS STTS_SE_YMD                      -- 정지,상실,만료 일자
+             , CASE WHEN A.PENSN_GIVE_STTS_SE_CD IN ('03','05','06')
+                    THEN A.PENSN_GIVE_STTS_BGNG_YM
+                    ELSE '' END                                   AS PENSN_STTS_MM                    -- 정지,상실,만료 월
+             , C.PENSN_GIVE_CHG_LCGOV_NO AS PENSN_GIVE_CHG_LCGOV_NO1                                  -- 수당지급변경지자체
+             ,(SELECT INST_NM FROM SAA000 F /* 기관 */ WHERE F.INST_NO = C.PENSN_GIVE_CHG_LCGOV_NO) AS PENSN_GIVE_CHG_LCGOV_NO1_NM -- 수당지급변경지자체명
+             , C.PENSN_GIVE_STTS_OCRN_YMD                         AS LCGOV_CHG_YMD                    -- 지자체 변경일자
+             , C.PENSN_GIVE_STTS_BGNG_YM                          AS CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM -- 변경 지자체 수당지급 시작월
+             , A.PIC_ENFSN_NO                                                                         -- 담당자종사자번호
+             , ( SELECT F.FLNM_ENCPT FROM SCA100 F /* 종사자 */
+                  WHERE F.ENFSN_NO = A.PIC_ENFSN_NO )             AS PIC_ENFSN_NM_ENCPT               -- 담당자명암호화
+             , ( SELECT C##RG.DEC_B64(F.FLNM_ENCPT) FROM SCA100 F /* 종사자 */
+                  WHERE F.ENFSN_NO = A.PIC_ENFSN_NO )             AS PIC_ENFSN_NM                     -- 담당자명
+             , A.PIC_INST_NO                                                                          -- 담당자기관번호
+             , ( SELECT INST_NM FROM SAA000 F /* 기관 */
+                  WHERE F.INST_NO = A.PIC_INST_NO )               AS PIC_INST_NM                      -- 담당자기관명
+          FROM LAST_TBL  A
+             , FIRST_TBL B
+             , CHG_TBL   C
+             , SEA200    D /* 대상자정보 */
+             , SCA300    E /* 개인정보 */
+         WHERE A.RECIPI_MNG_NO  = B.RECIPI_MNG_NO
+           AND A.RECIPI_MNG_NO  = C.RECIPI_MNG_NO(+)
+           AND A.TRPR_INFO_NO   = D.TRPR_INFO_NO
+           AND D.INDV_IDNTFC_NO = E.INDV_IDNTFC_NO(+)
+        ]]>
+    </sql>
+    
+    <sql id="PRECON_LIST_WHERE">
+        <if test="RECIPI_MNG_NO != null and RECIPI_MNG_NO != ''">
+            AND Z.RECIPI_MNG_NO LIKE '%' || #{RECIPI_MNG_NO} || '%' 
+        </if>
+        <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+            AND Z.TRPR_NM_ENCPT = #{TRPR_NM_ENCPT} 
+        </if>
+        <if test="TRPR_NM != null and TRPR_NM != ''">
+            AND Z.TRPR_NM LIKE '%' || #{TRPR_NM} || '%' 
+        </if>
+        <if test="PENSN_GIVE_STTS_OCRN_YMD_START != '' and PENSN_GIVE_STTS_OCRN_YMD_END != ''">
+		    AND (Z.PENSN_GIVE_STTS_OCRN_YMD BETWEEN TO_DATE(#{PENSN_GIVE_STTS_OCRN_YMD_START} || '000000', 'YYYYMMDDHH24MISS') 
+		    AND TO_DATE(#{PENSN_GIVE_STTS_OCRN_YMD_END} || '235959', 'YYYYMMDDHH24MISS'))
+		</if>
+        <if test="TRPR_INFO_NO != null and TRPR_INFO_NO != ''">
+            AND Z.TRPR_INFO_NO LIKE '%' || #{TRPR_INFO_NO} || '%' 
+        </if>        
+		<if test="STTS_SE_CD != null and STTS_SE_CD != ''">
+            AND Z.STTS_SE_CD = #{STTS_SE_CD} 
+        </if>
+        <if test="RCMDTN_SHELTR_NM != null and RCMDTN_SHELTR_NM != ''">
+            AND Z.RCMDTN_SHELTR_NM LIKE '%' || #{RCMDTN_SHELTR_NM} || '%' 
+        </if>
+        <if test="RCMDTN_YMD != null and RCMDTN_YMD != ''">
+            AND REPLACE(Z.RCMDTN_YMD, '-', '') = REPLACE(#{RCMDTN_YMD}, '-', '')
+        </if>
+        <if test="INDV_IDNTFC_NO != null and INDV_IDNTFC_NO != ''">
+            AND Z.INDV_IDNTFC_NO LIKE '%' || #{INDV_IDNTFC_NO} || '%' 
+        </if>
+        <if test="STTS_SE_YMD != null and STTS_SE_YMD != ''">
+            AND REPLACE(Z.STTS_SE_YMD, '-', '') = REPLACE(#{STTS_SE_YMD}, '-', '')
+        </if>
+        <if test="PENSN_GIVE_STTS_OCRN_YMD != null and PENSN_GIVE_STTS_OCRN_YMD != ''">
+            AND Z.PENSN_GIVE_STTS_OCRN_YMD = #{PENSN_GIVE_STTS_OCRN_YMD} 
+        </if>
+        <if test="PENSN_GIVE_STTS_BGNG_YM != null and PENSN_GIVE_STTS_BGNG_YM != ''">
+            AND Z.PENSN_GIVE_STTS_BGNG_YM = #{PENSN_GIVE_STTS_BGNG_YM} 
+        </if>
+        <if test="MM_PENSN_GIVE_AMT != '' and MM_PENSN_GIVE_AMT != ''">
+            AND Z.MM_PENSN_GIVE_AMT = #{MM_PENSN_GIVE_AMT}
+        </if>
+        <!-- <if test="MM_PENSN_GIVE_AMT_START != '' and MM_PENSN_GIVE_AMT_END != ''">
+            AND (MM_PENSN_GIVE_AMT BETWEEN #{MM_PENSN_GIVE_AMT_START} AND #{MM_PENSN_GIVE_AMT_END})
+        </if> -->
+        <if test="LCGOV_CHG_YMD != null and LCGOV_CHG_YMD != ''">
+            AND REPLACE(Z.LCGOV_CHG_YMD, '-', '') = REPLACE(#{LCGOV_CHG_YMD}, '-', '') 
+        </if>        
+        <if test="PENSN_GIVE_CHG_LCGOV_NO != null and PENSN_GIVE_CHG_LCGOV_NO != ''">
+            AND Z.PENSN_GIVE_CHG_LCGOV_NO = #{PENSN_GIVE_CHG_LCGOV_NO} 
+        </if>        
+        <if test="PENSN_STTS_MM != null and PENSN_STTS_MM != ''">
+            AND Z.PENSN_STTS_MM = #{PENSN_STTS_MM} 
+        </if>        
+        <if test="LCGOV_CHG_YMD != null and LCGOV_CHG_YMD != ''">
+            AND REPLACE(Z.LCGOV_CHG_YMD, '-', '') = REPLACE(#{LCGOV_CHG_YMD}, '-', '')
+        </if>
+        <if test="CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM != null and CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM != ''">
+            AND Z.CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM = #{CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM} 
+        </if>     
+        <if test="PENSN_GIVE_CHG_BFE_LCGOV_NO != null and PENSN_GIVE_CHG_BFE_LCGOV_NO != ''">
+            AND Z.PENSN_GIVE_CHG_BFE_LCGOV_NO = #{PENSN_GIVE_CHG_BFE_LCGOV_NO} 
+        </if>           
+        <if test="PIC_ENFSN_NO != null and PIC_ENFSN_NO != ''">
+            AND Z.PIC_ENFSN_NO = #{PIC_ENFSN_NO} 
+        </if>
+        <if test="PIC_INST_NO != null and PIC_INST_NO != ''">
+            AND Z.PIC_INST_NO = #{PIC_INST_NO} 
+        </if>
+        <if test="CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM != null and CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM != ''">
+            AND Z.CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM = #{CHG_LCGOV_PENSN_GIVE_CHG_MM_FROM} 
+        </if>
+        <if test="NOW_PENSN_GIVE_YN != null and NOW_PENSN_GIVE_YN != ''">
+            AND Z.NOW_PENSN_GIVE_YN = #{NOW_PENSN_GIVE_YN}
+        </if>
+    </sql>
+    
+</mapper>

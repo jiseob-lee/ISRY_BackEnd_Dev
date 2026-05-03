@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubmt.casemng.slfrlreg.mapper.SlfrlRegMapper">
+
+    <select id="selectReqById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectReqById - Lee MS */
+        
+        SELECT
+            A.SLFRL_SPRT_TRPR_SE_CD AS SLFRL_SPRT_TRPR_SE_CD,   /* 자립지원대상자코드 */
+            A.RQST_CS_CN AS RQST_CS_CN,                         /* 의뢰사유내용 */
+            A.RQST_CS_ETC_CN AS RQST_CS_ETC_CN,                 /* 의뢰사유기타내용 */
+            A.RQST_CS_DETAIA_CN AS RQST_CS_DETAIA_CN,           /* 지원욕구 세부내용 */
+            A.ATFINO AS ATFINO,                                 /* 첨부파일번호 */
+            
+            A.CASE_MNG_NO AS CASE_MNG_NO,           /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO      /* 사례관리차수 */
+        FROM AEB120 A                               /* 자립지원사례기본 */
+        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+        AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveData" parameterType="HashMap">
+    <![CDATA[
+         /* saveData - Lee  MS */
+         
+        MERGE INTO AEB120 /* 자립지원사례기본 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+         WHEN MATCHED THEN
+       UPDATE SET
+              SLFRL_SPRT_TRPR_SE_CD = #{SLFRL_SPRT_TRPR_SE_CD},  /* 자립지원대상자코드 */
+              RQST_CS_CN = #{RQST_CS_CN},                        /* 의뢰사유내용 */
+              RQST_CS_ETC_CN = #{RQST_CS_ETC_CN},                /* 의뢰사유기타내용 */
+              RQST_CS_DETAIA_CN = #{RQST_CS_DETAIA_CN},          /* 지원욕구세부내용 */
+              ATFINO = #{ATFINO},                                /* 첨부파일번호 */
+              
+              LAST_MDFR_ID = #{USER_ID},                         /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                            /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,          /* 사례관리번호 */
+              CASE_MNG_ODRNO,       /* 사례관리차수 */
+              
+              SLFRL_SPRT_TRPR_SE_CD,  /* 자립지원대상자코드 */
+              RQST_CS_CN,             /* 의뢰사유내용 */
+              RQST_CS_ETC_CN,         /* 의뢰사유기타내용 */
+              RQST_CS_DETAIA_CN,      /* 지원욕구세부내용 */
+              ATFINO,                 /* 첨부파일번호 */
+              
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              
+              #{SLFRL_SPRT_TRPR_SE_CD},
+              #{RQST_CS_CN},
+              #{RQST_CS_ETC_CN},
+              #{RQST_CS_DETAIA_CN}, 
+              #{ATFINO},
+              
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+        
+    ]]>
+    </update>
+    
+    <select id="selectCaseJgmtById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCaseJgmtById - Lee MS */
+        
+        SELECT
+            A.SLFRL_PRPARE_RELM_SE_CD AS SLFRL_PRPARE_RELM_SE_CD,      /* 자립준비영역구분코드 */
+            A.WGHTVA_VALUE AS WGHTVA_VALUE,                             /* 가중치값 */
+            B.ADDTNG_MNG_VALUE2 AS PSCORE_SCORE,                        /* 만점점수 */
+            A.SLFRL_PRPARE_EVL_SCORE AS SLFRL_PRPARE_EVL_SCORE,         /* 자립준비평가점수 */
+            A.CNVRSN_SCORE AS CNVRSN_SCORE,                             /* 환산점수 */  
+            A.RISK_LEVEL_SE_CD AS RISK_LEVEL_SE_CD,                     /* 위험수준구분코드 */
+            A.RVW_OPNN_CN AS RVW_OPNN_CN,                               /* 검토의견내용 */
+            
+            A.STBLT_YN AS STBLT_YN,                                     /* 적합여부 */
+            A.JGMT_RESULT_SE_CD AS JGMT_RESULT_SE_CD,                   /* 판정결과구분코드 */
+            A.EXMN_YMD AS EXMN_YMD,                                     /* 조사일자 */
+            
+            A.CASE_MNG_NO AS CASE_MNG_NO,                           /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO                      /* 사례관리차수 */
+        FROM AEB110 A, SAC100 B    /* 사례판정결과 */
+        WHERE B.CMMNS_CD_ID = 'SLFRL_PRPARE_RELM_SE_CD'
+          AND A.SLFRL_PRPARE_RELM_SE_CD = B.CMMNS_CD_VALUE 
+          AND A.CASE_MNG_NO = #{CASE_MNG_NO}
+          AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveCaseJgmtData" parameterType="HashMap">
+    <![CDATA[
+         /* saveCaseJgmtData - Lee  MS */
+         
+        MERGE INTO AEB110 /* 사례판정결과 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND SLFRL_PRPARE_RELM_SE_CD = #{SLFRL_PRPARE_RELM_SE_CD})
+         WHEN MATCHED THEN
+       UPDATE SET
+              WGHTVA_VALUE = #{WGHTVA_VALUE},                       /* 가중치값 */
+              SLFRL_PRPARE_EVL_SCORE = #{SLFRL_PRPARE_EVL_SCORE},   /* 자립준비평가점수 */
+              CNVRSN_SCORE = #{CNVRSN_SCORE},                       /* 환산점수 */
+              RISK_LEVEL_SE_CD = #{RISK_LEVEL_SE_CD},               /* 위험수준구분코드 */
+              RVW_OPNN_CN = #{RVW_OPNN_CN},                         /* 검토의견내용 */
+
+              STBLT_YN = #{STBLT_YN},                               /* 적합여부 */
+              JGMT_RESULT_SE_CD = #{JGMT_RESULT_SE_CD},             /* 판정결과구분코드 */
+              EXMN_YMD = #{EXMN_YMD},                               /* 조사일자 */
+              
+              LAST_MDFR_ID = #{USER_ID},                            /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                               /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,                  /* 사례관리번호 */
+              CASE_MNG_ODRNO,               /* 사례관리차수 */
+              SLFRL_PRPARE_RELM_SE_CD,      /* 자립준비영역구분코드 */
+
+              WGHTVA_VALUE,                 /* 가중치값 */
+              SLFRL_PRPARE_EVL_SCORE,       /* 자립준비평가점수 */
+              CNVRSN_SCORE,                 /* 환산점수 */
+              RISK_LEVEL_SE_CD,             /* 위험수준구분코드 */
+              RVW_OPNN_CN,                  /* 검토의견내용 */
+              
+              STBLT_YN,                     /* 적합여부 */
+              JGMT_RESULT_SE_CD,            /* 판정결과구분코드 */
+              EXMN_YMD,                     /* 조사일자 */
+              PIC_NO,                       /* 담당자번호 */
+              INST_NO,                      /* 기관번호 */
+              
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              #{SLFRL_PRPARE_RELM_SE_CD},
+              
+              #{WGHTVA_VALUE},
+              #{SLFRL_PRPARE_EVL_SCORE},
+              #{CNVRSN_SCORE},
+              #{RISK_LEVEL_SE_CD},
+              #{RVW_OPNN_CN},
+              
+              #{STBLT_YN},
+              #{JGMT_RESULT_SE_CD},
+              #{EXMN_YMD},
+              #{PIC_NO},
+              #{INST_NO},
+              
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+        
+    ]]>
+    </update>
+    
+    <select id="selectTrlEmtById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectTrlEmtById - Lee MS */
+        
+        SELECT
+            A.TRL_EMT_ENVRN_SE_CD_NM AS TRL_EMT_ENVRN_SE_CD_NM,                             /* 심리정서환경구분코드명 */
+
+            A.ANXIET_DEPRES_SCORE AS ANXIET_DEPRES_SCORE,                                   /* 불안우울점수 */
+            A.SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE AS SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE, /* 과잉행동주의집중충동점수 */
+            A.DEFIAN_CNDCT_SCORE AS DEFIAN_CNDCT_SCORE,                                     /* 반항품행점수 */
+            A.DELUSI_AUHA_SCORE AS DELUSI_AUHA_SCORE,                                       /* 망상환청점수 */  
+            A.ADDC_SCORE AS ADDC_SCORE,                                                     /* 중독점수 */
+
+            A.SUCDE_SLFIJR_SCORE AS SUCDE_SLFIJR_SCORE,                                     /* 자살자해점수 */
+            A.HOUSEK_ENVRN_SCORE AS HOUSEK_ENVRN_SCORE,                                     /* 가정환경점수 */
+            A.FRIDA_ENVRN_SCORE AS FRIDA_ENVRN_SCORE,                                       /* 또래환경점수 */
+            A.RGN_SOCTY_ENVRN_SCORE AS RGN_SOCTY_ENVRN_SCORE,                               /* 지역사회환경점수 */
+            A.PRTCTN_FCTR_SCORE AS PRTCTN_FCTR_SCORE,                                       /* 보호요인점수 */
+            A.PARNTS_SNDTER_REL_SCORE AS PARNTS_SNDTER_REL_SCORE,                           /* 부모자녀관계점수 */
+
+            A.ANXIET_DEPRES_RESULT_NM AS ANXIET_DEPRES_RESULT_NM,                                   /* 불안우울결과명 */
+            A.SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM AS SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM, /* 과잉행동주의집중충동결과명 */
+            A.DEFIAN_CNDCT_RESULT_NM AS DEFIAN_CNDCT_RESULT_NM,                                     /* 반항품행결과명 */
+            A.DELUSI_AUHA_RESULT_NM AS DELUSI_AUHA_RESULT_NM,                                       /* 망상환청결과명 */  
+            A.ADDC_RESULT_NM AS ADDC_RESULT_NM,                                                     /* 중독결과명 */
+
+            A.SUCDE_SLFIJR_RESULT_NM AS SUCDE_SLFIJR_RESULT_NM,                                     /* 자살자해결과명 */
+            A.HOUSEK_ENVRN_RESULT_NM AS HOUSEK_ENVRN_RESULT_NM,                                     /* 가정환경결과명 */
+            A.FRIDA_ENVRN_RESULT_NM AS FRIDA_ENVRN_RESULT_NM,                                       /* 또래환경결과명 */
+            A.RGN_SOCTY_ENVRN_RESULT_NM AS RGN_SOCTY_ENVRN_RESULT_NM,                               /* 지역사회환경결과명 */
+            A.PRTCTN_FCTR_RESULT_NM AS PRTCTN_FCTR_RESULT_NM,                                       /* 보호요인결과명 */
+            A.PARNTS_SNDTER_REL_RESULT_NM AS PARNTS_SNDTER_REL_RESULT_NM,                           /* 부모자녀관계결과명 */
+            
+            A.CASE_MNG_NO AS CASE_MNG_NO,                           /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO                      /* 사례관리차수 */
+        FROM AEA170 A  
+       WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+         AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveTrlEmtData" parameterType="HashMap">
+    <![CDATA[
+         /* saveTrlEmtData - Lee  MS */
+         
+        MERGE INTO AEA170 /* 심리정서환경척도 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+         WHEN MATCHED THEN
+       UPDATE SET
+              TRL_EMT_ENVRN_SE_CD_NM = #{TRL_EMT_ENVRN_SE_CD_NM},                               /* 심리정서환경구분코드명 */
+              
+              ANXIET_DEPRES_SCORE = #{ANXIET_DEPRES_SCORE},                                     /* 불안우울점수 */
+              SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE = #{SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE},   /* 과잉행동주의집중충동점수 */
+              DEFIAN_CNDCT_SCORE = #{DEFIAN_CNDCT_SCORE},                                       /* 반항품행점수 */
+              DELUSI_AUHA_SCORE = #{DELUSI_AUHA_SCORE},                                         /* 망상환청점수 */
+              ADDC_SCORE = #{ADDC_SCORE},                                                       /* 중독점수 */
+
+              SUCDE_SLFIJR_SCORE = #{SUCDE_SLFIJR_SCORE},                                       /* 자살자해점수 */
+              HOUSEK_ENVRN_SCORE = #{HOUSEK_ENVRN_SCORE},                                       /* 가정환경점수 */
+              FRIDA_ENVRN_SCORE = #{FRIDA_ENVRN_SCORE},                                         /* 또래환경점수 */
+              RGN_SOCTY_ENVRN_SCORE = #{RGN_SOCTY_ENVRN_SCORE},                                 /* 지역사회환경점수 */
+              PRTCTN_FCTR_SCORE = #{PRTCTN_FCTR_SCORE},                                         /* 보호요인점수 */
+              PARNTS_SNDTER_REL_SCORE = #{PARNTS_SNDTER_REL_SCORE},                             /* 부모자녀관계점수 */
+
+              ANXIET_DEPRES_RESULT_NM = #{ANXIET_DEPRES_RESULT_NM},                                     /* 불안우울결과명 */
+              SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM = #{SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM},   /* 과잉행동주의집중충동결과명 */
+              DEFIAN_CNDCT_RESULT_NM = #{DEFIAN_CNDCT_RESULT_NM},                                       /* 반항품행결과명 */
+              DELUSI_AUHA_RESULT_NM = #{DELUSI_AUHA_RESULT_NM},                                         /* 망상환청결과명 */
+              ADDC_RESULT_NM = #{ADDC_RESULT_NM},                                                       /* 중독결과명 */
+
+              SUCDE_SLFIJR_RESULT_NM = #{SUCDE_SLFIJR_RESULT_NM},                                       /* 자살자해결과명 */
+              HOUSEK_ENVRN_RESULT_NM = #{HOUSEK_ENVRN_RESULT_NM},                                       /* 가정환경결과명 */
+              FRIDA_ENVRN_RESULT_NM = #{FRIDA_ENVRN_RESULT_NM},                                         /* 또래환경결과명 */
+              RGN_SOCTY_ENVRN_RESULT_NM = #{RGN_SOCTY_ENVRN_RESULT_NM},                                 /* 지역사회환경결과명 */
+              PRTCTN_FCTR_RESULT_NM = #{PRTCTN_FCTR_RESULT_NM},                                         /* 보호요인결과명 */
+              PARNTS_SNDTER_REL_RESULT_NM = #{PARNTS_SNDTER_REL_RESULT_NM},                             /* 부모자녀관계결과명 */
+              
+              LAST_MDFR_ID = #{USER_ID},                            /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                               /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,                 /* 사례관리번호 */
+              CASE_MNG_ODRNO,              /* 사례관리차수 */
+              TRL_EMT_ENVRN_SE_CD_NM,      /* 자립준비영역구분코드 */
+
+              ANXIET_DEPRES_SCORE,         /* 불안우울점수 */
+              SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE,       /* 과잉행동주의집중충동점수 */
+              DEFIAN_CNDCT_SCORE,          /* 반항품행점수 */
+              DELUSI_AUHA_SCORE,           /* 망상환청점수 */
+              ADDC_SCORE,                  /* 중독점수 */
+              
+              SUCDE_SLFIJR_SCORE,          /* 자살자해점수 */
+              HOUSEK_ENVRN_SCORE,          /* 가정환경점수 */
+              FRIDA_ENVRN_SCORE,           /* 또래환경점수 */
+              RGN_SOCTY_ENVRN_SCORE,       /* 지역사회환경점수 */
+              PRTCTN_FCTR_SCORE,           /* 보호요인점수 */
+              PARNTS_SNDTER_REL_SCORE,     /* 부모자녀관계점수 */
+
+              ANXIET_DEPRES_RESULT_NM,         /* 불안우울결과명 */
+              SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM,       /* 과잉행동주의집중충동결과명 */
+              DEFIAN_CNDCT_RESULT_NM,          /* 반항품행결과명 */
+              DELUSI_AUHA_RESULT_NM,           /* 망상환청결과명 */
+              ADDC_RESULT_NM,                  /* 중독결과명 */
+              
+              SUCDE_SLFIJR_RESULT_NM,          /* 자살자해결과명 */
+              HOUSEK_ENVRN_RESULT_NM,          /* 가정환경결과명 */
+              FRIDA_ENVRN_RESULT_NM,           /* 또래환경결과명 */
+              RGN_SOCTY_ENVRN_RESULT_NM,       /* 지역사회환경결과명 */
+              PRTCTN_FCTR_RESULT_NM,           /* 보호요인결과명 */
+              PARNTS_SNDTER_REL_RESULT_NM,     /* 부모자녀관계결과명 */
+              
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              #{TRL_EMT_ENVRN_SE_CD_NM},
+              
+              #{ANXIET_DEPRES_SCORE},
+              #{SURPLU_GHVR_ATENTA_CNCTR_IMPLS_SCORE},
+              #{DEFIAN_CNDCT_SCORE},
+              #{DELUSI_AUHA_SCORE},
+              #{ADDC_SCORE},
+              
+              #{SUCDE_SLFIJR_SCORE},
+              #{HOUSEK_ENVRN_SCORE},
+              #{FRIDA_ENVRN_SCORE},
+              #{RGN_SOCTY_ENVRN_SCORE},
+              #{PRTCTN_FCTR_SCORE},
+              #{PARNTS_SNDTER_REL_SCORE},
+              
+              #{ANXIET_DEPRES_RESULT_NM},
+              #{SURPLU_GHVR_ATENTA_CNCTR_IMPLS_RESULT_NM},
+              #{DEFIAN_CNDCT_RESULT_NM},
+              #{DELUSI_AUHA_RESULT_NM},
+              #{ADDC_RESULT_NM},
+              
+              #{SUCDE_SLFIJR_RESULT_NM},
+              #{HOUSEK_ENVRN_RESULT_NM},
+              #{FRIDA_ENVRN_RESULT_NM},
+              #{RGN_SOCTY_ENVRN_RESULT_NM},
+              #{PRTCTN_FCTR_RESULT_NM},
+              #{PARNTS_SNDTER_REL_RESULT_NM},
+              
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+        
+    ]]>
+    </update>
+
+    <select id="selectSlfrlPrpareById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectSlfrlPrpareById - Lee MS */
+        
+        SELECT
+            A.FCTR_RELM_SE_CD AS FCTR_RELM_SE_CD,               /* 요인영역구분코드 */
+            A.FCTR_RELM_AVRG_SCORE AS FCTR_RELM_AVRG_SCORE,     /* 요인영역평균점수 */
+            A.FCTR_RELM_CNVRSN_SCORE AS FCTR_RELM_CNVRSN_SCORE, /* 요인영역환산점수 */
+            A.INSP_RESULT_CN AS INSP_RESULT_CN,                 /* 검사결과내용 */  
+            A.EXMN_YMD AS EXMN_YMD,                             /* 조사일자 */
+            A.CASE_MNG_NO AS CASE_MNG_NO,                       /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO                  /* 사례관리차수 */
+        FROM AEB140 A    /* 자립지원척도 */
+        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+          AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+          AND A.CASE_PRGRS_STTS_SE_CD = #{CASE_PRGRS_STTS_SE_CD}
+
+    ]]>
+    </select>
+
+    <update id="saveSlfrlPrpareData" parameterType="HashMap">
+    <![CDATA[
+         /* saveSlfrlPrpareData - Lee  MS */
+         
+        MERGE INTO AEB140 /* 자립지원척도 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND CASE_PRGRS_STTS_SE_CD = #{CASE_PRGRS_STTS_SE_CD}
+           AND FCTR_RELM_SE_CD = #{FCTR_RELM_SE_CD})
+         WHEN MATCHED THEN
+       UPDATE SET
+              FCTR_RELM_AVRG_SCORE = #{FCTR_RELM_AVRG_SCORE},       /* 요인영역평균점수 */
+              FCTR_RELM_CNVRSN_SCORE = #{FCTR_RELM_CNVRSN_SCORE},   /* 요인영역환산점수 */
+              INSP_RESULT_CN = #{INSP_RESULT_CN},                   /* 검사결과내용 */
+              EXMN_YMD = #{EXMN_YMD},                               /* 조사일자 */
+              
+              LAST_MDFR_ID = #{USER_ID},                            /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                               /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,                  /* 사례관리번호 */
+              CASE_MNG_ODRNO,               /* 사례관리차수 */
+              CASE_PRGRS_STTS_SE_CD,        /* 사례진행상태구분코드 */
+              FCTR_RELM_SE_CD,              /* 요인영역구분코드 */
+
+              FCTR_RELM_AVRG_SCORE,         /* 요인영역평균점수 */
+              FCTR_RELM_CNVRSN_SCORE,       /* 요인영역환산점수 */
+              INSP_RESULT_CN,               /* 검사결과내용 */
+              EXMN_YMD,                     /* 조사일자 */
+              
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              #{CASE_PRGRS_STTS_SE_CD},
+              #{FCTR_RELM_SE_CD},
+
+              #{FCTR_RELM_AVRG_SCORE},
+              #{FCTR_RELM_CNVRSN_SCORE},
+              #{INSP_RESULT_CN},
+              #{EXMN_YMD},
+              
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+    ]]>
+    </update>
+
+</mapper>

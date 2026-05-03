@@ -1,0 +1,895 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.drmgs.cnter.mapper.CnterPreconMapper">
+    <select id="selectCtpvCnterPreconList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectCtpvCnterPreconList - 개발지원팀 이태호  */
+        
+        SELECT T1.INST_NM                           AS INST_NM
+		      ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+		      ,T1.BPLC_ZIP                          AS BPLC_ZIP
+		      ,T1.RPRS_TELNO                        AS RPRS_TELNO
+		      ,T1.RPRS_FXNO                         AS RPRS_FXNO
+		      ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+		      ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+		      ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+		      ,T1.PIC_TELNO                         AS PIC_TELNO
+		      ,T2.CNTER_PRECON_UNT_TASKWK_SE_CD     AS CNTER_PRECON_UNT_TASKWK_SE_CD
+		      ,T2.INST_BRNO                         AS INST_BRNO
+		      ,T2.INST_CRNO                         AS INST_CRNO
+		      ,T2.CO13_TELNO                        AS CO13_TELNO
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'INSTL_OPER_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.INSTL_OPER_MTHD_SE_CD) AS INSTL_OPER_MTHD_SE_CD  --설치운영방법구분코드
+		      ,T2.INSTL_INST_NM                     AS INSTL_INST_NM
+		      ,T2.INSTL_YMD                         AS INSTL_YMD
+		      ,T2.INSTL_END_YMD                     AS INSTL_END_YMD
+		      ,T2.INSTL_END_YMD                     AS INSTL_END_YMD
+		      ,T2.RECENT_DSGN_YMD                   AS RECENT_DSGN_YMD
+		      ,T2.DSGN_END_YMD                      AS DSGN_END_YMD
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.OPER_MTHD_SE_CD) AS OPER_MTHD_SE_CD    --운영방법구분코드
+		      ,T2.CNSGN_INST_NM                     AS CNSGN_INST_NM
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_INST_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.OPER_INST_TYPE_SE_CD) AS OPER_INST_TYPE_SE_CD --운영기관유형구분코드
+		      ,T2.CNSGN_BGNG_YMD                    AS CNSGN_BGNG_YMD
+		      ,T2.CNSGN_END_YMD                     AS CNSGN_END_YMD
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_POSESN_SHAPE_LCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_POSESN_SHAPE_LCLAS_SE_CD) AS OPER_INST_TYPE_SE_CD   --건물소유형태대분류구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_POSESN_BHVIOR_SCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_POSESN_BHVIOR_SCLAS_SE_CD) AS OPER_INST_TYPE_SE_CD --건물소유행태소분류구분코드
+		      ,T2.FNDS_SRC_NXNDR_AMT                AS FNDS_SRC_NXNDR_AMT
+		      ,T2.FNDS_SRC_GOEX_AMT                 AS FNDS_SRC_GOEX_AMT
+		      ,T2.FNDS_SRC_PHW_AMT                  AS FNDS_SRC_PHW_AMT
+		      ,C##RG.DEC_B64(T2.BLDG_OWNR_NM_ENCPT)                AS BLDG_OWNR_NM_ENCPT
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'INSTL_MVN_SHAPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.INSTL_MVN_SHAPE_SE_CD) AS OPER_INST_TYPE_SE_CD   --설치입주형태구분코드
+		      ,T2.INSTL_MVN_SHAPE_ETC_CN            AS INSTL_MVN_SHAPE_ETC_CN
+		      ,T2.BLDG_NM                           AS BLDG_NM
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_MNG_REGSTR_MAPU_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_MNG_REGSTR_MAPU_SE_CD) AS OPER_INST_TYPE_SE_CD --건물관리대장주용도구분코드
+		      ,T2.BLDG_MNG_REGSTR_MAPU_ETC_CN       AS BLDG_MNG_REGSTR_MAPU_ETC_CN
+		      ,T2.BLDG_CMCN_YR                      AS BLDG_CMCN_YR
+		      ,T2.SNGA_USE_CUNT                     AS SNGA_USE_CUNT
+		      ,T2.SNGA_USE_AR_VALUE                 AS SNGA_USE_AR_VALUE
+		      ,T2.COLLAB_USE_CUNT                   AS COLLAB_USE_CUNT
+		      ,T2.COLLAB_USE_AR_VALUE               AS COLLAB_USE_AR_VALUE
+		      ,T2.TOT_USE_CUNT                      AS TOT_USE_CUNT
+		      ,T2.TOT_USE_AR_VALUE                  AS TOT_USE_AR_VALUE
+		      ,T2.OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN AS OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN
+		      ,T2.PRVUSE_WIRE_YN                    AS PRVUSE_WIRE_YN
+		      ,T2.PRVUSE_WIRE_NO                    AS PRVUSE_WIRE_NO
+		      ,T2.PRVUSE_WIRE_CNT                   AS PRVUSE_WIRE_CNT
+		      ,T2.PBADMS_WIRE_CNTN_YN               AS PBADMS_WIRE_CNTN_YN
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSCSN_TLPHON_RCORDG_SE_CD' AND x.CMMNS_CD_VALUE = T2.DSCSN_TLPHON_RCORDG_SE_CD) AS OPER_INST_TYPE_SE_CD   --상담전화녹음구분코드
+		      ,T2.DSPTCH_NO_IDNTY_YN                AS DSPTCH_NO_IDNTY_YN
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSPTCH_NO_IDNTY_YN' AND x.CMMNS_CD_VALUE = T2.DSPTCH_NO_IDNTY_YN) AS OPER_INST_TYPE_SE_CD --전화상담실운영구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CMMNS_LINGO_USE_SE_CD' AND x.CMMNS_CD_VALUE = T2.CMMNS_LINGO_USE_SE_CD) AS OPER_INST_TYPE_SE_CD   --공통링고사용구분코드
+		      ,T2.ECSHG_STAFF_WORK_SUM_NOPE         AS ECSHG_STAFF_WORK_SUM_NOPE     
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSGN_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.DSGN_MTHD_SE_CD) AS OPER_INST_TYPE_SE_CD   --지정방법구분코드
+		      ,T2.ESOFRE_YN                         AS ESOFRE_YN
+		      ,T2.MCLNC_ENFC_YMD                    AS MCLNC_ENFC_YMD 
+		      ,T2.CASE_MNG_PSNCPA_CNT               AS CASE_MNG_PSNCPA_CNT     
+		      ,C##RG.DEC_B64(T1.RPRSV_NM_ENCPT)  AS RPRSV_NM_ENCPT -- 대표자명
+		FROM SAA000 T1 /* 통합기관 */
+		    ,AKA500 T2 /* 센터현황 */
+		WHERE 1=1
+		  AND T1.INST_NO          = T2.INST_NO(+)
+		  AND T1.INST_TYPE_SE_CD  = '5'
+		  ]]>
+		  /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/     
+          
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+	          <![CDATA[
+	               AND T1.UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+	          ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND (T1.CTPV_CD = #{CTPV_CD} OR T1.RGN_CD LIKE #{CTPV_CD} || '%') 
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.RGN_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectCtpvCnterOperInfoList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectCtpvCnterOperInfoList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+		      ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+		      ,T1.BPLC_ZIP                          AS BPLC_ZIP
+		      ,T1.RPRS_TELNO                        AS RPRS_TELNO
+		      ,T1.RPRS_FXNO                         AS RPRS_FXNO
+		      ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+		      ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+		      ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+		      ,T1.PIC_TELNO                         AS PIC_TELNO
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DAOFTH_SE_CD' AND x.CMMNS_CD_VALUE = T3.DAOFTH_SE_CD) AS DAOFTH_SE_CD   --요일구분코드
+		      ,T3.WORK_HR_OPSY_YN                   AS WORK_HR_OPSY_YN
+		      ,T3.WORK_BGNG_HR                      AS WORK_BGNG_HR
+		      ,T3.WORK_END_HR                       AS WORK_END_HR
+		      ,T4.BROFA_NM                          AS BROFA_NM
+		      ,T4.RPRS_ADDR                         AS RPRS_ADDR
+		      ,T4.ZIP                               AS ZIP
+		      ,T4.RPRS_TELNO                        AS RPRS_TELNO520
+		      ,T4.IAGRTE_YMD                        AS IAGRTE_YMD
+		      ,T4.ALL_AR_VALUE                      AS ALL_AR_VALUE
+		      ,T4.ENFSN_CNT                         AS ENFSN_CNT
+		      ,T4.BROFA_OPER_CS_CN                  AS BROFA_OPER_CS_CN
+		FROM SAA000 T1 /* 통합기관 */
+		    ,AKA500 T2 /* 센터현황 */
+		    ,AKA510 T3 /* 센터현황-운영시간 */
+		    ,AKA520 T4 /* 센터현황-분소운영 */
+		WHERE 1=1
+		  AND T1.INST_NO            = T2.INST_NO
+		  AND T1.INST_NO            = T3.INST_NO
+		  AND T1.INST_NO            = T4.INST_NO
+		  AND T1.INST_TYPE_SE_CD    = '5' 
+		  AND T3.DEL_YN             = 'N'
+		  AND T4.DEL_YN             = 'N'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND T1.CTPV_CD = #{CTPV_CD} 
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.SGG_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectCtpvCnterFcltyInfoList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectCtpvCnterFcltyInfoList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+		      ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+		      ,T1.BPLC_ZIP                          AS BPLC_ZIP
+		      ,T1.RPRS_TELNO                        AS RPRS_TELNO
+		      ,T1.RPRS_FXNO                         AS RPRS_FXNO
+		      ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+		      ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+		      ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+		      ,T1.PIC_TELNO                         AS PIC_TELNO
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_POSESN_SHAPE_LCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_POSESN_SHAPE_LCLAS_SE_CD) AS BLDG_POSESN_SHAPE_LCLAS_SE_CD   --건물소유형태대분류구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_POSESN_BHVIOR_SCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_POSESN_BHVIOR_SCLAS_SE_CD) AS BLDG_POSESN_BHVIOR_SCLAS_SE_CD   --건물소유행태소분류구분코드
+		      ,T2.FNDS_SRC_NXNDR_AMT                AS FNDS_SRC_NXNDR_AMT
+		      ,T2.FNDS_SRC_GOEX_AMT                 AS FNDS_SRC_GOEX_AMT
+		      ,T2.FNDS_SRC_PHW_AMT                  AS FNDS_SRC_PHW_AMT
+		      ,C##RG.DEC_B64(T2.BLDG_OWNR_NM_ENCPT) AS BLDG_OWNR_NM_ENCPT
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'INSTL_MVN_SHAPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.INSTL_MVN_SHAPE_SE_CD) AS INSTL_MVN_SHAPE_SE_CD   --설치입주형태구분코드
+		      ,T2.INSTL_MVN_SHAPE_ETC_CN            AS INSTL_MVN_SHAPE_ETC_CN
+		      ,T2.BLDG_NM                           AS BLDG_NM
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_MNG_REGSTR_MAPU_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_MNG_REGSTR_MAPU_SE_CD) AS BLDG_MNG_REGSTR_MAPU_SE_CD   --건물관리대장주용도구분코드
+		      ,T2.BLDG_MNG_REGSTR_MAPU_ETC_CN       AS BLDG_MNG_REGSTR_MAPU_ETC_CN
+		      ,T2.BLDG_CMCN_YR                      AS BLDG_CMCN_YR
+		      ,T2.TOT_USE_CUNT                      AS TOT_USE_CUNT
+		      ,T2.TOT_USE_AR_VALUE                  AS TOT_USE_AR_VALUE
+		      ,T2.SNGA_USE_CUNT                     AS SNGA_USE_CUNT
+		      ,T2.SNGA_USE_AR_VALUE                 AS SNGA_USE_AR_VALUE
+		      ,T2.COLLAB_USE_CUNT                   AS COLLAB_USE_CUNT
+		      ,T2.COLLAB_USE_AR_VALUE               AS COLLAB_USE_AR_VALUE
+		      ,T2.OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN AS OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD' AND x.CMMNS_CD_VALUE = T3.SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD) AS SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD   --동일건물내청소년시설구분코드
+		      ,T3.ETC_YNGBGS_FCLTY_CN               AS ETC_YNGBGS_FCLTY_CN
+		      ,T3.YNGBGS_FCLTY_BLDG_NM              AS YNGBGS_FCLTY_BLDG_NM
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'USE_SPCE_INFO_SE_CD' AND x.CMMNS_CD_VALUE = T4.USE_SPCE_INFO_SE_CD) AS USE_SPCE_INFO_SE_CD   --사용공간정보구분코드
+		      ,T4.USE_SPCE_INFO_ETC_CN              AS USE_SPCE_INFO_ETC_CN
+		      ,T4.SNGA_USE_YN                       AS SNGA_USE_YN
+		      ,T4.USE_SPCE_CUNT                     AS USE_SPCE_CUNT
+		      ,T4.USE_SPCE_AR_VALUE                 AS USE_SPCE_AR_VALUE
+		      ,T4.BRM_AVRG_ACPTNC_NOPE              AS BRM_AVRG_ACPTNC_NOPE
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CAR_INFO_SE_CD' AND x.CMMNS_CD_VALUE = T5.CAR_INFO_SE_CD) AS CAR_INFO_SE_CD   --차량정보구분코드
+		      ,T5.CAR_INFO_ETC_CN                   AS CAR_INFO_ETC_CN
+		      ,T5.BRDING_NOPE                       AS BRDING_NOPE
+		      ,T5.CAR_YRIDNW_NO                     AS CAR_YRIDNW_NO
+		      ,T5.WIK_AVRG_OPRAT_DAYCNT             AS WIK_AVRG_OPRAT_DAYCNT
+		      ,T6.IAGRTE_YMD                        AS IAGRTE_YMD
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'PRVUSE_SPCE_INSTL_LC_SE_CD' AND x.CMMNS_CD_VALUE = T6.PRVUSE_SPCE_INSTL_LC_SE_CD) AS CAR_INFO_SE_CD   --전용공간설치위치구분코드
+		      ,T6.PRVUSE_SPCE_MU_PURPS_CN           AS PRVUSE_SPCE_MU_PURPS_CN      
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'PRVUSE_SPCE_SPRT_SE_CD' AND x.CMMNS_CD_VALUE = T6.PRVUSE_SPCE_SPRT_SE_CD) AS PRVUSE_SPCE_SPRT_SE_CD   --전용공간지원구분코드
+		      ,T6.PRVUSE_SPCE_SPRT_ETC_CN           AS PRVUSE_SPCE_SPRT_ETC_CN      
+		FROM SAA000 T1 /* 통합기관 */
+		    ,AKA500 T2 /* 센터현황 */
+		    ,AKA560 T3 /* 센터현황-청소년시설 */
+		    ,AKA570 T4 /* 센터현황-사용공간세부 */
+		    ,AKA580 T5 /* 센터현황-이동형일시쉼터용차량 */    
+		    ,AKA590 T6 /* 센터현황-학교밖청소년전용공간 */
+		WHERE 1=1
+		  AND T1.INST_NO            = T2.INST_NO
+		  AND T1.INST_NO            = T3.INST_NO
+		  AND T1.INST_NO            = T4.INST_NO
+		  AND T1.INST_NO            = T5.INST_NO
+		  AND T1.INST_NO            = T6.INST_NO
+		  AND T1.INST_TYPE_SE_CD    = '5' 
+		  AND T3.DEL_YN             = 'N'
+		  AND T4.DEL_YN             = 'N'
+		  AND T5.DEL_YN             = 'N'
+		  AND T6.DEL_YN             = 'N'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND T1.CTPV_CD = #{CTPV_CD} 
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.SGG_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectCtpvCnterInstlCnsgnInfoList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectCtpvCnterInstlCnsgnInfoList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+		      ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+		      ,T1.BPLC_ZIP                          AS BPLC_ZIP
+		      ,T1.RPRS_TELNO                        AS RPRS_TELNO
+		      ,T1.RPRS_FXNO                         AS RPRS_FXNO
+		      ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+		      ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+		      ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+		      ,T1.PIC_TELNO                         AS PIC_TELNO          
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'FCLTY_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.FCLTY_TYPE_SE_CD) AS FCLTY_TYPE_SE_CD   --시설유형구분코드
+		      ,T2.PRTCTN_PSNCPA_CNT                 AS PRTCTN_PSNCPA_CNT
+		      ,T2.CASE_MNG_PSNCPA_CNT               AS CASE_MNG_PSNCPA_CNT
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'PRTCTN_YNGBGS_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.PRTCTN_YNGBGS_TYPE_SE_CD) AS PRTCTN_YNGBGS_TYPE_SE_CD   --보호청소년유형구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CNTER_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.CNTER_TYPE_SE_CD) AS CNTER_TYPE_SE_CD   --센터유형구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'INSTL_OPER_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.INSTL_OPER_MTHD_SE_CD) AS INSTL_OPER_MTHD_SE_CD   --설치운영방법구분코드
+		      ,T2.INSTL_YMD                         AS INSTL_YMD
+		      ,T2.INSTL_END_YMD                     AS INSTL_END_YMD
+		      ,T2.INSTL_INST_NM                     AS INSTL_INST_NM
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.OPER_MTHD_SE_CD) AS OPER_MTHD_SE_CD   --운영방법구분코드            
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_INST_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.OPER_INST_TYPE_SE_CD) AS OPER_INST_TYPE_SE_CD   --운영기관유형구분코드
+		      ,T2.CNSGN_INST_NM                     AS CNSGN_INST_NM
+		      ,T2.CNSGN_BGNG_YMD                    AS CNSGN_BGNG_YMD
+		      ,T2.CNSGN_END_YMD                     AS CNSGN_END_YMD
+		      ,T2.FRST_DSGN_YMD                     AS FRST_DSGN_YMD
+		      ,T2.RECENT_DSGN_YMD                   AS RECENT_DSGN_YMD
+		      ,T2.DSGN_END_YMD                      AS DSGN_END_YMD
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSGN_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.DSGN_MTHD_SE_CD) AS DSGN_MTHD_SE_CD   --지정방법구분코드
+		FROM SAA000 T1 /* 통합기관 */
+		    ,AKA500 T2 /* 센터현황 */    
+		WHERE 1=1
+		  AND T1.INST_NO            = T2.INST_NO  
+		  AND T1.INST_TYPE_SE_CD    = '5'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND T1.CTPV_CD = #{CTPV_CD} 
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.SGG_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectCtpvCnterAddingBassInfoList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectCtpvCnterAddingBassInfoList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+		      ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+		      ,T1.BPLC_ZIP                          AS BPLC_ZIP
+		      ,T1.RPRS_TELNO                        AS RPRS_TELNO
+		      ,T1.RPRS_FXNO                         AS RPRS_FXNO
+		      ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+		      ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+		      ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+		      ,T1.PIC_TELNO                         AS PIC_TELNO          
+		      ,T2.INST_BRNO                         AS INST_BRNO
+		      ,T2.INST_CRNO                         AS INST_CRNO
+		      ,T2.CO13_TELNO                        AS CO13_TELNO
+		      ,T2.ESOFRE_YN                         AS ESOFRE_YN
+		      ,T2.MCLNC_ENFC_YMD                    AS MCLNC_ENFC_YMD
+		FROM SAA000 T1 /* 통합기관 */
+		    ,AKA500 T2 /* 센터현황 */    
+		WHERE 1=1
+		  AND T1.INST_NO            = T2.INST_NO  
+		  AND T1.INST_TYPE_SE_CD    = '5'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND T1.CTPV_CD = #{CTPV_CD} 
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.SGG_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectCtpvCnterYngbsDscsnTlphon1388List" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectCtpvCnterYngbsDscsnTlphon1388List - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+		      ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+		      ,T1.BPLC_ZIP                          AS BPLC_ZIP
+		      ,T1.RPRS_TELNO                        AS RPRS_TELNO
+		      ,T1.RPRS_FXNO                         AS RPRS_FXNO
+		      ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+		      ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+		      ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+		      ,T1.PIC_TELNO                         AS PIC_TELNO          
+		      ,T2.PRVUSE_WIRE_YN                    AS PRVUSE_WIRE_YN
+		      ,T2.PRVUSE_WIRE_NO                    AS PRVUSE_WIRE_NO
+		      ,T2.PRVUSE_WIRE_CNT                   AS PRVUSE_WIRE_CNT
+		      ,T2.PBADMS_WIRE_CNTN_YN               AS PBADMS_WIRE_CNTN_YN      
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSCSN_TLPHON_RCORDG_SE_CD' AND x.CMMNS_CD_VALUE = T2.DSCSN_TLPHON_RCORDG_SE_CD) AS DSCSN_TLPHON_RCORDG_SE_CD   --상담전화녹음구분코드
+		      ,T2.DSPTCH_NO_IDNTY_YN                AS DSPTCH_NO_IDNTY_YN      
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'TLPHON_CSC_OPER_SE_CD' AND x.CMMNS_CD_VALUE = T2.TLPHON_CSC_OPER_SE_CD) AS TLPHON_CSC_OPER_SE_CD   --전화상담실운영구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CMMNS_LINGO_USE_SE_CD' AND x.CMMNS_CD_VALUE = T2.CMMNS_LINGO_USE_SE_CD) AS CMMNS_LINGO_USE_SE_CD   --공통링고사용구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DAOFTH_SE_CD' AND x.CMMNS_CD_VALUE = T3.DAOFTH_SE_CD) AS DAOFTH_SE_CD   --요일구분코드
+		      ,T3.WORK_HR_OPSY_YN                   AS WORK_HR_OPSY_YN
+		      ,T3.WORK_BGNG_HR                      AS WORK_BGNG_HR
+		      ,T3.WORK_END_HR                       AS WORK_END_HR
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'TPRI_RCVR_WORK_TMZON_SE_CD' AND x.CMMNS_CD_VALUE = T4.TPRI_RCVR_WORK_TMZON_SE_CD) AS TPRI_RCVR_WORK_TMZON_SE_CD   --1차수신자근무시간대구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'TPRI_RCPTN_STAFF_SE_CD' AND x.CMMNS_CD_VALUE = T4.TPRI_RCPTN_STAFF_SE_CD) AS TPRI_RCPTN_STAFF_SE_CD   --1차수신요원구분코드
+		      ,T4.TPRI_RCPTN_STAFF_ETC_CN           AS TPRI_RCPTN_STAFF_ETC_CN
+		      ,T6.TPRI_RCVR_WORK_TMZON_SE_CD      AS TPRI_RCVR_WORK_TMZON_SE_CD
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'TPRI_RCPTN_STAFF_SE_CD' AND x.CMMNS_CD_VALUE = T4.TPRI_RCPTN_STAFF_SE_CD) AS TPRI_RCPTN_STAFF_SE_CD   --1차수신요원구분코드
+		      ,T2.ECSHG_STAFF_WORK_SUM_NOPE         AS ECSHG_STAFF_WORK_SUM_NOPE      
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_HNF_LCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T5.OPER_HNF_LCLAS_SE_CD) AS OPER_HNF_LCLAS_SE_CD   --운영인력대분류구분코드
+		      ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_HNF_SCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T5.OPER_HNF_SCLAS_SE_CD) AS OPER_HNF_SCLAS_SE_CD   --운영인력소분류구분코드
+		      ,T5.OUTSD_HNF_ETC_CN                  AS OUTSD_HNF_ETC_CN
+		      ,T5.TRGT_NOPE                         AS TRGT_NOPE
+		FROM SAA000 T1 /* 통합기관 */
+		    ,AKA500 T2 /* 센터현황 */   
+		    ,AKA530 T3 /* 센터현황-1388전화운영시간 */  
+		    ,AKA540 T4 /* 센터현황-1388전화근무현황 */
+		    ,AKA550 T5 /* 센터현황-1388운영인력 */
+		    ,AKA630 T6 /* 센터현황-1388전담요원현황 */
+		WHERE 1=1
+		  AND T1.INST_NO            = T2.INST_NO  
+		  AND T1.INST_NO            = T3.INST_NO
+		  AND T1.INST_NO            = T4.INST_NO
+		  AND T1.INST_NO            = T5.INST_NO
+		  AND T1.INST_NO            = T6.INST_NO
+		  AND T1.INST_TYPE_SE_CD    = '5'
+		  AND T3.DEL_YN = 'N'
+		  AND T4.DEL_YN = 'N'
+		  AND T5.DEL_YN = 'N'
+		  AND T6.DEL_YN = 'N'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND T1.CTPV_CD = #{CTPV_CD} 
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.SGG_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectSggCnterPreconList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectSggCnterPreconList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+              ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+              ,T1.BPLC_ZIP                          AS BPLC_ZIP
+              ,T1.RPRS_TELNO                        AS RPRS_TELNO
+              ,T1.RPRS_FXNO                         AS RPRS_FXNO
+              ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+              ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+              ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+              ,T1.PIC_TELNO                         AS PIC_TELNO
+              ,T2.CNTER_PRECON_UNT_TASKWK_SE_CD     AS CNTER_PRECON_UNT_TASKWK_SE_CD
+              ,T2.INST_BRNO                         AS INST_BRNO
+              ,T2.INST_CRNO                         AS INST_CRNO
+              ,T2.CO13_TELNO                        AS CO13_TELNO
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'INSTL_OPER_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.INSTL_OPER_MTHD_SE_CD) AS INSTL_OPER_MTHD_SE_CD  --설치운영방법구분코드
+              ,T2.INSTL_INST_NM                     AS INSTL_INST_NM
+              ,T2.INSTL_YMD                         AS INSTL_YMD
+              ,T2.INSTL_END_YMD                     AS INSTL_END_YMD
+              ,T2.INSTL_END_YMD                     AS INSTL_END_YMD
+              ,T2.RECENT_DSGN_YMD                   AS RECENT_DSGN_YMD
+              ,T2.DSGN_END_YMD                      AS DSGN_END_YMD
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.OPER_MTHD_SE_CD) AS OPER_MTHD_SE_CD    --운영방법구분코드
+              ,T2.CNSGN_INST_NM                     AS CNSGN_INST_NM
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_INST_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.OPER_INST_TYPE_SE_CD) AS OPER_INST_TYPE_SE_CD --운영기관유형구분코드
+              ,T2.CNSGN_BGNG_YMD                    AS CNSGN_BGNG_YMD
+              ,T2.CNSGN_END_YMD                     AS CNSGN_END_YMD
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_POSESN_SHAPE_LCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_POSESN_SHAPE_LCLAS_SE_CD) AS OPER_INST_TYPE_SE_CD   --건물소유형태대분류구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_POSESN_BHVIOR_SCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_POSESN_BHVIOR_SCLAS_SE_CD) AS OPER_INST_TYPE_SE_CD --건물소유행태소분류구분코드
+              ,T2.FNDS_SRC_NXNDR_AMT                AS FNDS_SRC_NXNDR_AMT
+              ,T2.FNDS_SRC_GOEX_AMT                 AS FNDS_SRC_GOEX_AMT
+              ,T2.FNDS_SRC_PHW_AMT                  AS FNDS_SRC_PHW_AMT
+              ,C##RG.DEC_B64(T2.BLDG_OWNR_NM_ENCPT)                AS BLDG_OWNR_NM_ENCPT
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'INSTL_MVN_SHAPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.INSTL_MVN_SHAPE_SE_CD) AS OPER_INST_TYPE_SE_CD   --설치입주형태구분코드
+              ,T2.INSTL_MVN_SHAPE_ETC_CN            AS INSTL_MVN_SHAPE_ETC_CN
+              ,T2.BLDG_NM                           AS BLDG_NM
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_MNG_REGSTR_MAPU_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_MNG_REGSTR_MAPU_SE_CD) AS OPER_INST_TYPE_SE_CD --건물관리대장주용도구분코드
+              ,T2.BLDG_MNG_REGSTR_MAPU_ETC_CN       AS BLDG_MNG_REGSTR_MAPU_ETC_CN
+              ,T2.BLDG_CMCN_YR                      AS BLDG_CMCN_YR
+              ,T2.SNGA_USE_CUNT                     AS SNGA_USE_CUNT
+              ,T2.SNGA_USE_AR_VALUE                 AS SNGA_USE_AR_VALUE
+              ,T2.COLLAB_USE_CUNT                   AS COLLAB_USE_CUNT
+              ,T2.COLLAB_USE_AR_VALUE               AS COLLAB_USE_AR_VALUE
+              ,T2.TOT_USE_CUNT                      AS TOT_USE_CUNT
+              ,T2.TOT_USE_AR_VALUE                  AS TOT_USE_AR_VALUE
+              ,T2.OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN AS OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN
+              ,T2.PRVUSE_WIRE_YN                    AS PRVUSE_WIRE_YN
+              ,T2.PRVUSE_WIRE_NO                    AS PRVUSE_WIRE_NO
+              ,T2.PRVUSE_WIRE_CNT                   AS PRVUSE_WIRE_CNT
+              ,T2.PBADMS_WIRE_CNTN_YN               AS PBADMS_WIRE_CNTN_YN
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSCSN_TLPHON_RCORDG_SE_CD' AND x.CMMNS_CD_VALUE = T2.DSCSN_TLPHON_RCORDG_SE_CD) AS OPER_INST_TYPE_SE_CD   --상담전화녹음구분코드
+              ,T2.DSPTCH_NO_IDNTY_YN                AS DSPTCH_NO_IDNTY_YN
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSPTCH_NO_IDNTY_YN' AND x.CMMNS_CD_VALUE = T2.DSPTCH_NO_IDNTY_YN) AS OPER_INST_TYPE_SE_CD --전화상담실운영구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CMMNS_LINGO_USE_SE_CD' AND x.CMMNS_CD_VALUE = T2.CMMNS_LINGO_USE_SE_CD) AS OPER_INST_TYPE_SE_CD   --공통링고사용구분코드
+              ,T2.ECSHG_STAFF_WORK_SUM_NOPE         AS ECSHG_STAFF_WORK_SUM_NOPE     
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSGN_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.DSGN_MTHD_SE_CD) AS OPER_INST_TYPE_SE_CD   --지정방법구분코드
+              ,T2.ESOFRE_YN                         AS ESOFRE_YN
+              ,T2.MCLNC_ENFC_YMD                    AS MCLNC_ENFC_YMD 
+              ,T2.CASE_MNG_PSNCPA_CNT               AS CASE_MNG_PSNCPA_CNT
+              ,C##RG.DEC_B64(T1.RPRSV_NM_ENCPT)  AS RPRSV_NM_ENCPT -- 대표자명
+        FROM SAA000 T1 /* 통합기관 */
+            ,AKA500 T2 /* 센터현황 */
+        WHERE 1=1
+          AND T1.INST_NO          = T2.INST_NO(+)
+          AND T1.INST_TYPE_SE_CD  = '8'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T1.UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND (T1.CTPV_CD = #{CTPV_CD} OR T1.RGN_CD LIKE #{CTPV_CD} || '%')
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.RGN_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectSggOperInfoList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectSggOperInfoList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+              ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+              ,T1.BPLC_ZIP                          AS BPLC_ZIP
+              ,T1.RPRS_TELNO                        AS RPRS_TELNO
+              ,T1.RPRS_FXNO                         AS RPRS_FXNO
+              ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+              ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+              ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+              ,T1.PIC_TELNO                         AS PIC_TELNO
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DAOFTH_SE_CD' AND x.CMMNS_CD_VALUE = T3.DAOFTH_SE_CD) AS DAOFTH_SE_CD   --요일구분코드
+              ,T3.WORK_HR_OPSY_YN                   AS WORK_HR_OPSY_YN
+              ,T3.WORK_BGNG_HR                      AS WORK_BGNG_HR
+              ,T3.WORK_END_HR                       AS WORK_END_HR
+              ,T4.BROFA_NM                          AS BROFA_NM
+              ,T4.RPRS_ADDR                         AS RPRS_ADDR
+              ,T4.ZIP                               AS ZIP
+              ,T4.RPRS_TELNO                        AS RPRS_TELNO520
+              ,T4.IAGRTE_YMD                        AS IAGRTE_YMD
+              ,T4.ALL_AR_VALUE                      AS ALL_AR_VALUE
+              ,T4.ENFSN_CNT                         AS ENFSN_CNT
+              ,T4.BROFA_OPER_CS_CN                  AS BROFA_OPER_CS_CN
+        FROM SAA000 T1 /* 통합기관 */
+            ,AKA500 T2 /* 센터현황 */
+            ,AKA510 T3 /* 센터현황-운영시간 */
+            ,AKA520 T4 /* 센터현황-분소운영 */
+        WHERE 1=1
+          AND T1.INST_NO            = T2.INST_NO
+          AND T1.INST_NO            = T3.INST_NO
+          AND T1.INST_NO            = T4.INST_NO
+          AND T1.INST_TYPE_SE_CD    = '8' 
+          AND T3.DEL_YN             = 'N'
+          AND T4.DEL_YN             = 'N'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND (T1.CTPV_CD = #{CTPV_CD} OR T1.RGN_CD LIKE #{CTPV_CD} || '%')
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.RGN_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectSggFcltyInfoList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectSggFcltyInfoList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+              ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+              ,T1.BPLC_ZIP                          AS BPLC_ZIP
+              ,T1.RPRS_TELNO                        AS RPRS_TELNO
+              ,T1.RPRS_FXNO                         AS RPRS_FXNO
+              ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+              ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+              ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+              ,T1.PIC_TELNO                         AS PIC_TELNO
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_POSESN_SHAPE_LCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_POSESN_SHAPE_LCLAS_SE_CD) AS BLDG_POSESN_SHAPE_LCLAS_SE_CD   --건물소유형태대분류구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_POSESN_BHVIOR_SCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_POSESN_BHVIOR_SCLAS_SE_CD) AS BLDG_POSESN_BHVIOR_SCLAS_SE_CD   --건물소유행태소분류구분코드
+              ,T2.FNDS_SRC_NXNDR_AMT                AS FNDS_SRC_NXNDR_AMT
+              ,T2.FNDS_SRC_GOEX_AMT                 AS FNDS_SRC_GOEX_AMT
+              ,T2.FNDS_SRC_PHW_AMT                  AS FNDS_SRC_PHW_AMT
+              ,C##RG.DEC_B64(T2.BLDG_OWNR_NM_ENCPT)                AS BLDG_OWNR_NM_ENCPT
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'INSTL_MVN_SHAPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.INSTL_MVN_SHAPE_SE_CD) AS INSTL_MVN_SHAPE_SE_CD   --설치입주형태구분코드
+              ,T2.INSTL_MVN_SHAPE_ETC_CN            AS INSTL_MVN_SHAPE_ETC_CN
+              ,T2.BLDG_NM                           AS BLDG_NM
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'BLDG_MNG_REGSTR_MAPU_SE_CD' AND x.CMMNS_CD_VALUE = T2.BLDG_MNG_REGSTR_MAPU_SE_CD) AS BLDG_MNG_REGSTR_MAPU_SE_CD   --건물관리대장주용도구분코드
+              ,T2.BLDG_MNG_REGSTR_MAPU_ETC_CN       AS BLDG_MNG_REGSTR_MAPU_ETC_CN
+              ,T2.BLDG_CMCN_YR                      AS BLDG_CMCN_YR
+              ,T2.TOT_USE_CUNT                      AS TOT_USE_CUNT
+              ,T2.TOT_USE_AR_VALUE                  AS TOT_USE_AR_VALUE
+              ,T2.SNGA_USE_CUNT                     AS SNGA_USE_CUNT
+              ,T2.SNGA_USE_AR_VALUE                 AS SNGA_USE_AR_VALUE
+              ,T2.COLLAB_USE_CUNT                   AS COLLAB_USE_CUNT
+              ,T2.COLLAB_USE_AR_VALUE               AS COLLAB_USE_AR_VALUE
+              ,T2.OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN AS OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD' AND x.CMMNS_CD_VALUE = T3.SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD) AS SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD   --동일건물내청소년시설구분코드
+              ,T3.ETC_YNGBGS_FCLTY_CN               AS ETC_YNGBGS_FCLTY_CN
+              ,T3.YNGBGS_FCLTY_BLDG_NM              AS YNGBGS_FCLTY_BLDG_NM
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'USE_SPCE_INFO_SE_CD' AND x.CMMNS_CD_VALUE = T4.USE_SPCE_INFO_SE_CD) AS USE_SPCE_INFO_SE_CD   --사용공간정보구분코드
+              ,T4.USE_SPCE_INFO_ETC_CN              AS USE_SPCE_INFO_ETC_CN
+              ,T4.SNGA_USE_YN                       AS SNGA_USE_YN
+              ,T4.USE_SPCE_CUNT                     AS USE_SPCE_CUNT
+              ,T4.USE_SPCE_AR_VALUE                 AS USE_SPCE_AR_VALUE
+              ,T4.BRM_AVRG_ACPTNC_NOPE              AS BRM_AVRG_ACPTNC_NOPE
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CAR_INFO_SE_CD' AND x.CMMNS_CD_VALUE = T5.CAR_INFO_SE_CD) AS CAR_INFO_SE_CD   --차량정보구분코드
+              ,T5.CAR_INFO_ETC_CN                   AS CAR_INFO_ETC_CN
+              ,T5.BRDING_NOPE                       AS BRDING_NOPE
+              ,T5.CAR_YRIDNW_NO                     AS CAR_YRIDNW_NO
+              ,T5.WIK_AVRG_OPRAT_DAYCNT             AS WIK_AVRG_OPRAT_DAYCNT
+              ,T6.IAGRTE_YMD                        AS IAGRTE_YMD
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'PRVUSE_SPCE_INSTL_LC_SE_CD' AND x.CMMNS_CD_VALUE = T6.PRVUSE_SPCE_INSTL_LC_SE_CD) AS CAR_INFO_SE_CD   --전용공간설치위치구분코드
+              ,T6.PRVUSE_SPCE_MU_PURPS_CN           AS PRVUSE_SPCE_MU_PURPS_CN      
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'PRVUSE_SPCE_SPRT_SE_CD' AND x.CMMNS_CD_VALUE = T6.PRVUSE_SPCE_SPRT_SE_CD) AS PRVUSE_SPCE_SPRT_SE_CD   --전용공간지원구분코드
+              ,T6.PRVUSE_SPCE_SPRT_ETC_CN           AS PRVUSE_SPCE_SPRT_ETC_CN      
+        FROM SAA000 T1 /* 통합기관 */
+            ,AKA500 T2 /* 센터현황 */
+            ,AKA560 T3 /* 센터현황-청소년시설 */
+            ,AKA570 T4 /* 센터현황-사용공간세부 */
+            ,AKA580 T5 /* 센터현황-이동형일시쉼터용차량 */    
+            ,AKA590 T6 /* 센터현황-학교밖청소년전용공간 */
+        WHERE 1=1
+          AND T1.INST_NO            = T2.INST_NO
+          AND T1.INST_NO            = T3.INST_NO
+          AND T1.INST_NO            = T4.INST_NO
+          AND T1.INST_NO            = T5.INST_NO
+          AND T1.INST_NO            = T6.INST_NO
+          AND T1.INST_TYPE_SE_CD    = '8' 
+          AND T3.DEL_YN             = 'N'
+          AND T4.DEL_YN             = 'N'
+          AND T5.DEL_YN             = 'N'
+          AND T6.DEL_YN             = 'N'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND (T1.CTPV_CD = #{CTPV_CD} OR T1.RGN_CD LIKE #{CTPV_CD} || '%')
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.RGN_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectSggAddingBassInfoList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectSggAddingBassInfoList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+              ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+              ,T1.BPLC_ZIP                          AS BPLC_ZIP
+              ,T1.RPRS_TELNO                        AS RPRS_TELNO
+              ,T1.RPRS_FXNO                         AS RPRS_FXNO
+              ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+              ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+              ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+              ,T1.PIC_TELNO                         AS PIC_TELNO          
+              ,T2.INST_BRNO                         AS INST_BRNO
+              ,T2.INST_CRNO                         AS INST_CRNO
+              ,T2.CO13_TELNO                        AS CO13_TELNO
+              ,T2.ESOFRE_YN                         AS ESOFRE_YN
+              ,T2.MCLNC_ENFC_YMD                    AS MCLNC_ENFC_YMD
+        FROM SAA000 T1 /* 통합기관 */
+            ,AKA500 T2 /* 센터현황 */    
+        WHERE 1=1
+          AND T1.INST_NO            = T2.INST_NO  
+          AND T1.INST_TYPE_SE_CD    = '8'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND (T1.CTPV_CD = #{CTPV_CD} OR T1.RGN_CD LIKE #{CTPV_CD} || '%')
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.RGN_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectSggYngbsDscsnTlphon1388List" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectSggYngbsDscsnTlphon1388List - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+              ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+              ,T1.BPLC_ZIP                          AS BPLC_ZIP
+              ,T1.RPRS_TELNO                        AS RPRS_TELNO
+              ,T1.RPRS_FXNO                         AS RPRS_FXNO
+              ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+              ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+              ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+              ,T1.PIC_TELNO                         AS PIC_TELNO          
+              ,T2.PRVUSE_WIRE_YN                    AS PRVUSE_WIRE_YN
+              ,T2.PRVUSE_WIRE_NO                    AS PRVUSE_WIRE_NO
+              ,T2.PRVUSE_WIRE_CNT                   AS PRVUSE_WIRE_CNT
+              ,T2.PBADMS_WIRE_CNTN_YN               AS PBADMS_WIRE_CNTN_YN      
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSCSN_TLPHON_RCORDG_SE_CD' AND x.CMMNS_CD_VALUE = T2.DSCSN_TLPHON_RCORDG_SE_CD) AS DSCSN_TLPHON_RCORDG_SE_CD   --상담전화녹음구분코드
+              ,T2.DSPTCH_NO_IDNTY_YN                AS DSPTCH_NO_IDNTY_YN      
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'TLPHON_CSC_OPER_SE_CD' AND x.CMMNS_CD_VALUE = T2.TLPHON_CSC_OPER_SE_CD) AS TLPHON_CSC_OPER_SE_CD   --전화상담실운영구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CMMNS_LINGO_USE_SE_CD' AND x.CMMNS_CD_VALUE = T2.CMMNS_LINGO_USE_SE_CD) AS CMMNS_LINGO_USE_SE_CD   --공통링고사용구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DAOFTH_SE_CD' AND x.CMMNS_CD_VALUE = T3.DAOFTH_SE_CD) AS DAOFTH_SE_CD   --요일구분코드
+              ,T3.WORK_HR_OPSY_YN                   AS WORK_HR_OPSY_YN
+              ,T3.WORK_BGNG_HR                      AS WORK_BGNG_HR
+              ,T3.WORK_END_HR                       AS WORK_END_HR
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'TPRI_RCVR_WORK_TMZON_SE_CD' AND x.CMMNS_CD_VALUE = T4.TPRI_RCVR_WORK_TMZON_SE_CD) AS TPRI_RCVR_WORK_TMZON_SE_CD   --1차수신자근무시간대구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'TPRI_RCPTN_STAFF_SE_CD' AND x.CMMNS_CD_VALUE = T4.TPRI_RCPTN_STAFF_SE_CD) AS TPRI_RCPTN_STAFF_SE_CD   --1차수신요원구분코드
+              ,T4.TPRI_RCPTN_STAFF_ETC_CN           AS TPRI_RCPTN_STAFF_ETC_CN
+              ,T6.TPRI_RCVR_WORK_TMZON_SE_CD      AS TPRI_RCVR_WORK_TMZON_SE_CD
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'TPRI_RCPTN_STAFF_SE_CD' AND x.CMMNS_CD_VALUE = T4.TPRI_RCPTN_STAFF_SE_CD) AS TPRI_RCPTN_STAFF_SE_CD   --1차수신요원구분코드
+              ,T2.ECSHG_STAFF_WORK_SUM_NOPE         AS ECSHG_STAFF_WORK_SUM_NOPE      
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_HNF_LCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T5.OPER_HNF_LCLAS_SE_CD) AS OPER_HNF_LCLAS_SE_CD   --운영인력대분류구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_HNF_SCLAS_SE_CD' AND x.CMMNS_CD_VALUE = T5.OPER_HNF_SCLAS_SE_CD) AS OPER_HNF_SCLAS_SE_CD   --운영인력소분류구분코드
+              ,T5.OUTSD_HNF_ETC_CN                  AS OUTSD_HNF_ETC_CN
+              ,T5.TRGT_NOPE                         AS TRGT_NOPE
+        FROM SAA000 T1 /* 통합기관 */
+            ,AKA500 T2 /* 센터현황 */   
+            ,AKA530 T3 /* 센터현황-1388전화운영시간 */  
+            ,AKA540 T4 /* 센터현황-1388전화근무현황 */
+            ,AKA550 T5 /* 센터현황-1388운영인력 */
+            ,AKA630 T6 /* 센터현황-1388전담요원현황 */
+        WHERE 1=1
+          AND T1.INST_NO            = T2.INST_NO  
+          AND T1.INST_NO            = T3.INST_NO
+          AND T1.INST_NO            = T4.INST_NO
+          AND T1.INST_NO            = T5.INST_NO
+          AND T1.INST_NO            = T6.INST_NO
+          AND T1.INST_TYPE_SE_CD    = '8'
+          AND T3.DEL_YN = 'N'
+          AND T4.DEL_YN = 'N'
+          AND T5.DEL_YN = 'N'
+          AND T6.DEL_YN = 'N'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND (T1.CTPV_CD = #{CTPV_CD} OR T1.RGN_CD LIKE #{CTPV_CD} || '%')
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.RGN_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="selectSggInstlCnsgnInfoList" parameterType="HashMap" resultType="HashMap">
+        <include refid="ComPagingMapper.pageHeader" />       
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+        T1.*
+         FROM (
+        <![CDATA[
+        /* isry.drmgs.stdnt.mapper.CnterPreconMapper.selectSggInstlCnsgnInfoList - 개발지원팀 이태호  */
+        SELECT T1.INST_NM                           AS INST_NM
+              ,T1.BPLC_PST_ADDR || T1.BPLC_DADDR    AS ADDR
+              ,T1.BPLC_ZIP                          AS BPLC_ZIP
+              ,T1.RPRS_TELNO                        AS RPRS_TELNO
+              ,T1.RPRS_FXNO                         AS RPRS_FXNO
+              ,C##RG.DEC_B64(T1.PIC_EML_ADDR_ENCPT)                AS PIC_EML_ADDR_ENCPT
+              ,T1.HPGE_URL_ADDR                     AS HPGE_URL_ADDR
+              ,C##RG.DEC_B64(T1.PIC_NM_ENCPT)                      AS PIC_NM_ENCPT
+              ,T1.PIC_TELNO                         AS PIC_TELNO          
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'FCLTY_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.FCLTY_TYPE_SE_CD) AS FCLTY_TYPE_SE_CD   --시설유형구분코드
+              ,T2.PRTCTN_PSNCPA_CNT                 AS PRTCTN_PSNCPA_CNT
+              ,T2.CASE_MNG_PSNCPA_CNT               AS CASE_MNG_PSNCPA_CNT
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'PRTCTN_YNGBGS_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.PRTCTN_YNGBGS_TYPE_SE_CD) AS PRTCTN_YNGBGS_TYPE_SE_CD   --보호청소년유형구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'CNTER_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.CNTER_TYPE_SE_CD) AS CNTER_TYPE_SE_CD   --센터유형구분코드
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'INSTL_OPER_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.INSTL_OPER_MTHD_SE_CD) AS INSTL_OPER_MTHD_SE_CD   --설치운영방법구분코드
+              ,T2.INSTL_YMD                         AS INSTL_YMD
+              ,T2.INSTL_END_YMD                     AS INSTL_END_YMD
+              ,T2.INSTL_INST_NM                     AS INSTL_INST_NM
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.OPER_MTHD_SE_CD) AS OPER_MTHD_SE_CD   --운영방법구분코드            
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'OPER_INST_TYPE_SE_CD' AND x.CMMNS_CD_VALUE = T2.OPER_INST_TYPE_SE_CD) AS OPER_INST_TYPE_SE_CD   --운영기관유형구분코드
+              ,T2.CNSGN_INST_NM                     AS CNSGN_INST_NM
+              ,T2.CNSGN_BGNG_YMD                    AS CNSGN_BGNG_YMD
+              ,T2.CNSGN_END_YMD                     AS CNSGN_END_YMD
+              ,T2.FRST_DSGN_YMD                     AS FRST_DSGN_YMD
+              ,T2.RECENT_DSGN_YMD                   AS RECENT_DSGN_YMD
+              ,T2.DSGN_END_YMD                      AS DSGN_END_YMD
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'DSGN_MTHD_SE_CD' AND x.CMMNS_CD_VALUE = T2.DSGN_MTHD_SE_CD) AS DSGN_MTHD_SE_CD   --지정방법구분코드
+        FROM SAA000 T1 /* 통합기관 */
+            ,AKA500 T2 /* 센터현황 */    
+        WHERE 1=1
+          AND T1.INST_NO            = T2.INST_NO  
+          AND T1.INST_TYPE_SE_CD    = '8'      
+          ]]>
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작(윤희성 적용)*/                               
+          <include refid="GroupAuthrtMapper.cnterPreconGropuAuthrt"/>                                   
+          /* 20230310_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+          <if test="UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != ''">
+              <![CDATA[
+                   AND T2.CNTER_PRECON_UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD} 
+              ]]>
+          </if>
+          <if test="CTPV_CD != null and CTPV_CD != ''">
+              <![CDATA[
+                   AND (T1.CTPV_CD = #{CTPV_CD} OR T1.RGN_CD LIKE #{CTPV_CD} || '%')
+              ]]>
+          </if>
+          <if test="SGG_CD != null and SGG_CD != ''">
+              <![CDATA[
+                   AND T1.RGN_CD = #{SGG_CD} 
+              ]]>
+          </if>
+          ) T1
+          <!-- 페이지 인덱서 WHERE 조건 -->
+          <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+</mapper>
+

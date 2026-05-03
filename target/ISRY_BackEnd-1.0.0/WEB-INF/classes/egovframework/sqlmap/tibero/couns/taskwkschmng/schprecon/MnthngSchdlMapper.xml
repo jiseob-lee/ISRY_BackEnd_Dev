@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper">
+ 
+ 	<select id="consultantSrch" parameterType="HashMap" resultType="HashMap">
+ 	/**
+	*		consultantSrch : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 소속부서 사원 조회
+	*/
+		SELECT 
+				AA.USER_ID			AS	USER_ID
+			,	BB.FLNM_ENCPT		AS	USER_NM
+			,	BB.BRTH_YMD			AS BRTH_YMD
+		FROM
+				SAA200		AA
+			,	SCA100		BB
+		WHERE	1=1
+			AND	AA.ENFSN_NO		=	BB.ENFSN_NO
+			AND	BB.OGDP_DEPT_CD	=	#{deptCd}
+ 	</select>
+    <select id="searchComboDept" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		searchComboDept : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 소속부서 조회
+	*/
+		SELECT 
+				AA.DEPT_CD			AS	DEPT_CD
+			,	AA.DEPT_NM			AS	DEPT_NM
+			,	AA.INST_NO			AS	INST_NO
+			,	'4'					AS	INST_TYPE_SE_CD /** 기관유형구분코드 사이버상담(4) **/
+		FROM 
+				SAA300 AA
+		WHERE	1=1
+			AND	AA.INST_NO		=	'1000000947'		/** 청소년사이버상담센터 **/
+    </select>
+    
+    <select id="selectCombo1ListMnthng" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		selectCombo1ListMnthng : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 메뉴구분코드 조회
+	*/
+	    SELECT 
+				AA.CMMNS_CD_VALUE			AS	CD_VALUE
+			,	AA.CMMNS_CD_VALUE_NM		AS	CD_NAME
+		FROM
+				SAC100	AA
+		WHERE 	1=1
+			AND	AA.CMMNS_CD_ID = 'MNTHNG_SCHDL_INQ_SE_CD'
+    </select>
+    
+    <select id="searchComboHrWork" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		searchComboHrWork : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 시간근무유형 구분코드 조회
+	*/
+		SELECT 
+				AA.CMMNS_CD_VALUE			AS	CD_VALUE
+			,	AA.CMMNS_CD_VALUE_NM		AS	CD_NAME
+		FROM
+				SAC100	AA
+		WHERE 	1=1
+			AND	AA.CMMNS_CD_ID = 'HR_WORK_TYPE_SE_CD'
+    </select>
+    
+    <select id="searchComboOptionTimes" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		searchComboOptionTimes : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간 일정 상세/수정 시간대 콤보 조회
+	*/
+		WITH TEMP AS
+		(
+			SELECT
+					DISTINCT AA.BGNG_HR || ' ~ ' || AA.END_HR		AS		TIMES
+				,	AA.BIZ_PLAN_MNG_NO								AS		BIZ_PLAN_MNG_NO		
+				,	COUNT(BB.USER_ID)								AS		CUR_CNT
+			FROM
+					AYC110	AA
+				,	AYC100	BB
+			WHERE 	1=1
+				AND AA.TASKWK_TYPE_DEPT_CD = #{deptCd}
+				AND	AA.BIZ_PLAN_MNG_NO	=	BB.BIZ_PLAN_MNG_NO
+				AND	BB.WORK_YMD LIKE #{workYmd}
+			GROUP BY
+					AA.BGNG_HR || ' ~ ' || AA.END_HR,AA.BIZ_PLAN_MNG_NO
+			ORDER BY 1
+		)
+		SELECT
+				DISTINCT AA.BGNG_HR || ' ~ ' || AA.END_HR		AS		TIMES
+			,	AA.BGNG_HR || '-'|| AA.BIZ_PLAN_MNG_NO || '-' || AA.MBR_NOCS || '-' || NVL(BB.CUR_CNT,'0')  				AS		TIMES_VALUE	
+		FROM
+				AYC110	AA
+			,	TEMP	BB
+		WHERE 	1=1
+			AND	AA.BIZ_PLAN_MNG_NO		=	BB.BIZ_PLAN_MNG_NO(+)			
+			AND	AA.CRTR_YM				LIKE	SUBSTR(#{workYmd},'0','6')
+			AND AA.TASKWK_TYPE_DEPT_CD	=		#{deptCd}
+		ORDER BY 1
+    </select>
+    
+    <!-- <select id="selectMnthngSchdlList" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		selectMnthngSchdlList : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 LIST 조회
+	*/
+		SELECT
+				DISTINCT BB.CRTR_YM		AS		CRTR_YM
+			,	AA.USER_ID				AS		USER_ID
+			,	DD.FLNM_ENCPT			AS		USER_NM
+			,	AA.WORK_YMD				AS		WORK_YMD
+			<![CDATA[
+			,	CASE
+					WHEN EE.VCATN_BGNG_YMD <=  AA.WORK_YMD AND EE.VCATN_END_YMD  >=  AA.WORK_YMD THEN	(
+																												SELECT
+																														CMMNS_CD_VALUE_NM
+																												FROM
+																														SAC100		E1
+																												WHERE	1=1
+																													AND	E1.CMMNS_CD_ID = 'VCATN_SE_CD'
+																													AND	E1.CMMNS_CD_VALUE = EE.VCATN_SE_CD
+																												)
+					ELSE	NULL
+				END			AS		VCATN_SE_NM
+			]]>
+			,	BB.MBR_NOCS				AS		MBR_NOCS
+			,	BB.BGNG_HR				AS		BGNG_HR
+			,	BB.END_HR				AS		END_HR
+			,	BB.TASKWK_TYPE_DEPT_CD	AS		DEPT_CD
+			,	AA.TASKWK_SCHDL_SN		AS		TASKWK_SCHDL_SN
+		FROM 
+				AYC100		AA		/** 근무배정표 일별 **/
+			,	AYC110		BB		/** 근무배정표 월별 **/
+			,	SAA200		CC		/**  사용자 **/
+			,	SCA100		DD		/** 종사자 **/
+			,	AYC130		EE		/** 사이버1388휴가 **/
+		WHERE	1=1	
+			AND	AA.BIZ_PLAN_MNG_NO	=	BB.BIZ_PLAN_MNG_NO
+			AND	EE.USER_ID(+)		=	AA.USER_ID
+			AND AA.USER_ID			=	CC.USER_ID
+			AND	CC.ENFSN_NO			=	DD.ENFSN_NO
+			AND	AA.DEL_YN			=	'N'
+		<if test="crtrYm != null and crtrYm != ''">
+			<![CDATA[
+			AND BB.CRTR_YM			=	#{crtrYm}
+			]]>
+		</if>
+		<if test="crtrYm != null and crtrYm != ''">
+			<![CDATA[
+			AND	EE.VCATN_BGNG_YMD(+)	LIKE #{crtrYm}||'%'
+			]]>
+		</if>
+		<if test="deptCd != null and deptCd != ''">
+			<![CDATA[
+			AND	BB.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+			]]>
+		</if>
+		GROUP BY
+				<![CDATA[
+				AA.WORK_YMD,BB.BGNG_HR,BB.END_HR,AA.USER_ID,DD.FLNM_ENCPT,BB.CRTR_YM,BB.MBR_NOCS,BB.TASKWK_TYPE_DEPT_CD,AA.TASKWK_SCHDL_SN,
+				CASE
+					WHEN EE.VCATN_BGNG_YMD <=  AA.WORK_YMD AND EE.VCATN_END_YMD  >=  AA.WORK_YMD	THEN	(
+																												SELECT
+																														CMMNS_CD_VALUE_NM
+																												FROM
+																														SAC100		E1
+																												WHERE	1=1
+																													AND	E1.CMMNS_CD_ID = 'VCATN_SE_CD'
+																													AND	E1.CMMNS_CD_VALUE = EE.VCATN_SE_CD
+																												)
+					ELSE	NULL
+				END	
+				]]>
+		ORDER BY
+				AA.WORK_YMD,BB.BGNG_HR
+    </select> -->
+    
+    <select id="selectMnthngSchdlList" parameterType="HashMap" resultType="HashMap">
+    /**
+    *       selectMnthngSchdlList : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 LIST 조회
+    */
+		SELECT  T3.WORK_YMD                           AS  WORK_YMD
+		        , T3.CRTR_YM                          AS  CRTR_YM
+		        , T3.USER_ID                          AS  USER_ID
+		        , C##RG.DEC_B64(T6.FLNM_ENCPT)     AS  USER_NM
+		        , T3.TASKWK_TYPE_DEPT_CD              AS  DEPT_CD
+		        , T3.BGNG_HR                          AS  BGNG_HR
+		        , T3.END_HR                           AS  END_HR
+		        , T3.MBR_NOCS                         AS  MBR_NOCS
+		        , (
+		           SELECT CMMNS_CD_VALUE_NM
+		           FROM   SAC100
+		           WHERE  1=1
+		           AND    CMMNS_CD_ID       =   'VCATN_SE_CD'
+		           AND    CMMNS_CD_VALUE    =   T4.VCATN_SE_CD
+		          )                                   AS  VCATN_SE_NM
+		FROM    (
+		         SELECT T1.WORK_YMD
+		                , T1.USER_ID
+		                , T1.TASKWK_SCHDL_SN
+		                , T2.TASKWK_TYPE_DEPT_CD
+		                , T2.CRTR_YM
+		                , T2.BGNG_HR
+		                , T2.END_HR
+		                , T2.MBR_NOCS
+		                , (
+		                   SELECT   MAX(COPA_INDEX_SN)  AS  COPA_INDEX_SN
+		                   FROM     AYC130  
+		                   WHERE    USER_ID                =      T1.USER_ID
+                           AND      DEL_YN                 =      'N'
+                           AND      APLY_SE_CD             =      '01'
+                           AND      APRV_STTS_SE_CD        =      '2'
+                           AND      T1.WORK_YMD         BETWEEN   VCATN_BGNG_YMD
+                                                          AND     VCATN_END_YMD
+		                   GROUP BY USER_ID
+		                   )                AS COPA_INDEX_SN
+		         FROM   AYC100      T1      /* 근무배정표_일별 */
+		                , AYC110    T2      /* 근무배정표_월별 */
+		         WHERE  1=1
+		         AND    T2.CRTR_YM              =       #{crtrYm}
+		         AND    T2.TASKWK_TYPE_DEPT_CD  =       #{deptCd}
+		         AND    T1.BIZ_PLAN_MNG_NO      =       T2.BIZ_PLAN_MNG_NO
+		        )           T3
+		        , AYC130    T4
+		        , SAA200    T5
+		        , SCA100    T6
+		WHERE   1=1
+		AND     T3.COPA_INDEX_SN    =       T4.COPA_INDEX_SN(+)
+		AND     T5.USER_ID          =       T3.USER_ID
+		AND     T6.ENFSN_NO         =       T5.ENFSN_NO
+		ORDER BY T3.WORK_YMD, T3.BGNG_HR, C##RG.DEC_B64(T6.FLNM_ENCPT)
+    </select>
+    
+    <select id="selectMnthngSchdlList01" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		selectMnthngSchdlList01 : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 LIST 조회(일정)
+	*/
+		SELECT
+				DISTINCT BB.CRTR_YM		AS		CRTR_YM
+			,	AA.USER_ID				AS		USER_ID
+			,	C##RG.DEC_B64(DD.FLNM_ENCPT)			AS		USER_NM
+			,	AA.WORK_YMD				AS		WORK_YMD
+			,	BB.MBR_NOCS				AS		MBR_NOCS
+			,	BB.BGNG_HR				AS		BGNG_HR
+			,	BB.END_HR				AS		END_HR
+			,	BB.TASKWK_TYPE_DEPT_CD	AS		DEPT_CD
+			,	AA.TASKWK_SCHDL_SN		AS		TASKWK_SCHDL_SN
+		FROM 
+				AYC100		AA		/** 근무배정표 일별 **/
+			,	AYC110		BB		/** 근무배정표 월별 **/
+			,	SAA200		CC		/**  사용자 **/
+			,	SCA100		DD		/** 종사자 **/
+		WHERE	1=1	
+			AND	AA.BIZ_PLAN_MNG_NO	=	BB.BIZ_PLAN_MNG_NO
+			AND AA.USER_ID			=	CC.USER_ID
+			AND	CC.ENFSN_NO			=	DD.ENFSN_NO
+			AND	AA.DEL_YN			=	'N'
+		<if test="crtrYm != null and crtrYm != ''">
+			<![CDATA[
+			AND BB.CRTR_YM			=	#{crtrYm}
+			]]>
+		</if>
+		<if test="deptCd != null and deptCd != ''">
+			<![CDATA[
+			AND	BB.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+			]]>
+		</if>
+		GROUP BY
+				AA.WORK_YMD,BB.BGNG_HR,BB.END_HR,AA.USER_ID,C##RG.DEC_B64(DD.FLNM_ENCPT),BB.CRTR_YM,BB.MBR_NOCS,BB.TASKWK_TYPE_DEPT_CD,AA.TASKWK_SCHDL_SN
+		ORDER BY
+				AA.WORK_YMD,BB.BGNG_HR, C##RG.DEC_B64(DD.FLNM_ENCPT)
+    </select>
+    
+    <select id="selectMnthngSchdlList02" parameterType="HashMap" resultType="HashMap">
+    /**
+    *       selectMnthngSchdlList02 : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 LIST 조회(휴가)
+    */
+		SELECT  T3.WORK_YMD                           AS  WORK_YMD
+		        , T3.CRTR_YM                          AS  CRTR_YM
+		        , T3.USER_ID                          AS  USER_ID
+		        , C##RG.DEC_B64(T6.FLNM_ENCPT)     AS  USER_NM
+		        , T3.TASKWK_TYPE_DEPT_CD              AS  DEPT_CD
+		        , T3.BGNG_HR                          AS  BGNG_HR
+		        , T3.END_HR                           AS  END_HR
+		        , T3.MBR_NOCS                         AS  MBR_NOCS
+		        , (
+		           SELECT CMMNS_CD_VALUE_NM
+		           FROM   SAC100
+		           WHERE  1=1
+		           AND    CMMNS_CD_ID       =   'VCATN_SE_CD'
+		           AND    CMMNS_CD_VALUE    =   T4.VCATN_SE_CD
+		          )                                   AS  VCATN_SE_NM
+		FROM    (
+		         SELECT T1.WORK_YMD
+		                , T1.USER_ID
+		                , T1.TASKWK_SCHDL_SN
+		                , T2.TASKWK_TYPE_DEPT_CD
+		                , T2.CRTR_YM
+		                , T2.BGNG_HR
+		                , T2.END_HR
+		                , T2.MBR_NOCS
+		                , (
+		                   SELECT   MAX(COPA_INDEX_SN)  AS  COPA_INDEX_SN
+		                   FROM     AYC130  
+		                   WHERE    USER_ID                =      T1.USER_ID
+		                   AND      DEL_YN                 =      'N'
+		                   AND      APLY_SE_CD             =      '01'
+		                   AND      APRV_STTS_SE_CD        =      '2'
+		                   AND      T1.WORK_YMD         BETWEEN   VCATN_BGNG_YMD
+		                                                  AND     VCATN_END_YMD
+		                   GROUP BY USER_ID
+		                   )                AS COPA_INDEX_SN
+		         FROM   AYC100      T1      /* 근무배정표_일별 */
+		                , AYC110    T2      /* 근무배정표_월별 */
+		         WHERE  1=1
+		         AND    T2.CRTR_YM              =       #{crtrYm}
+		         AND    T2.TASKWK_TYPE_DEPT_CD  =       #{deptCd}
+		         AND    T1.BIZ_PLAN_MNG_NO      =       T2.BIZ_PLAN_MNG_NO
+		        )           T3
+		        , AYC130    T4
+		        , SAA200    T5
+		        , SCA100    T6
+		WHERE   1=1
+		AND     T3.COPA_INDEX_SN    =       T4.COPA_INDEX_SN
+		AND     T5.USER_ID          =       T3.USER_ID
+		AND     T6.ENFSN_NO         =       T5.ENFSN_NO
+		ORDER BY T3.WORK_YMD, T3.BGNG_HR, C##RG.DEC_B64(T6.FLNM_ENCPT)
+    </select>
+    
+    <!-- <select id="selectMnthngSchdlList02" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		selectMnthngSchdlList02 : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 LIST 조회(휴가)
+	*/
+		SELECT
+				DISTINCT BB.CRTR_YM		AS		CRTR_YM
+			,	AA.USER_ID				AS		USER_ID
+			,	DD.FLNM_ENCPT			AS		USER_NM
+			,	AA.WORK_YMD				AS		WORK_YMD
+			<![CDATA[
+			,	CASE
+					WHEN EE.VCATN_BGNG_YMD <=  AA.WORK_YMD AND EE.VCATN_END_YMD  >=  AA.WORK_YMD	THEN	(
+																												SELECT
+																														CMMNS_CD_VALUE_NM
+																												FROM
+																														SAC100		E1
+																												WHERE	1=1
+																													AND	E1.CMMNS_CD_ID = 'VCATN_SE_CD'
+																													AND	E1.CMMNS_CD_VALUE = EE.VCATN_SE_CD
+																												)
+					ELSE	NULL
+				END			AS		VCATN_SE_NM
+			]]>
+			,	BB.MBR_NOCS				AS		MBR_NOCS
+			,	BB.BGNG_HR				AS		BGNG_HR
+			,	BB.END_HR				AS		END_HR
+			,	BB.TASKWK_TYPE_DEPT_CD	AS		DEPT_CD
+			,	AA.TASKWK_SCHDL_SN		AS		TASKWK_SCHDL_SN
+		FROM 
+				AYC100		AA		/** 근무배정표 일별 **/
+			,	AYC110		BB		/** 근무배정표 월별 **/
+			,	SAA200		CC		/**  사용자 **/
+			,	SCA100		DD		/** 종사자 **/
+			,	AYC130		EE		/** 사이버1388휴가 **/
+		WHERE	1=1	
+			AND	AA.BIZ_PLAN_MNG_NO	=	BB.BIZ_PLAN_MNG_NO
+			AND	EE.USER_ID(+)		=	AA.USER_ID
+			AND AA.USER_ID			=	CC.USER_ID
+			AND	CC.ENFSN_NO			=	DD.ENFSN_NO
+			AND	AA.DEL_YN			=	'N'
+			<![CDATA[
+			AND	EE.VCATN_BGNG_YMD	<=  AA.WORK_YMD
+			AND	EE.VCATN_END_YMD    >=  AA.WORK_YMD
+			]]>
+		<if test="crtrYm != null and crtrYm != ''">
+			<![CDATA[
+			AND BB.CRTR_YM			=	#{crtrYm}
+			]]>
+		</if>
+		<if test="crtrYm != null and crtrYm != ''">
+			<![CDATA[
+			AND	EE.VCATN_BGNG_YMD(+)	LIKE #{crtrYm}||'%'
+			]]>
+		</if>
+		<if test="deptCd != null and deptCd != ''">
+			<![CDATA[
+			AND	BB.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+			]]>
+		</if>
+		GROUP BY
+				<![CDATA[
+				AA.WORK_YMD,BB.BGNG_HR,BB.END_HR,AA.USER_ID,DD.FLNM_ENCPT,BB.CRTR_YM,BB.MBR_NOCS,BB.TASKWK_TYPE_DEPT_CD,AA.TASKWK_SCHDL_SN,
+				CASE
+					WHEN EE.VCATN_BGNG_YMD <=  AA.WORK_YMD AND EE.VCATN_END_YMD  >=  AA.WORK_YMD	THEN	(
+																												SELECT
+																														CMMNS_CD_VALUE_NM
+																												FROM
+																														SAC100		E1
+																												WHERE	1=1
+																													AND	E1.CMMNS_CD_ID = 'VCATN_SE_CD'
+																													AND	E1.CMMNS_CD_VALUE = EE.VCATN_SE_CD
+																												)
+					ELSE	NULL
+				END	
+				]]>
+		ORDER BY
+				AA.WORK_YMD,BB.BGNG_HR
+				
+        SELECT  T3.WORK_YMD                           AS  WORK_YMD
+                , T3.CRTR_YM                          AS  CRTR_YM
+                , T3.USER_ID                          AS  USER_ID
+                , C##RG.DEC_B64(T6.FLNM_ENCPT)     AS  USER_NM
+                , T3.TASKWK_TYPE_DEPT_CD              AS  DEPT_CD
+                , T3.BGNG_HR                          AS  BGNG_HR
+                , T3.END_HR                           AS  END_HR
+                , T3.MBR_NOCS                         AS  MBR_NOCS
+                , (
+                   SELECT CMMNS_CD_VALUE_NM
+                   FROM   SAC100
+                   WHERE  1=1
+                   AND    CMMNS_CD_ID       =   'VCATN_SE_CD'
+                   AND    CMMNS_CD_VALUE    =   T4.VCATN_SE_CD
+                  )                                   AS  VCATN_SE_NM
+        FROM    (
+                 SELECT T1.WORK_YMD
+                        , T1.USER_ID
+                        , T1.TASKWK_SCHDL_SN
+                        , T2.TASKWK_TYPE_DEPT_CD
+                        , T2.CRTR_YM
+                        , T2.BGNG_HR
+                        , T2.END_HR
+                        , T2.MBR_NOCS
+                        , (
+                           SELECT   MIN(COPA_INDEX_SN)  AS  COPA_INDEX_SN
+                           FROM     AYC130  
+                           WHERE    USER_ID(+)          =   T1.USER_ID
+
+                              AND      VCATN_BGNG_YMD(+)   <=  T1.WORK_YMD
+                              AND      VCATN_END_YMD(+)    >=  T1.WORK_YMD
+
+                           AND      APRV_STTS_SE_CD     =   '2'
+                           AND      DEL_YN              =   'N'
+                           GROUP BY USER_ID
+                           )                AS COPA_INDEX_SN
+                 FROM   AYC100      T1      /* 근무배정표_일별 */
+                        , AYC110    T2      /* 근무배정표_월별 */
+                 WHERE  1=1
+                 AND    T2.CRTR_YM              =       '202306'
+                 AND    T2.TASKWK_TYPE_DEPT_CD  =       '324'
+                 AND    T1.BIZ_PLAN_MNG_NO      =       T2.BIZ_PLAN_MNG_NO
+                )           T3
+                , AYC130    T4
+                , SAA200    T5
+                , SCA100    T6
+        WHERE   1=1
+        AND     T3.COPA_INDEX_SN    =       T4.COPA_INDEX_SN
+        AND     T5.USER_ID          =       T3.USER_ID
+        AND     T6.ENFSN_NO         =       T5.ENFSN_NO
+        ORDER BY T3.WORK_YMD, T3.BGNG_HR, C##RG.DEC_B64(T6.FLNM_ENCPT)
+    </select> -->
+    
+    
+    
+    <update id="updateMnthngSchdlDetail" parameterType="HashMap">
+    /**
+	*		updateMnthngSchdlDetail : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간 일정  상세 수정
+	*/
+	    UPDATE
+				AYC100		AA		/**근무배정표 일별**/
+		SET
+				LAST_MDFR_ID		=	#{loginId}
+			,	LAST_MDFCN_DT		=	SYSDATE
+			,	AA.BIZ_PLAN_MNG_NO	=	#{bizPlanMngNo}
+		WHERE	1=1
+			AND	AA.TASKWK_SCHDL_SN	=	#{taskwkSchdlSn}
+			AND	AA.USER_ID			=	#{userId}
+    </update>
+    <delete id="deleteMnthngSchdlDetail" parameterType="HashMap">
+    /**
+	*		deleteMnthngSchdlDetail : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간 일정  상세 삭제
+	*/
+		DELETE
+		FROM
+				AYC100		AA		/**근무배정표 일별**/
+		WHERE	1=1
+			AND	AA.TASKWK_SCHDL_SN	=	#{taskwkSchdlSn}
+			AND	AA.USER_ID			=	#{userId}
+    </delete>
+    <select id="getRowCnt" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		getRowCnt : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간 일정  등록 - 동적 화면 구성을 위한 로우 카운트
+	*/
+		WITH TEMP AS
+		(
+			SELECT
+					DISTINCT AA.BGNG_HR || ' ~ ' || AA.END_HR		AS		TIMES
+				,	AA.BIZ_PLAN_MNG_NO								AS		BIZ_PLAN_MNG_NO
+				,	AA.MBR_NOCS										AS		TOTAL_CNT			
+				,	COUNT(BB.USER_ID)								AS		CUR_CNT
+			FROM
+					AYC110	AA
+				,	AYC100	BB
+			WHERE 	1=1
+				AND AA.TASKWK_TYPE_DEPT_CD = #{deptCd}
+				AND	AA.BIZ_PLAN_MNG_NO	=	BB.BIZ_PLAN_MNG_NO
+				AND	BB.WORK_YMD LIKE #{workYmd}
+				AND AA.DEL_YN = 'N'
+				AND BB.DEL_YN = 'N'
+			GROUP BY
+					AA.BGNG_HR || ' ~ ' || AA.END_HR,AA.BIZ_PLAN_MNG_NO,AA.MBR_NOCS 
+			ORDER BY 1
+		)
+		SELECT
+				DISTINCT AA.BGNG_HR || ' ~ ' || AA.END_HR		AS		TIMES	
+			,	AA.MBR_NOCS										AS		TOTAL_CNT	
+			,	AA.CRTR_YM										AS		CRTR_YM
+			,	AA.TASKWK_TYPE_DEPT_CD							AS		TASKWK_TYPE_DEPT_CD
+			,	NVL(BB.CUR_CNT,'0')								AS		CUR_CNT
+		FROM
+				AYC110	AA
+			,	TEMP	BB
+		WHERE	1=1
+			AND	AA.BIZ_PLAN_MNG_NO = BB.BIZ_PLAN_MNG_NO(+)
+			AND	AA.CRTR_YM LIKE SUBSTR(#{workYmd},'0','6')
+			AND	AA.TASKWK_TYPE_DEPT_CD = #{deptCd}
+		ORDER BY	1
+    </select>
+    <select id="selectYmdSchdlExmpl" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		selectYmdSchdlExmpl : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간 일자별 상세 조회
+	*/
+		SELECT
+				AA.WORK_YMD				               AS	WORK_YMD
+			,	AA.USER_ID				               AS	USER_ID
+			,	C##RG.DEC_B64(DD.FLNM_ENCPT)        AS	USER_NM
+			,	BB.BGNG_HR				               AS	BGNG_HR
+			,	BB.END_HR				               AS	END_HR		
+		FROM
+				AYC100		AA
+			,	AYC110		BB
+			,	SAA200		CC		/**  사용자 **/
+			,	SCA100		DD		/** 종사자 **/
+		WHERE	1=1
+			AND AA.BIZ_PLAN_MNG_NO	=	BB.BIZ_PLAN_MNG_NO
+			AND AA.USER_ID			=	CC.USER_ID
+			AND	CC.ENFSN_NO			=	DD.ENFSN_NO
+			<![CDATA[
+			AND	AA.WORK_YMD LIKE #{workYmd}
+			]]>
+		<if test="deptCd != null and deptCd != ''">
+			<![CDATA[
+			AND	BB.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+			]]>
+		</if>
+    </select>
+    
+    <select id="selectMnthForExclDown" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		selectMnthForExclDown : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간 일자 엑셀 다운로드 시간표 조회
+	*/
+	    WITH ZZ AS
+				(
+				SELECT 
+						BB.USER_ID					     AS		CNSLTNT_ID
+					,	C##RG.DEC_B64(DD.FLNM_ENCPT)  AS		CNSLTNT_NM
+					,	AA.BGNG_HR					     AS		BGNG_HR
+					,	BB.WORK_YMD					     AS		WORK_YMD
+					,	COUNT(*)					     AS		CCNT
+					,	EE.HR_WORK_TYPE_SE_CD1		     AS		HR_WORK_TYPE_SE_CD1
+					,	EE.HR_WORK_TYPE_SE_CD2		     AS		HR_WORK_TYPE_SE_CD2
+				FROM 
+						AYC110		AA
+					,	AYC100		BB
+					,	SAA200		CC
+					,	SCA100		DD
+					,	AYC120		EE
+				WHERE	1=1
+					AND	AA.CRTR_YM				=	#{crtrYm}
+					AND	AA.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+					AND	AA.BIZ_PLAN_MNG_NO		=	BB.BIZ_PLAN_MNG_NO
+					AND	BB.USER_ID				=	CC.USER_ID
+					AND	CC.ENFSN_NO				=	DD.ENFSN_NO
+					AND	EE.TASKWK_SCHDL_SN	(+)	=	BB.TASKWK_SCHDL_SN
+				GROUP BY
+						BB.USER_ID
+					,	DD.FLNM_ENCPT
+					,	BB.WORK_YMD
+					,	AA.BGNG_HR
+					,	EE.HR_WORK_TYPE_SE_CD1
+					,	EE.HR_WORK_TYPE_SE_CD2
+				ORDER BY
+						1, 2
+				)
+		SELECT
+				*
+		FROM
+				ZZ
+		PIVOT   (
+				SUM(CCNT)
+				FOR	BGNG_HR
+				IN	
+					<foreach collection="times" item="item" index="index" separator="," open="(" close=")">
+						'${item}' AS TIME${index}
+					</foreach>
+					
+				)
+    </select>
+    <select id="getTimesForExclDown" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		getTimesForExclDown : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 시간표
+	*/
+	    SELECT
+				AA.BGNG_HR	AS	TIMES
+			,	AA.BGNG_HR||'~'||AA.END_HR	AS	PERIODS
+		FROM
+				AYC110 AA
+		WHERE 1=1
+			AND	AA.CRTR_YM	=	#{crtrYm}
+			AND	AA.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+		ORDER BY
+				AA.BGNG_HR
+    </select>
+    <select id="selectAllMemberDeptcd" parameterType="HashMap" resultType="HashMap">
+	    SELECT 
+				C##RG.DEC_B64(AA.FLNM_ENCPT)		AS	CNSLTNT_NM
+			,	BB.USER_ID			                AS	CNSLTNT_ID
+		FROM
+				SCA100	AA
+			,	SAA200	BB
+		WHERE	1=1
+			AND	AA.ENFSN_NO	=	BB.ENFSN_NO
+			AND	AA.OGDP_DEPT_CD = #{deptCd}
+    </select>
+    
+    <delete id="deleteDaySchdl" parameterType="HashMap">
+    /**
+	*		"deleteDaySchdl" : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 일괄생성 삭제
+	*/
+    	DELETE
+		FROM
+				AYC100		AA		/**근무배정표 일별**/
+		WHERE	1=1
+			AND	AA.WORK_YMD		LIKE	#{crtrYm} || '%'
+			AND	AA.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+    </delete>
+    
+    <insert id="insertDaySchdl" parameterType="HashMap" keyProperty="TASKWK_SCHDL_SN" useGeneratedKeys="true">
+    <selectKey resultType="String" keyProperty="TASKWK_SCHDL_SN" order="AFTER">
+    	SELECT 
+    			AYC100_SQ01.CURRVAL		AS	TASKWK_SCHDL_SN
+    	FROM
+    			DUAL
+    </selectKey>
+    /**
+	*		insertDaySchdl : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 일괄생성 등록
+	*/
+    	INSERT	INTO
+    			AYC100		AA		/** 근무배정표 일별 **/
+		(
+				AA.TASKWK_SCHDL_SN
+			,	AA.BIZ_PLAN_MNG_NO
+			,	AA.WORK_YMD
+			,	AA.TASKWK_TYPE_DEPT_CD
+			,	AA.USER_ID
+			,	AA.FRST_RGTR_ID
+			,	AA.FRST_REG_DT
+			,	AA.LAST_MDFR_ID
+			,	AA.LAST_MDFCN_DT
+		)
+		VALUES
+		(
+				AYC100_SQ01.NEXTVAL
+			,	(
+					SELECT
+							A1.BIZ_PLAN_MNG_NO
+					FROM
+							AYC110		A1
+					WHERE	1=1
+						AND	A1.CRTR_YM				=	#{crtrYm}
+						AND	A1.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+						AND	A1.BGNG_HR				=	#{bgngHr}
+				)
+			,	#{WORK_YMD}
+			,	#{deptCd}
+			,	#{CNSLTNT_ID}
+			,	#{loginId}
+			,	SYSDATE
+			,	#{loginId}
+			,	SYSDATE
+		)
+    </insert>
+    
+    <insert id="insertDaySchdlOut" parameterType="HashMap" >
+    /**
+	*		insertDaySchdlOut : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 일괄생성 등록 아웃리치
+	*/
+		    INSERT INTO
+					AYC120		/** 근무배정표 아웃리치 **/
+					(
+							INDEX_SN
+						,	TASKWK_SCHDL_SN
+						,	USER_ID
+						,	HR_WORK_TYPE_SE_CD1
+						,	HR_WORK_TYPE_SE_CD2
+						,	FRST_RGTR_ID
+						,	FRST_REG_DT
+						,	LAST_MDFR_ID
+						,	LAST_MDFCN_DT
+					)
+			
+			VALUES
+					(
+							AYC120_SQ01.NEXTVAL
+						,	#{TASKWK_SCHDL_SN}
+						,	#{CNSLTNT_ID}
+						,	#{firstCd}
+						,	#{secondCd}
+						,	#{loginId}
+						,	SYSDATE
+						,	#{loginId}
+						,	SYSDATE
+					)
+    </insert>
+    
+    <insert id="insertMnthngSchdl" parameterType="HashMap" keyProperty="TASKWK_SCHDL_SN" useGeneratedKeys="true">
+    <selectKey resultType="String" keyProperty="TASKWK_SCHDL_SN" order="AFTER">
+    	SELECT 
+    			AYC100_SQ01.CURRVAL		AS	TASKWK_SCHDL_SN
+    	FROM
+    			DUAL
+    </selectKey>
+    /**
+	*		insertMnthngSchdl : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간 일정 등록(상담)
+	*/
+		INSERT	INTO
+    			AYC100		AA		/** 근무배정표 일별 **/
+				(
+						AA.TASKWK_SCHDL_SN
+					,	AA.BIZ_PLAN_MNG_NO
+					,	AA.WORK_YMD
+					,	AA.TASKWK_TYPE_DEPT_CD
+					,	AA.USER_ID
+					,	AA.FRST_RGTR_ID
+					,	AA.FRST_REG_DT
+					,	AA.LAST_MDFR_ID
+					,	AA.LAST_MDFCN_DT
+				)
+		VALUES
+				(
+						AYC100_SQ01.NEXTVAL
+					,	(
+							SELECT
+									A1.BIZ_PLAN_MNG_NO
+							FROM
+									AYC110		A1
+							WHERE	1=1
+								AND	A1.CRTR_YM				=	#{crtrYm}
+								AND	A1.TASKWK_TYPE_DEPT_CD	=	#{deptCd}
+								AND	A1.BGNG_HR				=	#{BGNG_HR}
+						)
+					,	#{workYmd}
+					,	#{deptCd}
+					,	#{CNSLTNT_ID}
+					,	#{loginId}
+					,	SYSDATE
+					,	#{loginId}
+					,	SYSDATE
+				)
+    
+    </insert>
+    
+    <insert id="insertMnthngSchdlOut" parameterType="HashMap">
+    /**
+	*		insertMnthngSchdlOut : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간 일정 등록(아웃리치)
+	*/
+				INSERT INTO
+						AYC120		/** 근무배정표 아웃리치 **/
+						(
+								INDEX_SN
+							,	TASKWK_SCHDL_SN
+							,	USER_ID
+							,	HR_WORK_TYPE_SE_CD1
+							,	HR_WORK_TYPE_SE_CD2
+							,	FRST_RGTR_ID
+							,	FRST_REG_DT
+							,	LAST_MDFR_ID
+							,	LAST_MDFCN_DT
+						)
+				
+				VALUES
+						(
+								AYC120_SQ01.NEXTVAL
+							,	#{TASKWK_SCHDL_SN}
+							,	#{CNSLTNT_ID}
+							,	#{FIRST_CD}
+							,	#{SECOND_CD}
+							,	#{loginId}
+							,	SYSDATE
+							,	#{loginId}
+							,	SYSDATE
+						)
+    
+    </insert>
+</mapper>

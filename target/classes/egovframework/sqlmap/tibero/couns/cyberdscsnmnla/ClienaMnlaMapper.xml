@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.cyberdscsnmnla.mapper.ClienaMnlaMapper">
+
+
+    <select id="clienaMnlaCode" parameterType="String" resultType="HashMap">
+		SELECT /*SQL-ID : isry.couns.cyberdscsnmnla.mapper.ClienaMnlaMapper : 악성이용자등대응매뉴얼(중분류) */
+		            *
+		FROM        SAC100 
+		WHERE       CMMNS_CD_ID = #{CYBER_DSCSN_MNLA_MLSFC_SE_CD}
+		    AND     UP_CMMNS_CD_VALUE = '01'                      /* 내담자중분류코드 */
+    </select>
+    
+    <select id="clienaMnlaCodeS" parameterType="String" resultType="HashMap">
+        SELECT /*SQL-ID : isry.couns.cyberdscsnmnla.mapper.ClienaMnlaMapper : 악성이용자등대응매뉴얼(소분류) */
+                    *
+        FROM        SAC100 
+        WHERE       CMMNS_CD_ID = #{CYBER_DSCSN_MNLA_SCLAS_SE_CD}   /* 내담자소분류코드 */
+    </select>
+    
+    <select id="selectClienaMnlaList" parameterType="HashMap" resultType="HashMap">    
+        SELECT /*SQL-ID : isry.couns.cyberdscsnmnla.mapper.ClienaMnlaMapper : 악성이용자등대응매뉴얼(상세) */
+                    AA.MNLA_NO      /* 매뉴얼번호 */
+                ,   AA.MNLA_NM       /* 매뉴얼명 */
+                ,   AA.MNLA_CN       /* 매뉴얼내용 */
+                ,   AA.ATFINO        /* 첨부파일번호 */
+                ,   AA.USE_YN        /* 사용여부 */
+                ,   AA.CYBER_DSCSN_MNLA_LCLAS_SE_CD      /* 내담자대분류코드 */
+                ,   AA.CYBER_DSCSN_MNLA_MLSFC_SE_CD      /* 내담자중분류코드 */
+                ,   AA.CYBER_DSCSN_MNLA_SCLAS_SE_CD      /* 내담자소분류코드 */
+                ,   AA.FRST_RGTR_ID      /* 최초등록아디디 */
+                ,   to_char(AA.FRST_REG_DT,'YYYY-MM-DD') AS FRST_REG_DT      /* 최초등록일시 */
+                ,   AA.LAST_MDFR_ID      /* 최종수정아이디 */
+                ,   AA.LAST_MDFCN_DT     /* 최종수정일시 */
+                ,    (SELECT    C##RG.DEC_B64(CC.FLNM_ENCPT)   
+                      FROM      SAA200 AS BB
+                            ,   SCA100 AS CC  
+                      WHERE     1=1
+                          AND   AA.FRST_RGTR_ID = BB.USER_ID
+                          AND    BB.ENFSN_NO = CC.ENFSN_NO
+                          AND    CC.DEL_YN = 'N'
+                      ) AS NAME
+                ,   COUNT(*) OVER() AS TOTAL_COUNT
+         FROM  AYA100 AS AA
+         WHERE  1=1   
+                   <if test="CYBER_DSCSN_MNLA_LCLAS_SE_CD != null and CYBER_DSCSN_MNLA_LCLAS_SE_CD != ''">
+            AND    CYBER_DSCSN_MNLA_LCLAS_SE_CD = #{CYBER_DSCSN_MNLA_LCLAS_SE_CD} 
+                   </if>
+                   <if test="CYBER_DSCSN_MNLA_MLSFC_SE_CD != null and CYBER_DSCSN_MNLA_MLSFC_SE_CD != ''">
+            AND    CYBER_DSCSN_MNLA_MLSFC_SE_CD = #{CYBER_DSCSN_MNLA_MLSFC_SE_CD} 
+                   </if>   
+                   <if test="CYBER_DSCSN_MNLA_SCLAS_SE_CD != null and CYBER_DSCSN_MNLA_SCLAS_SE_CD != ''">
+            AND    CYBER_DSCSN_MNLA_SCLAS_SE_CD = #{CYBER_DSCSN_MNLA_SCLAS_SE_CD}     
+                   </if>
+            AND     DEL_YN = 'N'
+            OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select>
+
+    <select id="selectClienaMnlaDetail" parameterType="HashMap" resultType="HashMap">    
+        SELECT /*SQL-ID : isry.couns.cyberdscsnmnla.mapper.ClienaMnlaMapper : 악성이용자등대응매뉴얼(상세) */
+                  MNLA_NO      /* 매뉴얼번호 */
+                , MNLA_NM       /* 매뉴얼명 */
+                , MNLA_CN       /* 매뉴얼내용 */
+                , ATFINO        /* 첨부파일번호 */
+                , DEL_YN        /* 사용여부 */
+                , CYBER_DSCSN_MNLA_LCLAS_SE_CD      /* 내담자대분류코드 */
+                , CYBER_DSCSN_MNLA_MLSFC_SE_CD      /* 내담자중분류코드 */
+                , CYBER_DSCSN_MNLA_SCLAS_SE_CD      /* 내담자소분류코드 */
+                , FRST_RGTR_ID      /* 최초등록아디디 */
+                , to_char(FRST_REG_DT,'YYYY-MM-DD') AS FRST_REG_DT      /* 최초등록일시 */
+                , LAST_MDFR_ID      /* 최종수정아이디 */
+                , LAST_MDFCN_DT     /* 최종수정일시 */
+         FROM  AYA100
+         WHERE  1=1
+         AND    MNLA_NO = #{INDEX}
+    </select>
+    
+    <update id="updateClienaMnlaProc" parameterType="HashMap">
+	    UPDATE AYA100 SET /*SQL-ID : isry.couns.cyberdscsnmnla.mapper.ClienaMnlaMapper : 악성이용자등대응매뉴얼(수정) */
+					   MNLA_NM = #{MNLA_NM}        /* 매뉴얼명 */
+					,  MNLA_CN = #{MNLA_CN}        /* 매뉴얼내용 */
+					,  LAST_MDFR_ID = #{LAST_MDFR_ID}      /* 최종수정아이디 */
+					,  LAST_MDFCN_DT = SYSDATE     /* 최종수정일시 */
+					   <if test="ATFINO != null and ATFINO != ''">
+					,   ATFINO = #{ATFINO}      /* 첨부파일번호 */
+					   </if>
+	    WHERE      MNLA_NO = #{MNLA_NO}        /* 매뉴얼번호 */
+    </update>
+
+
+    <insert id="insertClienaMnlaReg" parameterType="HashMap" useGeneratedKeys="true" keyProperty="MNLA_NO">
+        <selectKey resultType="String" keyProperty="MNLA_NO" order="AFTER">
+            <![CDATA[            
+              SELECT AYA100_SQ01.CURRVAL AS MNLA_NO
+              FROM DUAL
+            ]]>
+        </selectKey>
+		INSERT INTO AYA100 (/*SQL-ID : isry.couns.cyberdscsnmnla.mapper.ClienaMnlaMapper : 악성이용자등대응매뉴얼(등록) */
+				    MNLA_NO       /* 매뉴얼번호 */
+				,   MNLA_NM     /* 매뉴얼명 */
+				,   MNLA_CN     /* 매뉴얼내용 */
+				    <if test="ATFINO != null and ATFINO != ''">
+				,   ATFINO      /* 첨부파일번호 */
+				    </if>
+				,   DEL_YN      /* 사용여부 */
+				,   CYBER_DSCSN_MNLA_LCLAS_SE_CD        /* 내담자대분류코드 */
+				,   CYBER_DSCSN_MNLA_MLSFC_SE_CD        /* 내담자중분류코드 */
+				,   CYBER_DSCSN_MNLA_SCLAS_SE_CD        /* 내담자소분류코드 */
+				,   FRST_RGTR_ID        /* 최초등록아디디 */
+				,   FRST_REG_DT     /* 최초등록일시 */
+				,   LAST_MDFR_ID        /* 최종수정아이디 */
+				,   LAST_MDFCN_DT       /* 최종수정일시 */
+		)VALUES(
+                    AYA100_SQ01.NEXTVAL
+				,   #{MNLA_NM}
+				,   #{MNLA_CN}
+				    <if test="ATFINO != null and ATFINO != ''">
+				,   #{ATFINO}
+				    </if>
+				,   'N'
+				,   '01'
+				,   #{CYBER_DSCSN_MNLA_MLSFC_SE_CD} 
+				,   #{CYBER_DSCSN_MNLA_SCLAS_SE_CD}  
+				,   #{FRST_RGTR_ID}
+				,   SYSDATE
+				,   #{LAST_MDFR_ID}
+                ,   SYSDATE
+                )
+    </insert>
+    
+    <update id="deleteClienaMnlaProc" parameterType="HashMap">
+        UPDATE AYA100 SET/*SQL-ID : isry.couns.cyberdscsnmnla.mapper.ClienaMnlaMapper : 악성이용자등대응매뉴얼(삭제) */
+              DEL_YN = 'Y'
+            , LAST_MDFCN_DT = SYSDATE       /* 최종수정일시 */
+            , LAST_MDFR_ID = #{LAST_MDFR_ID}        /* 최종수정아이디 */
+        WHERE 1=1
+        AND MNLA_NO = #{MNLA_NO__origin}        /* 매뉴얼번호 */
+    </update>
+</mapper>

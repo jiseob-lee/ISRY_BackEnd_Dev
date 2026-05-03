@@ -1,0 +1,823 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.file.mapper.MgmtFileMapper">
+
+
+	<!-- 설명 : 업로드된 파일의 상태를 커밋상태로 변경한다. 파라미터 : 주사용처 : 변경이력 : -->
+	<update id="commitCmnFile" parameterType="HashMap">
+    <![CDATA[
+		UPDATE CMN_TMP_ATTC_FILE
+		SET FILE_STAT_RCD = 'CMN101.SAVE'
+		WHERE ATTC_FILE_NO = #{ATTC_FILE_NO}
+    ]]>
+	</update>
+
+
+	<insert id="insertCmnFile1" parameterType="HashMap">
+	<![CDATA[
+		/* insertCmnFile1 - Lee JiSeob */
+		
+        MERGE INTO 
+    ]]>
+        <choose>
+            <when test='FILE_TYPE == "BOARD_IMAGE" or FILE_TYPE == "WEB_FILE"'>
+    <![CDATA[
+                SAB880 C /* 웹서버 첨부파일 */
+    ]]>
+            </when>
+            <otherwise>
+    <![CDATA[
+                SAB820 C /* 첨부파일 */
+    ]]>
+            </otherwise>
+        </choose>
+
+    <![CDATA[
+    
+        USING DUAL
+        ON (C.ATFINO = #{ATFINO})
+        
+        WHEN MATCHED THEN
+        
+		    UPDATE
+		    SET
+                MENU_NO = #{MENU_NO},
+                UP_MENU_NO = 
+	                (
+	                SELECT F.MENU_NO
+	                FROM SAB200 F /* 메뉴 */
+	                WHERE F.MENU_LEVELA_NO = 1
+	                START WITH F.MENU_NO = #{MENU_NO}
+	                CONNECT BY PRIOR F.UP_MENU_NO = F.MENU_NO
+	                ),
+                SYS_NM =
+                    (
+                    SELECT F.MENU_NM
+                    FROM SAB200 F /* 메뉴 */
+                    WHERE F.MENU_LEVELA_NO = 1
+                    START WITH F.MENU_NO = #{MENU_NO}
+                    CONNECT BY PRIOR F.UP_MENU_NO = F.MENU_NO
+                    ), 
+    ]]>
+                <choose>
+                    <when test="USER_ID == null or USER_ID == ''">
+    <![CDATA[
+                        LAST_MDFR_ID = 'system',
+    ]]>
+                    </when>
+                    <otherwise>
+    <![CDATA[
+                        LAST_MDFR_ID = #{USER_ID},
+    ]]>
+                    </otherwise>
+                </choose> 
+    <![CDATA[
+                LAST_MDFCN_DT = SYSDATE
+		
+		WHEN NOT MATCHED THEN
+		
+			INSERT 
+			(
+	    		ATFINO, 
+	    		MENU_NO, 
+	    		UP_MENU_NO,
+	    		SYS_NM,
+	    		FRST_RGTR_ID, 
+	    		FRST_REG_DT, 
+	    		LAST_MDFR_ID, 
+	    		LAST_MDFCN_DT
+			)
+			VALUES
+			(
+	    		#{ATFINO}, 
+	    		#{MENU_NO},
+	    		(
+	            SELECT F.MENU_NO
+	            FROM SAB200 F /* 메뉴 */
+	            WHERE F.MENU_LEVELA_NO = 1
+	            START WITH F.MENU_NO = #{MENU_NO}
+	            CONNECT BY PRIOR F.UP_MENU_NO = F.MENU_NO
+	            ),
+	            (
+                SELECT F.MENU_NM
+                FROM SAB200 F /* 메뉴 */
+                WHERE F.MENU_LEVELA_NO = 1
+                START WITH F.MENU_NO = #{MENU_NO}
+                CONNECT BY PRIOR F.UP_MENU_NO = F.MENU_NO
+                ),
+    ]]>
+                <choose>
+                    <when test="USER_ID == null or USER_ID == ''">
+    <![CDATA[
+                        'system',
+    ]]>
+                    </when>
+                    <otherwise>
+    <![CDATA[
+                        #{USER_ID},
+    ]]>
+                    </otherwise>
+                </choose> 
+    <![CDATA[ 
+	    		SYSDATE, 
+    ]]>
+                <choose>
+                    <when test="USER_ID == null or USER_ID == ''">
+    <![CDATA[
+                        'system',
+    ]]>
+                    </when>
+                    <otherwise>
+    <![CDATA[
+                        #{USER_ID},
+    ]]>
+                    </otherwise>
+                </choose> 
+    <![CDATA[ 
+	    		SYSDATE
+			)
+	]]>
+	</insert>
+	
+
+	<insert id="insertCmnFile2" parameterType="HashMap">
+	<![CDATA[
+		/* insertCmnFile2 - Lee JiSeob */
+		
+		INSERT INTO  
+
+    ]]>
+        <choose>
+            <when test='FILE_TYPE == "BOARD_IMAGE" or FILE_TYPE == "WEB_FILE"'>
+    <![CDATA[
+                SAB881 /* 웹서버 첨부파일 */
+    ]]>
+            </when>
+            <otherwise>
+    <![CDATA[
+                SAB821 /* 첨부파일 */
+    ]]>
+            </otherwise>
+        </choose>
+        
+    <![CDATA[
+    
+		(
+    		ATFINO, 
+    		MNG_SN, 
+    		ATCMFL_CL_NM, 
+    		REAL_FILE_NM, 
+    		STRG_FILE_NM, 
+    		STRG_COURS_NM, 
+    		FILE_EXTN_NM,
+    		FILE_SZ, 
+    		FILE_STTS_SE_CD, 
+    		FRST_RGTR_ID, 
+    		FRST_REG_DT, 
+    		LAST_MDFR_ID, 
+    		LAST_MDFCN_DT
+		)
+		VALUES
+		(
+    		#{ATFINO}, 
+
+    ]]>    		
+        <choose>
+            <when test='FILE_TYPE == "BOARD_IMAGE" or FILE_TYPE == "WEB_FILE"'>
+    <![CDATA[
+                (SELECT CASE COUNT(*) WHEN 0 THEN 1 ELSE MAX(MNG_SN) + 1 END FROM SAB881 WHERE ATFINO = #{ATFINO}), /* 웹서버 첨부파일 */
+    ]]>
+            </when>
+            <otherwise>
+    <![CDATA[
+                (SELECT CASE COUNT(*) WHEN 0 THEN 1 ELSE MAX(MNG_SN) + 1 END FROM SAB821 WHERE ATFINO = #{ATFINO}), /* WAS 첨부파일 */
+    ]]>
+            </otherwise>
+        </choose>
+
+    <![CDATA[         
+    		#{ATCMFL_CL_NM}, 
+    		#{REAL_FILE_NM}, 
+    		#{STRG_FILE_NM}, 
+    		#{STRG_COURS_NM}, 
+    		#{FILE_EXTN_NM},
+    		#{FILE_SZ}, 
+    		#{FILE_STTS_SE_CD}, 
+    ]]>
+                <choose>
+                    <when test="USER_ID == null or USER_ID == ''">
+    <![CDATA[
+                        'system',
+    ]]>
+                    </when>
+                    <otherwise>
+    <![CDATA[
+                        #{USER_ID},
+    ]]>
+                    </otherwise>
+                </choose> 
+    <![CDATA[  
+    		SYSDATE, 
+    ]]>
+                <choose>
+                    <when test="USER_ID == null or USER_ID == ''">
+    <![CDATA[
+                        'system',
+    ]]>
+                    </when>
+                    <otherwise>
+    <![CDATA[
+                        #{USER_ID},
+    ]]>
+                    </otherwise>
+                </choose> 
+    <![CDATA[  
+    		SYSDATE
+		)
+	]]>
+	</insert>
+	
+    <insert id="insertCmnFile3" parameterType="HashMap">
+    <![CDATA[
+        /* insertCmnFile3 - Yoo ChiHoon*/
+        
+            INSERT INTO SAB820
+            (
+                ATFINO, 
+                MENU_NO, 
+                UP_MENU_NO,
+                SYS_NM,
+                FRST_RGTR_ID, 
+                FRST_REG_DT, 
+                LAST_MDFR_ID, 
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                TO_NUMBER(#{ATFINO}), 
+                0,
+                #{UP_MENU_NO},
+                #{SYS_NM},
+                'system',
+                SYSDATE,
+                'system',
+                SYSDATE
+                )
+    ]]>
+    </insert>	
+	
+	
+	<!-- 설명 : 첨부파일 목록 조회 파라미터 : 주사용처 : 파일 업로드 팝업/파일 목록UDC 변경이력 : -->
+	<select id="selectCmnFileList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    	/* selectCmnFileList - Lee JiSeob */
+    
+    	SELECT 
+    		ATFINO, 
+    		MNG_SN, 
+    		ATCMFL_CL_NM, 
+    		REAL_FILE_NM, 
+    		STRG_FILE_NM, 
+    		STRG_COURS_NM, 
+    		FILE_EXTN_NM, 
+    		FILE_SZ, 
+    		FILE_STTS_SE_CD, 
+    		FRST_RGTR_ID, 
+    		FRST_REG_DT, 
+    		LAST_MDFR_ID, 
+    		LAST_MDFCN_DT
+    		
+		FROM SAB821
+    	
+		WHERE 
+			ATFINO = #{ATFINO}
+	]]>
+	   <if test="ATCMFL_CL_NM != null and ATCMFL_CL_NM !=''">
+    <![CDATA[
+			AND ATCMFL_CL_NM = #{ATCMFL_CL_NM}
+	]]>
+	   </if>
+		<if test="MNG_SN != null and MNG_SN !=''">
+    <![CDATA[
+			AND MNG_SN = #{MNG_SN}
+	]]>
+		</if>
+    <![CDATA[
+    
+            AND FILE_STTS_SE_CD = 'N'
+            
+		ORDER BY MNG_SN
+	]]>
+	</select>
+	
+	<!-- 설명 : 첨부파일 목록 조회 파라미터 : 주사용처 : 직인관리 변경이력 : -->
+    <select id="selectWebCmnFileList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectWebCmnFileList - Lee SeoungJae 직인관리 select */
+    
+        SELECT 
+            ATFINO, 
+            MNG_SN, 
+            ATCMFL_CL_NM, 
+            REAL_FILE_NM, 
+            STRG_FILE_NM, 
+            STRG_COURS_NM, 
+            FILE_EXTN_NM, 
+            FILE_SZ, 
+            FILE_STTS_SE_CD, 
+            FRST_RGTR_ID, 
+            FRST_REG_DT, 
+            LAST_MDFR_ID, 
+            LAST_MDFCN_DT
+            
+        FROM SAB881
+        
+        WHERE 
+            ATFINO = #{ATFINO}
+    ]]>
+       <if test="ATCMFL_CL_NM != null and ATCMFL_CL_NM !=''">
+    <![CDATA[
+            AND ATCMFL_CL_NM = #{ATCMFL_CL_NM}
+    ]]>
+       </if>
+        <if test="MNG_SN != null and MNG_SN !=''">
+    <![CDATA[
+            AND MNG_SN = #{MNG_SN}
+    ]]>
+        </if>
+    <![CDATA[
+    
+            AND FILE_STTS_SE_CD = 'N'
+            
+        ORDER BY MNG_SN
+    ]]>
+    </select>
+
+
+    <select id="selectCmnAllFileList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCmnAllFileList - Lee JiSeob */
+    
+        SELECT 
+            ATFINO, 
+            MNG_SN, 
+            ATCMFL_CL_NM, 
+            REAL_FILE_NM, 
+            STRG_FILE_NM, 
+            STRG_COURS_NM, 
+            FILE_EXTN_NM, 
+            FILE_SZ, 
+            FILE_STTS_SE_CD, 
+            FRST_RGTR_ID, 
+            FRST_REG_DT, 
+            LAST_MDFR_ID, 
+            LAST_MDFCN_DT
+            
+        FROM SAB821
+        
+        WHERE 
+            ATFINO = #{ATFINO}
+    
+            AND FILE_STTS_SE_CD = 'N'
+            
+    ]]>
+		<if test="HSTR_REG_YN != null and HSTR_REG_YN !=''">
+    <![CDATA[
+			AND HSTR_REG_YN = #{HSTR_REG_YN}
+	]]>
+		</if> 
+      ORDER BY MNG_SN
+    </select>
+
+
+    <select id="selectWebCmnAllFileList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectWebCmnAllFileList - Lee JiSeob */
+    
+        SELECT 
+            ATFINO, 
+            MNG_SN, 
+            ATCMFL_CL_NM, 
+            REAL_FILE_NM, 
+            STRG_FILE_NM, 
+            STRG_COURS_NM, 
+            FILE_EXTN_NM, 
+            FILE_SZ, 
+            FILE_STTS_SE_CD, 
+            FRST_RGTR_ID, 
+            FRST_REG_DT, 
+            LAST_MDFR_ID, 
+            LAST_MDFCN_DT
+            
+        FROM SAB881
+        
+        WHERE 
+            ATFINO = #{ATFINO}
+    
+            AND FILE_STTS_SE_CD = 'N'
+            
+    ]]>
+        <if test="HSTR_REG_YN != null and HSTR_REG_YN !=''">
+    <![CDATA[
+            AND HSTR_REG_YN = #{HSTR_REG_YN}
+    ]]>
+        </if> 
+      ORDER BY MNG_SN
+    </select>
+
+
+	<update id="deleteCmnAttcFile" parameterType="HashMap">
+	<![CDATA[
+		/* deleteCmnAttcFile - Lee JiSeob */
+		
+        UPDATE SAB821
+        
+        SET FILE_STTS_SE_CD = 'D',
+    	LAST_MDFCN_DT       = SYSDATE
+		WHERE
+		
+			ATFINO = #{ATFINO}
+	]]>		
+        <if test="ATCMFL_CL_NM != null and ATCMFL_CL_NM !=''">
+    <![CDATA[
+			AND ATCMFL_CL_NM = #{ATCMFL_CL_NM}
+	]]>
+	   </if>
+		<if test="MNG_SN != null and MNG_SN !=''">
+    <![CDATA[
+			AND MNG_SN = #{MNG_SN}
+	]]>
+		</if> 
+		
+	</update>
+
+    <update id="deleteCmnAttcFileWeb" parameterType="HashMap">
+    <![CDATA[
+        /* deleteCmnAttcFileWeb - Lee JiSeob */
+        
+        UPDATE SAB881  /* 웹서버 첨부파일상세 */
+        
+        SET FILE_STTS_SE_CD = 'D',
+        LAST_MDFCN_DT       = SYSDATE
+        WHERE
+        
+            ATFINO = #{ATFINO}
+    ]]>     
+        <if test="ATCMFL_CL_NM != null and ATCMFL_CL_NM !=''">
+    <![CDATA[
+            AND ATCMFL_CL_NM = #{ATCMFL_CL_NM}
+    ]]>
+       </if>
+        <if test="MNG_SN != null and MNG_SN !=''">
+    <![CDATA[
+            AND MNG_SN = #{MNG_SN}
+    ]]>
+        </if> 
+        
+    </update>
+
+
+	<select id="selectSysDate" resultType="String">
+	<![CDATA[
+		SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') AS CURR_DT 
+		FROM DUAL
+	]]>
+	</select>
+
+
+	<select id="selectTimeStamp" resultType="String">
+    <![CDATA[
+		SELECT DATE_FORMAT(SYSDATE, 'YYYYMMDDHH24MISS') AS CURR_DT  
+		FROM DUAL
+	]]>
+	</select>
+
+
+	<select id="selectDaysBefore" resultType="String">
+
+	<choose>
+		<when test="strDay != null and strDay != ''">
+    <![CDATA[
+			SELECT SYSDATE - #{strDay} AS MON_BEF
+	]]>
+		</when>
+		<otherwise>
+    <![CDATA[
+			SELECT SYSDATE - 30 AS MON_BEF
+	]]>
+		</otherwise>
+	</choose>
+	
+    <![CDATA[
+		FROM DUAL
+	]]>
+	</select>
+
+	
+    <select id="selectAttcFileNo" resultType="Integer">
+    <![CDATA[
+    	/* selectAttcFileNo - Lee JiSeob */
+    	
+        SELECT SAB820_SQ01.NEXTVAL
+        FROM DUAL
+        
+    ]]>
+    </select>
+
+    <select id="selectAttcFileNoImage" resultType="Integer">
+    <![CDATA[
+        /* selectAttcFileNoImage - Lee JiSeob */
+        
+        SELECT SAB880_SQ01.NEXTVAL
+        FROM DUAL
+        
+    ]]>
+    </select>
+
+
+    <select id="selectUnitTaskWork" parameterType="Integer" resultType="String">
+    <![CDATA[
+        /* selectUnitTaskWork - Lee JiSeob */
+
+        SELECT
+            D.CMMNS_CD_VALUE
+
+        FROM 
+            SAB200 C /* 메뉴 */, 
+            SAC100 D /* 공통코드 값 */
+        
+        WHERE 
+            C.MENU_NO = (
+             SELECT E.MENU_NO 
+                FROM SAB200 E
+                WHERE E.MENU_LEVELA_NO = 1
+                START WITH E.MENU_NO = #{MENU_NO}
+                CONNECT BY PRIOR E.UP_MENU_NO = E.MENU_NO
+            )
+            AND D.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD'
+            AND D.CMMNS_CD_VALUE_NM = C.MENU_NM
+        
+    ]]>
+    </select>
+
+
+    <insert id="saveFileDownloadHistory" parameterType="HashMap">
+    <![CDATA[
+        /* saveFileDownloadHistory - Lee JiSeob */
+
+        INSERT INTO SAB510 /* 파일다운로드이력 */
+        (
+	        DWNLD_SN,
+			ATFINO,
+			MNG_SN,
+			ATCMFL_CL_NM,
+			REAL_FILE_NM,
+			STRG_FILE_NM,
+			STRG_COURS_NM,
+			FILE_SZ,
+			FRST_RGTR_ID,
+			FRST_REG_DT,
+			
+            MENU_NM,
+            UP_MENU_NM,
+            PROGRM_ID
+        )
+        VALUES
+        (
+            SAB510_SQ01.NEXTVAL,
+            #{ATFINO},
+            #{MNG_SN},
+            #{ATCMFL_CL_NM},
+            #{REAL_FILE_NM},
+			#{STRG_FILE_NM},
+			#{STRG_COURS_NM},
+			#{FILE_SZ},
+			#{USER_ID},
+            SYSDATE,
+            
+    ]]>
+            <if test="_AUTH_MENU_NO != null and _AUTH_MENU_NO != 0">
+    <![CDATA[
+            (SELECT C.MENU_NM FROM SAB200 C /* 메뉴 */ WHERE C.MENU_NO = #{_AUTH_MENU_NO}),
+            (SELECT C.MENU_NM FROM SAB200 C /* 메뉴 */ WHERE C.MENU_NO = #{_AUTH_UP_MENU_ID}),
+    ]]>
+            </if>
+            <if test="_AUTH_MENU_NO == null or _AUTH_MENU_NO == 0">
+    <![CDATA[
+            '',
+            '',
+    ]]>
+            </if>
+    <![CDATA[
+            #{_AUTH_APP_ID}
+            
+        )
+        
+    ]]>
+    </insert>
+
+
+    <select id="selectEmailAttachList" resultType="HashMap">
+    <![CDATA[
+        /* selectEmailAttachList - Lee JiSeob */
+
+		SELECT 
+            
+            ATFINO, 
+            MNG_SN, 
+            REAL_FILE_NM, 
+            STRG_FILE_NM, 
+            FILE_SZ
+		
+		FROM SAB821 /* 첨부파일상세 */
+		
+		WHERE STRG_COURS_NM || STRG_FILE_NM IN 
+    ]]>
+    
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+    <![CDATA[
+            #{item}
+    ]]>
+        </foreach>
+
+    </select>
+
+
+    <select id="selectFileDownloadHistoryList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+		/* selectFileDownloadHistoryList - Lee JiSeob */
+		
+		SELECT 
+			DWNLD_SN, 
+			ATFINO, 
+			MNG_SN, 
+			ATCMFL_CL_NM, 
+			REAL_FILE_NM, 
+			STRG_FILE_NM, 
+			STRG_COURS_NM, 
+			FILE_SZ, 
+			FRST_RGTR_ID,
+			FRST_RGTR_NM, 
+			TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT, 
+			MENU_NM, 
+			UP_MENU_NM, 
+			PROGRM_ID
+		
+		FROM
+		(
+		SELECT 
+			DWNLD_SN, 
+			ATFINO, 
+			MNG_SN, 
+			ATCMFL_CL_NM, 
+			REAL_FILE_NM, 
+			STRG_FILE_NM, 
+			STRG_COURS_NM, 
+			FILE_SZ, 
+			FRST_RGTR_ID,
+			DEC_B64(C##RG.SA_FN_GET_NAME(FRST_RGTR_ID)) AS FRST_RGTR_NM, 
+			FRST_REG_DT, 
+			MENU_NM, 
+			UP_MENU_NM, 
+			PROGRM_ID
+		
+		FROM SAB510 /* 파일다운로드이력 */
+		) M
+    ]]>
+    	<where>
+		<if test="FILENAME != null and FILENAME != ''">
+    <![CDATA[
+			AND REAL_FILE_NM LIKE '%' || #{FILENAME} || '%'
+    ]]>
+    	</if>
+		<if test="DATE_FROM != null and DATE_FROM != ''">
+    <![CDATA[
+			AND FRST_REG_DT >= TO_DATE(#{DATE_FROM} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+    	</if>
+		<if test="DATE_TO != null and DATE_TO != ''">
+    <![CDATA[
+			AND FRST_REG_DT <= TO_DATE(#{DATE_TO} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+    	</if>
+		<if test="MENU_NAME != null and MENU_NAME != ''">
+    <![CDATA[
+			AND MENU_NM LIKE '%' || #{MENU_NAME} || '%'
+    ]]>
+    	</if>
+		<if test="UP_MENU_NAME != null and UP_MENU_NAME != ''">
+    <![CDATA[
+			AND UP_MENU_NM LIKE '%' || #{UP_MENU_NAME} || '%'
+    ]]>
+    	</if>
+		<if test="USER_ID != null and USER_ID != ''">
+    <![CDATA[
+			AND FRST_RGTR_ID LIKE '%' || #{USER_ID} || '%'
+    ]]>
+    	</if>
+		<if test="USER_NAME != null and USER_NAME != ''">
+    <![CDATA[
+			AND FRST_RGTR_NM = #{USER_NAME}
+    ]]>
+    	</if>
+		<if test="ATFINO != null and ATFINO != ''">
+    <![CDATA[
+			AND ATFINO = #{ATFINO}
+    ]]>
+    	</if>
+		<if test="ATCMFL_CL_NM != null and ATCMFL_CL_NM != ''">
+    <![CDATA[
+			AND ATCMFL_CL_NM LIKE '%' || #{ATCMFL_CL_NM} || '%'
+    ]]>
+    	</if>
+    	</where>
+    	
+    <![CDATA[
+		ORDER BY 
+			DWNLD_SN DESC
+		
+		OFFSET #{OFFSET_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    ]]>
+    </select>
+
+
+    <select id="selectFileDownloadHistoryTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectFileDownloadHistoryTotalCount - Lee JiSeob */
+        
+		SELECT 
+			COUNT(*)
+		
+		FROM
+		(
+		SELECT 
+			DWNLD_SN, 
+			ATFINO, 
+			MNG_SN, 
+			ATCMFL_CL_NM, 
+			REAL_FILE_NM, 
+			STRG_FILE_NM, 
+			STRG_COURS_NM, 
+			FILE_SZ, 
+			FRST_RGTR_ID,
+			DEC_B64(C##RG.SA_FN_GET_NAME(FRST_RGTR_ID)) AS FRST_RGTR_NM, 
+			FRST_REG_DT, 
+			MENU_NM, 
+			UP_MENU_NM, 
+			PROGRM_ID
+		
+		FROM SAB510 /* 파일다운로드이력 */
+		) M
+    ]]>
+    	<where>
+		<if test="FILENAME != null and FILENAME != ''">
+    <![CDATA[
+			AND REAL_FILE_NM LIKE '%' || #{FILENAME} || '%'
+    ]]>
+    	</if>
+		<if test="DATE_FROM != null and DATE_FROM != ''">
+    <![CDATA[
+			AND FRST_REG_DT >= TO_DATE(#{DATE_FROM} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+    	</if>
+		<if test="DATE_TO != null and DATE_TO != ''">
+    <![CDATA[
+			AND FRST_REG_DT <= TO_DATE(#{DATE_TO} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+    	</if>
+		<if test="MENU_NAME != null and MENU_NAME != ''">
+    <![CDATA[
+			AND MENU_NM LIKE '%' || #{MENU_NAME} || '%'
+    ]]>
+    	</if>
+		<if test="UP_MENU_NAME != null and UP_MENU_NAME != ''">
+    <![CDATA[
+			AND UP_MENU_NM LIKE '%' || #{UP_MENU_NAME} || '%'
+    ]]>
+    	</if>
+		<if test="USER_ID != null and USER_ID != ''">
+    <![CDATA[
+			AND FRST_RGTR_ID LIKE '%' || #{USER_ID} || '%'
+    ]]>
+    	</if>
+		<if test="USER_NAME != null and USER_NAME != ''">
+    <![CDATA[
+			AND FRST_RGTR_NM = #{USER_NAME}
+    ]]>
+    	</if>
+		<if test="ATFINO != null and ATFINO != ''">
+    <![CDATA[
+			AND ATFINO = #{ATFINO}
+    ]]>
+    	</if>
+		<if test="ATCMFL_CL_NM != null and ATCMFL_CL_NM != ''">
+    <![CDATA[
+			AND ATCMFL_CL_NM LIKE '%' || #{ATCMFL_CL_NM} || '%'
+    ]]>
+    	</if>
+    	</where>
+
+    </select>
+
+</mapper>

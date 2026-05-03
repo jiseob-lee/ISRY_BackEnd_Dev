@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+
+    <!-- IP 정보 기록 및 로그인 체크가 필요한 URL과 로그인 여부를 체크해줄 인터셉터를 등록한다. -->
+    <mvc:interceptors>
+        
+        <!-- 로그인 / 화면 로그를 위한 인터셉터 처리 설정 -->
+        <bean id="adviceInqireLogInterceptor" class="egovframework.com.cmm.interceptor.AdviceInqireLogInterceptor"/>
+    
+        <mvc:interceptor>
+            <mvc:mapping path="/**/*.do" />
+
+            <mvc:exclude-mapping path="/init.do" />
+            <mvc:exclude-mapping path="/index.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/syscmmn/noticepopup/selectNoticePopupList.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/userLogin.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/saveRequest.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/setPersonalAuth.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/checkPersonalAuth.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/setGuardianAuth.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/checkGuardianAuth.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/jusosearch/getAddrApi.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/onLoadUserJoin.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/checkIdDuplicate.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/loginCertificate.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/saveWorker.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/registCertificate.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/deleteCertificate.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/pgmemu/setTopMenuCd.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/userLogout.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/pgmemu/selectMenu.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/bizcmmns/cmmns/selectRqstCoursOnLoad.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/bizcmmns/cmmns/selectRqstCoursList.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/selectUnitSystemOrganization.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userauth/selectOrg.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userauth/selectOrgDept.do" />
+            <mvc:exclude-mapping path="/isry/gitple/gitpleManager.do" />
+            <mvc:exclude-mapping path="/isry/gitple/gitpleLogin.do" />
+            <mvc:exclude-mapping path="/isry/gitple/gitpleSave.do" />
+            <mvc:exclude-mapping path="/secureRandom.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/list.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/delete.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/upload.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/download.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/downloadAll.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/downloadWeb.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/downloadAllWeb.do" />
+            <mvc:exclude-mapping path="/login.do" /> 
+            <mvc:exclude-mapping path="/login2.do" />
+            <mvc:exclude-mapping path="/loginProcess.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/userLogin2.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/memberJoin.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/findPw2.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/findId2.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/syscmmn/noticepopup/selectNoticePopupListOuter.do" />
+            
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/changePassword.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/settingPassword.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/registFinanceCertificate.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/deleteFinanceCertificate.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/loginFinanceCertificate.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/findId.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/findPw.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/joining.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/updatePasswordChangeDate.do" />
+            
+            
+            <!-- 로그인 공지사항 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/loginNotice.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/loginNoticeList.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/loginNoticeDetail.do" />
+            <mvc:exclude-mapping path="/dyncNtcBrd/initDyncNtcBrd.do" />
+            <mvc:exclude-mapping path="/dyncNtcBrd/onLoadDyncNtcBrd.do" />
+            <mvc:exclude-mapping path="/dyncNtcBrd/listDyncNtcBrd.do" />
+            <mvc:exclude-mapping path="/dyncNtcBrd/dtlListDyncNtcBrd.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/personalinfo/checkBookmark.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/personalinfo/manageBookmark.do" />
+            
+            <!-- 휴대폰 인증 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/phoneRegist.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/phoneDelete.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/phoneLogin.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/checkPhoneDuplicate.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/fileDown.do" />
+            
+            <!-- 간편 인증 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/simpleRegist.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/simpleDelete.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/simpleLogin.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/checkSimpleDuplicate.do" />
+            
+            <!-- 공동인증서 본인인증 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userjoin/checkCertificateDuplicate.do" />
+            
+            <!-- 세션 종료 메시지 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/selectSessionExpireMessage.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/userLogin4.do" />
+            
+            <!-- 회원 가입 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/cmmncode/selectCommonCodeUnit.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/cmmncode/selectCommonCodeJoinRights.do" />
+            
+            <!-- 아이디, 비밀번호 일치 여부 확인 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/userlogin/idpwCheck.do" />
+            
+            <!-- ## 문자발송 모바일용 설문지 작성화면 -->
+            <mvc:exclude-mapping path="/isry/csemd/sysmng/srvymng/mblaSrvyPtcptn.do" />
+            
+            <!-- 에러 로그 상세 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/logview/selectErrorLogDetail.do" />
+            <mvc:exclude-mapping path="/constt/bbsonm/getDangerLastArticleNo.do" />
+            
+            <!-- 웹 첨부파일 다운로드 -->
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/checkFileExist.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/checkFileExistWeb.do" />
+            <mvc:exclude-mapping path="/isry/itgcm/sysmgmt/file/fileDownWeb.do" />
+            
+            <mvc:exclude-mapping path="/svcreq/**/*.do" />
+            
+            <mvc:exclude-mapping path="/worldtimeapi.do" />
+            
+            <bean class="egovframework.com.cmm.interceptor.AuthenticInterceptor" /> 
+          
+                              
+        </mvc:interceptor>    
+
+   
+        <mvc:interceptor>
+            <mvc:mapping path="/**/*.do" />
+            <bean class="egovframework.com.cmm.interceptor.MeasuringInterceptor" />  
+        </mvc:interceptor>
+
+    </mvc:interceptors>
+</beans>

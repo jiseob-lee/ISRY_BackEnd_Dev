@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/jdbc  http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd">
+
+
+    <!-- ===================================================== -->
+    <!--                src/main/resources Config              -->
+    <!-- ===================================================== -->
+
+
+
+    <!-- Tibero -->
+    <!--
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"/>
+        <property name="url" value="jdbc:log4jdbc:tibero:thin:@devdbserver:8639:tibero2" />
+        <property name="username" value="isry_app"/>
+        <property name="password" value="app3"/>
+    </bean>
+    
+    <bean id="dataSource2" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"/>
+        <property name="url" value="jdbc:log4jdbc:tibero:thin:@devdbserver:8639:tibero2" />
+        <property name="username" value="isry_app"/>
+        <property name="password" value="app3"/>
+    </bean>
+    -->
+	
+    <!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"/>
+        <property name="url" value="jdbc:log4jdbc:tibero:thin:@10.188.99.189:8629:isry_oldb" />
+        <property name="username" value="isry_app"/>
+        <property name="password" value="mogef123!app"/>
+    </bean> -->
+    
+    <!--
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"/>
+        <property name="url" value="jdbc:log4jdbc:tibero:thin:@localhost:8629:tibero" />
+        <property name="username" value="rg"/>
+        <property name="password" value="jiseob9123"/>
+    </bean>
+    -->
+    
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"/>
+        <!-- <property name="url" value="jdbc:log4jdbc:tibero:thin:@localhost:8629:tibero7" /> -->
+        <property name="url" value="jdbc:log4jdbc:oracle:thin:@localhost:1521/xe" />
+        <property name="username" value="c##rg"/>
+        <property name="password" value="jiseob9123"/>
+    </bean>
+    
+    <bean id="dataSource2" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"/>
+        <!-- <property name="url" value="jdbc:log4jdbc:tibero:thin:@localhost:8629:tibero7" /> -->
+        <property name="url" value="jdbc:log4jdbc:oracle:thin:@localhost:1521/xe" />
+        <property name="username" value="c##rg"/>
+        <property name="password" value="jiseob9123"/>
+    </bean>
+    
+</beans>

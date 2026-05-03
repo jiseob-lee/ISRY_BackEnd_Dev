@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.csemd.stats.nowenstprecon.mapper.NowEnstPreconMapper">
+	<select id="selectNowEnstPrecon" resultType="HashMap">
+	<![CDATA[
+	/* selectNowEnstPrecon (현재입교생현황) - Lee Hye Sun */
+	SELECT
+	        TOTAL_NMPR         --총인원
+	    ,   ELESCH_MALE        --남자초등학생
+	    ,   ELESCH_FEMALE      --여자초등학생
+	    ,   MSKUL_MALE         --남자중학생
+	    ,   MSKUL_FEMALE       --여자중학생
+	    ,   HGSCHL_MALE        --남자고등학생
+	    ,   HGSCHL_FEMALE      --여자고등학생
+	    ,   MALE_NMPR          --남자수
+	    ,   FEMALE_NMPR        --여자수
+	    ,   '※ 중퇴포함 : 총 '|| DROOSC_TOTAL || '명, 초 ' ||  (DROOSC_ELESCH_MALE+DROOSC_ELESCH_FEMALE) || '명(남 ' || DROOSC_ELESCH_MALE || '명, 여 ' || DROOSC_ELESCH_FEMALE || '명), 중 '
+	        || (DROOSC_MSKUL_MALE+DROOSC_MSKUL_FEMALE) || '명(남 ' || DROOSC_MSKUL_MALE || '명, 여 ' || DROOSC_MSKUL_FEMALE || '명), 고 '
+	        || (DROOSC_HGSCHL_MALE+DROOSC_HGSCHL_FEMALE) || '명(남 ' || DROOSC_HGSCHL_MALE || '명, 여 ' || DROOSC_HGSCHL_FEMALE || '명)' AS DROOSC_NMPR
+	FROM (
+	    SELECT
+	            NVL(COUNT(TRPR_INFO_NO), 0) AS TOTAL_NMPR           --총인원
+	        ,   NVL(COUNT(ACBG_02_MCNT), 0) AS ELESCH_MALE          --남자초등학생
+	        ,   NVL(COUNT(ACBG_02_FCNT), 0) AS ELESCH_FEMALE        --여자초등학생
+	        ,   NVL(COUNT(ACBG_03_MCNT), 0) AS MSKUL_MALE           --남자중학생
+	        ,   NVL(COUNT(ACBG_03_FCNT), 0) AS MSKUL_FEMALE         --여자중학생
+	        ,   NVL(COUNT(ACBG_04_MCNT), 0) AS HGSCHL_MALE          --남자고등학생
+	        ,   NVL(COUNT(ACBG_04_FCNT), 0) AS HGSCHL_FEMALE        --여자고등학생
+	        ,   NVL(COUNT(SX_M_CNT), 0) AS MALE_NMPR                --남학생수
+	        ,   NVL(COUNT(SX_F_CNT), 0) AS FEMALE_NMPR              --여학생수
+	        ,   NVL(COUNT(DROOSC_02_M), 0) AS DROOSC_ELESCH_MALE    --중퇴남자초등학생
+	        ,   NVL(COUNT(DROOSC_02_F), 0) AS DROOSC_ELESCH_FEMALE  --중퇴여자초등학생
+	        ,   NVL(COUNT(DROOSC_03_M), 0) AS DROOSC_MSKUL_MALE     --중퇴남자중학생
+	        ,   NVL(COUNT(DROOSC_03_F), 0) AS DROOSC_MSKUL_FEMALE   --중퇴여자중학생
+	        ,   NVL(COUNT(DROOSC_04_M), 0) AS DROOSC_HGSCHL_MALE    --중퇴남자고등학생
+	        ,   NVL(COUNT(DROOSC_04_F), 0) AS DROOSC_HGSCHL_FEMALE  --중퇴여자고등학생
+	        ,   NVL(COUNT(DROOSC_02_M), 0) + NVL(COUNT(DROOSC_02_F), 0) + 
+	            NVL(COUNT(DROOSC_03_M), 0) + NVL(COUNT(DROOSC_03_F), 0) + 
+	            NVL(COUNT(DROOSC_04_M), 0) + NVL(COUNT(DROOSC_04_F), 0) AS DROOSC_TOTAL     --총 중퇴자 수
+	    FROM (
+	        SELECT
+	                TRPR_INFO_NO       --대상자정보번호
+	            ,   RPRSCD             --대표주호소구분코드
+	            ,   CASE_BGNG_YMD      --사례시작일자
+	            ,   CASE_TRMN_YMD      --사례종료일자
+	            ,   INST_NO            --기관번호
+	            , CASE WHEN ACBGCD = '02'  AND SXDCCD = 'M' THEN 1 ELSE NULL END AS ACBG_02_MCNT   --남자초등학생
+	            , CASE WHEN ACBGCD = '02'  AND SXDCCD = 'F' THEN 1 ELSE NULL END AS ACBG_02_FCNT   --여자초등학생
+	            , CASE WHEN ACBGCD = '03' AND SXDCCD = 'M' THEN 1 ELSE NULL END AS ACBG_03_MCNT    --남자중학생
+	            , CASE WHEN ACBGCD = '03' AND SXDCCD = 'F' THEN 1 ELSE NULL END AS ACBG_03_FCNT    --여자중학생
+	            , CASE WHEN ACBGCD = '04' AND SXDCCD = 'M' THEN 1 ELSE NULL END AS ACBG_04_MCNT    --남자고등학생
+	            , CASE WHEN ACBGCD = '04' AND SXDCCD = 'F' THEN 1 ELSE NULL END AS ACBG_04_FCNT    --여자고등학생
+	            , CASE WHEN GRDTNCD = '02' AND ACBGCD = '02' AND SXDCCD = 'M' THEN 1 ELSE NULL END DROOSC_02_M --중퇴 남자초등학생
+	            , CASE WHEN GRDTNCD = '02' AND ACBGCD = '02' AND SXDCCD = 'F' THEN 1 ELSE NULL END DROOSC_02_F --중퇴 여자초등학생
+	            , CASE WHEN GRDTNCD = '02' AND ACBGCD = '03' AND SXDCCD = 'M' THEN 1 ELSE NULL END DROOSC_03_M --중퇴 남자중학생
+	            , CASE WHEN GRDTNCD = '02' AND ACBGCD = '03' AND SXDCCD = 'F' THEN 1 ELSE NULL END DROOSC_03_F --중퇴 여자중학생
+	            , CASE WHEN GRDTNCD = '02' AND ACBGCD = '04' AND SXDCCD = 'M' THEN 1 ELSE NULL END DROOSC_04_M --중퇴 남자고등학생
+	            , CASE WHEN GRDTNCD = '02' AND ACBGCD = '04' AND SXDCCD = 'F' THEN 1 ELSE NULL END DROOSC_04_F --중퇴 여자고등학생
+	            , CASE WHEN SXDCCD = 'M' THEN 1 ELSE NULL END AS SX_M_CNT  --남자
+	            , CASE WHEN SXDCCD = 'F' THEN 1 ELSE NULL END AS SX_F_CNT  --여자
+	        FROM (
+	            SELECT 
+	                 A.TRPR_INFO_NO
+	                , A.APLY_RCPT_SN
+	                , NVL(B.CMMNS_CD_VALUE, A.RPRS_MAAP_PROBM_SE_CD)   AS RPRSCD   
+	                , B.CMMNS_CD_VALUE_NM AS RPRS
+	                , SX.CMMNS_CD_VALUE AS SXDCCD
+	                , SX.CMMNS_CD_VALUE_NM  AS SXDC
+	                , ROW_NUMBER() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY AC.ADDTNG_MNG_VALUE1 DESC, E.MNG_SN DESC) ROW_NO
+	                , GR.CMMNS_CD_VALUE AS GRDTNCD
+	                , GR.CMMNS_CD_VALUE_NM AS GRDTN
+	                , AC.CMMNS_CD_VALUE AS ACBGCD
+	                , AC.CMMNS_CD_VALUE_NM AS ACBG
+	                , F.CASE_BGNG_YMD
+	                , F.CASE_TRMN_YMD
+	                , H.INST_NO
+	            FROM AFA100 A
+                LEFT JOIN AFA120 G
+                ON A.TRPR_INFO_NO = G.TRPR_INFO_NO
+                LEFT JOIN SAC100 B
+                ON B.CMMNS_CD_ID = 'RPRS_MAAP_PROBM_SE_CD'
+                AND B.CMMNS_CD_VALUE = NVL(G.RPRS_MAAP_PROBM_SE_CD, A.RPRS_MAAP_PROBM_SE_CD)
+                LEFT JOIN SEA200 C
+                ON A.TRPR_INFO_NO = C.TRPR_INFO_NO
+                AND C.DEL_YN = 'N'
+                LEFT JOIN SCA300 D
+                ON C.INDV_IDNTFC_NO = D.INDV_IDNTFC_NO
+                AND D.DEL_YN = 'N'
+                LEFT JOIN SAC100 SX
+                ON SX.CMMNS_CD_ID = 'SXDC_SE_CD'
+                AND SX.CMMNS_CD_VALUE = NVL(D.SXDC_SE_CD, C.SXDC_SE_CD)
+                LEFT JOIN SEA230 E
+                ON A.TRPR_INFO_NO = E.TRPR_INFO_NO
+                AND E.DEL_YN = 'N'
+                LEFT JOIN SAC100 GR
+                ON GR.CMMNS_CD_ID = 'GRDTN_STTS_SE_CD'
+                AND GR.CMMNS_CD_VALUE = E.GRDTN_STTS_SE_CD
+                LEFT JOIN SAC100 AC
+                ON AC.CMMNS_CD_ID = 'ACBG_SE_CD'
+                AND AC.CMMNS_CD_VALUE = E.ACBG_SE_CD
+                LEFT JOIN SEB100 F
+                ON A.TRPR_INFO_NO = F.TRPR_INFO_NO
+                JOIN SAA000 H
+                ON A.RSFR_INST_NO = H.INST_NO
+	            
+	            WHERE H.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	        )
+	        WHERE ROW_NO = 1
+	    ]]>
+	        <if test="MAAP != null and MAAP !=''">
+                AND RPRSCD = #{MAAP}
+            </if>
+	    <![CDATA[
+	    )
+	    
+	   WHERE #{INQ_CRTR_YMD} BETWEEN CASE_BGNG_YMD AND NVL(CASE_TRMN_YMD,'99999999')
+	   ]]>
+		
+	    <if test="INST_NO != null and INST_NO !=''">
+	        AND INST_NO = #{INST_NO}
+	    </if>
+	)
+	</select>
+</mapper>

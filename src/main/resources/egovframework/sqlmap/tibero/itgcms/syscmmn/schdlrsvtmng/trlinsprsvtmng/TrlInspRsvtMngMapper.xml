@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.syscmmn.schdlrsvtmng.trlinsprsvtmng.mapper.TrlInspRsvtMngMapper">
+
+    <!-- 메뉴 정보 조회 -->
+    <select id="selectTaskwkSeCd" parameterType="HashMap" resultType="string">
+    <![CDATA[
+        /* selectTaskwkSeCd - kim.seong.ok */
+
+        SELECT D.CMMNS_CD_VALUE
+
+            FROM SAB200 C /* 메뉴 */, SAC100 D /* 공통코드 값 */
+
+            WHERE
+                C.MENU_NO = (
+                 SELECT E.MENU_NO
+                    FROM SAB200 E
+                    WHERE E.MENU_LEVELA_NO = 1
+                    START WITH E.MENU_NO = #{MENU_NO}
+                    CONNECT BY PRIOR E.UP_MENU_NO = E.MENU_NO
+                )
+
+            AND D.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD'
+            AND D.CMMNS_CD_VALUE_NM = C.MENU_NM
+        ]]>
+
+    </select>
+
+
+
+    <!-- 사용자 정보 조회 : 기관번호 추출용 -->
+    <select id="selectUserInfo" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectUserInfo - kim.seong.ok */
+
+        SELECT
+
+            *
+
+        FROM
+            SAA200 /* 사용자 */
+
+        WHERE
+            USER_ID = #{USER_ID}    /* 사용자아이디사용구분코드 사용자접속차단여부 추후 체크 정책 확인필요*/
+        ]]>
+
+    </select>
+
+
+    <!-- 심리검사예약관리 등록 -->
+    <insert id="insertTrlInspRsvtMngDetail" parameterType="HashMap">
+    <![CDATA[
+        /* insertTrlInspRsvtMngDetail - kim.seong.ok */
+
+        INSERT INTO SBD100
+        (
+            TRL_INSP_RSVT_MNG_NO                    /* 심리검사예약관리번호        */
+            ,INTRVN_DSCSN_MNG_NO                    /* 개입상담관리번호       */
+            ,TASKWK_SYS_SE_CD                       /* 업무시스템구분코드       */
+            ,INST_NO                                /* 기관번호            */
+            ,USER_ID                                /* 사용자 아이디           */
+            ,CLR_NM_ENCPT                           /* 접수자(상담사)명암호화           */
+            ,RSVCTM_NM_ENCPT                        /* 예약자명암호화        */
+            ,RSVT_YMD                               /* 예약일자      */
+            ,TELNO_ENCPT                            /* 전화번호암호화         */
+            ,MBL_TELNO_ENCPT                        /* 휴대전화번호암호화         */
+            ,GRADE_SE_CD                            /* 학년구분코드        */
+            ,GRADE_NM                               /* 학년명         */
+            ,REG_YMD                                /* 등록일자            */
+            ,RM_CN                                  /* 비고내용        */
+            ,RSVT_CHRCTR_SNDNG_YN                   /* 예약문자발송여부           */
+            ,DEL_YN                                 /* 삭제여부           */
+            ,FRST_RGTR_ID                           /* 최초등록자아이디        */
+            ,FRST_REG_DT                            /* 최초등록일시           */
+            ,LAST_MDFR_ID                           /* 최종수정자아이디        */
+            ,LAST_MDFCN_DT                          /* 최종수정일시           */
+        )
+        VALUES
+        (
+
+            #{TRL_INSP_RSVT_MNG_NO},                                        /* 심리검사예약관리번호       */
+            #{INTRVN_DSCSN_MNG_NO},                                         /* 개입상담관리번호            */
+            (SELECT
+                D.CMMNS_CD_VALUE
+
+                FROM SAB200 C /* 메뉴 */, SAC100 D /* 공통코드 값 */
+
+                WHERE
+                    C.MENU_NO = (
+                        SELECT E.MENU_NO
+                            FROM SAB200 E
+                            WHERE E.MENU_LEVELA_NO = 1
+                            START WITH E.MENU_NO = #{MENU_NO}
+                            CONNECT BY PRIOR E.UP_MENU_NO = E.MENU_NO
+                            )
+                            AND D.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD'
+                            AND D.CMMNS_CD_VALUE_NM = C.MENU_NM),           /* 업무시스템구분코드       */
+            #{INST_NO},                                                     /* 기관번호            */
+            #{USER_ID},                                                     /* 사용자 아이디           */
+            ENC_B64(#{CLR_NM_ENCPT}),                                                /* 접수자(상담사)명암호화           */
+            ENC_B64(#{RSVCTM_NM_ENCPT}),                                             /* 예약자명암호화        */
+            #{RSVT_YMD},                                                    /* 예약일자      */
+            ENC_B64(#{TELNO_ENCPT}),                                                 /* 전화번호암호화         */
+            ENC_B64(#{MBL_TELNO_ENCPT}),                                             /* 전화번호암호화         */
+            #{GRADE_SE_CD},                                                 /* 학년구분코드        */
+            #{GRADE_NM},                                                    /* 학년명         */
+            #{REG_YMD},                                                     /* 등록일자            */
+            #{RM_CN},                                                       /* 비고내용        */
+            #{RSVT_CHRCTR_SNDNG_YN},                                        /* 예약문자발송여부           */
+            'N',                                                            /* 삭제여부             */
+            #{FRST_RGTR_ID},                                                /* 최초등록자아이디        */
+            SYSDATE,                                                        /* 최초등록일시           */
+            #{LAST_MDFR_ID},                                                /* 최종수정자아이디        */
+            SYSDATE                                                         /* 최종수정일시           */
+        )
+
+    ]]>
+    </insert>
+
+
+    <!-- 심리검사선택항목 등록 -->
+    <insert id="insertChcTrlInsp" parameterType="HashMap">
+    <![CDATA[
+        /* insertChcTrlInsp - kim.seong.ok */
+
+        INSERT INTO SBD110
+        (
+            TRL_INSP_RSVT_MNG_NO                                /* 심리검사예약관리번호        */
+            ,INDEX_SN                                           /* 색인일렬번호(심리검사선택그룹구분)       */
+            ,CMMNS_TRL_INSP_LCLAS_SE_CD                         /* 공통심리검사대분류구분코드            */
+            ,CMMNS_TRL_INSP_SCLAS_SE_CD                         /* 공통심리검사소분류구분코드           */
+            ,FRST_RGTR_ID                                       /* 최초등록자아이디        */
+            ,FRST_REG_DT                                        /* 최초등록일시           */
+            ,LAST_MDFR_ID                                       /* 최종수정자아이디        */
+            ,LAST_MDFCN_DT                                      /* 최종수정일시           */
+        )
+        VALUES
+        (
+
+            #{TRL_INSP_RSVT_MNG_NO},                            /* 심리검사예약관리번호       */
+            #{INDEX_SN},                                        /* 색인일렬번호(심리검사선택그룹구분)            */
+            #{CMMNS_TRL_INSP_LCLAS_SE_CD},                      /* 공통심리검사대분류구분코드           */
+            #{CMMNS_TRL_INSP_SCLAS_SE_CD},                      /* 공통심리검사소분류구분코드           */
+            #{FRST_RGTR_ID},                                    /* 최초등록자아이디        */
+            SYSDATE,                                            /* 최초등록일시           */
+            #{LAST_MDFR_ID},                                    /* 최종수정자아이디        */
+            SYSDATE                                             /* 최종수정일시           */
+        )
+
+    ]]>
+    </insert>
+
+
+
+
+
+    <!-- 심리검사 예약관리 리스트 겟 수 -->
+    <select id="getTrlInspRsvtMngListTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* getTrlInspRsvtMngListTotalCount - kim.seong.ok */
+
+        SELECT
+
+            COUNT(*)
+
+        FROM SBD100
+            WHERE USER_ID = #{USER_ID}
+           AND DEL_YN = 'N'
+        ]]>
+        <if test='SEARCH_KEY == "01" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            <![CDATA[
+            AND RSVCTM_NM_ENCPT LIKE '%'|| ENC_B64(#{SEARCH_DATA}) || '%'
+            ]]>
+        </if>
+        <if test='SEARCH_KEY == "02" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            <![CDATA[
+            AND CLR_NM_ENCPT LIKE '%'|| ENC_B64(#{SEARCH_DATA}) || '%'
+            ]]>
+        </if>
+        <if test='SEARCH_KEY == "03" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            <![CDATA[
+            AND INTRVN_DSCSN_MNG_NO LIKE '%' || #{SEARCH_DATA} || '%'
+            ]]>
+        </if>
+        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+            <![CDATA[
+            AND (RSVT_YMD BETWEEN #{START_DATE} AND #{END_DATE})
+            ]]>
+        </if>
+
+    </select>
+
+
+
+    <!-- 심리검사 예약관리 리스트 -->
+    <select id="selectTrlInspRsvtMngList" parameterType="HashMap" resultType="HashMap">
+
+        /* selectTrlInspRsvtMngList - kim.seong.ok */
+
+        WITH TIRM AS
+		(
+		  SELECT
+		    A.*,
+		    (SELECT D.CMMNS_CD_VALUE_NM FROM SAC100 D /* 공통코드 값 */ WHERE D.CMMNS_CD_ID = 'CMMNS_TRL_INSP_SCLAS_SE_CD' AND D.CMMNS_CD_VALUE = B.CMMNS_TRL_INSP_SCLAS_SE_CD) AS CMMNS_TRL_INSP_SCLAS_SE_NM
+		  FROM SBD100 A
+		    JOIN SBD110 B ON A.TRL_INSP_RSVT_MNG_NO = B.TRL_INSP_RSVT_MNG_NO
+		    WHERE A.USER_ID = #{USER_ID}
+		    AND A.DEL_YN = 'N'
+		    <if test='SEARCH_KEY == "01" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+	            <![CDATA[
+	            AND RSVCTM_NM_ENCPT LIKE '%'|| #{SEARCH_DATA} || '%'
+	            ]]>
+	        </if>
+	        <if test='SEARCH_KEY == "02" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+	            <![CDATA[
+	            AND CLR_NM_ENCPT LIKE '%'|| #{SEARCH_DATA} || '%'
+	            ]]>
+	        </if>
+	        <if test='SEARCH_KEY == "03" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+	            <![CDATA[
+	            AND INTRVN_DSCSN_MNG_NO LIKE '%' || #{SEARCH_DATA} || '%'
+	            ]]>
+	        </if>
+	        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+	            <![CDATA[
+	            AND (RSVT_YMD BETWEEN #{START_DATE} AND #{END_DATE})
+	            ]]>
+	        </if>
+		)
+		SELECT
+		    TRL_INSP_RSVT_MNG_NO                    /* 심리검사예약관리번호        */
+		    ,INTRVN_DSCSN_MNG_NO                    /* 개입상담관리번호       */
+		    ,TASKWK_SYS_SE_CD                       /* 업무시스템구분코드       */
+		    ,INST_NO                                /* 기관번호            */
+		    ,USER_ID                                /* 사용자 아이디           */
+		    ,DEC_B64(CLR_NM_ENCPT) AS CLR_NM_ENCPT                           /* 접수자(상담사)명암호화           */
+		    ,DEC_B64(RSVCTM_NM_ENCPT) AS RSVCTM_NM_ENCPT                        /* 예약자명암호화        */
+		    ,RSVT_YMD                               /* 예약일자      */
+		    ,TELNO_ENCPT                            /* 전화번호암호화         */
+		    ,MBL_TELNO_ENCPT                        /* 휴대전화번호암호화         */
+		    ,GRADE_SE_CD                            /* 학년구분코드        */
+		    ,GRADE_NM                               /* 학년명         */
+		    ,REG_YMD                                /* 등록일자            */
+		    ,RM_CN                                  /* 비고내용        */
+		    ,RSVT_CHRCTR_SNDNG_YN                   /* 예약문자발송여부           */
+		    ,DEL_YN                                 /* 삭제여부           */
+		    ,FRST_RGTR_ID                           /* 최초등록자아이디        */
+		    ,TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT
+		    ,LAST_MDFR_ID                           /* 최종수정자아이디        */
+		    ,TO_CHAR(LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT
+		    ,WM_CONCAT(CMMNS_TRL_INSP_SCLAS_SE_NM) as CMMNS_TRL_INSP_SCLAS_SE_NM
+		FROM TIRM
+			GROUP BY
+			TRL_INSP_RSVT_MNG_NO
+			,INTRVN_DSCSN_MNG_NO
+			,TASKWK_SYS_SE_CD
+			,INST_NO
+			,USER_ID
+			,CLR_NM_ENCPT
+			,RSVCTM_NM_ENCPT
+			,RSVT_YMD
+			,TELNO_ENCPT
+			,MBL_TELNO_ENCPT
+			,GRADE_SE_CD
+			,GRADE_NM
+			,REG_YMD
+			,RM_CN
+			,RSVT_CHRCTR_SNDNG_YN
+			,DEL_YN
+			,FRST_RGTR_ID
+			,FRST_REG_DT
+			,LAST_MDFR_ID
+			,LAST_MDFCN_DT
+
+
+    </select>
+
+
+
+    <!-- 심리검사예약관리 상세 조회 -->
+    <select id="selectTrlInspRsvtMngDetail" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectTrlInspRsvtMngDetail - kim.seong.ok */
+
+        SELECT
+
+            TRL_INSP_RSVT_MNG_NO                    /* 심리검사예약관리번호        */
+            ,INTRVN_DSCSN_MNG_NO                    /* 개입상담관리번호       */
+            ,TASKWK_SYS_SE_CD                       /* 업무시스템구분코드       */
+            ,INST_NO                                /* 기관번호            */
+            ,USER_ID                                /* 사용자 아이디           */
+            ,DEC_B64(CLR_NM_ENCPT) AS CLR_NM_ENCPT                           /* 접수자(상담사)명암호화           */
+            ,DEC_B64(RSVCTM_NM_ENCPT) AS RSVCTM_NM_ENCPT                        /* 예약자명암호화        */
+            ,RSVT_YMD                               /* 예약일자      */
+            ,DEC_B64(TELNO_ENCPT) AS TELNO_ENCPT                            /* 전화번호암호화         */
+            ,DEC_B64(MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT                        /* 휴대전화번호암호화         */
+            ,GRADE_SE_CD                            /* 학년구분코드        */
+            ,GRADE_NM                               /* 학년명         */
+            ,REG_YMD                                /* 등록일자            */
+            ,RM_CN                                  /* 비고내용        */
+            ,RSVT_CHRCTR_SNDNG_YN                   /* 예약문자발송여부           */
+            ,DEL_YN                                 /* 삭제여부           */
+            ,FRST_RGTR_ID                           /* 최초등록자아이디        */
+            ,TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT
+            ,LAST_MDFR_ID                           /* 최종수정자아이디        */
+            ,TO_CHAR(LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT
+
+        FROM SBD100
+        WHERE TRL_INSP_RSVT_MNG_NO = #{TRL_INSP_RSVT_MNG_NO}
+        AND USER_ID = #{USER_ID}
+        AND DEL_YN = 'N'
+
+        ]]>
+
+    </select>
+
+
+    <!-- 심리검사 대분류, 소분류 선택 항목 그룹 리스트 -->
+    <select id="selectChcTrlInsp" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectChcTrlInsp - kim.seong.ok */
+
+        SELECT
+
+            TRL_INSP_RSVT_MNG_NO                    /* 심리검사예약관리번호        */
+            ,INDEX_SN                               /* 색인일렬번호(심리검사선택그룹구분)        */
+            ,CMMNS_TRL_INSP_LCLAS_SE_CD             /* 공통심리검사대분류구분코드        */
+            ,CMMNS_TRL_INSP_SCLAS_SE_CD             /* 공통심리검사소분류구분코드        */
+            ,FRST_RGTR_ID                           /* 최초등록자아이디        */
+            ,TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT
+            ,LAST_MDFR_ID                           /* 최종수정자아이디        */
+            ,TO_CHAR(LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT
+
+        FROM SBD110
+        WHERE TRL_INSP_RSVT_MNG_NO = #{TRL_INSP_RSVT_MNG_NO}
+
+        ]]>
+
+    </select>
+
+
+    <!-- 수정일 경우 심리검사 대분류, 소분류 선택 항목 그룹 리스트 삭제 후 재등록 -->
+    <delete id="deleteChcTrlInsp" parameterType="HashMap">
+      <![CDATA[
+        DELETE
+          FROM SBD110
+         WHERE TRL_INSP_RSVT_MNG_NO = #{TRL_INSP_RSVT_MNG_NO}
+      ]]>
+    </delete>
+
+
+    <!-- 심리검사예약관리 수정 -->
+    <update id="updateTrlInspRsvtMngDetail" parameterType="HashMap">
+        /* updateTrlInspRsvtMngDetail - kim.seong.ok */
+
+        <![CDATA[
+        UPDATE SBD100 SET
+
+            TRL_INSP_RSVT_MNG_NO        = #{TRL_INSP_RSVT_MNG_NO},                   /* 심리검사예약관리번호        */
+            INTRVN_DSCSN_MNG_NO        = #{INTRVN_DSCSN_MNG_NO},                    /* 개입상담관리번호       */
+            TASKWK_SYS_SE_CD           = #{TASKWK_SYS_SE_CD},                       /* 업무시스템구분코드       */
+            INST_NO                    = #{INST_NO},                                /* 기관번호            */
+            USER_ID                    = #{USER_ID},                                /* 사용자 아이디           */
+            CLR_NM_ENCPT               = ENC_B64(#{CLR_NM_ENCPT}),                           /* 접수자(상담사)명암호화           */
+            RSVCTM_NM_ENCPT            = ENC_B64(#{RSVCTM_NM_ENCPT}),                        /* 예약자명암호화        */
+            RSVT_YMD                   = #{RSVT_YMD},                               /* 예약일자      */
+            TELNO_ENCPT                = ENC_B64(#{TELNO_ENCPT}),                            /* 전화번호암호화         */
+            MBL_TELNO_ENCPT            = ENC_B64(#{MBL_TELNO_ENCPT}),                        /* 휴대전화번호암호화         */
+            GRADE_SE_CD                = #{GRADE_SE_CD},                            /* 학년구분코드        */
+            GRADE_NM                   = #{GRADE_NM},                               /* 학년명         */
+            REG_YMD                    = #{REG_YMD},                                /* 등록일자            */
+            RM_CN                      = #{RM_CN},                                  /* 비고내용        */
+            RSVT_CHRCTR_SNDNG_YN       = #{RSVT_CHRCTR_SNDNG_YN},                   /* 예약문자발송여부           */
+            DEL_YN                     = #{DEL_YN},                                 /* 삭제여부           */
+            FRST_RGTR_ID               = #{FRST_RGTR_ID},                           /* 최초등록자아이디        */
+            LAST_MDFR_ID               = #{LAST_MDFR_ID},                           /* 최종수정자아이디        */
+            LAST_MDFCN_DT              = SYSDATE                                   /* 최종수정일시           */
+
+        WHERE TRL_INSP_RSVT_MNG_NO = #{TRL_INSP_RSVT_MNG_NO}
+        AND USER_ID = #{USER_ID}
+        AND DEL_YN = 'N'
+
+        ]]>
+    </update>
+
+
+    <!-- 심리검사예약관리 삭제 -->
+    <update id="deleteTrlInspRsvtMngDetail" parameterType="HashMap">
+        /* deleteTrlInspRsvtMngDetail - kim.seong.ok */
+
+        <![CDATA[
+        UPDATE SBD100 SET
+
+        DEL_YN = 'Y',
+        LAST_MDFR_ID               = #{LAST_MDFR_ID},                           /* 최종수정자아이디        */
+        LAST_MDFCN_DT              = SYSDATE                                   /* 최종수정일시           */
+
+        WHERE TRL_INSP_RSVT_MNG_NO = #{TRL_INSP_RSVT_MNG_NO}
+        AND USER_ID = #{USER_ID}
+
+        ]]>
+    </update>
+
+
+
+    <!-- 심리검사 예약관리 날짜별 리스트 겟 수 -->
+    <select id="getTrlInspRsvtMngDailyListTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* getTrlInspRsvtMngDailyListTotalCount - kim.seong.ok */
+
+        SELECT
+
+            COUNT(*)
+
+        FROM SBD100
+            WHERE USER_ID = #{USER_ID}
+            AND RSVT_YMD = #{SEARCH_DATE}
+            AND DEL_YN = 'N'
+        ]]>
+
+    </select>
+
+
+
+    <!-- 심리검사 예약관리 날짜별 리스트 -->
+    <select id="selectTrlInspRsvtMngDailyList" parameterType="HashMap" resultType="HashMap">
+        /* selectTrlInspRsvtMngDailyList - kim.seong.ok */
+
+        WITH TIRM AS
+        (
+          SELECT
+            A.*,
+            (SELECT D.CMMNS_CD_VALUE_NM FROM SAC100 D /* 공통코드 값 */ WHERE D.CMMNS_CD_ID = 'CMMNS_TRL_INSP_SCLAS_SE_CD' AND D.CMMNS_CD_VALUE = B.CMMNS_TRL_INSP_SCLAS_SE_CD) AS CMMNS_TRL_INSP_SCLAS_SE_NM
+          FROM SBD100 A
+            JOIN SBD110 B ON A.TRL_INSP_RSVT_MNG_NO = B.TRL_INSP_RSVT_MNG_NO
+            WHERE A.USER_ID = #{USER_ID}
+            AND A.RSVT_YMD = #{SEARCH_DATE}
+            AND A.DEL_YN = 'N'
+
+        )
+        SELECT
+            TRL_INSP_RSVT_MNG_NO                    /* 심리검사예약관리번호        */
+            ,INTRVN_DSCSN_MNG_NO                    /* 개입상담관리번호       */
+            ,TASKWK_SYS_SE_CD                       /* 업무시스템구분코드       */
+            ,INST_NO                                /* 기관번호            */
+            ,USER_ID                                /* 사용자 아이디           */
+            ,DEC_B64(CLR_NM_ENCPT) AS CLR_NM_ENCPT                           /* 접수자(상담사)명암호화           */
+            ,DEC_B64(RSVCTM_NM_ENCPT) AS RSVCTM_NM_ENCPT                        /* 예약자명암호화        */
+            ,RSVT_YMD                               /* 예약일자      */
+            ,DEC_B64(TELNO_ENCPT) AS TELNO_ENCPT                            /* 전화번호암호화         */
+            ,DEC_B64(MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT                        /* 휴대전화번호암호화         */
+            ,GRADE_SE_CD                            /* 학년구분코드        */
+            ,GRADE_NM                               /* 학년명         */
+            ,REG_YMD                                /* 등록일자            */
+            ,RM_CN                                  /* 비고내용        */
+            ,RSVT_CHRCTR_SNDNG_YN                   /* 예약문자발송여부           */
+            ,DEL_YN                                 /* 삭제여부           */
+            ,FRST_RGTR_ID                           /* 최초등록자아이디        */
+            ,TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT
+            ,LAST_MDFR_ID                           /* 최종수정자아이디        */
+            ,TO_CHAR(LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT
+            ,WM_CONCAT(CMMNS_TRL_INSP_SCLAS_SE_NM) as CMMNS_TRL_INSP_SCLAS_SE_NM
+        FROM TIRM
+            GROUP BY
+            TRL_INSP_RSVT_MNG_NO
+            ,INTRVN_DSCSN_MNG_NO
+            ,TASKWK_SYS_SE_CD
+            ,INST_NO
+            ,USER_ID
+            ,CLR_NM_ENCPT
+            ,RSVCTM_NM_ENCPT
+            ,RSVT_YMD
+            ,TELNO_ENCPT
+            ,MBL_TELNO_ENCPT
+            ,GRADE_SE_CD
+            ,GRADE_NM
+            ,REG_YMD
+            ,RM_CN
+            ,RSVT_CHRCTR_SNDNG_YN
+            ,DEL_YN
+            ,FRST_RGTR_ID
+            ,FRST_REG_DT
+            ,LAST_MDFR_ID
+            ,LAST_MDFCN_DT
+
+
+
+    </select>
+
+
+
+</mapper>

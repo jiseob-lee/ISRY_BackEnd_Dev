@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.mngr.mapper.ConsttSrvyExmnInptCdMapper">
+
+    <select id="selectCombo1List" parameterType="HashMap" resultType="HashMap">
+    SELECT  /*SQL-ID : isry.couns.mngr.mapper.ConsttSrvyExmnInptCdMapper.selectCombo1List : 통합기관 LIST */
+            AA.DEPT_CD          AS  DEPT_CD
+        ,   AA.DEPT_NM          AS  DEPT_NM
+        ,   AA.INST_NO          AS  INST_NO
+        ,   '4'                 AS  INST_TYPE_SE_CD /** 기관유형구분코드 사이버상담(4) **/
+    FROM 
+            SAA300 AA
+    WHERE   1=1
+        AND AA.INST_NO      =   '371'       /** 청소년사이버상담센터 **/
+    </select>
+    
+    <select id="selectConsttSrvyExmnInptCdList" parameterType="HashMap" resultType="HashMap">
+    /*
+     * SQL-ID : isry.couns.mngr.mapper.ConsttSrvyExmnInptCdMapper.selectConsttSrvyExmnInptCdList : 응용2팀 지원_정원제
+     */
+		WITH  ZZ  AS
+		(
+		 SELECT
+		        #{DEPT_CD}                                                      AS  DEPT_CD
+		        ,    TO_DATE(#{startDate} || '000000', 'YYYYMMDDHH24MISS')      AS  START_DATE
+		        ,   TO_DATE(#{endDate} || '235959', 'YYYYMMDDHH24MISS')         AS  END_DATE
+		        ,   #{gbIdnt}                                                   AS  GB_IDNT
+		        ,   #{gbName}                                                   AS  GB_NAME
+		        ,   C##RG.ENC_B64(#{name})                                   AS  NAME
+		        ,   #{id}                                                       AS  ID
+		 FROM     
+		        DUAL
+		)
+		SELECT  T3.CONSTT_ID                                AS  CONSTT_ID
+		        , C##RG.DEC_B64(T5.FLNM_ENCPT)           AS  CONSTT_NM
+		        , T2.RSPNS_CN                               AS  RSPNS_CN
+		        , T1.BBSCTT_TYPE_SE_CD                      AS  BBSCTT_TYPE_SE_CD
+		        , TO_CHAR(T1.FRST_REG_DT, 'YYYY-MM-DD')     AS  FRST_REG_DT
+		        , COUNT(*) OVER()                           AS  TOTAL_COUNT
+		FROM    AYE195      T1      /* 상담글평가 */
+		        , AYE196    T2      /* 설문응답내용 */
+		        , AYA150    T3      /* 상담자배정 */
+		        , SAA200    T4      /* 사용자 */
+		        , SCA100    T5      /* 종사자 */
+		        , ZZ
+		WHERE   1=1
+		AND     T1.FRST_REG_DT          BETWEEN     ZZ.START_DATE
+		                                AND         ZZ.END_DATE
+		AND     T2.INDEX_SN             =           T1.INDEX_SN
+		AND     T2.QESITM_ESNTAL_NO     =           (
+		                                             SELECT
+		                                                    MAX(TT1.QESITM_ESNTAL_NO)
+		                                             FROM   
+		                                                    AYE196  TT1
+		                                             WHERE  1=1
+		                                             AND    TT1.INDEX_SN    =   T1.INDEX_SN
+		                                            )
+		AND     T3.BBSCTT_ESNTAL_NO     =           T1.BBSCTT_ESNTAL_NO
+		AND     T3.BBSCTT_TYPE_SE_CD    =           T1.BBSCTT_TYPE_SE_CD
+		AND     T4.USER_ID              =           T3.CONSTT_ID
+		AND     T4.ENFSN_NO             =           T5.ENFSN_NO(+)
+		AND     T5.OGDP_DEPT_CD         =           ZZ.DEPT_CD
+        <if test=' gbIdnt == "T" or gbName == "T" '>
+            <if test=' gbIdnt == "T" and gbName == "" '>
+                AND T4.USER_ID          LIKE    '%' || ZZ.ID || '%'
+            </if>
+            <if test=' gbIdnt == "" and gbName == "T" '>
+                AND T5.FLNM_ENCPT       =       ZZ.NAME 
+            </if>
+            <if test=' gbIdnt == "T" and gbName == "T" '>
+                AND (T4.USER_ID             LIKE    '%' || ZZ.ID || '%'
+                OR  T5.FLNM_ENCPT           =       ZZ.NAME )
+            </if>
+        </if>
+
+    </select>
+    
+    <!-- <select id="selectConsttSrvyExmnInptCdList" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            SELECT
+                TO_DATE(#{startDate} || '000000', 'YYYYMMDDHH24MISS')           AS  START_DATE
+                ,   TO_DATE(#{endDate} || '000000', 'YYYYMMDDHH24MISS')+1       AS  END_DATE
+                ,   #{gbIdnt}                                                   AS  GB_IDNT
+                ,   #{gbName}                                                   AS  GB_NAME
+                ,   #{name}                                                     AS  NAME
+                ,   #{id}                                                       AS  ID
+            FROM
+                    DUAL
+    )
+    SELECT  /*SQL-ID : isry.couns.mngr.mapper.ConsttSrvyExmnInptCdMapper.selectConsttSrvyExmnInptCdList : 상담자별 설문조사 주관식 LIST */
+            AA.FRST_RGTR_ID
+        ,   DD.FLNM_ENCPT                       AS FLNM
+        ,   BB.RSPNS_CN
+        ,   EE.CMMNS_CD_VALUE_NM                AS  CLASS
+        ,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD') AS  FRST_REG_DT
+        ,   COUNT(*) OVER() AS TOTAL_COUNT
+    FROM
+            AYE195      AA      /* 사이버상담게시글 */
+        ,   AYE196      BB      /* 설문응답내용 */
+        ,   SAA200      CC      /* 사용자 */
+        ,   SCA100      DD      /* 종사자 */
+        ,   SAC100      EE      /* 공통코드 */
+        ,   ZZ
+    WHERE   1=1
+            <![CDATA[
+        AND AA.FRST_REG_DT          >=      ZZ.START_DATE
+        AND AA.FRST_REG_DT          <       ZZ.END_DATE
+            ]]>
+        AND BB.INDEX_SN             =       AA.INDEX_SN
+        AND BB.QESITM_ESNTAL_NO     =       (
+                                            SELECT
+                                                    MAX(B1.QESITM_ESNTAL_NO)
+                                            FROM
+                                                    AYE196      B1
+                                            WHERE   1=1
+                                                AND B1.INDEX_SN     =       AA.INDEX_SN
+                                            )
+        AND CC.USER_ID              =       AA.FRST_RGTR_ID
+        AND CC.ENFSN_NO             =       DD.ENFSN_NO(+)  /* 종사자번호 */
+        AND DD.OGDP_DEPT_CD         =       #{DEPT_CD}      /* 부서코드 */
+        AND DD.DEL_YN = 'N'                            /* 종사자 삭제여부 */
+        AND EE.CMMNS_CD_ID          =       'BBSCTT_TYPE_SE_CD'
+        AND EE.CMMNS_CD_VALUE       =       AA.BBSCTT_TYPE_SE_CD
+        <if test=' gbIdnt == "T" or gbName == "T" '>
+            <if test=' gbIdnt == "T" and gbName == "" '>
+            AND CC.USER_ID          LIKE    '%' || ZZ.ID || '%'
+            </if>
+            <if test=' gbIdnt == "" and gbName == "T" '>
+            AND DD.FLNM_ENCPT       =       ZZ.NAME 
+            </if>
+            <if test=' gbIdnt == "T" and gbName == "T" '>
+        AND (CC.USER_ID              LIKE    '%' || ZZ.ID || '%'
+        OR  DD.FLNM_ENCPT           =       ZZ.NAME )
+            </if>
+        </if>
+
+    </select> -->
+    
+</mapper>

@@ -1,0 +1,1175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper">
+
+    <select id="getTotalCount" parameterType="HashMap" resultType="int">
+    
+    <if test='TAB == "1"'> 
+    SELECT
+        AA.AASUM + BB.BBSUM
+	FROM 
+	        (
+	        SELECT
+	                COUNT(*)    AS AASUM
+	        FROM 
+	                AYA120  AA  /*  위기상담_개인     */
+	            ,   SAC100  BB  /*  공통코드    */
+                ,   SCA100  CC  /*  종사자     */
+	        WHERE   1=1
+	            AND (
+	                AA.DEL_YN                   !=       'Y'
+	            OR  AA.DEL_YN                   IS NULL
+	                )                       
+	            AND AA.BBSCTT_TYPE_SE_CD        =       '91'                        /* 게시판구분코드 */
+                AND AA.CONSTT_ID            (+) =       CC.INDV_IDNTFC_NO
+	            AND BB.CMMNS_CD_ID              =       'CRISIS_TYPE_SE_CD'         /* 위기유형       */
+	            AND BB.CMMNS_CD_VALUE           =       AA.CRISIS_TYPE_SE_CD
+	            <if test='CLIENA_NM__ENCPT != null and CLIENA_NM__ENCPT != ""'>
+		        AND AA.WRTR_NM_ENCPT            =       #{CLIENA_NM__ENCPT}                 /* 내담자명 조회             */
+		        </if>
+		        <if test='CONSTT_NM_ENCPT != null and CONSTT_NM_ENCPT != ""'>
+		        AND CC.FLNM_ENCPT               =       #{CONSTT_NM_ENCPT}                 /* 상담원명 조회             */
+		        </if>
+		        <if test='CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ""'>
+		        AND AA.CRISIS_TYPE_SE_CD        LIKE    '%'||#{CRISIS_TYPE_SE_CD}||'%'      /* 위기유형 조회             */
+		        </if>
+		        <if test='DGDGR_SE_CD != null and DGDGR_SE_CD != ""'>
+		        AND AA.DGDGR_SE_CD              LIKE    '%'||#{DGDGR_SE_CD}||'%'            /* 위험도 조회             */
+		        </if>
+		        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+		        <![CDATA[
+		        AND AA.FRST_REG_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+		        AND AA.FRST_REG_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+		        ]]>
+		        </if>
+	        )   AA   
+	    ,   (       
+	        SELECT
+	                COUNT(*)    AS BBSUM
+	        FROM 
+	                AYA120  AA     /*  위기상담_개인     */
+	            ,   AYA190  BB     /*  사후관리     */
+                ,   SCA100  CC     /*  종사자     */
+	        WHERE 1=1
+	            AND AA.INDEX_SN                 =       BB.INDEX_SN
+	            AND AA.BBSCTT_TYPE_SE_CD        =       '91'
+                AND CC.INDV_IDNTFC_NO       (+) =       AA.CONSTT_ID               
+	            AND (
+	                BB.DEL_YN                   !=       'Y'
+	            OR  BB.DEL_YN                   IS NULL
+	                )                       /* 게시판구분코드 */
+	            <if test='CLIENA_NM__ENCPT != null and CLIENA_NM__ENCPT != ""'>
+		        AND AA.WRTR_NM_ENCPT            =       #{CLIENA_NM__ENCPT}                 /* 내담자명 조회             */
+		        </if>
+		        <if test='CONSTT_NM_ENCPT != null and CONSTT_NM_ENCPT != ""'>
+		        AND CC.FLNM_ENCPT               =       #{CONSTT_NM_ENCPT}                 /* 상담원명 조회             */
+		        </if>
+		        <if test='CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ""'>
+		        AND AA.CRISIS_TYPE_SE_CD        LIKE    '%'||#{CRISIS_TYPE_SE_CD}||'%'      /* 위기유형 조회             */
+		        </if>
+		        <if test='DGDGR_SE_CD != null and DGDGR_SE_CD != ""'>
+		        AND AA.DGDGR_SE_CD              LIKE    '%'||#{DGDGR_SE_CD}||'%'            /* 위험도 조회             */
+		        </if>
+		        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+		        <![CDATA[
+		        AND AA.FRST_REG_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+		        AND AA.FRST_REG_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+		        ]]>
+		        </if>
+	        )   BB
+    </if>
+    <if test='TAB == "2"'>
+    SELECT  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.selectBbscrsList2 cnt : (모바일)연계상담게시판 오픈채팅 */
+            COUNT(*)
+    FROM 
+            AYA120  AA  /*  위기상담_개인     */
+        ,   SAC100  BB  /*  공통코드    */
+        ,   SCA100  CC  /*  종사자     */
+    WHERE   1=1
+        AND (
+            AA.DEL_YN                   !=       'Y'
+        OR  AA.DEL_YN                   IS NULL
+            )                       
+        AND AA.BBSCTT_TYPE_SE_CD        =       '18'                        /* 게시판구분코드 */
+        AND BB.CMMNS_CD_ID              =       'CRISIS_TYPE_SE_CD'         /* 위기유형       */
+        AND BB.CMMNS_CD_VALUE           =       AA.CRISIS_TYPE_SE_CD
+        AND CC.INDV_IDNTFC_NO       (+) =       AA.CONSTT_ID     
+        <if test='CLIENA_NM_ENCPT != null and CLIENA_NM_ENCPT != ""'>
+        AND AA.CLIENA_NM_ENCPT          =       #{CLIENA_NM_ENCPT}                 /* 내담자명 조회             */
+        </if>
+        <if test='CONSTT_NM_ENCPT != null and CONSTT_NM_ENCPT != ""'>
+        AND CC.FLNM_ENCPT               =       #{CONSTT_NM_ENCPT}                 /* 상담원명 조회             */
+        </if>
+        <if test='CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ""'>
+        AND AA.CRISIS_TYPE_SE_CD        =       #{CRISIS_TYPE_SE_CD}                /* 위기유형 조회             */
+        </if>
+        <if test='DGDGR_SE_CD != null and DGDGR_SE_CD != ""'>
+        AND AA.DGDGR_SE_CD              =       #{DGDGR_SE_CD}                      /* 위험도 조회             */
+        </if>
+        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+        <![CDATA[
+        AND AA.FRST_REG_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+        AND AA.FRST_REG_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+        ]]>
+        </if>
+    </if>
+    
+    </select>
+    
+    <select id="selectBbsmcrList1" parameterType="HashMap" resultType="HashMap">
+	SELECT  
+	        CASE    WHEN    EE.NUM  =   '2'   THEN EE.BBSCTT_ESNTAL_NO || '-' || EE.AFTFCT_MNG_ESNTAL_NO
+	                ELSE    TO_CHAR(EE.BBSCTT_ESNTAL_NO)
+	        END     AS      BBSCTT_ESNTAL_NO
+	    ,   EE.BBSCTT_TYPE_SE_CD
+<!-- 	    ,   CASE    WHEN    EE.NUM  =   '2'   THEN 'RE: ' || EE.CLIENA        -->
+<!-- 	                ELSE    EE.CLIENA -->
+<!-- 	        END     AS      CLIENA -->
+	    ,   C##RG.DEC_B64(EE.CLIENA)    AS CLIENA
+        ,   EE.CONSTT
+        ,   EE.WRTR_DT
+	    ,   EE.REG_DT
+	    ,   EE.CRISIS_TYPE_SE_CD
+	    ,   EE.NUM
+        ,   EE.AFTFCT_MNG_ESNTAL_NO
+        ,   EE.INDEX_SN
+	FROM
+	    (
+	    SELECT  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.selectBbscrsList1 : (모바일)연계상담게시판 모바일 */
+	            AA.BBSCTT_ESNTAL_NO                                 AS BBSCTT_ESNTAL_NO            /*  게시글고유번호    */
+	        ,   AA.BBSCTT_TYPE_SE_CD                                AS BBSCTT_TYPE_SE_CD           /*  게시글유형구분    */
+	        ,   AA.CLIENA_NM_ENCPT                                 AS CLIENA                      /*  내담자                */
+            ,   AA.CLIENA_ID                                        AS CLIENA_ID                      /*  내담자                */
+            ,   CC.FLNM_ENCPT                                       AS CONSTT                         /*  내담자                */
+            ,   AA.CONSTT_ID                                        AS CONSTT_ID                      /*  상담원                */
+	        ,   TO_CHAR(AA.DSCSN_DT, 'YYYY-MM-DD')                  AS WRTR_DT                     /*  상담일시           */
+	        ,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD')               AS REG_DT                      /*  등록일시             */
+	        ,   BB.CMMNS_CD_VALUE_NM                                AS CRISIS_TYPE_SE_CD           /*  위기유형            */
+	        ,   '1'                                                 AS NUM                         /*  게시글레벨            */
+            ,   ''                                                  AS AFTFCT_MNG_ESNTAL_NO        /*  사후관리고유번호    */
+            ,   AA.INDEX_SN                                         AS INDEX_SN
+	    FROM 
+	            AYA120  AA  /*  위기상담_개인     */
+	        ,   SAC100  BB  /*  공통코드    */
+            ,   SCA100  CC  /*  종사자     */
+	    WHERE   1=1
+	        AND (
+	            AA.DEL_YN                   !=       'Y'
+	        OR  AA.DEL_YN                   IS NULL
+	            )                       
+	        AND AA.BBSCTT_TYPE_SE_CD        =       '91'                        /* 게시판구분코드 */
+            AND CC.INDV_IDNTFC_NO       (+) =       AA.CONSTT_ID                       
+	        AND BB.CMMNS_CD_ID              =       'CRISIS_TYPE_SE_CD'         /* 위기유형       */
+	        AND BB.CMMNS_CD_VALUE           =       AA.CRISIS_TYPE_SE_CD
+	        <if test='CLIENA_NM_ENCPT != null and CLIENA_NM_ENCPT != ""'>
+            AND AA.CLIENA_NM_ENCPT            =       #{CLIENA_NM_ENCPT}                 /* 내담자명 조회             */
+            </if>
+            <if test='CONSTT_NM_ENCPT != null and CONSTT_NM_ENCPT != ""'>
+            AND CC.FLNM_ENCPT               =       #{CONSTT_NM_ENCPT}                 /* 상담원명 조회             */
+            </if>
+            <if test='CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ""'>
+            AND AA.CRISIS_TYPE_SE_CD        =       #{CRISIS_TYPE_SE_CD}                /* 위기유형 조회             */
+            </if>
+            <if test='DGDGR_SE_CD != null and DGDGR_SE_CD != ""'>
+            AND AA.DGDGR_SE_CD              =       #{DGDGR_SE_CD}                      /* 위험도 조회             */
+            </if>
+            <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+            <![CDATA[
+            AND AA.DSCSN_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+            AND AA.DSCSN_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+            ]]>
+            </if>
+	    UNION ALL 
+	    SELECT 
+	            BB.BBSCTT_ESNTAL_NO                                 AS BBSCTT_ESNTAL_NO            /*  게시글고유번호    */
+	        ,   BB.BBSCTT_TYPE_SE_CD                                AS BBSCTT_TYPE_SE_CD           /*  게시글유형구분    */
+	        ,   AA.CLIENA_NM_ENCPT                                  AS CLIENA                      /*  내담자       */
+            ,   AA.CLIENA_ID                                        AS CLIENA_ID                      /*  내담자       */
+            ,   DD.FLNM_ENCPT                                       AS CONSTT                      /*  상담원                */
+            ,   AA.CONSTT_ID                                        AS CONSTT_ID                      /*  상담원                */
+            ,   TO_CHAR(BB.DSCSN_DT, 'YYYY-MM-DD')                  AS WRTR_DT                     /*  상담일시           */
+	        ,   TO_CHAR(BB.FRST_REG_DT, 'YYYY-MM-DD')               AS REG_DT                      /*  등록일시             */
+	        ,   CC.CMMNS_CD_VALUE_NM                                AS CRISIS_TYPE_SE_CD           /*  사후관리대상            */
+	        ,   '2'                                                 AS NUM                         /*  게시글레벨            */
+	        ,   BB.AFTFCT_MNG_ESNTAL_NO                             AS AFTFCT_MNG_ESNTAL_NO        /*  사후관리고유번호    */
+            ,   BB.INDEX_SN                                         AS INDEX_SN
+	    FROM 
+	            AYA120  AA     /*  위기상담_개인     */
+	        ,   AYA190  BB     /*  사후관리     */
+            ,   SAC100  CC      /*  공통코드    */
+            ,   SCA100  DD      /*  종사자     */
+	    WHERE   1=1
+	        AND (
+                AA.DEL_YN                   !=       'Y'
+            OR  AA.DEL_YN                   IS NULL
+                )   
+	        AND (
+	            BB.DEL_YN                   !=       'Y'
+	        OR  BB.DEL_YN                   IS NULL
+	            ) 
+	        AND AA.BBSCTT_TYPE_SE_CD        =       '91'                               /* 게시판구분코드 */
+	        AND AA.INDEX_SN                 =       BB.INDEX_SN
+            AND CC.CMMNS_CD_ID          (+) =       'AFTFCT_MNG_TRGT_SE_CD'             /* 사후관리대상       */
+            AND CC.CMMNS_CD_VALUE       (+) =       BB.AFTFCT_MNG_TRGT_SE_CD
+            AND DD.INDV_IDNTFC_NO       (+) =       AA.CONSTT_ID                       
+			<if test='CLIENA_NM_ENCPT != null and CLIENA_NM_ENCPT != ""'>
+			AND AA.CLIENA_NM_ENCPT          =       #{CLIENA_NM_ENCPT}                 /* 내담자명 조회             */
+			</if>
+			<if test='CONSTT_NM_ENCPT != null and CONSTT_NM_ENCPT != ""'>
+			AND DD.FLNM_ENCPT               =       #{CONSTT_NM_ENCPT}                 /* 상담원명 조회             */
+			</if>
+			<if test='CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ""'>
+			AND AA.CRISIS_TYPE_SE_CD        =       #{CRISIS_TYPE_SE_CD}                /* 위기유형 조회             */
+			</if>
+			<if test='DGDGR_SE_CD != null and DGDGR_SE_CD != ""'>
+			AND AA.DGDGR_SE_CD              =       #{DGDGR_SE_CD}                      /* 위험도 조회             */
+			</if>
+			<if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+			<![CDATA[
+			AND AA.DSCSN_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+			AND AA.DSCSN_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+			]]>
+			</if>
+        )   EE
+    ORDER BY 
+            EE.BBSCTT_ESNTAL_NO DESC 
+        ,   EE.NUM
+        ,   EE.WRTR_DT
+    OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select>
+    
+    <select id="selectBbsmcrList2" parameterType="HashMap" resultType="HashMap">
+    SELECT  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.selectBbscrsList2 : (모바일)연계상담게시판 오픈채팅 */
+            CASE    
+                WHEN    FF.NUM  =   2   THEN FF.BBSCTT_ESNTAL_NO || '-' || FF.AFTFCT_MNG_ESNTAL_NO
+                ELSE    TO_CHAR(FF.BBSCTT_ESNTAL_NO)
+            END     AS      BBSCTT_ESNTAL_NO
+        ,   FF.BBSCTT_TYPE_SE_CD
+        ,   CASE    
+                WHEN    FF.NUM  =   2   THEN ' RE: ' || '오픈채팅 사후관리'       
+                ELSE    '오픈채팅 게시글'
+            END     AS      BBSCTT_TTL_NM
+        ,   C##RG.DEC_B64(FF.CONSTT_NM)  AS CONSTT_NM  
+        ,   FF.CONSTT_ID
+        ,   FF.WRTR_DT
+        ,   FF.REG_DT
+        ,   FF.CRISIS_TYPE_SE_CD
+        ,   COUNT(*) OVER()                                     AS TOTAL_COUNT
+        ,   FF.NUM
+        ,   FF.AFTFCT_MNG_ESNTAL_NO
+        ,   FF.INDEX_SN
+    FROM
+            (    
+		    SELECT  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.selectBbscrsList2 : (모바일)연계상담게시판 오픈채팅 */
+		            AA.BBSCTT_ESNTAL_NO                                 AS BBSCTT_ESNTAL_NO         /*  게시글고유번호    */
+		        ,   AA.BBSCTT_TYPE_SE_CD                                AS BBSCTT_TYPE_SE_CD        /*  게시글유형구분    */
+		        ,   CC.FLNM_ENCPT                                       AS CONSTT_NM                /*  상담원명       */
+		        ,   AA.CONSTT_ID                                        AS CONSTT_ID                /*  상담원아이디      */
+		        ,   TO_CHAR(AA.DSCSN_DT, 'YYYY-MM-DD')                  AS WRTR_DT                  /*  상담일시           */
+		        ,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD')               AS REG_DT                   /*  등록일시             */
+		        ,   BB.CMMNS_CD_VALUE_NM                                AS CRISIS_TYPE_SE_CD        /*  위기유형            */
+                ,   1       AS NUM
+                ,   ''                                                  AS AFTFCT_MNG_ESNTAL_NO        /*  사후관리고유번호    */
+                ,   ''                                                  AS INDEX_SN
+		    FROM 
+		            AYA120  AA      /*  위기상담_개인     */
+		        ,   SAC100  BB      /*  공통코드    */
+		        ,   SCA100  CC      /*  종사자     */
+                ,   SAA200  C1          /* 사용자 */
+		    WHERE   1=1
+		        AND (
+		            AA.DEL_YN                   !=       'Y'
+		        OR  AA.DEL_YN                   IS NULL
+		            )                       
+		        AND AA.BBSCTT_TYPE_SE_CD        =       '18'                        /* 게시판구분코드 */
+		        AND BB.CMMNS_CD_ID              =       'CRISIS_TYPE_SE_CD'         /* 위기유형       */
+		        AND BB.CMMNS_CD_VALUE           =       AA.CRISIS_TYPE_SE_CD
+                AND C1.USER_ID               (+)=       AA.CONSTT_ID
+                AND CC.ENFSN_NO              (+)=       C1.ENFSN_NO
+		        <if test='CLIENA_NM_ENCPT != null and CLIENA_NM_ENCPT != ""'>
+		        AND AA.CLIENA_NM_ENCPT          =       #{CLIENA_NM_ENCPT}                 /* 내담자명 조회             */
+		        </if>
+		        <if test='CONSTT_NM_ENCPT != null and CONSTT_NM_ENCPT != ""'>
+		        AND CC.FLNM_ENCPT               =       #{CONSTT_NM_ENCPT}                 /* 상담원명 조회             */
+		        </if>
+		        <if test='CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ""'>
+		        AND AA.CRISIS_TYPE_SE_CD        =       #{CRISIS_TYPE_SE_CD}                /* 위기유형 조회             */
+		        </if>
+		        <if test='DGDGR_SE_CD != null and DGDGR_SE_CD != ""'>
+		        AND AA.DGDGR_SE_CD              =       #{DGDGR_SE_CD}                      /* 위험도 조회             */
+		        </if>
+		        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+		        <![CDATA[
+		        AND AA.DSCSN_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+		        AND AA.DSCSN_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+		        ]]>
+		        </if>
+            UNION ALL
+            SELECT  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.selectBbscrsList2 : (모바일)연계상담게시판 오픈채팅 */
+                    AA.BBSCTT_ESNTAL_NO                                 AS BBSCTT_ESNTAL_NO         /*  게시글고유번호    */
+                ,   AA.BBSCTT_TYPE_SE_CD                                AS BBSCTT_TYPE_SE_CD        /*  게시글유형구분    */
+                ,   CC.FLNM_ENCPT                                       AS CONSTT_NM                /*  상담원명       */
+                ,   AA.CONSTT_ID                                        AS CONSTT_ID                /*  상담원아이디      */
+                ,   TO_CHAR(AA.DSCSN_DT, 'YYYY-MM-DD')                  AS WRTR_DT                  /*  상담일시           */
+                ,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD')               AS REG_DT                   /*  등록일시             */
+                ,   BB.CMMNS_CD_VALUE_NM                                AS CRISIS_TYPE_SE_CD        /*  위기유형            */
+                ,   2       AS NUM
+                ,   EE.AFTFCT_MNG_ESNTAL_NO                             AS AFTFCT_MNG_ESNTAL_NO        /*  사후관리고유번호    */
+                ,   EE.INDEX_SN                                         AS INDEX_SN
+            FROM 
+                    AYA120  AA      /*  위기상담_개인     */
+                ,   SAC100  BB      /*  공통코드    */
+                ,   SCA100  CC      /*  종사자     */
+                ,   SAA200  C1          /* 사용자 */
+                ,   AYA190  EE     /*  사후관리     */
+                ,   AYA120  GG     /*  위기상담_개인     */
+            WHERE   1=1
+                AND (
+                    AA.DEL_YN                   !=       'Y'
+                OR  AA.DEL_YN                   IS NULL
+                    )                       
+                AND (
+                    EE.DEL_YN                   !=       'Y'
+                OR  EE.DEL_YN                   IS NULL
+                    ) 
+                AND EE.INDEX_SN                 =       GG.INDEX_SN
+                AND GG.BBSCTT_ESNTAL_NO         =       AA.BBSCTT_ESNTAL_NO
+                AND GG.BBSCTT_TYPE_SE_CD        =       AA.BBSCTT_TYPE_SE_CD
+                AND AA.BBSCTT_TYPE_SE_CD        =       '18'                        /* 게시판구분코드 */
+                AND BB.CMMNS_CD_ID              =       'AFTFCT_MNG_TRGT_SE_CD'             /* 위기유형구분코드 */
+                AND BB.CMMNS_CD_VALUE           =       EE.AFTFCT_MNG_TRGT_SE_CD
+                AND C1.USER_ID               (+)=       AA.CONSTT_ID
+                AND CC.ENFSN_NO              (+)=       C1.ENFSN_NO
+                <if test='CLIENA_NM_ENCPT != null and CLIENA_NM_ENCPT != ""'>
+                AND AA.CLIENA_NM_ENCPT          =       #{CLIENA_NM_ENCPT}                 /* 내담자명 조회             */
+                </if>
+                <if test='CONSTT_NM_ENCPT != null and CONSTT_NM_ENCPT != ""'>
+                AND CC.FLNM_ENCPT               =       #{CONSTT_NM_ENCPT}                 /* 상담원명 조회             */
+                </if>
+                <if test='CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ""'>
+                AND AA.CRISIS_TYPE_SE_CD        =       #{CRISIS_TYPE_SE_CD}                /* 위기유형 조회             */
+                </if>
+                <if test='DGDGR_SE_CD != null and DGDGR_SE_CD != ""'>
+                AND AA.DGDGR_SE_CD              =       #{DGDGR_SE_CD}                      /* 위험도 조회             */
+                </if>
+                <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+                <![CDATA[
+                AND AA.DSCSN_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+                AND AA.DSCSN_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+                ]]>
+                </if>
+            )       FF
+    ORDER BY 
+            FF.BBSCTT_ESNTAL_NO     DESC 
+        ,   FF.NUM
+        ,   FF.WRTR_DT
+    OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select>
+    
+    <select id="selectBbsmcrDetail" parameterType="HashMap" resultType="HashMap">
+    SELECT  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.selecBbsmcrDetail : (모바일)연계상담게시판 상세 */
+            AA.INDEX_SN                                                                 /* 색인일련번호 */
+        ,   AA.CHRO_NO                                                                  /* 채팅방번호         */
+        ,   AA.BBSCTT_ESNTAL_NO                                                         /* 게시글고유번호   */
+        ,   AA.BBSCTT_TYPE_SE_CD                                                        /* 게시글유형구분   */
+        ,   AA.CLIENA_ID                                                                /* 내담자아이디      */
+        ,   AA.CLIENA_NM_ENCPT                                                          /* 내담자명            */
+        ,   AA.CLIENA_NM_ENCPT || '(' || AA.CLIENA_ID || ')'                            /* 내담자               */
+        ,   AA.CONSTT_ID                                                AS CONSTT_ID    /* 상담원아이디      */
+        ,   '상담원명' || '(' || C##RG.DEC_B64(AA.CONSTT_ID) || ')'     AS CONSTT       /* 상담원               */
+        ,   AA.SXDC_SE_CD                                                               /*  성별구분코드                                    */
+        ,   AA.NOW_AGE                                                                  /*  현재연령                                          */
+        ,   AA.RGN_NM                                                                   /*  지역명                                             */
+        ,   AA.TRPR_TELNO                                                               /*  대상자전화번호암호화                        */
+        ,   AA.MBL_TELNO_ENCPT                              /*  휴대전화번호암호화                           */
+        ,   AA.TRPR_EML_ADDR_ENCPT                          /*  대상자이메일주소암호화                     */
+        ,   AA.CRISIS_TYPE_SE_CD                            /*  위기유형구분코드                              */
+        ,   AA.CLIENA_NM_ENCPT                              /*  내담자명암호화                                 */
+        ,   AA.APEAL_SUMRY_CN                               /*  호소요약내용                                    */
+        ,   AA.DSCSN_YMD                                    /*  상담일자                                          */
+        ,   AA.DGDGR_SE_CD                                  /*  위험도구분코드                                 */
+        ,   AA.CHRO_NO                                      /*  채팅방번호                                       */
+        ,   AA.MBLA_CASE_SITE_ADDR                          /*  모바일사례사이트주소                        */
+        ,   AA.MBLA_PVSN_PURPS_SE_CD                        /*  모바일제공목적구분코드                     */
+        ,   AA.PVSN_SHAPE_TLPHON_YN                         /*  제공형태전화여부                              */
+        ,   AA.PVSN_SHAPE_EML_YN                            /*  제공형태이메일여부                           */
+        ,   AA.PVSN_SHAPE_SYS_YN                            /*  제공형태시스템여부                           */
+        ,   AA.UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN           /*  이용목적제약사항준수여부                  */
+        ,   AA.EMRG_RESC_YN                                 /*  긴급구조여부                                    */
+        ,   AA.SPCLTY_INST_DRCT_LINK_YN                     /*  전문기관직접연계여부                        */
+        ,   AA.UTZTN_PSBLTY_INST_INFO_PVSN_YN               /*  이용가능기관정보제공여부                  */
+        ,   AA.DCLR_MTHD_GUIDAN_YN                          /*  신고방법안내여부                              */
+        ,   AA.ETC_RELATA_INFO_PVSN_YN                      /*  기타관련정보제공여부                        */
+        ,   AA.EMTNL_BACKIN_YN                              /*  정서적지지여부                                 */
+        ,   AA.CHRCTR_YN                                    /*  문자여부                                          */
+        ,   AA.TLPHON_YN                                    /*  전화여부                                          */
+        ,   AA.NOTE_YN                                      /*  쪽지여부                                          */
+        ,   AA.EML_GUIDAN_YN                                /*  이메일안내여부                                 */
+        ,   AA.YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN             /*  청소년상담복지센터의뢰여부               */
+        ,   AA.FAM_RQST_YN                                  /*  가족의뢰여부                                    */
+        ,   AA.DT_CACE_SHELTR_RQST_YN                       /*  일시보호소쉼터의뢰여부                     */
+        ,   AA.EMRG_RESC_RQST_YN                            /*  긴급구조의뢰여부                              */
+        ,   AA.LEADER_RQST_YN                               /*  지도자의뢰여부                                 */
+        ,   AA.YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD     /*  청소년상담복지센터의뢰방법구분코드   */
+        ,   AA.FAM_RQST_MTHD_SE_CD                          /*  가족의뢰방법구분코드                        */
+        ,   AA.DT_CACE_SHELTR_RQST_MTHD_SE_CD               /*  일시보호소쉼터의뢰방법구분코드         */
+        ,   AA.EMRG_RESC_RQST_MTHD_SE_CD                    /*  긴급구조의뢰방법구분코드                  */
+        ,   AA.LEADER_RQST_MTHD_SE_CD                       /*  지도자의뢰방법구분코드                     */
+        ,   AA.ETC_SPCLTY_INST_RQST_MTHD_SE_CD              /*  기타전문기관의뢰방법구분코드            */
+        ,   AA.RQST_INST_INFO_PVSN_NDLS_YN                  /*  의뢰기관정보제공불필요여부               */
+        ,   AA.PIC_NM_ENCPT                                 /*  담당자명암호화                                 */
+        ,   AA.RLTPSN_CTTPC_TELNO                           /*  관련자연락처전화번호                        */   
+        ,   AA.FLNM_PVSN_YN                                 /*  성명제공여부                                    */  
+        ,   AA.AGEA_PVSN_YN                                 /*  나이제공여부                                    */  
+        ,   AA.SXDC_PVSN_YN                                 /*  성별제공여부                                    */  
+        ,   AA.TELNO_PVSN_YN                                /*  전화번호제공여부                              */    
+        ,   AA.ADDR_PVSN_YN                                 /*  주소제공여부                                    */  
+        ,   AA.SCHL_INFO_PVSN_YN                            /*  학교정보제공여부                              */    
+        ,   AA.APEAL_PROBM_PVSN_YN                          /*  호소문제제공여부                              */    
+        ,   AA.MBLA_RQST_PVSN_ETC_YN                        /*  모바일의뢰제공기타여부                     */ 
+        ,   AA.MBLA_PVSN_PURPS_ETC_CN                       /*  모바일제공목적기타내용                     */
+        ,   AA.ETC_CN                                       /*  기타내용                                          */ 
+        ,   AA.ETC_SPCLTY_INST_RQST_YN                      /*  기타전문기관의뢰여부                        */ 
+        ,   AA.RQST_INST_INFO_PVSN_NDLS_YN                  /*  의뢰기관정보제공불필요여부               */ 
+        ,   AA.RLVT_NAPC_YN                                 /*  해당사항없음여부                              */ 
+        ,   AA.DSCSN_HR                                     /*  상담시간                                          */
+        ,   AA.YC1388_YN
+        ,   AA.MHW129_YN
+        ,   AA.SUNFLO_CNTER_YN
+        ,   AA.PRSTT_DMGE_CSLC_YN
+        ,   AA.SUCDE_PREVNT_CNTER_YN
+        ,   AA.SCHL_VIOLNC_SOS_SUGR_YN
+        ,   AA.CHIL_PRTCTN_SPCLTY_INST_YN
+        ,   AA.HEALTH_HOUSEK_SPRT_CNTER_YN
+        ,   AA.OFCDC_YN
+        ,   AA.ALTRV_SCHL_YN
+        ,   AA.YNGBGS_LABOR_PRTCTN_CNTER_YN
+        ,   AA.ADDC_MNG_UNITY_SPRT_CNTER_YN
+        ,   AA.YNGBGS_SECU_CNTER_YN
+        ,   AA.SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN
+        ,   AA.WH1366_YN
+        ,   AA.SXVLC_CSLC_YN
+        ,   AA.UNMRMT_FANSO_FTHOLD_INST_YN
+        ,   AA.MIND_HEALTH_WLFAR_CNTER_YN
+        ,   AA.POLICE_CYBER_SEAD_YN
+        ,   AA.HMVLN_CSLC_YN
+        ,   AA.KOLEAI_YN
+        ,   AA.YNGBGS_SPRT_CNTER_DREAM_YN
+        ,   AA.EMPLYA_CNTER_YN
+        ,   AA.YNGBGS_LABOR_INTRRT_CNTER_YN
+        ,   AA.SMRE_CNTER_YN
+<!--         ,   AA.ONST_SPRT_CNTER_YN -->
+        ,   AA.LILI_YN
+        ,   AA.ETC_SPCLTY_INST_ETC_YN
+        ,   AA.ETC_SPCLTY_INST_NM        
+    FROM
+            AYA120  AA
+    WHERE   1=1
+        AND AA.BBSCTT_ESNTAL_NO         =       #{BBSCTT_ESNTAL_NO}
+        AND AA.BBSCTT_TYPE_SE_CD        =       #{BBSCTT_TYPE_SE_CD}
+    </select>
+    
+    <insert id="insertBbsmcr" parameterType="HashMap" keyProperty="INDEX_SN" useGeneratedKeys="true">
+    
+<!--     <selectKey keyProperty="INDEX_SN" resultType="String" order="BEFORE">
+    SELECT 
+            AYA120_SQ01.CURRVAL     AS  INDEX_SN
+    FROM
+            DUAL
+    </selectKey> -->
+    
+    INSERT  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.insertBbsmcr : 연계상담게시판 등록 */
+    INTO
+            AYA120
+    (
+            (
+                SELECT 
+                    NVL(MAX(INDEX_SN),0) +1     
+                FROM 
+                    AYA120
+            )                                       /*  색인일련번호                                    */
+        ,   BBSCTT_ESNTAL_NO                             /*  게시글고유번호                                 */
+        ,   BBSCTT_TYPE_SE_CD                            /*  게시글구분코드                                 */
+        ,   SXDC_SE_CD                                   /*  성별구분코드                                    */
+        ,   NOW_AGE                                      /*  현재연령                                          */
+        ,   RGN_NM                                       /*  지역명                                             */
+        ,   TRPR_TELNO                                   /*  대상자전화번호암호화                        */
+        ,   MBL_TELNO_ENCPT                              /*  휴대전화번호암호화                           */
+        ,   TRPR_EML_ADDR_ENCPT                          /*  대상자이메일주소암호화                     */
+        ,   CRISIS_TYPE_SE_CD                            /*  위기유형구분코드                              */
+        ,   CLIENA_NM_ENCPT                              /*  내담자명암호화                                 */
+        ,   APEAL_SUMRY_CN                               /*  호소요약내용                                    */
+        ,   DSCSN_YMD                                    /*  상담일자                                          */
+        ,   DSCSN_DT                                     /*  상담일시                                          */
+        ,   DSCSN_HR                                     /*  상담시간                                          */
+        ,   DGDGR_SE_CD                                  /*  위험도구분코드                                 */
+        ,   CHRO_NO                                      /*  채팅방번호                                       */
+        ,   MBLA_CASE_SITE_ADDR                          /*  모바일사례사이트주소                        */
+        ,   MBLA_PVSN_PURPS_SE_CD                        /*  모바일제공목적구분코드                     */
+        ,   PVSN_SHAPE_TLPHON_YN                         /*  제공형태전화여부                              */
+        ,   PVSN_SHAPE_EML_YN                            /*  제공형태이메일여부                           */
+        ,   PVSN_SHAPE_SYS_YN                            /*  제공형태시스템여부                           */
+        ,   UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN           /*  이용목적제약사항준수여부                  */
+        ,   EMRG_RESC_YN                                 /*  긴급구조여부                                    */
+        ,   SPCLTY_INST_DRCT_LINK_YN                     /*  전문기관직접연계여부                        */
+        ,   UTZTN_PSBLTY_INST_INFO_PVSN_YN               /*  이용가능기관정보제공여부                  */
+        ,   DCLR_MTHD_GUIDAN_YN                          /*  신고방법안내여부                              */
+        ,   ETC_RELATA_INFO_PVSN_YN                      /*  기타관련정보제공여부                        */
+        ,   EMTNL_BACKIN_YN                              /*  정서적지지여부                                 */
+        ,   CHRCTR_YN                                    /*  문자여부                                          */
+        ,   TLPHON_YN                                    /*  전화여부                                          */
+        ,   NOTE_YN                                      /*  쪽지여부                                          */
+        ,   EML_GUIDAN_YN                                /*  이메일안내여부                                 */
+        ,   YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN             /*  청소년상담복지센터의뢰여부               */
+        ,   FAM_RQST_YN                                  /*  가족의뢰여부                                    */
+        ,   DT_CACE_SHELTR_RQST_YN                       /*  일시보호소쉼터의뢰여부                     */
+        ,   EMRG_RESC_RQST_YN                            /*  긴급구조의뢰여부                              */
+        ,   LEADER_RQST_YN                               /*  지도자의뢰여부                                 */
+        ,   YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD     /*  청소년상담복지센터의뢰방법구분코드   */
+        ,   FAM_RQST_MTHD_SE_CD                          /*  가족의뢰방법구분코드                        */
+        ,   DT_CACE_SHELTR_RQST_MTHD_SE_CD               /*  일시보호소쉼터의뢰방법구분코드         */
+        ,   EMRG_RESC_RQST_MTHD_SE_CD                    /*  긴급구조의뢰방법구분코드                  */
+        ,   LEADER_RQST_MTHD_SE_CD                       /*  지도자의뢰방법구분코드                     */
+        ,   ETC_SPCLTY_INST_RQST_MTHD_SE_CD              /*  기타전문기관의뢰방법구분코드            */
+        ,   PIC_NM_ENCPT                                 /*  담당자명암호화                                 */
+        ,   RLTPSN_CTTPC_TELNO                           /*  관련자연락처전화번호                        */   
+        ,   FLNM_PVSN_YN                                 /*  성명제공여부                                    */  
+        ,   AGEA_PVSN_YN                                 /*  나이제공여부                                    */  
+        ,   SXDC_PVSN_YN                                 /*  성별제공여부                                    */  
+        ,   TELNO_PVSN_YN                                /*  전화번호제공여부                              */    
+        ,   ADDR_PVSN_YN                                 /*  주소제공여부                                    */  
+        ,   SCHL_INFO_PVSN_YN                            /*  학교정보제공여부                              */    
+        ,   APEAL_PROBM_PVSN_YN                          /*  호소문제제공여부                              */    
+        ,   MBLA_RQST_PVSN_ETC_YN                        /*  모바일의뢰제공기타여부                     */
+        ,   MBLA_PVSN_PURPS_ETC_CN                       /*  모바일의뢰제공기타내용                     */
+        ,   CLIENA_ID                                    /*  내담자아이디                                    */
+        ,   CONSTT_ID                                    /*  상담원아이디                                    */
+        ,   RQST_INST_INFO_PVSN_NDLS_YN                  /*  의뢰기관정보제공불필요여부               */ 
+        ,   ETC_SPCLTY_INST_RQST_YN                      /*  기타전문기관의뢰여부                        */ 
+        ,   RLVT_NAPC_YN                                 /*  해당사항없음여부                              */          
+	    ,   FRST_RGTR_ID
+	    ,   FRST_REG_DT          
+	    ,   LAST_MDFR_ID                      
+	    ,   LAST_MDFCN_DT        
+		, YC1388_YN                                                                                     
+		, MHW129_YN                                           
+		, SUNFLO_CNTER_YN                                     
+		, PRSTT_DMGE_CSLC_YN                                  
+		, SUCDE_PREVNT_CNTER_YN                               
+		, SCHL_VIOLNC_SOS_SUGR_YN                             
+		, CHIL_PRTCTN_SPCLTY_INST_YN                          
+		, HEALTH_HOUSEK_SPRT_CNTER_YN                         
+		, OFCDC_YN                                            
+		, ALTRV_SCHL_YN                                       
+		, YNGBGS_LABOR_PRTCTN_CNTER_YN                        
+		, ADDC_MNG_UNITY_SPRT_CNTER_YN                        
+		, YNGBGS_SECU_CNTER_YN                                
+		, SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN  
+		, WH1366_YN                                           
+		, SXVLC_CSLC_YN                                       
+		, UNMRMT_FANSO_FTHOLD_INST_YN                         
+		, MIND_HEALTH_WLFAR_CNTER_YN                          
+		, POLICE_CYBER_SEAD_YN                                
+		, HMVLN_CSLC_YN                                       
+		, KOLEAI_YN                                           
+		, YNGBGS_SPRT_CNTER_DREAM_YN                          
+		, EMPLYA_CNTER_YN                                     
+		, YNGBGS_LABOR_INTRRT_CNTER_YN                        
+		, SMRE_CNTER_YN                                       
+<!-- 		, ONST_SPRT_CNTER_YN                                   -->
+		, LILI_YN                                             
+		, ETC_SPCLTY_INST_ETC_YN
+		, ETC_SPCLTY_INST_NM                                  /* 기타전문기관명 */                              	                
+    )
+    VALUES
+    (
+    <if test='TAB == "1"'>
+	        (
+                SELECT 
+                    NVL(MAX(INDEX_SN),0) +1     
+                FROM 
+                    AYA120
+            )  
+	    ,   (
+	            SELECT 
+	                NVL(MAX(BBSCTT_ESNTAL_NO),0) +1     
+	            FROM 
+	                AYA120
+	            WHERE 
+	                BBSCTT_TYPE_SE_CD = '91'   /*게시글구분코드*/
+	        )
+        ,   '91'
+    </if>
+    <if test='TAB == "2"'>
+	        (
+	            SELECT 
+	                NVL(MAX(INDEX_SN),0) +1     
+	            FROM 
+	                AYA120
+	        )  
+	    ,   (
+	            SELECT 
+	                NVL(MAX(BBSCTT_ESNTAL_NO),0) +1     
+	            FROM 
+	                AYA120
+	            WHERE 
+	                BBSCTT_TYPE_SE_CD = '18'   /*게시글구분코드*/
+	        )
+        ,   '18'    
+    </if>
+	    ,   #{SXDC_SE_CD}                                   /*  성별구분코드                                    */
+        ,   #{NOW_AGE}                                      /*  현재연령                                          */
+        ,   #{RGN_NM}                                       /*  지역명                                             */
+        ,   #{TRPR_TELNO}                                   /*  대상자전화번호암호화                        */
+        ,   #{MBL_TELNO_ENCPT}                              /*  휴대전화번호암호화                           */
+        ,   #{TRPR_EML_ADDR_ENCPT}                          /*  대상자이메일주소암호화                     */
+        ,   #{CRISIS_TYPE_SE_CD}                            /*  위기유형구분코드                              */
+        ,   #{CLIENA_NM_ENCPT}                              /*  내담자명암호화                                 */
+        ,   #{APEAL_SUMRY_CN}                               /*  호소요약내용                                    */
+        ,   #{DSCSN_YMD}                                    /*  상담일자                                          */
+        ,   SYSDATE                                         /*  상담일시                                          */
+        ,   #{DSCSN_HR}                                     /*  상담시간                                          */
+        ,   #{DGDGR_SE_CD}                                  /*  위험도구분코드                                 */
+        ,   #{CHRO_NO}                                      /*  채팅방번호                                       */
+        ,   #{MBLA_CASE_SITE_ADDR}                          /*  모바일사례사이트주소                        */
+        ,   #{MBLA_PVSN_PURPS_SE_CD}                        /*  모바일제공목적구분코드                     */
+        ,   #{PVSN_SHAPE_TLPHON_YN}                         /*  제공형태전화여부                              */
+        ,   #{PVSN_SHAPE_EML_YN}                            /*  제공형태이메일여부                           */
+        ,   #{PVSN_SHAPE_SYS_YN}                            /*  제공형태시스템여부                           */
+        ,   #{UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN}           /*  이용목적제약사항준수여부                  */
+        ,   #{EMRG_RESC_YN}                                 /*  긴급구조여부                                    */
+        ,   #{SPCLTY_INST_DRCT_LINK_YN}                     /*  전문기관직접연계여부                        */
+        ,   #{UTZTN_PSBLTY_INST_INFO_PVSN_YN}               /*  이용가능기관정보제공여부                  */
+        ,   #{DCLR_MTHD_GUIDAN_YN}                          /*  신고방법안내여부                              */
+        ,   #{ETC_RELATA_INFO_PVSN_YN}                      /*  기타관련정보제공여부                        */
+        ,   #{EMTNL_BACKIN_YN}                              /*  정서적지지여부                                 */
+        ,   #{CHRCTR_YN}                                    /*  문자여부                                          */
+        ,   #{TLPHON_YN}                                    /*  전화여부                                          */
+        ,   #{NOTE_YN}                                      /*  쪽지여부                                          */
+        ,   #{EML_GUIDAN_YN}                                /*  이메일안내여부                                 */
+        ,   #{YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN}             /*  청소년상담복지센터의뢰여부               */
+        ,   #{FAM_RQST_YN}                                  /*  가족의뢰여부                                    */
+        ,   #{DT_CACE_SHELTR_RQST_YN}                       /*  일시보호소쉼터의뢰여부                     */
+        ,   #{EMRG_RESC_RQST_YN}                            /*  긴급구조의뢰여부                              */
+        ,   #{LEADER_RQST_YN}                               /*  지도자의뢰여부                                 */
+        ,   #{YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD}     /*  청소년상담복지센터의뢰방법구분코드   */
+        ,   #{FAM_RQST_MTHD_SE_CD}                          /*  가족의뢰방법구분코드                        */
+        ,   #{DT_CACE_SHELTR_RQST_MTHD_SE_CD}               /*  일시보호소쉼터의뢰방법구분코드         */
+        ,   #{EMRG_RESC_RQST_MTHD_SE_CD}                    /*  긴급구조의뢰방법구분코드                  */
+        ,   #{LEADER_RQST_MTHD_SE_CD}                       /*  지도자의뢰방법구분코드                     */
+        ,   #{ETC_SPCLTY_INST_RQST_MTHD_SE_CD}              /*  기타전문기관의뢰방법구분코드            */
+        ,   #{PIC_NM_ENCPT}                                 /*  담당자명암호화                                 */
+        ,   #{RLTPSN_CTTPC_TELNO}                           /*  관련자연락처전화번호                        */   
+        ,   #{FLNM_PVSN_YN}                                 /*  성명제공여부                                    */  
+        ,   #{AGEA_PVSN_YN}                                 /*  나이제공여부                                    */  
+        ,   #{SXDC_PVSN_YN}                                 /*  성별제공여부                                    */  
+        ,   #{TELNO_PVSN_YN}                                /*  전화번호제공여부                              */    
+        ,   #{ADDR_PVSN_YN}                                 /*  주소제공여부                                    */  
+        ,   #{SCHL_INFO_PVSN_YN}                            /*  학교정보제공여부                              */    
+        ,   #{APEAL_PROBM_PVSN_YN}                          /*  호소문제제공여부                              */    
+        ,   #{MBLA_RQST_PVSN_ETC_YN}                        /*  모바일의뢰제공기타여부                     */ 
+        ,   #{MBLA_PVSN_PURPS_ETC_CN}                       /*  모바일의뢰제공기타내용                     */
+        ,   #{CLIENA_ID}                                    /*  내담자아이디                                    */
+        ,   #{CONSTT_ID}                                    /*  상담원아이디                                    */
+        ,   #{RQST_INST_INFO_PVSN_NDLS_YN}                  /*  의뢰기관정보제공불필요여부               */ 
+        ,   #{ETC_SPCLTY_INST_RQST_YN}                      /*  기타전문기관의뢰여부                        */ 
+        ,   #{RLVT_NAPC_YN}                                 /*  해당사항없음여부                              */ 
+	    ,   #{FRST_RGTR_ID}
+	    ,   SYSDATE
+		,	#{LAST_MDFR_ID}
+		,	SYSDATE
+		, #{YC1388_YN                                           }
+		, #{MHW129_YN                                           }
+		, #{SUNFLO_CNTER_YN                                     }
+		, #{PRSTT_DMGE_CSLC_YN                                  }
+		, #{SUCDE_PREVNT_CNTER_YN                               }
+		, #{SCHL_VIOLNC_SOS_SUGR_YN                             }
+		, #{CHIL_PRTCTN_SPCLTY_INST_YN                          }
+		, #{HEALTH_HOUSEK_SPRT_CNTER_YN                         }
+		, #{OFCDC_YN                                            }
+		, #{ALTRV_SCHL_YN                                       }
+		, #{YNGBGS_LABOR_PRTCTN_CNTER_YN                        }
+		, #{ADDC_MNG_UNITY_SPRT_CNTER_YN                        }
+		, #{YNGBGS_SECU_CNTER_YN                                }
+		, #{SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN  }
+		, #{WH1366_YN                                           }
+		, #{SXVLC_CSLC_YN                                       }
+		, #{UNMRMT_FANSO_FTHOLD_INST_YN                         }
+		, #{MIND_HEALTH_WLFAR_CNTER_YN                          }
+		, #{POLICE_CYBER_SEAD_YN                                }
+		, #{HMVLN_CSLC_YN                                       }
+		, #{KOLEAI_YN                                           }
+		, #{YNGBGS_SPRT_CNTER_DREAM_YN                          }
+		, #{EMPLYA_CNTER_YN                                     }
+		, #{YNGBGS_LABOR_INTRRT_CNTER_YN                        }
+		, #{SMRE_CNTER_YN                                       }
+<!-- 		, #{ONST_SPRT_CNTER_YN                                  } -->
+		, #{LILI_YN                                             }
+		, #{ETC_SPCLTY_INST_ETC_YN                              }
+		, #{ETC_SPCLTY_INST_NM                                  } /* 기타전문기관명 */				
+    )
+    </insert>
+	
+	<update id="updateBbsmcr" parameterType="HashMap">
+	UPDATE  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.updateBbsmcr : 연계상담게시판 수정 */
+            AYA120  
+	SET
+            SXDC_SE_CD                                  =       #{SXDC_SE_CD}                                   /*  성별구분코드                                    */
+        ,   NOW_AGE                                     =       #{NOW_AGE}                                      /*  현재연령                                          */
+        ,   RGN_NM                                      =       #{RGN_NM}                                       /*  지역명                                             */
+        ,   TRPR_TELNO                                  =       #{TRPR_TELNO}                                   /*  대상자전화번호암호화                        */
+        ,   MBL_TELNO_ENCPT                             =       #{MBL_TELNO_ENCPT}                              /*  휴대전화번호암호화                           */
+        ,   TRPR_EML_ADDR_ENCPT                         =       #{TRPR_EML_ADDR_ENCPT}                          /*  대상자이메일주소암호화                     */
+        ,   CRISIS_TYPE_SE_CD                           =       #{CRISIS_TYPE_SE_CD}                            /*  위기유형구분코드                              */
+        ,   CLIENA_NM_ENCPT                             =       #{CLIENA_NM_ENCPT}                              /*  내담자명암호화                                 */
+        ,   APEAL_SUMRY_CN                              =       #{APEAL_SUMRY_CN}                               /*  호소요약내용                                    */
+        ,   DSCSN_YMD                                   =       SUBSTR(#{DSCSN_YMD}, 0, 8)                      /*  상담일자                                          */
+        ,   DSCSN_HR                                    =       #{DSCSN_HR}                                     /*  상담시간                                          */
+        ,   DGDGR_SE_CD                                 =       #{DGDGR_SE_CD}                                  /*  위험도구분코드                                 */
+        ,   CHRO_NO                                     =       #{CHRO_NO}                                      /*  채팅방번호                                       */
+        ,   MBLA_CASE_SITE_ADDR                         =       #{MBLA_CASE_SITE_ADDR}                          /*  모바일사례사이트주소                        */
+        ,   MBLA_PVSN_PURPS_SE_CD                       =       #{MBLA_PVSN_PURPS_SE_CD}                        /*  모바일제공목적구분코드                     */
+        ,   PVSN_SHAPE_TLPHON_YN                        =       #{PVSN_SHAPE_TLPHON_YN}                         /*  제공형태전화여부                              */
+        ,   PVSN_SHAPE_EML_YN                           =       #{PVSN_SHAPE_EML_YN}                            /*  제공형태이메일여부                           */
+        ,   PVSN_SHAPE_SYS_YN                           =       #{PVSN_SHAPE_SYS_YN}                            /*  제공형태시스템여부                           */
+        ,   UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN          =       #{UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN}           /*  이용목적제약사항준수여부                  */
+        ,   EMRG_RESC_YN                                =       #{EMRG_RESC_YN}                                 /*  긴급구조여부                                    */
+        ,   SPCLTY_INST_DRCT_LINK_YN                    =       #{SPCLTY_INST_DRCT_LINK_YN}                     /*  전문기관직접연계여부                        */
+        ,   UTZTN_PSBLTY_INST_INFO_PVSN_YN              =       #{UTZTN_PSBLTY_INST_INFO_PVSN_YN}               /*  이용가능기관정보제공여부                  */
+        ,   DCLR_MTHD_GUIDAN_YN                         =       #{DCLR_MTHD_GUIDAN_YN}                          /*  신고방법안내여부                              */
+        ,   ETC_RELATA_INFO_PVSN_YN                     =       #{ETC_RELATA_INFO_PVSN_YN}                      /*  기타관련정보제공여부                        */
+        ,   EMTNL_BACKIN_YN                             =       #{EMTNL_BACKIN_YN}                              /*  정서적지지여부                                 */
+        ,   CHRCTR_YN                                   =       #{CHRCTR_YN}                                    /*  문자여부                                          */
+        ,   TLPHON_YN                                   =       #{TLPHON_YN}                                    /*  전화여부                                          */
+        ,   NOTE_YN                                     =       #{NOTE_YN}                                      /*  쪽지여부                                          */
+        ,   EML_GUIDAN_YN                               =       #{EML_GUIDAN_YN}                                /*  이메일안내여부                                 */
+        ,   YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN            =       #{YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN}             /*  청소년상담복지센터의뢰여부               */
+        ,   FAM_RQST_YN                                 =       #{FAM_RQST_YN}                                  /*  가족의뢰여부                                    */
+        ,   DT_CACE_SHELTR_RQST_YN                      =       #{DT_CACE_SHELTR_RQST_YN}                       /*  일시보호소쉼터의뢰여부                     */
+        ,   EMRG_RESC_RQST_YN                           =       #{EMRG_RESC_RQST_YN}                            /*  긴급구조의뢰여부                              */
+        ,   LEADER_RQST_YN                              =       #{LEADER_RQST_YN}                               /*  지도자의뢰여부                                 */
+        ,   YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD    =       #{YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD}     /*  청소년상담복지센터의뢰방법구분코드   */
+        ,   FAM_RQST_MTHD_SE_CD                         =       #{FAM_RQST_MTHD_SE_CD}                          /*  가족의뢰방법구분코드                        */
+        ,   DT_CACE_SHELTR_RQST_MTHD_SE_CD              =       #{DT_CACE_SHELTR_RQST_MTHD_SE_CD}               /*  일시보호소쉼터의뢰방법구분코드         */
+        ,   EMRG_RESC_RQST_MTHD_SE_CD                   =       #{EMRG_RESC_RQST_MTHD_SE_CD}                    /*  긴급구조의뢰방법구분코드                  */
+        ,   LEADER_RQST_MTHD_SE_CD                      =       #{LEADER_RQST_MTHD_SE_CD}                       /*  지도자의뢰방법구분코드                     */
+        ,   ETC_SPCLTY_INST_RQST_MTHD_SE_CD             =       #{ETC_SPCLTY_INST_RQST_MTHD_SE_CD}              /*  기타전문기관의뢰방법구분코드            */
+        ,   PIC_NM_ENCPT                                =       #{PIC_NM_ENCPT}                                 /*  담당자명암호화                                 */
+        ,   RLTPSN_CTTPC_TELNO                          =       #{RLTPSN_CTTPC_TELNO}                           /*  관련자연락처전화번호                        */   
+        ,   FLNM_PVSN_YN                                =       #{FLNM_PVSN_YN}                                 /*  성명제공여부                                    */  
+        ,   AGEA_PVSN_YN                                =       #{AGEA_PVSN_YN}                                 /*  나이제공여부                                    */  
+        ,   SXDC_PVSN_YN                                =       #{SXDC_PVSN_YN}                                 /*  성별제공여부                                    */  
+        ,   TELNO_PVSN_YN                               =       #{TELNO_PVSN_YN}                                /*  전화번호제공여부                              */    
+        ,   ADDR_PVSN_YN                                =       #{ADDR_PVSN_YN}                                 /*  주소제공여부                                    */  
+        ,   SCHL_INFO_PVSN_YN                           =       #{SCHL_INFO_PVSN_YN}                            /*  학교정보제공여부                              */    
+        ,   APEAL_PROBM_PVSN_YN                         =       #{APEAL_PROBM_PVSN_YN}                          /*  호소문제제공여부                              */    
+        ,   MBLA_RQST_PVSN_ETC_YN                       =       #{MBLA_RQST_PVSN_ETC_YN}                        /*  모바일의뢰제공기타여부                     */ 
+        ,   MBLA_PVSN_PURPS_ETC_CN                      =       #{MBLA_PVSN_PURPS_ETC_CN}                       /*  모바일의뢰제공기타내용                     */  
+        ,   CLIENA_ID                                   =       #{CLIENA_ID}                                    /*  내담자아이디                                    */
+        ,   CONSTT_ID                                   =       #{CONSTT_ID}                                    /*  상담원아이디                                    */
+        ,   RQST_INST_INFO_PVSN_NDLS_YN                 =       #{RQST_INST_INFO_PVSN_NDLS_YN}                  /*  의뢰기관정보제공불필요여부               */ 
+        ,   ETC_SPCLTY_INST_RQST_YN                     =       #{ETC_SPCLTY_INST_RQST_YN}                      /*  기타전문기관의뢰여부                        */ 
+        ,   RLVT_NAPC_YN                                =       #{RLVT_NAPC_YN}                                 /*  해당사항없음여부                              */ 
+        ,   LAST_MDFR_ID                                =       #{LAST_MDFR_ID}
+        ,   LAST_MDFCN_DT                               =       SYSDATE
+		, YC1388_YN                                           = #{YC1388_YN                                          }
+		, MHW129_YN                                           = #{MHW129_YN                                           }
+		, SUNFLO_CNTER_YN                                     = #{SUNFLO_CNTER_YN                                     }
+		, PRSTT_DMGE_CSLC_YN                                  = #{PRSTT_DMGE_CSLC_YN                                  }
+		, SUCDE_PREVNT_CNTER_YN                               = #{SUCDE_PREVNT_CNTER_YN                               }
+		, SCHL_VIOLNC_SOS_SUGR_YN                             = #{SCHL_VIOLNC_SOS_SUGR_YN                             }
+		, CHIL_PRTCTN_SPCLTY_INST_YN                          = #{CHIL_PRTCTN_SPCLTY_INST_YN                          }
+		, HEALTH_HOUSEK_SPRT_CNTER_YN                         = #{HEALTH_HOUSEK_SPRT_CNTER_YN                         }
+		, OFCDC_YN                                            = #{OFCDC_YN                                            }
+		, ALTRV_SCHL_YN                                       = #{ALTRV_SCHL_YN                                       }
+		, YNGBGS_LABOR_PRTCTN_CNTER_YN                        = #{YNGBGS_LABOR_PRTCTN_CNTER_YN                        }
+		, ADDC_MNG_UNITY_SPRT_CNTER_YN                        = #{ADDC_MNG_UNITY_SPRT_CNTER_YN                        }
+		, YNGBGS_SECU_CNTER_YN                                = #{YNGBGS_SECU_CNTER_YN                                }
+		, SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN  = #{SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN  }
+		, WH1366_YN                                           = #{WH1366_YN                                           }
+		, SXVLC_CSLC_YN                                       = #{SXVLC_CSLC_YN                                       }
+		, UNMRMT_FANSO_FTHOLD_INST_YN                         = #{UNMRMT_FANSO_FTHOLD_INST_YN                         }
+		, MIND_HEALTH_WLFAR_CNTER_YN                          = #{MIND_HEALTH_WLFAR_CNTER_YN                          }
+		, POLICE_CYBER_SEAD_YN                                = #{POLICE_CYBER_SEAD_YN                                }
+		, HMVLN_CSLC_YN                                       = #{HMVLN_CSLC_YN                                       }
+		, KOLEAI_YN                                           = #{KOLEAI_YN                                           }
+		, YNGBGS_SPRT_CNTER_DREAM_YN                          = #{YNGBGS_SPRT_CNTER_DREAM_YN                          }
+		, EMPLYA_CNTER_YN                                     = #{EMPLYA_CNTER_YN                                     }
+		, YNGBGS_LABOR_INTRRT_CNTER_YN                        = #{YNGBGS_LABOR_INTRRT_CNTER_YN                        }
+		, SMRE_CNTER_YN                                       = #{SMRE_CNTER_YN                                       }
+<!-- 		, ONST_SPRT_CNTER_YN                                  = #{ONST_SPRT_CNTER_YN                                  } -->
+		, LILI_YN                                             = #{LILI_YN                                             }
+		, ETC_SPCLTY_INST_ETC_YN                              = #{ETC_SPCLTY_INST_ETC_YN                              }
+		, ETC_SPCLTY_INST_NM                                  = #{ETC_SPCLTY_INST_NM} /* 기타전문기관명 */
+        
+    WHERE   1=1
+        AND BBSCTT_ESNTAL_NO       =       #{BBSCTT_ESNTAL_NO}
+        AND BBSCTT_TYPE_SE_CD      =       #{BBSCTT_TYPE_SE_CD}         /*  게시판유형구분코드  */
+	</update>
+	
+	<update id="deleteBbsmcr" parameterType="HashMap">
+	UPDATE  /* isry.couns.constt.bbsmcr.mapper.BbsmcrListMapper.deleteBbsmcr : 연계상담게시판 삭제 */
+            AYA120 
+	SET
+            DEL_YN                 =       'Y'
+        ,   LAST_MDFCN_DT          =       SYSDATE      
+        ,   LAST_MDFR_ID           =       #{LAST_MDFR_ID}    
+    WHERE   1=1
+        AND BBSCTT_ESNTAL_NO       =       #{BBSCTT_ESNTAL_NO}
+        AND BBSCTT_TYPE_SE_CD      =       #{BBSCTT_TYPE_SE_CD}         /*  게시판유형구분코드  */
+	</update>
+	
+	<select id="selectBbsmcrAftDetail" parameterType="HashMap" resultType="HashMap">
+	SELECT
+		    AFTFCT_MNG_ESNTAL_NO                        /*  사후관리고유번호    */
+		,   INDEX_SN                                    /*  색인일련번호    */
+		,   BBSCTT_ESNTAL_NO                            /*  게시글고유번호    */
+		,   BBSCTT_TYPE_SE_CD                           /*  게시글유형구분코드    */
+		,   DSCSN_DT                                    /*  상담일시    */
+        ,   DSCSN_HR                                    /*  상담시간    */
+		,   AFTFCT_MNG_TRGT_SE_CD                       /*  사후관리대상구분코드  */
+		,   RSPNS_YN                                    /*  응답여부    */
+		,   NORA_CS_SE_CD                               /*  미응답사유구분코드   */
+		,   NORA_CS_CS_ETC_CN                           /*  미응답사유기타내용   */
+		,   TLPHON_SAFETY_IDNTY_YN                      /*  전화안전확인여부    */
+		,   PRTCR_PRTCTN_DMND_YN                        /*  보호자보호요청여부   */
+		,   SPCLTY_INST_SRVC_UTZTN_IDNTY_YN             /*  전문기관서비스이용확인여부   */
+		,   AFTFCT_MNG_ETC_YN                           /*  사후관리기타여부    */
+		,   AFTFCT_MNG_CN                               /*  사후관리내용  */
+		,   YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN            /*  청소년상담복지센터의뢰여부   */
+		,   FAM_RQST_YN                                 /*  가족의뢰여부  */
+		,   DT_CACE_SHELTR_RQST_YN                      /*  일시보호소쉼터의뢰여부 */
+		,   EMRG_RESC_RQST_YN                           /*  긴급구조의뢰여부    */
+		,   LEADER_RQST_YN                              /*  지도자의뢰여부 */
+		,   ETC_SPCLTY_INST_RQST_YN                     /*  기타전문기관의뢰여부  */
+		,   YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD    /*  청소년상담복지센터의뢰방법구분코드   */
+		,   FAM_RQST_MTHD_SE_CD                         /*  가족의뢰방법구분코드  */
+		,   DT_CACE_SHELTR_RQST_MTHD_SE_CD              /*  일시보호소쉼터의뢰방법구분코드 */
+		,   EMRG_RESC_RQST_MTHD_SE_CD                   /*  긴급구조의뢰방법구분코드    */
+		,   LEADER_RQST_MTHD_SE_CD                      /*  지도자의뢰방법구분코드 */
+		,   ETC_SPCLTY_INST_RQST_MTHD_SE_CD             /*  기타전문기관의뢰방법구분코드  */
+		,   RQST_INST_INFO_PVSN_NDLS_YN                 /*  의뢰기관정보제공불필요여부   */
+		,   PIC_NM_ENCPT                                /*  담당자명암호화 */
+		,   RLTPSN_CTTPC_TELNO_ENCPT                    /*  연락처 */
+		,   MBLA_PVSN_PURPS_SE_CD                       /*  모바일제공목적구분코드 */
+		,   MBLA_PVSN_PURPS_ETC_CN                      /*  모바일제공목적기타내용 */
+		,   PVSN_SHAPE_TLPHON_YN                        /*  제공형태전화여부    */
+		,   PVSN_SHAPE_EML_YN                           /*  제공형태이메일여부   */
+		,   PVSN_SHAPE_SYS_YN                           /*  제공형태시스템여부   */
+		,   FLNM_PVSN_YN                                /*  성명제공여부  */
+		,   AGEA_PVSN_YN                                /*  나이제공여부  */
+		,   SXDC_PVSN_YN                                /*  성별제공여부  */
+		,   TELNO_PVSN_YN                               /*  전화번호제공여부    */
+		,   ADDR_PVSN_YN                                /*  주소제공여부  */
+		,   SCHL_INFO_PVSN_YN                           /*  학교정보제공여부    */
+		,   APEAL_PROBM_PVSN_YN                         /*  호소문제제공여부    */
+		,   MBLA_RQST_PVSN_ETC_YN                       /*  모바일의뢰제공기타여부 */
+		,   RLVT_NAPC_YN                                /*  해당사항없음여부    */
+		,   UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN          /*  이용목적제약사항준수여부    */
+		,   UTZTN_PRD_RSTRCT_MATTER_OBSRY_YN            /*  이용기간제약사항준수여부    */
+		,   SAFETY_ACTN_RSTRCT_MATTER_OBSRY_YN          /*  안전조치제약사항준수여부    */
+		,   CHRCTR_YN                                   /*  문자여부    */
+		,   TLPHON_YN                                   /*  전화여부    */
+		,   NOTE_YN                                     /*  쪽지여부    */
+		,   EML_GUIDAN_YN                               /*  이메일여부   */
+		,   YC1388_YN
+        ,   MHW129_YN
+        ,   SUNFLO_CNTER_YN
+        ,   PRSTT_DMGE_CSLC_YN
+        ,   SUCDE_PREVNT_CNTER_YN
+        ,   SCHL_VIOLNC_SOS_SUGR_YN
+        ,   CHIL_PRTCTN_SPCLTY_INST_YN
+        ,   HEALTH_HOUSEK_SPRT_CNTER_YN
+        ,   OFCDC_YN
+        ,   ALTRV_SCHL_YN
+        ,   YNGBGS_LABOR_PRTCTN_CNTER_YN
+        ,   ADDC_MNG_UNITY_SPRT_CNTER_YN
+        ,   YNGBGS_SECU_CNTER_YN
+        ,   SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN
+        ,   WH1366_YN
+        ,   SXVLC_CSLC_YN
+        ,   UNMRMT_FANSO_FTHOLD_INST_YN
+        ,   MIND_HEALTH_WLFAR_CNTER_YN
+        ,   POLICE_CYBER_SEAD_YN
+        ,   HMVLN_CSLC_YN
+        ,   KOLEAI_YN
+        ,   YNGBGS_SPRT_CNTER_DREAM_YN
+        ,   EMPLYA_CNTER_YN
+        ,   YNGBGS_LABOR_INTRRT_CNTER_YN
+        ,   SMRE_CNTER_YN  
+        ,   LILI_YN
+        ,   ETC_SPCLTY_INST_ETC_YN
+        ,   ETC_SPCLTY_INST_NM /* 기타전문기관명 */
+	FROM
+            AYA190
+    WHERE   1=1
+        AND INDEX_SN                =       #{INDEX_SN}
+        AND AFTFCT_MNG_ESNTAL_NO    =       #{AFTFCT_MNG_ESNTAL_NO}
+	</select>
+	
+	<insert id="insertBbsmcrAft" parameterType="HashMap" useGeneratedKeys="true" keyProperty="AFTFCT_MNG_ESNTAL_NO">
+	
+	<selectKey keyProperty="AFTFCT_MNG_ESNTAL_NO" resultType="String" order="AFTER">
+    SELECT 
+            AYA190_SQ01.CURRVAL     AS  AFTFCT_MNG_ESNTAL_NO
+    FROM
+            DUAL
+    </selectKey>
+	INSERT
+	INTO
+            AYA190
+	(
+			AFTFCT_MNG_ESNTAL_NO                        /*  사후관리고유번호    */
+		,	INDEX_SN                                    /*  색인일련번호    */
+		,	BBSCTT_ESNTAL_NO                            /*  게시글고유번호    */
+		,	BBSCTT_TYPE_SE_CD                           /*  게시글유형구분코드    */
+		,	DSCSN_DT                                    /*  상담일시    */
+        ,   DSCSN_HR                                    /*  상담시간    */
+		,	AFTFCT_MNG_TRGT_SE_CD                       /*  사후관리대상구분코드  */
+		,	RSPNS_YN                                    /*  응답여부    */
+		,	NORA_CS_SE_CD                               /*  미응답사유구분코드   */
+		,	NORA_CS_CS_ETC_CN                           /*  미응답사유기타내용   */
+		,	TLPHON_SAFETY_IDNTY_YN                      /*  전화안전확인여부    */
+		,	PRTCR_PRTCTN_DMND_YN                        /*  보호자보호요청여부   */
+		,	SPCLTY_INST_SRVC_UTZTN_IDNTY_YN             /*  전문기관서비스이용확인여부   */
+		,	AFTFCT_MNG_ETC_YN                           /*  사후관리기타여부    */
+		,	AFTFCT_MNG_CN                               /*  사후관리내용  */
+		,	YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN            /*  청소년상담복지센터의뢰여부   */
+		,	FAM_RQST_YN                                 /*  가족의뢰여부  */
+		,	DT_CACE_SHELTR_RQST_YN                      /*  일시보호소쉼터의뢰여부 */
+		,	EMRG_RESC_RQST_YN                           /*  긴급구조의뢰여부    */
+		,	LEADER_RQST_YN                              /*  지도자의뢰여부 */
+		,	ETC_SPCLTY_INST_RQST_YN                     /*  기타전문기관의뢰여부  */
+		,	YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD    /*  청소년상담복지센터의뢰방법구분코드   */
+		,	FAM_RQST_MTHD_SE_CD                         /*  가족의뢰방법구분코드  */
+		,	DT_CACE_SHELTR_RQST_MTHD_SE_CD              /*  일시보호소쉼터의뢰방법구분코드 */
+		,	EMRG_RESC_RQST_MTHD_SE_CD                   /*  긴급구조의뢰방법구분코드    */
+		,	LEADER_RQST_MTHD_SE_CD                      /*  지도자의뢰방법구분코드 */
+		,	ETC_SPCLTY_INST_RQST_MTHD_SE_CD             /*  기타전문기관의뢰방법구분코드  */
+		,	RQST_INST_INFO_PVSN_NDLS_YN                 /*  의뢰기관정보제공불필요여부   */
+		,	PIC_NM_ENCPT                                /*  담당자명암호화 */
+		,	RLTPSN_CTTPC_TELNO_ENCPT                    /*  연락처 */
+		,	MBLA_PVSN_PURPS_SE_CD                       /*  모바일제공목적구분코드 */
+		,	MBLA_PVSN_PURPS_ETC_CN                      /*  모바일제공목적기타내용 */
+		,	PVSN_SHAPE_TLPHON_YN                        /*  제공형태전화여부    */
+		,	PVSN_SHAPE_EML_YN                           /*  제공형태이메일여부   */
+		,	PVSN_SHAPE_SYS_YN                           /*  제공형태시스템여부   */
+		,	FLNM_PVSN_YN                                /*  성명제공여부  */
+		,	AGEA_PVSN_YN                                /*  나이제공여부  */
+		,	SXDC_PVSN_YN                                /*  성별제공여부  */
+		,	TELNO_PVSN_YN                               /*  전화번호제공여부    */
+		,	ADDR_PVSN_YN                                /*  주소제공여부  */
+		,	SCHL_INFO_PVSN_YN                           /*  학교정보제공여부    */
+		,	APEAL_PROBM_PVSN_YN                         /*  호소문제제공여부    */
+		,	MBLA_RQST_PVSN_ETC_YN                       /*  모바일의뢰제공기타여부 */
+		,	RLVT_NAPC_YN                                /*  해당사항없음여부    */
+		,	UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN          /*  이용목적제약사항준수여부    */
+		,	UTZTN_PRD_RSTRCT_MATTER_OBSRY_YN            /*  이용기간제약사항준수여부    */
+		,	SAFETY_ACTN_RSTRCT_MATTER_OBSRY_YN          /*  안전조치제약사항준수여부    */
+		,	CHRCTR_YN                                   /*  문자여부    */
+		,	TLPHON_YN                                   /*  전화여부    */
+		,	NOTE_YN                                     /*  쪽지여부    */
+		,	EML_GUIDAN_YN                               /*  이메일여부   */
+		, YC1388_YN                                                                                     
+        , MHW129_YN                                           
+        , SUNFLO_CNTER_YN                                     
+        , PRSTT_DMGE_CSLC_YN                                  
+        , SUCDE_PREVNT_CNTER_YN                               
+        , SCHL_VIOLNC_SOS_SUGR_YN                             
+        , CHIL_PRTCTN_SPCLTY_INST_YN                          
+        , HEALTH_HOUSEK_SPRT_CNTER_YN                         
+        , OFCDC_YN                                            
+        , ALTRV_SCHL_YN                                       
+        , YNGBGS_LABOR_PRTCTN_CNTER_YN                        
+        , ADDC_MNG_UNITY_SPRT_CNTER_YN                        
+        , YNGBGS_SECU_CNTER_YN                                
+        , SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN  
+        , WH1366_YN                                           
+        , SXVLC_CSLC_YN                                       
+        , UNMRMT_FANSO_FTHOLD_INST_YN                         
+        , MIND_HEALTH_WLFAR_CNTER_YN                          
+        , POLICE_CYBER_SEAD_YN                                
+        , HMVLN_CSLC_YN                                       
+        , KOLEAI_YN                                           
+        , YNGBGS_SPRT_CNTER_DREAM_YN                          
+        , EMPLYA_CNTER_YN                                     
+        , YNGBGS_LABOR_INTRRT_CNTER_YN                        
+        , SMRE_CNTER_YN                                       
+<!--        , ONST_SPRT_CNTER_YN                                   -->
+        , LILI_YN                                             
+        , ETC_SPCLTY_INST_ETC_YN
+        , ETC_SPCLTY_INST_NM           /* 기타전문기관명 */
+	)
+	VALUES
+	(
+            AYA190_SQ01.NEXTVAL
+        ,   #{INDEX_SN}                                    /*  색인일련번호    */
+        ,   #{BBSCTT_ESNTAL_NO}                            /*  게시글고유번호    */
+        ,   #{BBSCTT_TYPE_SE_CD}                           /*  게시글유형구분코드    */
+        ,   #{DSCSN_DT}                                    /*  상담일시    */
+        ,   #{DSCSN_HR}                                    /*  상담시간   */
+        ,   #{AFTFCT_MNG_TRGT_SE_CD}                       /*  사후관리대상구분코드  */
+        ,   #{RSPNS_YN}                                    /*  응답여부    */
+        ,   #{NORA_CS_SE_CD}                               /*  미응답사유구분코드   */
+        ,   #{NORA_CS_CS_ETC_CN}                           /*  미응답사유기타내용   */
+        ,   #{TLPHON_SAFETY_IDNTY_YN}                      /*  전화안전확인여부    */
+        ,   #{PRTCR_PRTCTN_DMND_YN}                        /*  보호자보호요청여부   */
+        ,   #{SPCLTY_INST_SRVC_UTZTN_IDNTY_YN}             /*  전문기관서비스이용확인여부   */
+        ,   #{AFTFCT_MNG_ETC_YN}                           /*  사후관리기타여부    */
+        ,   #{AFTFCT_MNG_CN}                               /*  사후관리내용  */
+        ,   #{YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN}            /*  청소년상담복지센터의뢰여부   */
+        ,   #{FAM_RQST_YN}                                 /*  가족의뢰여부  */
+        ,   #{DT_CACE_SHELTR_RQST_YN}                      /*  일시보호소쉼터의뢰여부 */
+        ,   #{EMRG_RESC_RQST_YN}                           /*  긴급구조의뢰여부    */
+        ,   #{LEADER_RQST_YN}                              /*  지도자의뢰여부 */
+        ,   #{ETC_SPCLTY_INST_RQST_YN}                     /*  기타전문기관의뢰여부  */
+        ,   #{YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD}    /*  청소년상담복지센터의뢰방법구분코드   */
+        ,   #{FAM_RQST_MTHD_SE_CD}                         /*  가족의뢰방법구분코드  */
+        ,   #{DT_CACE_SHELTR_RQST_MTHD_SE_CD}              /*  일시보호소쉼터의뢰방법구분코드 */
+        ,   #{EMRG_RESC_RQST_MTHD_SE_CD}                   /*  긴급구조의뢰방법구분코드    */
+        ,   #{LEADER_RQST_MTHD_SE_CD}                      /*  지도자의뢰방법구분코드 */
+        ,   #{ETC_SPCLTY_INST_RQST_MTHD_SE_CD}             /*  기타전문기관의뢰방법구분코드  */
+        ,   #{RQST_INST_INFO_PVSN_NDLS_YN}                 /*  의뢰기관정보제공불필요여부   */
+        ,   C##RG.ENC_B64(#{PIC_NM_ENCPT})              /*  담당자명암호화 */
+        ,   C##RG.ENC_B64(#{RLTPSN_CTTPC_TELNO_ENCPT})  /*  연락처 */
+        ,   #{MBLA_PVSN_PURPS_SE_CD}                       /*  모바일제공목적구분코드 */
+        ,   #{MBLA_PVSN_PURPS_ETC_CN}                      /*  모바일제공목적기타내용 */
+        ,   #{PVSN_SHAPE_TLPHON_YN}                        /*  제공형태전화여부    */
+        ,   #{PVSN_SHAPE_EML_YN}                           /*  제공형태이메일여부   */
+        ,   #{PVSN_SHAPE_SYS_YN}                           /*  제공형태시스템여부   */
+        ,   #{FLNM_PVSN_YN}                                /*  성명제공여부  */
+        ,   #{AGEA_PVSN_YN}                                /*  나이제공여부  */
+        ,   #{SXDC_PVSN_YN}                                /*  성별제공여부  */
+        ,   #{TELNO_PVSN_YN}                               /*  전화번호제공여부    */
+        ,   #{ADDR_PVSN_YN}                                /*  주소제공여부  */
+        ,   #{SCHL_INFO_PVSN_YN}                           /*  학교정보제공여부    */
+        ,   #{APEAL_PROBM_PVSN_YN}                         /*  호소문제제공여부    */
+        ,   #{MBLA_RQST_PVSN_ETC_YN}                       /*  모바일의뢰제공기타여부 */
+        ,   #{RLVT_NAPC_YN}                                /*  해당사항없음여부    */
+        ,   #{UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN}          /*  이용목적제약사항준수여부    */
+        ,   #{UTZTN_PRD_RSTRCT_MATTER_OBSRY_YN}            /*  이용기간제약사항준수여부    */
+        ,   #{SAFETY_ACTN_RSTRCT_MATTER_OBSRY_YN}          /*  안전조치제약사항준수여부    */
+        ,   #{CHRCTR_YN}                                   /*  문자여부    */
+        ,   #{TLPHON_YN}                                   /*  전화여부    */
+        ,   #{NOTE_YN}                                     /*  쪽지여부    */
+        ,   #{EML_GUIDAN_YN}                               /*  이메일여부   */
+        , #{YC1388_YN                                           }
+        , #{MHW129_YN                                           }
+        , #{SUNFLO_CNTER_YN                                     }
+        , #{PRSTT_DMGE_CSLC_YN                                  }
+        , #{SUCDE_PREVNT_CNTER_YN                               }
+        , #{SCHL_VIOLNC_SOS_SUGR_YN                             }
+        , #{CHIL_PRTCTN_SPCLTY_INST_YN                          }
+        , #{HEALTH_HOUSEK_SPRT_CNTER_YN                         }
+        , #{OFCDC_YN                                            }
+        , #{ALTRV_SCHL_YN                                       }
+        , #{YNGBGS_LABOR_PRTCTN_CNTER_YN                        }
+        , #{ADDC_MNG_UNITY_SPRT_CNTER_YN                        }
+        , #{YNGBGS_SECU_CNTER_YN                                }
+        , #{SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN  }
+        , #{WH1366_YN                                           }
+        , #{SXVLC_CSLC_YN                                       }
+        , #{UNMRMT_FANSO_FTHOLD_INST_YN                         }
+        , #{MIND_HEALTH_WLFAR_CNTER_YN                          }
+        , #{POLICE_CYBER_SEAD_YN                                }
+        , #{HMVLN_CSLC_YN                                       }
+        , #{KOLEAI_YN                                           }
+        , #{YNGBGS_SPRT_CNTER_DREAM_YN                          }
+        , #{EMPLYA_CNTER_YN                                     }
+        , #{YNGBGS_LABOR_INTRRT_CNTER_YN                        }
+        , #{SMRE_CNTER_YN                                       }
+      <!--        , #{ONST_SPRT_CNTER_YN                        } -->
+        , #{LILI_YN                                             }
+        , #{ETC_SPCLTY_INST_ETC_YN                              }
+        , #{ETC_SPCLTY_INST_NM}        
+	)
+	</insert>
+	
+	<update id="updateBbsmcrAft" parameterType="HashMap">
+    UPDATE
+            AYA190      
+    SET
+            DSCSN_DT                                    =       TO_DATE(SUBSTR(#{DSCSN_DT},1,8),'YYYYMMDD' )    /*  상담일시    */
+        ,   DSCSN_HR                                    =       #{DSCSN_HR                                }     /*  상담시간    */
+        ,   AFTFCT_MNG_TRGT_SE_CD                       =       #{AFTFCT_MNG_TRGT_SE_CD                   }     /*  사후관리대상구분코드  */
+        ,   RSPNS_YN                                    =       #{RSPNS_YN                                }     /*  응답여부    */
+        ,   NORA_CS_SE_CD                               =       #{NORA_CS_SE_CD                           }     /*  미응답사유구분코드   */
+        ,   NORA_CS_CS_ETC_CN                           =       #{NORA_CS_CS_ETC_CN                       }     /*  미응답사유기타내용   */
+        ,   TLPHON_SAFETY_IDNTY_YN                      =       #{TLPHON_SAFETY_IDNTY_YN                  }     /*  전화안전확인여부    */
+        ,   PRTCR_PRTCTN_DMND_YN                        =       #{PRTCR_PRTCTN_DMND_YN                    }     /*  보호자보호요청여부   */
+        ,   SPCLTY_INST_SRVC_UTZTN_IDNTY_YN             =       #{SPCLTY_INST_SRVC_UTZTN_IDNTY_YN         }     /*  전문기관서비스이용확인여부   */
+        ,   AFTFCT_MNG_ETC_YN                           =       #{AFTFCT_MNG_ETC_YN                       }     /*  사후관리기타여부    */
+        ,   AFTFCT_MNG_CN                               =       #{AFTFCT_MNG_CN                           }     /*  사후관리내용  */
+        ,   YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN            =       #{YNGBGS_DSCSN_WLFAR_CNTER_RQST_YN        }     /*  청소년상담복지센터의뢰여부   */
+        ,   FAM_RQST_YN                                 =       #{FAM_RQST_YN                             }     /*  가족의뢰여부  */
+        ,   DT_CACE_SHELTR_RQST_YN                      =       #{DT_CACE_SHELTR_RQST_YN                  }     /*  일시보호소쉼터의뢰여부 */
+        ,   EMRG_RESC_RQST_YN                           =       #{EMRG_RESC_RQST_YN                       }     /*  긴급구조의뢰여부    */
+        ,   LEADER_RQST_YN                              =       #{LEADER_RQST_YN                          }     /*  지도자의뢰여부 */
+        ,   ETC_SPCLTY_INST_RQST_YN                     =       #{ETC_SPCLTY_INST_RQST_YN                 }     /*  기타전문기관의뢰여부  */
+        ,   YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD    =       #{YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD}     /*  청소년상담복지센터의뢰방법구분코드   */
+        ,   FAM_RQST_MTHD_SE_CD                         =       #{FAM_RQST_MTHD_SE_CD                     }     /*  가족의뢰방법구분코드  */
+        ,   DT_CACE_SHELTR_RQST_MTHD_SE_CD              =       #{DT_CACE_SHELTR_RQST_MTHD_SE_CD          }     /*  일시보호소쉼터의뢰방법구분코드 */
+        ,   EMRG_RESC_RQST_MTHD_SE_CD                   =       #{EMRG_RESC_RQST_MTHD_SE_CD               }     /*  긴급구조의뢰방법구분코드    */
+        ,   LEADER_RQST_MTHD_SE_CD                      =       #{LEADER_RQST_MTHD_SE_CD                  }     /*  지도자의뢰방법구분코드 */
+        ,   ETC_SPCLTY_INST_RQST_MTHD_SE_CD             =       #{ETC_SPCLTY_INST_RQST_MTHD_SE_CD         }     /*  기타전문기관의뢰방법구분코드  */
+        ,   RQST_INST_INFO_PVSN_NDLS_YN                 =       #{RQST_INST_INFO_PVSN_NDLS_YN             }     /*  의뢰기관정보제공불필요여부   */
+        ,   PIC_NM_ENCPT                                =       #{PIC_NM_ENCPT                            }     /*  담당자명암호화 */
+        ,   RLTPSN_CTTPC_TELNO_ENCPT                    =       #{RLTPSN_CTTPC_TELNO_ENCPT                }     /*  연락처 */
+        ,   MBLA_PVSN_PURPS_SE_CD                       =       #{MBLA_PVSN_PURPS_SE_CD                   }     /*  모바일제공목적구분코드 */
+        ,   MBLA_PVSN_PURPS_ETC_CN                      =       #{MBLA_PVSN_PURPS_ETC_CN                  }     /*  모바일제공목적기타내용 */
+        ,   PVSN_SHAPE_TLPHON_YN                        =       #{PVSN_SHAPE_TLPHON_YN                    }     /*  제공형태전화여부    */
+        ,   PVSN_SHAPE_EML_YN                           =       #{PVSN_SHAPE_EML_YN                       }     /*  제공형태이메일여부   */
+        ,   PVSN_SHAPE_SYS_YN                           =       #{PVSN_SHAPE_SYS_YN                       }     /*  제공형태시스템여부   */
+        ,   FLNM_PVSN_YN                                =       #{FLNM_PVSN_YN                            }     /*  성명제공여부  */
+        ,   AGEA_PVSN_YN                                =       #{AGEA_PVSN_YN                            }     /*  나이제공여부  */
+        ,   SXDC_PVSN_YN                                =       #{SXDC_PVSN_YN                            }     /*  성별제공여부  */
+        ,   TELNO_PVSN_YN                               =       #{TELNO_PVSN_YN                           }     /*  전화번호제공여부    */
+        ,   ADDR_PVSN_YN                                =       #{ADDR_PVSN_YN                            }     /*  주소제공여부  */
+        ,   SCHL_INFO_PVSN_YN                           =       #{SCHL_INFO_PVSN_YN                       }     /*  학교정보제공여부    */
+        ,   APEAL_PROBM_PVSN_YN                         =       #{APEAL_PROBM_PVSN_YN                     }     /*  호소문제제공여부    */
+        ,   MBLA_RQST_PVSN_ETC_YN                       =       #{MBLA_RQST_PVSN_ETC_YN                   }     /*  모바일의뢰제공기타여부 */
+        ,   RLVT_NAPC_YN                                =       #{RLVT_NAPC_YN                            }     /*  해당사항없음여부    */
+        ,   UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN          =       #{UTZTN_PURPS_RSTRCT_MATTER_OBSRY_YN      }     /*  이용목적제약사항준수여부    */
+        ,   UTZTN_PRD_RSTRCT_MATTER_OBSRY_YN            =       #{UTZTN_PRD_RSTRCT_MATTER_OBSRY_YN        }     /*  이용기간제약사항준수여부    */
+        ,   SAFETY_ACTN_RSTRCT_MATTER_OBSRY_YN          =       #{SAFETY_ACTN_RSTRCT_MATTER_OBSRY_YN      }     /*  안전조치제약사항준수여부    */
+        ,   CHRCTR_YN                                   =       #{CHRCTR_YN                               }     /*  문자여부    */
+        ,   TLPHON_YN                                   =       #{TLPHON_YN                               }     /*  전화여부    */
+        ,   NOTE_YN                                     =       #{NOTE_YN                                 }     /*  쪽지여부    */
+        ,   EML_GUIDAN_YN                               =       #{EML_GUIDAN_YN                           }     /*  이메일여부   */
+        , YC1388_YN                                           = #{YC1388_YN                                          }
+        , MHW129_YN                                           = #{MHW129_YN                                           }
+        , SUNFLO_CNTER_YN                                     = #{SUNFLO_CNTER_YN                                     }
+        , PRSTT_DMGE_CSLC_YN                                  = #{PRSTT_DMGE_CSLC_YN                                  }
+        , SUCDE_PREVNT_CNTER_YN                               = #{SUCDE_PREVNT_CNTER_YN                               }
+        , SCHL_VIOLNC_SOS_SUGR_YN                             = #{SCHL_VIOLNC_SOS_SUGR_YN                             }
+        , CHIL_PRTCTN_SPCLTY_INST_YN                          = #{CHIL_PRTCTN_SPCLTY_INST_YN                          }
+        , HEALTH_HOUSEK_SPRT_CNTER_YN                         = #{HEALTH_HOUSEK_SPRT_CNTER_YN                         }
+        , OFCDC_YN                                            = #{OFCDC_YN                                            }
+        , ALTRV_SCHL_YN                                       = #{ALTRV_SCHL_YN                                       }
+        , YNGBGS_LABOR_PRTCTN_CNTER_YN                        = #{YNGBGS_LABOR_PRTCTN_CNTER_YN                        }
+        , ADDC_MNG_UNITY_SPRT_CNTER_YN                        = #{ADDC_MNG_UNITY_SPRT_CNTER_YN                        }
+        , YNGBGS_SECU_CNTER_YN                                = #{YNGBGS_SECU_CNTER_YN                                }
+        , SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN  = #{SAFETY_DREAMA_CHIL_FEMALE_DSPSN_POLC_SPRT_CNTER_YN  }
+        , WH1366_YN                                           = #{WH1366_YN                                           }
+        , SXVLC_CSLC_YN                                       = #{SXVLC_CSLC_YN                                       }
+        , UNMRMT_FANSO_FTHOLD_INST_YN                         = #{UNMRMT_FANSO_FTHOLD_INST_YN                         }
+        , MIND_HEALTH_WLFAR_CNTER_YN                          = #{MIND_HEALTH_WLFAR_CNTER_YN                          }
+        , POLICE_CYBER_SEAD_YN                                = #{POLICE_CYBER_SEAD_YN                                }
+        , HMVLN_CSLC_YN                                       = #{HMVLN_CSLC_YN                                       }
+        , KOLEAI_YN                                           = #{KOLEAI_YN                                           }
+        , YNGBGS_SPRT_CNTER_DREAM_YN                          = #{YNGBGS_SPRT_CNTER_DREAM_YN                          }
+        , EMPLYA_CNTER_YN                                     = #{EMPLYA_CNTER_YN                                     }
+        , YNGBGS_LABOR_INTRRT_CNTER_YN                        = #{YNGBGS_LABOR_INTRRT_CNTER_YN                        }
+        , SMRE_CNTER_YN                                       = #{SMRE_CNTER_YN                                       }
+<!--        , ONST_SPRT_CNTER_YN                                  = #{ONST_SPRT_CNTER_YN                                  } -->
+        , LILI_YN                                             = #{LILI_YN                                             }
+        , ETC_SPCLTY_INST_ETC_YN                              = #{ETC_SPCLTY_INST_ETC_YN                              }
+        , ETC_SPCLTY_INST_NM                                  = #{ETC_SPCLTY_INST_NM}         
+    WHERE   1=1
+        AND INDEX_SN                    =       #{INDEX_SN}
+        AND AFTFCT_MNG_ESNTAL_NO        =       #{AFTFCT_MNG_ESNTAL_NO}
+    
+	</update>
+    
+</mapper>

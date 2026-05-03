@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.stats.dscsnstats.mapper.ProblemAreaStatsMapper">
+
+    <select id="list" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            SELECT
+                    #{writeType}                                                AS  WRITE_TYPE
+                ,   TO_DATE(#{startDate} || '000000', 'YYYYMMDDHH24MISS')       AS  START_DATE
+                ,   TO_DATE(#{endDate} || '000000', 'YYYYMMDDHH24MISS')+1       AS  END_DATE
+            FROM
+                    DUAL
+    )
+    SELECT  /*SQL-ID : isry.couns.stats.dscsnstats.mapper.ProblemAreaStatsMapper : 문제영역별통계 LIST */
+            FF.CMMNS_CD_VALUE                       AS  BBSCTT_TYPE_SE_CD
+        ,   MAX(FF.CMMNS_CD_VALUE_NM)               AS  GUBUN
+        ,   MAX(FF.SRTNG_SQNCE)                     AS  SRTNG_SQNCE
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '01', CC.CCNT, 0) )    AS  W01      /* 가족 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '02', CC.CCNT, 0) )    AS  W02      /* 비행 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '03', CC.CCNT, 0) )    AS  W03      /* 학업/학교부적응 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '04', CC.CCNT, 0) )    AS  W04      /* 진로 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '05', CC.CCNT, 0) )    AS  W05      /* 성 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '06', CC.CCNT, 0) )    AS  W06      /* 성격 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '07', CC.CCNT, 0) )    AS  W07      /* 대인관계 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '08', CC.CCNT, 0) )    AS  W08      /* 정신건강 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '09', CC.CCNT, 0) )    AS  W09      /* 생활습관/태도 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '10', CC.CCNT, 0) )    AS  W10      /* 컴퓨터/인터넷사용 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '11', CC.CCNT, 0) )    AS  W11      /* 정보제공 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '12', CC.CCNT, 0) )    AS  W12      /* 근로 */
+        ,   SUM(DECODE(CC.DSCSN_RELM_SE_CD, '99', CC.CCNT, 0) )    AS  W99      /* 기타 */
+        ,   SUM(NVL(CC.CCNT, 0))                                            AS  SSUM
+    FROM
+            (
+            SELECT
+                    AA.BBSCTT_TYPE_SE_CD
+                ,   AA.DSCSN_RELM_SE_CD
+                ,   COUNT(*)                                AS  CCNT
+            FROM
+                    <if test='writeType.equals("1") '>
+                            AYE100      AA      /* 사이버상담게시글 */
+                    </if>
+                    <if test='writeType.equals("2") '>
+                            AYE120      AA      /* 사이버상담답글 */
+                    </if>
+                ,   ZZ
+            WHERE   1=1
+                    <![CDATA[
+                AND AA.FRST_REG_DT          >=      ZZ.START_DATE
+                AND AA.FRST_REG_DT          <       ZZ.END_DATE
+                    ]]>
+                AND AA.DSCSN_RELM_SE_CD IS NOT NULL
+            GROUP BY
+                    AA.BBSCTT_TYPE_SE_CD
+                ,   AA.DSCSN_RELM_SE_CD
+            )       CC
+        ,   (
+            SELECT
+                    AA.*
+            FROM
+                    SAC100      AA
+            WHERE   1=1
+                AND AA.CMMNS_CD_ID      =   'MM_DSCSN_STATS_TYPE_SE_CD'  /* 월상담통계유형구분코드 */
+            )       FF
+    WHERE   1=1
+        AND CC.BBSCTT_TYPE_SE_CD(+)     =       FF.CMMNS_CD_VALUE
+    GROUP BY
+            FF.CMMNS_CD_VALUE
+    ORDER BY
+            3
+        
+	</select>
+	
+</mapper>

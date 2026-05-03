@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.subms.preconmng.atendcomplprecon.mapper.AtendComplPreconMapper">
+    
+    <select id="selectAtendComplPreconList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectAtendComplPreconList (출석 및 이수현황 목록 조회) - Lee Hye Sun */
+	SELECT DISTINCT 
+	      F.BIZ_YR              --사업연도
+	    , F2.INST_NO            --기관번호
+	    , F2.INST_NM            --기관명
+	    , A.SRVC_PVSN_NO        --서비스제공번호
+	    , E.SRVC_EXCN_BIZ_NO    --서비스실행사업번호
+	    , E.SRVC_EXCN_BIZ_NM    --서비스실행사업명
+	    , D.RESRCE_NO           --자원번호
+	    , D.PVSN_RESRCE_NM      --자원명
+	    , A.CASE_MNG_NO         --사례관리번호
+	    , A.CASE_MNG_ODRNO      --사례관리차수
+	    , B.TRPR_INFO_NO        --대상자정보번호
+	    , DEC_B64(C.TRPR_NM_ENCPT) AS TRPR_NM_ENCPT --대상자명암호화
+	    , C.TRPR_BRTH_YMD       --대상자출생일자
+	    , (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'SXDC_SE_CD' AND CMMNS_CD_VALUE = C.SXDC_SE_CD) AS SXDC_SE_CD
+	    , (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'PRTPNT_LINK_PRECON_SE_CD' AND CMMNS_CD_VALUE = I.LINK_PRECON_SE_CD) AS LINK_PRECON_NM
+	    , I.LINK_PRECON_ETC_CN  --연계현황기타사유
+	    , D.PVSN_BGNG_YMD       --자원제공시작일자(교육기간)
+	    , D.PVSN_END_YMD        --자원제공종료일자(교육기간)
+	    , G.BGNG_YMD            --시작일자(이수기간)
+	    , G.END_YMD             --종료일자(이수기간)
+	    , H.CLASS_DAYCNT
+	    , H.ATEND_DAYCNT
+	    , H.ABSNC_DAYCNT
+	    , H.LATEN_DAYCNT
+	    , H.LRLY_DAYCNT
+	    , CASE WHEN H.CLASS_DAYCNT != 0 THEN ROUND((NVL(H.ATEND_DAYCNT,0)+((NVL(H.LATEN_DAYCNT,0)+NVL(H.LRLY_DAYCNT,0))/3))/NVL(H.CLASS_DAYCNT,0)*100, 2) || '%'
+          ELSE '-' END AS ATEND_RATE
+	    , H.CLASS_DAYCNT_1
+	    , H.ATEND_DAYCNT_1
+	    , H.ABSNC_DAYCNT_1
+	    , H.LATEN_DAYCNT_1
+	    , H.LRLY_DAYCNT_1
+	    , CASE WHEN H.CLASS_DAYCNT_1 != 0 THEN ROUND((NVL(H.ATEND_DAYCNT_1,0)+((NVL(H.LATEN_DAYCNT_1,0)+NVL(H.LRLY_DAYCNT_1,0))/3))/NVL(H.CLASS_DAYCNT_1,0)*100, 2) || '%'
+          ELSE '-' END AS ATEND_RATE_1
+	    , H.CLASS_DAYCNT_2
+	    , H.ATEND_DAYCNT_2
+	    , H.ABSNC_DAYCNT_2
+	    , H.LATEN_DAYCNT_2
+	    , H.LRLY_DAYCNT_2
+	    , CASE WHEN H.CLASS_DAYCNT_2 != 0 THEN ROUND((NVL(H.ATEND_DAYCNT_2,0)+((NVL(H.LATEN_DAYCNT_2,0)+NVL(H.LRLY_DAYCNT_2,0))/3))/NVL(H.CLASS_DAYCNT_2,0)*100, 2) || '%'
+          ELSE '-' END AS ATEND_RATE_2
+	    , I.FNSH_SE_CD          --수료구분코드
+	    , I.LINK_PRECON_SE_CD   --연계현황구분코드
+	    , DEC_B64(K.FLNM_ENCPT) AS FLNM_ENCPT          --담당자명
+	    , DEC_B64(K.MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT     --담당자연락처
+	FROM SEB510 A /*서비스제공대상자*/
+	JOIN SEB100 B /*사례기본*/
+	    ON A.CASE_MNG_NO = B.CASE_MNG_NO
+	    AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+	JOIN SEA200 C /*대상자정보*/
+	    ON B.TRPR_INFO_NO = C.TRPR_INFO_NO
+	JOIN SDA100 D /*자원제공*/
+	    ON D.RESRCE_NO = A.RESRCE_NO
+	JOIN SDA420 E /*서비스실행사업*/
+	    ON E.SRVC_EXCN_BIZ_NO = D.SRVC_EXCN_BIZ_NO
+	JOIN SDA400 F /*서비스사업*/
+	    ON F.SRVC_BIZ_NO = E.SRVC_BIZ_NO
+	LEFT JOIN AFA330 G /*교육이수일정내역*/
+	    ON A.CASE_MNG_NO = G.CASE_MNG_NO
+	    AND A.CASE_MNG_ODRNO = G.CASE_MNG_ODRNO
+	LEFT JOIN(
+	    SELECT
+	          RESRCE_NO
+	        , CASE_MNG_NO
+	        , CASE_MNG_ODRNO
+	        , MAX(PIC_NO) AS PIC_NO
+	        , SUM(CLASS_DAYCNT) AS CLASS_DAYCNT
+	        , SUM(ATEND_DAYCNT) AS ATEND_DAYCNT
+	        , SUM(ABSNC_DAYCNT) AS ABSNC_DAYCNT
+	        , SUM(LATEN_DAYCNT) AS LATEN_DAYCNT
+	        , SUM(LRLY_DAYCNT) AS LRLY_DAYCNT
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '01' THEN CLASS_DAYCNT END) AS CLASS_DAYCNT_1
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '01' THEN ATEND_DAYCNT END) AS ATEND_DAYCNT_1
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '01' THEN ABSNC_DAYCNT END) AS ABSNC_DAYCNT_1
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '01' THEN LATEN_DAYCNT END) AS LATEN_DAYCNT_1
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '01' THEN LRLY_DAYCNT END) AS LRLY_DAYCNT_1
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '02' THEN CLASS_DAYCNT END) AS CLASS_DAYCNT_2
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '02' THEN ATEND_DAYCNT END) AS ATEND_DAYCNT_2
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '02' THEN ABSNC_DAYCNT END) AS ABSNC_DAYCNT_2
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '02' THEN LATEN_DAYCNT END) AS LATEN_DAYCNT_2
+	        , SUM(CASE WHEN SEMSTR_SE_CD = '02' THEN LRLY_DAYCNT END) AS LRLY_DAYCNT_2
+	    FROM AFA700
+	    GROUP BY CASE_MNG_NO, CASE_MNG_ODRNO, RESRCE_NO
+	) H
+	    ON A.CASE_MNG_NO = H.CASE_MNG_NO
+	    AND A.CASE_MNG_ODRNO = H.CASE_MNG_ODRNO
+	    AND D.RESRCE_NO = H.RESRCE_NO
+	LEFT JOIN AFA320 I /*참여자조사표*/
+	    ON A.CASE_MNG_NO = I.CASE_MNG_NO
+	    AND A.CASE_MNG_ODRNO = I.CASE_MNG_ODRNO
+	    AND A.SRVC_PVSN_NO = I.SRVC_PVSN_NO
+	    AND D.RESRCE_NO = I.RESRCE_NO
+	LEFT JOIN SEB150 F1 /*사례담당자*/
+	    ON F1.CASE_MNG_NO = B.CASE_MNG_NO
+	    AND F1.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+	    AND F1.PCHPRS_YN = 'Y'
+	LEFT JOIN SAA000 F2 /*기관*/
+	    ON F2.INST_NO = D.RSFR_INST_NO
+	LEFT JOIN SCA100 K
+	    ON H.PIC_NO = K.ENFSN_NO
+	    
+	WHERE 1=1
+	AND F.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	AND A.DEL_YN = 'N'
+	AND D.SRVC_RESRCE_LCLAS_SE_CD NOT IN ('01')
+	AND F2.INST_NO IN 
+	]]>
+	<foreach collection="INST_NOS" item="item" open="(" separator="," close=")"> #{item} </foreach>
+	<if test='BIZ_YR != null and BIZ_YR != ""'>
+		AND F.BIZ_YR = #{BIZ_YR}
+	</if>
+	<if test='INST_NM != null and INST_NM != ""'>
+		AND F2.INST_NM LIKE '%' || #{INST_NM} || '%'
+	</if>
+	<if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+		AND E.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    </if>
+    <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+		AND D.RESRCE_NO = #{RESRCE_NO}
+    </if>
+    <if test='TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ""'>
+		AND C.TRPR_NM_ENCPT LIKE '%' || C##RG.ENC_B64(#{TRPR_NM_ENCPT}) || '%'
+    </if>
+    <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+        <![CDATA[
+        AND G.BGNG_YMD <= #{END_YMD} AND NVL(G.END_YMD, G.BGNG_YMD) >= #{BGNG_YMD}
+        ]]>
+    </if>
+    <if test='FNSH_SE_CD != null and FNSH_SE_CD != ""' >
+		AND I.FNSH_SE_CD = #{FNSH_SE_CD}
+    </if>
+    <if test='LINK_PRECON_SE_CD != null and LINK_PRECON_SE_CD != ""' >
+		AND I.LINK_PRECON_SE_CD = #{LINK_PRECON_SE_CD}
+    </if>
+    <if test='FLNM_ENCPT != null and FLNM_ENCPT != ""'>
+		AND K.FLNM_ENCPT LIKE '%' || C##RG.ENC_B64(#{FLNM_ENCPT}) || '%'
+    </if>
+    </select>
+    
+    <update id="saveAtendComplPreconList" parameterType="HashMap">
+    <![CDATA[
+    MERGE INTO AFA320 A
+	    USING DUAL
+	        ON 
+	        (
+	            A.CASE_MNG_NO = #{CASE_MNG_NO}
+	            AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+	            AND A.RESRCE_NO = #{RESRCE_NO}
+	            AND A.SRVC_PVSN_NO = #{SRVC_PVSN_NO}
+	        )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	              A.FNSH_SE_CD = #{FNSH_SE_CD}
+	            , A.LINK_PRECON_SE_CD = #{LINK_PRECON_SE_CD}
+	            , A.LINK_PRECON_ETC_CN = #{LINK_PRECON_ETC_CN}
+	            , LAST_MDFR_ID = #{USER_ID}
+	            , LAST_MDFCN_DT = SYSDATE
+	        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+	            AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+	            AND A.RESRCE_NO = #{RESRCE_NO}
+	            AND A.SRVC_PVSN_NO = #{SRVC_PVSN_NO}
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	              SRVC_PVSN_NO
+	            , CASE_MNG_NO
+	            , CASE_MNG_ODRNO
+	            , RESRCE_NO
+	            , FNSH_SE_CD
+	            , LINK_PRECON_SE_CD
+	            , LINK_PRECON_ETC_CN
+	            , FRST_RGTR_ID
+	            , FRST_REG_DT
+	            , LAST_MDFR_ID
+	            , LAST_MDFCN_DT
+	        ) VALUES (
+	              #{SRVC_PVSN_NO}
+	            , #{CASE_MNG_NO}
+	            , #{CASE_MNG_ODRNO}
+	            , #{RESRCE_NO}
+	            , #{FNSH_SE_CD}
+	            , #{LINK_PRECON_SE_CD}
+	            , #{LINK_PRECON_ETC_CN}
+	            , #{USER_ID}
+	            , SYSDATE
+	            , #{USER_ID}
+	            , SYSDATE
+	        )
+    ]]>
+    </update>
+    
+    
+    <update id="saveAtendComplPreconAFA330" parameterType="HashMap">
+    <![CDATA[
+    MERGE INTO AFA330 A
+        USING DUAL
+            ON 
+            (
+                A.CASE_MNG_NO = #{CASE_MNG_NO}
+                AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+            )
+        WHEN MATCHED THEN
+            UPDATE SET
+                  A.BGNG_YMD = #{BGNG_YMD}
+                , A.END_YMD = #{END_YMD}
+                , LAST_MDFR_ID = #{USER_ID}
+                , LAST_MDFCN_DT = SYSDATE
+            WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+                AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+        WHEN NOT MATCHED THEN
+            INSERT (
+                  CASE_MNG_NO
+                , CASE_MNG_ODRNO
+                , BGNG_YMD
+                , END_YMD
+                , FRST_RGTR_ID
+                , FRST_REG_DT
+                , LAST_MDFR_ID
+                , LAST_MDFCN_DT
+            ) VALUES (
+                  #{CASE_MNG_NO}
+                , #{CASE_MNG_ODRNO}
+                , #{BGNG_YMD}
+                , #{END_YMD}
+                , #{USER_ID}
+                , SYSDATE
+                , #{USER_ID}
+                , SYSDATE
+            )
+    ]]>
+    </update>
+    
+    
+    <select id="selectAtendComplPreconMngList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectAtendComplPreconMngList (출석 및 이수현황 상세 조회) - Lee Hye Sun */
+    SELECT 
+	      B.SEMSTR_SE_CD
+	    , B.RPT_MM
+	    , B.CLASS_DAYCNT
+	    , B.ATEND_DAYCNT
+	    , B.ABSNC_DAYCNT
+	    , B.LATEN_DAYCNT
+	    , B.LRLY_DAYCNT
+	    , CASE WHEN CLASS_DAYCNT != 0 THEN ROUND((NVL(ATEND_DAYCNT,0)+((NVL(LATEN_DAYCNT,0)+NVL(LRLY_DAYCNT,0))/3))/NVL(CLASS_DAYCNT,0)*100, 2) || '%'
+          ELSE '-' END AS ATEND_RATE
+	    , PRTCLR_MATTER_DTL_CN
+	    , DEC_B64(D.FLNM_ENCPT) AS FLNM_ENCPT
+	    , DEC_B64(D.MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT
+	FROM SEB510 A
+	LEFT JOIN AFA700 B
+	ON A.CASE_MNG_NO = B.CASE_MNG_NO
+	AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+	AND A.RESRCE_NO = B.RESRCE_NO
+	LEFT JOIN AFA320 C
+	ON A.CASE_MNG_NO = C.CASE_MNG_NO
+	AND A.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+	AND A.RESRCE_NO = C.RESRCE_NO
+	LEFT JOIN SCA100 D
+	ON B.PIC_NO = D.ENFSN_NO
+	JOIN SEB100 E
+	ON A.CASE_MNG_NO = E.CASE_MNG_NO
+	AND A.CASE_MNG_ODRNO = E.CASE_MNG_ODRNO
+	LEFT JOIN SEA200 F
+	ON E.TRPR_INFO_NO = F.TRPR_INFO_NO
+	WHERE B.CASE_MNG_NO = #{CASE_MNG_NO}
+    AND B.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    AND B.RESRCE_NO = #{RESRCE_NO}
+    ]]>
+    </select>
+    
+    <update id="saveAtendComplPreconMng" parameterType="HashMap">
+    <![CDATA[
+    /* saveAtendComplPreconMng(출석및이수현황상세 수정) - Lee Hye Sun */
+    MERGE INTO AFA700 A
+	    USING DUAL
+	        ON 
+	        (
+	            A.CASE_MNG_NO = #{CASE_MNG_NO}
+	            AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+	            AND A.RESRCE_NO = #{RESRCE_NO}
+	            AND A.SEMSTR_SE_CD = #{SEMSTR_SE_CD}
+                AND A.RPT_MM = #{RPT_MM}
+	        )
+	    WHEN MATCHED THEN
+	        UPDATE SET
+	              A.CLASS_DAYCNT = #{CLASS_DAYCNT}
+	            , A.ATEND_DAYCNT = #{ATEND_DAYCNT}
+	            , A.ABSNC_DAYCNT = #{ABSNC_DAYCNT}
+	            , A.LATEN_DAYCNT = #{LATEN_DAYCNT}
+	            , A.LRLY_DAYCNT = #{LRLY_DAYCNT}
+	            , A.PRTCLR_MATTER_DTL_CN = #{PRTCLR_MATTER_DTL_CN}
+	            , LAST_MDFR_ID = #{USER_ID}
+	            , LAST_MDFCN_DT = SYSDATE
+	        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+	            AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+	            AND A.RESRCE_NO = #{RESRCE_NO}
+	            AND A.SEMSTR_SE_CD = #{SEMSTR_SE_CD}
+	            AND A.RPT_MM = #{RPT_MM}
+	    WHEN NOT MATCHED THEN
+	        INSERT (
+	              RESRCE_NO
+	            , CASE_MNG_NO
+	            , CASE_MNG_ODRNO
+	            , SEMSTR_SE_CD
+	            , RPT_MM
+	            , CLASS_DAYCNT
+	            , ATEND_DAYCNT
+	            , ABSNC_DAYCNT
+	            , LATEN_DAYCNT
+	            , LRLY_DAYCNT
+	            , PRTCLR_MATTER_DTL_CN
+	            , PIC_NO
+	            , FRST_RGTR_ID
+	            , FRST_REG_DT
+	            , LAST_MDFR_ID
+	            , LAST_MDFCN_DT
+	        ) VALUES (
+	              #{RESRCE_NO}
+	            , #{CASE_MNG_NO}
+	            , #{CASE_MNG_ODRNO}
+	            , #{SEMSTR_SE_CD}
+	            , #{RPT_MM}
+	            , #{CLASS_DAYCNT}
+	            , #{ATEND_DAYCNT}
+	            , #{ABSNC_DAYCNT}
+	            , #{LATEN_DAYCNT}
+	            , #{LRLY_DAYCNT}
+	            , #{PRTCLR_MATTER_DTL_CN}
+	            , #{PIC_NO}
+	            , #{USER_ID}
+	            , SYSDATE
+	            , #{USER_ID}
+	            , SYSDATE
+	        )
+    ]]>
+    </update>
+    
+    <delete id="deleteComplPreconMng" parameterType="HashMap">
+    <![CDATA[
+    /* deleteComplPreconMng (출석및이수현황상세 수정) - Lee Hye Sun */
+        DELETE FROM AFA700
+        WHERE 1=1
+        AND CASE_MNG_NO = #{CASE_MNG_NO}
+        AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+        AND RESRCE_NO = #{RESRCE_NO}
+        AND SEMSTR_SE_CD = #{SEMSTR_SE_CD}
+        AND RPT_MM = #{RPT_MM}
+    ]]>
+    </delete>
+</mapper>

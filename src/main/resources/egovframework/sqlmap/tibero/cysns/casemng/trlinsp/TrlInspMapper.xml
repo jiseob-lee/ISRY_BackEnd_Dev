@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.cysns.casemng.trlinsp.mapper.TrlInspMapper">
+
+	<!-- 심리검사결과상세() 조회 -->
+	<select id="selectTrlInsp" resultType="HashMap">
+	<![CDATA[
+	SELECT
+        TRL_INSP_MNG_NO                                         /* 심리검사관리번호 */
+        ,TRL_INSP_RESULT_SCLAS_SE_CD                            /* 심리검사결과소분류구분코드 */
+        ,TRL_INSP_RESULT_MLSFC_SE_CD                            /* 심리검사결과중분류구분코드 */
+        ,INSP_RESULT_CN                                         /* 검사결과내용 */
+        ,INSP_RESULT_VALUE                                      /* 검사결과값 */
+        ,INSP_RESULT_VALUE1                                     /* 검사결과값1 */
+        ,INSP_RESULT_VALUE2                                     /* 검사결과값2 */
+        ,INSP_RESULT_VALUE3                                     /* 검사결과값3 */
+        ,INSP_RESULT_VALUE4                                     /* 검사결과값4 */
+        ,INSP_RESULT_VALUE5                                     /* 검사결과값5 */
+        ,INSP_RESULT_VALUE6                                     /* 검사결과값6 */
+        ,INSP_RESULT_VALUE7                                     /* 검사결과값7 */
+        ,INSP_RESULT_VALUE8                                     /* 검사결과값8 */
+        ,INSP_RESULT_VALUE9                                     /* 검사결과값9 */
+        ,TRL_INSP_RESULT_CN                                     /* 심리검사결과내용 */
+	FROM ACA110                        /* 심리검사결과상세 */
+	WHERE 1=1
+	AND TRL_INSP_MNG_NO = #{TRL_INSP_MNG_NO}
+	ORDER BY TRL_INSP_RESULT_SCLAS_SE_CD ASC
+	]]>
+	</select>
+
+	<!-- 심리검사관리번호 채번 -->
+	<select id="selectTrlInspMngNo" resultType="String">
+    <![CDATA[
+    SELECT
+        SA_FN_GET_RENU_NO('TP', #{LGN_USER_ID}, '') AS TRL_INSP_MNG_NO
+    FROM DUAL
+    ]]>
+	</select>
+
+	<!-- 심리검사결과상세() 등록 -->
+	<insert id="insertTrlInsp">
+	<![CDATA[
+	INSERT INTO ACA110 (               /* 심리검사결과상세 */
+        TRL_INSP_MNG_NO                                         /* 심리검사관리번호 */
+        ,TRL_INSP_RESULT_SCLAS_SE_CD                            /* 심리검사결과소분류구분코드 */
+        ,TRL_INSP_RESULT_MLSFC_SE_CD                            /* 심리검사결과중분류구분코드 */
+        ,INSP_RESULT_CN                                         /* 검사결과내용 */
+        ,INSP_RESULT_VALUE                                      /* 검사결과값 */
+        ,INSP_RESULT_VALUE1                                     /* 검사결과값1 */
+        ,INSP_RESULT_VALUE2                                     /* 검사결과값2 */
+        ,INSP_RESULT_VALUE3                                     /* 검사결과값3 */
+        ,INSP_RESULT_VALUE4                                     /* 검사결과값4 */
+        ,INSP_RESULT_VALUE5                                     /* 검사결과값5 */
+        ,INSP_RESULT_VALUE6                                     /* 검사결과값6 */
+        ,INSP_RESULT_VALUE7                                     /* 검사결과값7 */
+        ,INSP_RESULT_VALUE8                                     /* 검사결과값8 */
+        ,INSP_RESULT_VALUE9                                     /* 검사결과값9 */
+        ,TRL_INSP_RESULT_CN                                     /* 심리검사결과내용 */
+        ,FRST_RGTR_ID                                           /* 최초등록자아이디 */
+        ,FRST_REG_DT                                            /* 최초등록일시 */
+        ,LAST_MDFR_ID                                           /* 최종수정자아이디 */
+        ,LAST_MDFCN_DT                                          /* 최종수정일시 */
+	) VALUES (
+        #{TRL_INSP_MNG_NO}                                      /* 심리검사관리번호 */
+        ,#{TRL_INSP_RESULT_SCLAS_SE_CD}                         /* 심리검사결과소분류구분코드 */
+        ,#{TRL_INSP_RESULT_MLSFC_SE_CD}                         /* 심리검사결과중분류구분코드 */
+        ,#{INSP_RESULT_CN}                                      /* 검사결과내용 */
+        ,#{INSP_RESULT_VALUE}                                   /* 검사결과값 */
+        ,#{INSP_RESULT_VALUE1}                                  /* 검사결과값1 */
+        ,#{INSP_RESULT_VALUE2}                                  /* 검사결과값2 */
+        ,#{INSP_RESULT_VALUE3}                                  /* 검사결과값3 */
+        ,#{INSP_RESULT_VALUE4}                                  /* 검사결과값4 */
+        ,#{INSP_RESULT_VALUE5}                                  /* 검사결과값5 */
+        ,#{INSP_RESULT_VALUE6}                                  /* 검사결과값6 */
+        ,#{INSP_RESULT_VALUE7}                                  /* 검사결과값7 */
+        ,#{INSP_RESULT_VALUE8}                                  /* 검사결과값8 */
+        ,#{INSP_RESULT_VALUE9}                                  /* 검사결과값9 */
+        ,#{TRL_INSP_RESULT_CN}                                  /* 심리검사결과내용 */
+        ,#{FRST_RGTR_ID}                                        /* 최초등록자아이디 */
+        ,SYSDATE                                                /* 최초등록일시 */
+        ,#{LAST_MDFR_ID}                                        /* 최종수정자아이디 */
+        ,SYSDATE                                                /* 최종수정일시 */
+	)
+	]]>
+	</insert>
+
+	<!-- 심리검사결과상세() 수정 -->
+	<update id="updateTrlInsp">
+	<![CDATA[
+	UPDATE ACA110 SET                  /* 심리검사결과상세 */
+        TRL_INSP_MNG_NO = #{TRL_INSP_MNG_NO}                                            /* 심리검사관리번호 */
+        ,TRL_INSP_RESULT_SCLAS_SE_CD = #{TRL_INSP_RESULT_SCLAS_SE_CD}                   /* 심리검사결과소분류구분코드 */
+        ,TRL_INSP_RESULT_MLSFC_SE_CD = #{TRL_INSP_RESULT_MLSFC_SE_CD}                   /* 심리검사결과중분류구분코드 */
+        ,INSP_RESULT_CN = #{INSP_RESULT_CN}                                             /* 검사결과내용 */
+        ,INSP_RESULT_VALUE = #{INSP_RESULT_VALUE}                                       /* 검사결과값 */
+        ,INSP_RESULT_VALUE1 = #{INSP_RESULT_VALUE1}                                     /* 검사결과값1 */
+        ,INSP_RESULT_VALUE2 = #{INSP_RESULT_VALUE2}                                     /* 검사결과값2 */
+        ,INSP_RESULT_VALUE3 = #{INSP_RESULT_VALUE3}                                     /* 검사결과값3 */
+        ,INSP_RESULT_VALUE4 = #{INSP_RESULT_VALUE4}                                     /* 검사결과값4 */
+        ,INSP_RESULT_VALUE5 = #{INSP_RESULT_VALUE5}                                     /* 검사결과값5 */
+        ,INSP_RESULT_VALUE6 = #{INSP_RESULT_VALUE6}                                     /* 검사결과값6 */
+        ,INSP_RESULT_VALUE7 = #{INSP_RESULT_VALUE7}                                     /* 검사결과값7 */
+        ,INSP_RESULT_VALUE8 = #{INSP_RESULT_VALUE8}                                     /* 검사결과값8 */
+        ,INSP_RESULT_VALUE9 = #{INSP_RESULT_VALUE9}                                     /* 검사결과값9 */
+        ,TRL_INSP_RESULT_CN = #{TRL_INSP_RESULT_CN}                                     /* 심리검사결과내용 */
+        ,LAST_MDFR_ID = #{LAST_MDFR_ID}                                                 /* 최종수정자아이디 */
+        ,LAST_MDFCN_DT = SYSDATE                                                        /* 최종수정일시 */
+	WHERE 1=1
+	AND TRL_INSP_MNG_NO = #{TRL_INSP_MNG_NO__origin}                               -- 심리검사관리번호__origin
+	AND TRL_INSP_RESULT_SCLAS_SE_CD = #{TRL_INSP_RESULT_SCLAS_SE_CD__origin}       -- 심리검사결과소분류구분코드__origin
+	]]>
+	</update>
+
+</mapper>

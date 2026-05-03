@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.itgcms.sysmgmt.messagesource.mapper.MessageMapper">
+
+	<resultMap id="messageVO" type="isry.itgcms.sysmgmt.messagesource.vo.MessageVO">
+		<result property="mssageId" column="MSSAGE_ID"/>
+		<result property="mssageKlangCn" column="MSSAGE_KLANG_CN"/>
+		<result property="mssageEnlCn" column="MSSAGE_ENL_CN"/>
+		<result property="mssageChnlngCn" column="MSSAGE_CHNLNG_CN"/>
+		<result property="mssageJplngCn" column="MSSAGE_JPLNG_CN"/>
+		<result property="useYn" column="USE_YN"/>
+		<result property="frstRgtrId" column="FRST_RGTR_ID"/>
+		<result property="frstRegDt" column="FRST_REG_DT"/>
+		<result property="lastMdfrId" column="LAST_MDFR_ID"/>
+		<result property="lastMdfcnDt" column="LAST_MDFCN_DT"/>
+	</resultMap>
+	
+	<select id="selectMessage" parameterType="String" resultMap="messageVO">
+	<![CDATA[
+		/* selectMessage - Lee JiSeob */
+		
+		SELECT 
+
+			MSSAGE_ID, 
+			MSSAGE_KLANG_CN, 
+			MSSAGE_ENL_CN, 
+			MSSAGE_CHNLNG_CN, 
+			MSSAGE_JPLNG_CN, 
+			USE_YN, 
+			FRST_RGTR_ID, 
+			TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD HH24:MI') AS FRST_REG_DT, 
+			LAST_MDFR_ID, 
+			TO_CHAR(LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI') AS LAST_MDFCN_DT
+
+		FROM SAB810 /* 메시지 */
+		
+		WHERE USE_YN IS NULL OR USE_YN = 'Y'
+		AND MSSAGE_ID = #{MSSAGE_ID}
+		
+	]]>
+	</select>
+	
+	<select id="selectMessages" resultMap="messageVO">
+	<![CDATA[
+		/* selectMessages - Lee JiSeob */
+		
+		SELECT 
+
+			MSSAGE_ID, 
+			MSSAGE_KLANG_CN, 
+			MSSAGE_ENL_CN, 
+			MSSAGE_CHNLNG_CN, 
+			MSSAGE_JPLNG_CN, 
+			USE_YN, 
+			FRST_RGTR_ID, 
+			TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD HH24:MI') AS FRST_REG_DT, 
+			LAST_MDFR_ID, 
+			TO_CHAR(LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI') AS LAST_MDFCN_DT
+
+		FROM SAB810 /* 메시지 */
+		
+		WHERE
+            USE_YN = 'Y'
+            
+		ORDER BY 
+			FRST_REG_DT DESC,
+			MSSAGE_ID
+		
+	]]>
+	</select>
+
+	
+	<select id="checkExistsMessage" parameterType="String" resultType="Integer">
+	<![CDATA[
+		/* checkExistsMessage - Lee JiSeob */
+		
+		SELECT 
+
+			COUNT(*) AS EXISTS_COUNT
+
+		FROM SAB810 /* 메시지 */
+		
+		WHERE MSSAGE_ID = #{MSSAGE_ID}
+		
+	]]>
+	</select>
+	
+	
+    <insert id="insertMessage" parameterType="HashMap">
+    <![CDATA[
+        /* insertMessage - Lee JiSeob */
+        
+        INSERT INTO SAB810 /* 메시지 */
+        (
+            MSSAGE_ID, 
+            MSSAGE_KLANG_CN, 
+            MSSAGE_ENL_CN, 
+            MSSAGE_CHNLNG_CN, 
+            MSSAGE_JPLNG_CN, 
+            USE_YN, 
+            FRST_RGTR_ID, 
+            FRST_REG_DT, 
+            LAST_MDFR_ID, 
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{mssageId}, 
+            #{mssageKlangCn}, 
+            #{mssageEnlCn}, 
+            #{mssageChnlngCn}, 
+            #{mssageJplngCn}, 
+            'Y', 
+            #{USER_ID}, 
+            SYSDATE, 
+            #{USER_ID}, 
+            SYSDATE
+        )
+       
+    ]]>
+    </insert>
+
+    <update id="updateMessage" parameterType="HashMap">
+    <![CDATA[
+        /* updateMessage - Lee JiSeob */
+        
+        UPDATE SAB810 /* 메시지 */
+        SET
+            MSSAGE_KLANG_CN = #{mssageKlangCn}, 
+            MSSAGE_ENL_CN = #{mssageEnlCn}, 
+            MSSAGE_CHNLNG_CN = #{mssageChnlngCn},  
+            MSSAGE_JPLNG_CN = #{mssageJplngCn}, 
+            USE_YN = #{useYn},
+            LAST_MDFR_ID = #{USER_ID}, 
+            LAST_MDFCN_DT = SYSDATE
+            
+        WHERE
+            MSSAGE_ID = #{mssageId}
+            
+    ]]>
+    </update>
+    
+    <update id="deleteMessage" parameterType="HashMap">
+    <![CDATA[
+        /* deleteMessage - Lee JiSeob */
+        
+        UPDATE SAB810 /* 메시지 */
+        SET
+            USE_YN = 'N',
+            LAST_MDFR_ID = #{USER_ID}, 
+            LAST_MDFCN_DT = SYSDATE
+        WHERE
+            MSSAGE_ID = #{mssageId}
+            
+    ]]>
+    </update>
+    
+</mapper>

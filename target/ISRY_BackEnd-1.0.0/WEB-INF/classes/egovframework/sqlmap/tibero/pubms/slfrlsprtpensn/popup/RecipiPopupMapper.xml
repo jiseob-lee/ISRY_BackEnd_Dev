@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubms.slfrlsprtpensn.popup.mapper.RecipiPopupMapper">
+    
+    <select id="selectOrganizationViewListCount" parameterType="HashMap" resultType="int">
+        SELECT
+            COUNT(*) AS TOT_CNT
+        FROM
+        (
+            /* selectOrganizationViewListCount - BaekGyuHa */            
+            SELECT 
+	           *
+	        FROM
+	        (
+	            SELECT
+	                C.INST_NO,
+	                C.UNT_TASKWK_SE_CD,
+	                C.INST_NM,
+	                C.UP_INST_NO,
+	                (SELECT D.INST_NM FROM SAA000 D /* 기관코드 */ WHERE D.INST_NO = C.UP_INST_NO) AS UP_INST_NM,
+	                C.INST_TYPE_SE_CD,
+	                (SELECT D.CMMNS_CD_VALUE_NM FROM SAC100 D WHERE D.CMMNS_CD_ID = 'INST_TYPE_SE_CD' AND D.CMMNS_CD_VALUE = C.INST_TYPE_SE_CD) AS INST_TYPE_NM,
+	                (SELECT F.CMMNS_CD_VALUE FROM SAC100 F WHERE F.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND F.CMMNS_CD_VALUE = C.UNT_TASKWK_SE_CD) AS UNIT_CODE,
+	                (SELECT F.CMMNS_CD_VALUE_NM FROM SAC100 F WHERE F.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND F.CMMNS_CD_VALUE = C.UNT_TASKWK_SE_CD) AS UNIT_NM,
+	                CASE WHEN C.UNT_TASKWK_SE_CD IS NULL THEN 0 ELSE 1 END AS UNIT_COUNT,
+	                C.RGN_CD,
+	                (SELECT D.ENG_CTPV_NM FROM SAA020 D /* 시군구코드 */ WHERE D.SGG_CD = C.RGN_CD) AS ENG_CTPV_NM,
+	                C.HPGE_URL_ADDR,
+	                C.MAIN_ENFC_INST_SE_CD,
+	                C.CTPV_CD,
+	                C.SGG_CD,
+	                C.BPLC_ZIP,
+	                C.BPLC_PST_ADDR,
+	                C.BPLC_DADDR,
+	                C.RPRSV_NM_ENCPT,
+	                C##RG.DEC_B64(C.RPRSV_NM_ENCPT) AS RPRSV_NM,
+	                C.RPRS_TELNO,
+	                C.RPRS_FXNO,
+	                C.APLCN_BGNG_YMD,
+	                C.APLCN_END_YMD,
+	                C.PIC_ENFSN_NO,
+	                C.PIC_NM_ENCPT,
+	                C.PIC_TELNO,
+	                C.PIC_MBL_TELNO_ENCPT,
+	                C##RG.DEC_B64(C.PIC_MBL_TELNO_ENCPT) AS PIC_MBL_TELNO,
+	                C.PIC_EML_ADDR_ENCPT,
+	                C##RG.DEC_B64(C.PIC_EML_ADDR_ENCPT) AS PIC_EML_ADDR,
+	                C.CNSGN_YMD,
+	                C.APLY_YMD,
+	                C.APLCNT_ID,
+	                C.APRV_YN,
+	                C.PRCS_YMD,
+	                C.AUTZR_ID,
+	                C.CTPV_LINK_PBADMS_RGN_CD,
+	                C.SGG_LINK_PBADMS_RGN_CD,
+	                C.EMD_LINK_PBADMS_RGN_CD,
+	                C.ORGNL_INST_NO,
+	                C.OFFCS_SGNNG_NO,
+	                C.ATFINO,
+	                C.DEL_YN,
+	                C.FRST_RGTR_ID,
+	                TO_CHAR(C.FRST_REG_DT, 'YYYY-MM-DD HH24:MI') AS FRST_REG_DT,
+	                C.LAST_MDFR_ID,
+	                TO_CHAR(C.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI') AS LAST_MDFCN_DT,
+	                D.RJCT_CS_CN,
+	                (CASE D.APRV_STTS_SE_CD WHEN '1' THEN '1' WHEN '2' THEN '2' WHEN '3' THEN '3' ELSE '2' END) AS APRV_STTS_SE_CD
+	            FROM SAA000 C /* 기관코드 */
+	            LEFT JOIN (SELECT B.*
+	                           , ROW_NUMBER() OVER(PARTITION BY B.INST_NO ORDER BY B.APLY_DT DESC) AS RN
+	                       FROM SAA010 B
+	                       ) AS D
+	            ON C.INST_NO = D.INST_NO AND D.RN = '1'         
+	            WHERE C.APRV_YN = 'Y' 
+	            AND C.DEL_YN = 'N'
+	            AND C.UNT_TASKWK_SE_CD = #{unitSystem}
+	            <if test="orgType != null and orgType != ''">
+	                AND C.INST_TYPE_SE_CD = #{orgType}
+	            </if>
+	            <if test="orgName != null and orgName != ''">
+	                AND C.INST_NM LIKE '%' || #{orgName} || '%'
+	            </if>
+	        )
+        )
+    </select>
+    
+    <select id="selectOrganizationViewList" parameterType="HashMap" resultType="HashMap">
+        /* selectOrganizationViewList - BaekGyuHa */
+		SELECT 
+		   *
+		FROM
+		(
+		    SELECT
+		        C.INST_NO,
+		        C.UNT_TASKWK_SE_CD,
+		        C.INST_NM,
+		        C.UP_INST_NO,
+		        (SELECT D.INST_NM FROM SAA000 D /* 기관코드 */ WHERE D.INST_NO = C.UP_INST_NO) AS UP_INST_NM,
+		        C.INST_TYPE_SE_CD,
+		        (SELECT D.CMMNS_CD_VALUE_NM FROM SAC100 D WHERE D.CMMNS_CD_ID = 'INST_TYPE_SE_CD' AND D.CMMNS_CD_VALUE = C.INST_TYPE_SE_CD) AS INST_TYPE_NM,
+		        (SELECT F.CMMNS_CD_VALUE FROM SAC100 F WHERE F.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND F.CMMNS_CD_VALUE = C.UNT_TASKWK_SE_CD) AS UNIT_CODE,
+		        (SELECT F.CMMNS_CD_VALUE_NM FROM SAC100 F WHERE F.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' AND F.CMMNS_CD_VALUE = C.UNT_TASKWK_SE_CD) AS UNIT_NM,
+		        CASE WHEN C.UNT_TASKWK_SE_CD IS NULL THEN 0 ELSE 1 END AS UNIT_COUNT,
+		        C.RGN_CD,
+		        (SELECT D.ENG_CTPV_NM FROM SAA020 D /* 시군구코드 */ WHERE D.SGG_CD = C.RGN_CD) AS ENG_CTPV_NM,
+		        C.HPGE_URL_ADDR,
+		        C.MAIN_ENFC_INST_SE_CD,
+		        C.CTPV_CD,
+		        C.SGG_CD,
+		        C.BPLC_ZIP,
+		        C.BPLC_PST_ADDR,
+		        C.BPLC_DADDR,
+		        C.RPRSV_NM_ENCPT,
+		        C##RG.DEC_B64(C.RPRSV_NM_ENCPT) AS RPRSV_NM,
+		        C.RPRS_TELNO,
+		        C.RPRS_FXNO,
+		        C.APLCN_BGNG_YMD,
+		        C.APLCN_END_YMD,
+		        C.PIC_ENFSN_NO,
+		        C.PIC_NM_ENCPT,
+		        C.PIC_TELNO,
+		        C.PIC_MBL_TELNO_ENCPT,
+		        C##RG.DEC_B64(C.PIC_MBL_TELNO_ENCPT) AS PIC_MBL_TELNO,
+		        C.PIC_EML_ADDR_ENCPT,
+		        C##RG.DEC_B64(C.PIC_EML_ADDR_ENCPT) AS PIC_EML_ADDR,
+		        C.CNSGN_YMD,
+		        C.APLY_YMD,
+		        C.APLCNT_ID,
+		        C.APRV_YN,
+		        C.PRCS_YMD,
+		        C.AUTZR_ID,
+		        C.CTPV_LINK_PBADMS_RGN_CD,
+		        C.SGG_LINK_PBADMS_RGN_CD,
+		        C.EMD_LINK_PBADMS_RGN_CD,
+		        C.ORGNL_INST_NO,
+		        C.OFFCS_SGNNG_NO,
+		        C.ATFINO,
+		        C.DEL_YN,
+		        C.FRST_RGTR_ID,
+		        TO_CHAR(C.FRST_REG_DT, 'YYYY-MM-DD HH24:MI') AS FRST_REG_DT,
+		        C.LAST_MDFR_ID,
+		        TO_CHAR(C.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI') AS LAST_MDFCN_DT,
+		        D.RJCT_CS_CN,
+		        (CASE D.APRV_STTS_SE_CD WHEN '1' THEN '1' WHEN '2' THEN '2' WHEN '3' THEN '3' ELSE '2' END) AS APRV_STTS_SE_CD,
+		        ROWNUM AS SEQ
+		    FROM SAA000 C /* 기관코드 */
+		    LEFT JOIN (SELECT B.*
+		                   , ROW_NUMBER() OVER(PARTITION BY B.INST_NO ORDER BY B.APLY_DT DESC) AS RN
+		               FROM SAA010 B
+		               ) AS D
+		    ON C.INST_NO = D.INST_NO AND D.RN = '1'         
+		    WHERE C.APRV_YN = 'Y' 
+		    AND C.DEL_YN = 'N'
+		    AND C.UNT_TASKWK_SE_CD = #{unitSystem}
+		    <if test="orgType != null and orgType != ''">
+		        AND C.INST_TYPE_SE_CD = #{orgType}
+		    </if>
+		    <if test="orgName != null and orgName != ''">
+		        AND C.INST_NM LIKE '%' || #{orgName} || '%'
+		    </if>
+		)
+		WHERE SEQ <![CDATA[>=]]> #{START_IDX} AND SEQ <![CDATA[<=]]> #{LAST_IDX}
+		ORDER BY CASE INST_TYPE_SE_CD WHEN 1 THEN 1 ELSE 2 END, UNIT_NM, INST_NM
+    </select>
+    
+</mapper>

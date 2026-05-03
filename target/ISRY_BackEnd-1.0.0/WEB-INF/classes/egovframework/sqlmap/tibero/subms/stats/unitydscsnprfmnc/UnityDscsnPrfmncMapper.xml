@@ -1,0 +1,1021 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- SeoungJae Lee -->
+<mapper
+	namespace="isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper">
+	
+	<select id="selectRegion" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper.selectRegion */
+        SELECT DISTINCT CTPV_SE_CD, 
+        CTPV_NM 
+        FROM SAA020
+    ]]>
+    </select>
+    
+    <select id="selectRegion2" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper.selectRegion2 */
+        SELECT SGG_CD,
+            SGG_NM,
+            CTPV_SE_CD 
+        FROM SAA020
+        ORDER BY SRTNG_SQNCE
+    ]]>
+    </select>
+	
+	<!-- 상담통계 - 성별상담통계 -->
+	<select id="selectSxdcDscsnStatsList" resultType="HashMap">
+	/* isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper.selectSxdcDscsnStatsList 상담통계 - 성별상담통계 Lee.Seoung.Jae*/
+	<![CDATA[
+	--비등록사례상담 데이터
+	WITH TMP AS (
+	    SELECT
+	        A.SRVC_RESRCE_MLSFC_SE_CD                                                          -- 자원제공서비스중분류구분코드
+	        , A.TRPR_INFO_NO                                                                   -- 대상자정보번호
+	        , CASE WHEN A.TRPR_INFO_NO IS NULL THEN 'Z' ELSE B.SXDC_SE_CD END AS SXDC_SE_CD    -- 대상자 성별 구분코드
+	    FROM ACA140 A 
+	    LEFT JOIN SEA200 B 
+	        ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	        AND B.DEL_YN = 'N'
+	    JOIN SAA000 C 
+	        ON A.INST_NO = C.INST_NO
+	        AND C.DEL_YN = 'N'
+	    WHERE A.DSCSN_YMD BETWEEN #{SRT_DT} AND #{END_DT}                                   --상담일자
+	        AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	        -- 기간구분
+	    ]]>
+	        <if test="CTPV_CD != NULL and CTPV_CD !=''">
+	            -- 시도코드
+	            AND C.CTPV_CD = #{CTPV_CD}
+	        </if>
+	        <if test="SGG_CD != NULL and SGG_CD != ''">
+	            -- 시군구코드
+	            AND C.SGG_CD = #{SGG_CD}
+	        </if>
+	        <if test="INST_NO != NULL and INST_NO != ''">
+	            -- 기관번호
+	            AND A.INST_NO = #{INST_NO}
+	        </if>
+	    <foreach collection="INST_NOS" item="instNo" open="AND A.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+	    <![CDATA[
+	)
+	
+	SELECT * FROM
+	(
+		SELECT 
+		    NVL(A.SXDC_SE_NM,'합계') AS SE
+		    , SUM(B.DSCSN1) AS RESULT1
+		    , SUM(B.DSCSN2) AS RESULT2
+		    , SUM(B.DSCSN3) AS RESULT3
+		    , SUM(B.DSCSN4) AS RESULT4
+		    , SUM(B.DSCSN5) AS RESULT5
+		    , SUM(B.DSCSN6) AS RESULT6
+		    , SUM(B.DSCSN7) AS RESULT7
+		    , SUM(B.DSCSN8) AS RESULT8
+		    , SUM(B.DSCSN9) AS RESULT9
+		    , A.SRTNG_SQNCE
+		FROM(
+		    SELECT CMMNS_CD_VALUE AS SXDC_SE_CD
+		        , CMMNS_CD_VALUE_NM AS SXDC_SE_NM
+		        , SRTNG_SQNCE
+		    FROM SAC100
+		    WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+		    
+		    UNION ALL
+		    
+		    SELECT 
+		        'Z' AS SXDC_SE_CD
+		        , '대상자비등록' AS SXDC_SE_NM
+		        , 4
+		    FROM DUAL
+		) A
+		LEFT JOIN (
+		    --성별
+		    SELECT 
+		        SXDC_SE_CD
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN TRPR_INFO_NO END) AS DSCSN1
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN TRPR_INFO_NO END) AS DSCSN2
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN TRPR_INFO_NO END) AS DSCSN3
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN TRPR_INFO_NO END) AS DSCSN4
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN TRPR_INFO_NO END) AS DSCSN5
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN TRPR_INFO_NO END) AS DSCSN6
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN TRPR_INFO_NO END) AS DSCSN7
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN TRPR_INFO_NO END) AS DSCSN8
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN TRPR_INFO_NO END) AS DSCSN9
+		    FROM TMP 
+		    GROUP BY SXDC_SE_CD
+		    
+		    UNION ALL
+		    
+		    --사례데이터
+		    SELECT 
+		        SXDC_SE_CD
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN TRPR_INFO_NO END) AS DSCSN1
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN TRPR_INFO_NO END) AS DSCSN2
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN TRPR_INFO_NO END) AS DSCSN3
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN TRPR_INFO_NO END) AS DSCSN4
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN TRPR_INFO_NO END) AS DSCSN5
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN TRPR_INFO_NO END) AS DSCSN6
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN TRPR_INFO_NO END) AS DSCSN7
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN TRPR_INFO_NO END) AS DSCSN8
+		        , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN TRPR_INFO_NO END) AS DSCSN9
+		    FROM
+		    (
+		        SELECT 
+		            A.TRPR_INFO_NO
+		            , A.SXDC_SE_CD
+		            , E.SRVC_RESRCE_MLSFC_SE_CD
+		        FROM SEA200 A
+		        JOIN SEB100 B
+		            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+		        JOIN SEB510 C
+		            ON B.CASE_MNG_NO = C.CASE_MNG_NO
+		            AND B.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+		        JOIN SEB500 D
+		            ON D.SRVC_PVSN_NO = C.SRVC_PVSN_NO
+		            AND D.RESRCE_NO = C.RESRCE_NO
+		        JOIN SDA100 E
+		            ON C.RESRCE_NO = E.RESRCE_NO
+		        JOIN SEB150 F
+		            ON F.CASE_MNG_NO = B.CASE_MNG_NO
+		            AND F.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+		            AND F.PCHPRS_YN = 'Y'
+		        JOIN SAA000 G
+		            ON G.INST_NO = F.PIC_INST_NO
+		        WHERE E.SRVC_RESRCE_LCLAS_SE_CD = '01'                                  /*자원제공서비스대분류구분코드*/
+		           AND E.APRV_STTS_SE_CD = '2'
+		           AND D.SRVC_PVSN_BGNG_YMD BETWEEN #{SRT_DT} AND #{END_DT}         /*서비스제공시작일자~종료일자*/
+		           AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    		       ]]>
+		           <if test="CTPV_CD != NULL and CTPV_CD !=''">
+		               -- 시도코드
+		               AND G.CTPV_CD = #{CTPV_CD}
+		           </if>
+		           <if test="SGG_CD != NULL and SGG_CD != ''">
+		               -- 시군구코드
+		               AND G.SGG_CD = #{SGG_CD}
+		           </if>
+		           <if test="INST_NO != NULL and INST_NO != ''">
+		               -- 기관번호
+		               AND G.INST_NO = #{INST_NO}
+		           </if>
+		           <foreach collection="INST_NOS" item="instNo" open="AND G.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+	        <![CDATA[
+		           AND A.DEL_YN = 'N'
+		           AND C.DEL_YN = 'N'
+		           AND D.DEL_YN = 'N'
+		           AND G.DEL_YN = 'N'
+		    ) 
+		    GROUP BY SXDC_SE_CD
+		    
+		    UNION ALL
+		    
+		    --비등록대상자
+		    SELECT
+		        'Z'
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0101' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN1
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0102' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN2
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0103' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN3
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0104' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN4
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0105' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN5
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0106' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN6
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0111' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN7
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0112' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN8
+		        , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0107' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN9
+		    FROM TMP B
+		) B
+		ON A.SXDC_SE_CD = B.SXDC_SE_CD
+		GROUP BY GROUPING SETS((SXDC_SE_NM,SRTNG_SQNCE),())
+	)
+	ORDER BY CASE WHEN SE = '합계' THEN 1 END, SRTNG_SQNCE
+    ]]>
+	</select>
+	
+	<!-- 상담통계 - 대상자유형별 상담통계 -->
+	<select id="selectTrprTypeDscsnStatsList" resultType="HashMap">
+	/*isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper.selectTrprTypeDscsnStatsList 상담통계 - 대상자유형별 상담통계 LEE.SEOUNG.JAE*/
+	<![CDATA[
+    --비등록사례상담 데이터
+    WITH TMP AS (
+        SELECT
+            A.SRVC_RESRCE_MLSFC_SE_CD                                                          -- 자원제공서비스중분류구분코드
+            , A.TRPR_INFO_NO                                                                   -- 대상자정보번호
+            , CASE WHEN A.TRPR_INFO_NO IS NULL THEN 'Z' ELSE B.TRPR_BCRN_TYPE_SE_CD END AS TRPR_BCRN_TYPE_SE_CD    -- 대상자 성별 구분코드
+        FROM ACA140 A 
+        LEFT JOIN SEA200 B 
+            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+            AND B.DEL_YN = 'N'
+        JOIN SAA000 C 
+            ON A.INST_NO = C.INST_NO
+            AND C.DEL_YN = 'N'
+        WHERE A.DSCSN_YMD BETWEEN #{SRT_DT} AND #{END_DT}                                   --상담일자
+            AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+            -- 기간구분
+        ]]>
+            <if test="CTPV_CD != NULL and CTPV_CD !=''">
+                -- 시도코드
+                AND C.CTPV_CD = #{CTPV_CD}
+            </if>
+            <if test="SGG_CD != NULL and SGG_CD != ''">
+                -- 시군구코드
+                AND C.SGG_CD = #{SGG_CD}
+            </if>
+            <if test="INST_NO != NULL and INST_NO != ''">
+                -- 기관번호
+                AND A.INST_NO = #{INST_NO}
+            </if>
+        <foreach collection="INST_NOS" item="instNo" open="AND A.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+        <![CDATA[
+    )
+    
+    SELECT * FROM
+    (
+        SELECT 
+            NVL(A.TRPR_BCRN_TYPE_SE_NM,'합계') AS SE
+            , SUM(B.DSCSN1) AS RESULT1
+            , SUM(B.DSCSN2) AS RESULT2
+            , SUM(B.DSCSN3) AS RESULT3
+            , SUM(B.DSCSN4) AS RESULT4
+            , SUM(B.DSCSN5) AS RESULT5
+            , SUM(B.DSCSN6) AS RESULT6
+            , SUM(B.DSCSN7) AS RESULT7
+            , SUM(B.DSCSN8) AS RESULT8
+            , SUM(B.DSCSN9) AS RESULT9
+            , A.SRTNG_SQNCE
+        FROM(
+            SELECT CMMNS_CD_VALUE AS TRPR_BCRN_TYPE_SE_CD
+                , CMMNS_CD_VALUE_NM AS TRPR_BCRN_TYPE_SE_NM
+                , SRTNG_SQNCE
+            FROM SAC100
+            WHERE CMMNS_CD_ID = 'TRPR_BCRN_TYPE_SE_CD'
+            
+            UNION ALL
+            
+            SELECT 
+                'Z' AS TRPR_BCRN_TYPE_SE_CD
+                , '대상자비등록' AS TRPR_BCRN_TYPE_SE_NM
+                , 999
+            FROM DUAL
+        ) A
+        LEFT JOIN (
+            --대상자배경유형
+            SELECT 
+                TRPR_BCRN_TYPE_SE_CD
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN TRPR_INFO_NO END) AS DSCSN1
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN TRPR_INFO_NO END) AS DSCSN2
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN TRPR_INFO_NO END) AS DSCSN3
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN TRPR_INFO_NO END) AS DSCSN4
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN TRPR_INFO_NO END) AS DSCSN5
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN TRPR_INFO_NO END) AS DSCSN6
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN TRPR_INFO_NO END) AS DSCSN7
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN TRPR_INFO_NO END) AS DSCSN8
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN TRPR_INFO_NO END) AS DSCSN9
+            FROM TMP 
+            GROUP BY TRPR_BCRN_TYPE_SE_CD
+            
+            UNION ALL
+            
+            --사례데이터
+            SELECT 
+                TRPR_BCRN_TYPE_SE_CD
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN TRPR_INFO_NO END) AS DSCSN1
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN TRPR_INFO_NO END) AS DSCSN2
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN TRPR_INFO_NO END) AS DSCSN3
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN TRPR_INFO_NO END) AS DSCSN4
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN TRPR_INFO_NO END) AS DSCSN5
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN TRPR_INFO_NO END) AS DSCSN6
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN TRPR_INFO_NO END) AS DSCSN7
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN TRPR_INFO_NO END) AS DSCSN8
+                , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN TRPR_INFO_NO END) AS DSCSN9
+            FROM
+            (
+                SELECT 
+                    A.TRPR_INFO_NO
+                    , A.TRPR_BCRN_TYPE_SE_CD
+                    , E.SRVC_RESRCE_MLSFC_SE_CD
+                FROM SEA200 A
+                JOIN SEB100 B
+                    ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+                JOIN SEB510 C
+                    ON B.CASE_MNG_NO = C.CASE_MNG_NO
+                    AND B.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+                JOIN SEB500 D
+                    ON D.SRVC_PVSN_NO = C.SRVC_PVSN_NO
+                    AND D.RESRCE_NO = C.RESRCE_NO
+                JOIN SDA100 E
+                    ON C.RESRCE_NO = E.RESRCE_NO
+                JOIN SEB150 F
+                    ON F.CASE_MNG_NO = B.CASE_MNG_NO
+                    AND F.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+                    AND F.PCHPRS_YN = 'Y'
+                JOIN SAA000 G
+                    ON G.INST_NO = F.PIC_INST_NO
+                WHERE E.SRVC_RESRCE_LCLAS_SE_CD = '01'                                  /*자원제공서비스대분류구분코드*/
+                   AND E.APRV_STTS_SE_CD = '2'
+                   AND D.SRVC_PVSN_BGNG_YMD BETWEEN #{SRT_DT} AND #{END_DT}         /*서비스제공시작일자~종료일자*/
+                   AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+                   ]]>
+                   <if test="CTPV_CD != NULL and CTPV_CD !=''">
+                       -- 시도코드
+                       AND G.CTPV_CD = #{CTPV_CD}
+                   </if>
+                   <if test="SGG_CD != NULL and SGG_CD != ''">
+                       -- 시군구코드
+                       AND G.SGG_CD = #{SGG_CD}
+                   </if>
+                   <if test="INST_NO != NULL and INST_NO != ''">
+                       -- 기관번호
+                       AND G.INST_NO = #{INST_NO}
+                   </if>
+                   <foreach collection="INST_NOS" item="instNo" open="AND G.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+            <![CDATA[
+                   AND A.DEL_YN = 'N'
+                   AND C.DEL_YN = 'N'
+                   AND D.DEL_YN = 'N'
+                   AND G.DEL_YN = 'N'
+            ) 
+            GROUP BY TRPR_BCRN_TYPE_SE_CD
+            
+            UNION ALL
+            
+            --비등록대상자
+            SELECT
+                'Z'
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0101' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN1
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0102' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN2
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0103' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN3
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0104' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN4
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0105' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN5
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0106' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN6
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0111' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN7
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0112' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN8
+                , COUNT(CASE WHEN B.SRVC_RESRCE_MLSFC_SE_CD = '0107' AND B.TRPR_INFO_NO IS NULL THEN 1 END) AS DSCSN9
+            FROM TMP B
+        ) B
+        ON A.TRPR_BCRN_TYPE_SE_CD = B.TRPR_BCRN_TYPE_SE_CD
+        GROUP BY GROUPING SETS((TRPR_BCRN_TYPE_SE_NM,SRTNG_SQNCE),())
+    )
+    ORDER BY CASE WHEN SE = '합계' THEN 1 END, SRTNG_SQNCE
+    ]]>
+	</select>
+	
+	<!-- 제공방식, 대상자유형별 상담통계 -->
+    <select id="selectPvsnMtdAndTrprTypeDscsnStatsList" resultType="HashMap">
+    <![CDATA[
+    /*isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper.selectPvsnMtdAndTrprTypeDscsnStatsList 상담통계 - 제공방식, 대상자유형별 상담통계 Lee.Seoung.Jae*/
+    SELECT * FROM
+    (
+        SELECT 
+            NVL(A.SRVC_PVSN_MTHD_SE_NM,'합계') AS SE
+            , SUM(B.DSCSN1) AS RESULT1
+            , SUM(B.DSCSN2) AS RESULT2
+            , SUM(B.DSCSN3) AS RESULT3
+            , SUM(B.DSCSN4) AS RESULT4
+            , SUM(B.DSCSN5) AS RESULT5
+            , SUM(B.DSCSN6) AS RESULT6
+            , SUM(B.DSCSN7) AS RESULT7
+            , SUM(B.DSCSN8) AS RESULT8
+            , SUM(B.DSCSN9) AS RESULT9
+            , SUM(C.DSCSN10) AS RESULT10
+            , A.SRTNG_SQNCE
+        FROM(
+            SELECT A.CMMNS_CD_VALUE AS SRVC_PVSN_MTHD_SE_CD
+                , A.CMMNS_CD_VALUE_NM AS SRVC_PVSN_MTHD_SE_NM
+                , A.SRTNG_SQNCE
+            FROM SAC100 A
+            JOIN SAC110 B
+                ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+                AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+            WHERE A.CMMNS_CD_ID = 'SRVC_PVSN_MTHD_SE_CD'
+                AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        ) A
+        LEFT JOIN (
+            --사례데이터
+            SELECT 
+                SRVC_PVSN_MTHD_SE_CD
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '01' THEN TRPR_INFO_NO END) AS DSCSN1
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '02' THEN TRPR_INFO_NO END) AS DSCSN2
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '03' THEN TRPR_INFO_NO END) AS DSCSN3
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '04' THEN TRPR_INFO_NO END) AS DSCSN4
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '05' THEN TRPR_INFO_NO END) AS DSCSN5
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '06' THEN TRPR_INFO_NO END) AS DSCSN6
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '07' THEN TRPR_INFO_NO END) AS DSCSN7
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '08' THEN TRPR_INFO_NO END) AS DSCSN8
+                , COUNT(CASE WHEN TRPR_BCRN_TYPE_SE_CD = '99' THEN TRPR_INFO_NO END) AS DSCSN9
+                
+            FROM
+            (
+                SELECT 
+                    A.TRPR_INFO_NO
+                    , D.SRVC_PVSN_MTHD_SE_CD
+                    , A.TRPR_BCRN_TYPE_SE_CD
+                FROM SEA200 A
+                JOIN SEB100 B
+                    ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+                JOIN SEB510 C
+                    ON B.CASE_MNG_NO = C.CASE_MNG_NO
+                    AND B.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+                JOIN SEB500 D
+                    ON D.SRVC_PVSN_NO = C.SRVC_PVSN_NO
+                    AND D.RESRCE_NO = C.RESRCE_NO
+                JOIN SDA100 E
+                    ON C.RESRCE_NO = E.RESRCE_NO
+                JOIN SEB150 F
+                    ON F.CASE_MNG_NO = B.CASE_MNG_NO
+                    AND F.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+                    AND F.PCHPRS_YN = 'Y'
+                JOIN SAA000 G
+                    ON G.INST_NO = F.PIC_INST_NO
+                LEFT JOIN ACA140 H
+                    ON H.TRPR_INFO_NO = A.TRPR_INFO_NO
+                    AND H.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+                    AND H.DSCSN_YMD BETWEEN #{SRT_DT} AND #{END_DT}
+                    AND H.INST_NO = G.INST_NO
+    
+                WHERE E.SRVC_RESRCE_LCLAS_SE_CD = '01'                                  /*자원제공서비스대분류구분코드*/
+                   AND E.APRV_STTS_SE_CD = '2'
+                   AND D.SRVC_PVSN_BGNG_YMD BETWEEN #{SRT_DT} AND #{END_DT}         /*서비스제공시작일자~종료일자*/
+                   AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+                   ]]>
+                       <if test="CTPV_CD != NULL and CTPV_CD !=''">
+                           -- 시도코드
+                           AND G.CTPV_CD = #{CTPV_CD}
+                       </if>
+                       <if test="SGG_CD != NULL and SGG_CD != ''">
+                           -- 시군구코드
+                           AND G.SGG_CD = #{SGG_CD}
+                       </if>
+                       <if test="INST_NO != NULL and INST_NO != ''">
+                           -- 기관번호
+                           AND G.INST_NO = #{INST_NO}
+                       </if>
+                       <foreach collection="INST_NOS" item="instNo" open="AND G.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+                   <![CDATA[
+                   AND A.DEL_YN = 'N'
+                   AND C.DEL_YN = 'N'
+                   AND D.DEL_YN = 'N'
+                   AND G.DEL_YN = 'N'
+            )
+            GROUP BY SRVC_PVSN_MTHD_SE_CD
+        ) B
+        ON A.SRVC_PVSN_MTHD_SE_CD = B.SRVC_PVSN_MTHD_SE_CD
+        LEFT JOIN (
+            SELECT A.SRVC_PVSN_MTHD_SE_CD
+                , COUNT(A.CO13_MNG_NO) AS DSCSN10
+            FROM ACA140 A
+            JOIN SAA000 C 
+                ON A.INST_NO = C.INST_NO
+                AND C.DEL_YN = 'N'
+            WHERE A.DSCSN_YMD BETWEEN #{SRT_DT} AND #{END_DT}
+                AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+                ]]>
+                   <if test="CTPV_CD != NULL and CTPV_CD !=''">
+                       -- 시도코드
+                       AND C.CTPV_CD = #{CTPV_CD}
+                   </if>
+                   <if test="SGG_CD != NULL and SGG_CD != ''">
+                       -- 시군구코드
+                       AND C.SGG_CD = #{SGG_CD}
+                   </if>
+                   <if test="INST_NO != NULL and INST_NO != ''">
+                       -- 기관번호
+                       AND C.INST_NO = #{INST_NO}
+                   </if>
+                   <foreach collection="INST_NOS" item="instNo" open="AND C.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+                <![CDATA[
+                AND A.TRPR_INFO_NO IS NULL
+            GROUP BY A.SRVC_PVSN_MTHD_SE_CD
+        ) C
+            ON C.SRVC_PVSN_MTHD_SE_CD = A.SRVC_PVSN_MTHD_SE_CD
+        GROUP BY GROUPING SETS((SRVC_PVSN_MTHD_SE_NM,SRTNG_SQNCE),())
+    )
+    ORDER BY CASE WHEN SE = '합계' THEN 1 END, SRTNG_SQNCE
+    ]]>
+    </select>
+    
+    
+    <!-- 연령별 상담통계 -->
+    <select id="selectAgeDscsnStatsList" resultType="HashMap">
+    <![CDATA[
+    /*isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper.selectAgeDscsnStatsList 상담통계 - 연령별 상담통계 Lee.Seoung.Jae*/
+    WITH TMP AS (
+	    SELECT
+	        SRVC_RESRCE_MLSFC_SE_CD                          --자원제공서비스중분류구분코드
+	        , TRPR_INFO_NO                                   --대상자정보번호
+	        , CASE WHEN (SUBSTR(DSCSN_YMD,1,4) - SUBSTR(TRPR_BRTH_YMD,1,4) > 24) OR (SUBSTR(DSCSN_YMD,1,4) - SUBSTR(TRPR_BRTH_YMD,1,4) < 9) THEN '기타' 
+	            WHEN TRPR_INFO_NO IS NOT NULL AND TRPR_BRTH_YMD IS NULL THEN '미확인'
+	             WHEN TRPR_INFO_NO IS NULL THEN '대상자 비등록'
+	            ELSE TO_CHAR(SUBSTR(DSCSN_YMD,1,4) - SUBSTR(TRPR_BRTH_YMD,1,4))
+	        END AS AGE
+	    FROM
+	    (
+	        SELECT
+	            A.SRVC_RESRCE_MLSFC_SE_CD                          --자원제공서비스중분류구분코드
+	            , A.TRPR_INFO_NO                                   --대상자정보번호
+	            , B.TRPR_BRTH_YMD                           --서비스제공방법구분코드
+	            , A.DSCSN_YMD
+	        FROM ACA140 A 
+	        LEFT JOIN SEA200 B 
+	            ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            AND B.DEL_YN = 'N'
+	        JOIN SAA000 C 
+	            ON A.INST_NO = C.INST_NO
+	            AND C.DEL_YN = 'N'
+	        WHERE A.DSCSN_YMD BETWEEN #{SRT_DT} AND #{END_DT}
+	            AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	            ]]>
+                    <if test="CTPV_CD != NULL and CTPV_CD !=''">
+                        -- 시도코드
+                        AND C.CTPV_CD = #{CTPV_CD}
+                    </if>
+                    <if test="SGG_CD != NULL and SGG_CD != ''">
+                        -- 시군구코드
+                        AND C.SGG_CD = #{SGG_CD}
+                    </if>
+                    <if test="INST_NO != NULL and INST_NO != ''">
+                        -- 기관번호
+                        AND C.INST_NO = #{INST_NO}
+                    </if>
+                    <foreach collection="INST_NOS" item="instNo" open="AND C.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+                <![CDATA[
+	    )
+	)
+	
+	SELECT * FROM
+	(
+	    SELECT 
+	        NVL(SE,'합계') AS SE
+	        , A.AGE AS AGE
+	        , SUM(B.DSCSN1) AS RESULT1
+	        , SUM(B.DSCSN2) AS RESULT2
+	        , SUM(B.DSCSN3) AS RESULT3
+	        , SUM(B.DSCSN4) AS RESULT4
+	        , SUM(B.DSCSN5) AS RESULT5
+	        , SUM(B.DSCSN6) AS RESULT6
+	        , SUM(B.DSCSN7) AS RESULT7
+	        , SUM(B.DSCSN8) AS RESULT8
+	        , SUM(B.DSCSN9) AS RESULT9
+	        , LV
+	    FROM(
+	        SELECT 
+	            CASE WHEN (LEVEL + 8) IN (9,10,11,12) THEN '9~12세' 
+	                WHEN (LEVEL + 8) IN (13,14,15) THEN '13~15세' 
+	                WHEN (LEVEL + 8) IN (16,17,18) THEN '16~18세' 
+	                WHEN (LEVEL + 8) IN (19,20,21) THEN '18~21세' 
+	                WHEN (LEVEL + 8) IN (22,23,24) THEN '22~24세' 
+	            END                         AS SE
+	            , TO_CHAR(LEVEL + 8) AS AGE
+	            , LEVEL AS LV
+	        FROM DUAL 
+	        CONNECT BY LEVEL + 8 <= 24
+	        
+	        UNION ALL 
+	        
+	        SELECT '기타', '기타', 25 FROM DUAL
+	        
+	        UNION ALL
+	        
+	        SELECT '미확인', '미확인',26 FROM DUAL
+	        
+	        UNION ALL
+	        
+	        SELECT '대상자 비등록', '대상자 비등록' ,27 FROM DUAL
+	        
+	    ) A
+	    LEFT JOIN (
+	        --비등록사례상담 데이터
+	        SELECT 
+	            AGE
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN 1 END) AS DSCSN1
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN 1 END) AS DSCSN2
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN 1 END) AS DSCSN3
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN 1 END) AS DSCSN4
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN 1 END) AS DSCSN5
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN 1 END) AS DSCSN6
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN 1 END) AS DSCSN7
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN 1 END) AS DSCSN8
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN 1 END) AS DSCSN9
+	        FROM TMP 
+	        GROUP BY AGE
+	        
+	        UNION ALL
+	        
+	        --사례데이터
+	        SELECT 
+	            AGE
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN TRPR_INFO_NO END) AS DSCSN1
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN TRPR_INFO_NO END) AS DSCSN2
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN TRPR_INFO_NO END) AS DSCSN3
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN TRPR_INFO_NO END) AS DSCSN4
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN TRPR_INFO_NO END) AS DSCSN5
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN TRPR_INFO_NO END) AS DSCSN6
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN TRPR_INFO_NO END) AS DSCSN7
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN TRPR_INFO_NO END) AS DSCSN8
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN TRPR_INFO_NO END) AS DSCSN9
+	        FROM
+	        (
+	            SELECT 
+	                A.TRPR_INFO_NO
+	                , CASE WHEN (SUBSTR(E.PVSN_BGNG_YMD,1,4) - SUBSTR(A.TRPR_BRTH_YMD,1,4) > 24) OR (SUBSTR(E.PVSN_BGNG_YMD,1,4) - SUBSTR(A.TRPR_BRTH_YMD,1,4) < 9) THEN '기타' 
+	                    WHEN A.TRPR_BRTH_YMD IS NULL THEN '미확인'
+	                    ELSE TO_CHAR(SUBSTR(E.PVSN_BGNG_YMD,1,4) - SUBSTR(A.TRPR_BRTH_YMD,1,4))
+	                END AS AGE
+	                , E.SRVC_RESRCE_MLSFC_SE_CD
+	            FROM SEA200 A
+	            JOIN SEB100 B
+	                ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            JOIN SEB510 C
+	                ON B.CASE_MNG_NO = C.CASE_MNG_NO
+	                AND B.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+	            JOIN SEB500 D
+	                ON D.SRVC_PVSN_NO = C.SRVC_PVSN_NO
+	                AND D.RESRCE_NO = C.RESRCE_NO
+	            JOIN SDA100 E
+	                ON C.RESRCE_NO = E.RESRCE_NO
+	            JOIN SEB150 F
+	                ON F.CASE_MNG_NO = B.CASE_MNG_NO
+	                AND F.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+	                AND F.PCHPRS_YN = 'Y'
+	            JOIN SAA000 G
+	                ON G.INST_NO = F.PIC_INST_NO
+	            WHERE E.SRVC_RESRCE_LCLAS_SE_CD = '01'                                  /*자원제공서비스대분류구분코드*/
+	               AND E.APRV_STTS_SE_CD = '2'
+	               AND D.SRVC_PVSN_BGNG_YMD BETWEEN #{SRT_DT} AND #{END_DT}         /*서비스제공시작일자~종료일자*/
+	               AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	               ]]>
+	                    <if test="CTPV_CD != NULL and CTPV_CD !=''">
+	                        -- 시도코드
+	                        AND G.CTPV_CD = #{CTPV_CD}
+	                    </if>
+	                    <if test="SGG_CD != NULL and SGG_CD != ''">
+	                        -- 시군구코드
+	                        AND G.SGG_CD = #{SGG_CD}
+	                    </if>
+	                    <if test="INST_NO != NULL and INST_NO != ''">
+	                        -- 기관번호
+	                        AND G.INST_NO = #{INST_NO}
+	                    </if>
+	                    <foreach collection="INST_NOS" item="instNo" open="AND G.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+	                <![CDATA[
+	               AND A.DEL_YN = 'N'
+	               AND C.DEL_YN = 'N'
+	               AND D.DEL_YN = 'N'
+	               AND G.DEL_YN = 'N'
+	        )
+	        GROUP BY AGE
+	    ) B
+	    ON A.AGE = B.AGE
+	    GROUP BY GROUPING SETS((SE,A.AGE,LV),())
+	)
+	ORDER BY CASE WHEN SE = '합계' THEN 1 END, LV ASC
+    ]]>
+    </select>
+    
+	<!-- 청소년상태별 상담통계 -->
+	<select id="selectYngbgsSttsDscsnStatsList" resultType="HashMap">
+	/* isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper.selectYngbgsSttsDscsnStatsList  상담통계 - 청소년상태별 상담통계  Lee.Hye.Sun*/
+    <![CDATA[
+	WITH X AS (
+	    SELECT 
+	        A.TRPR_INFO_NO
+	        , A.CASE_MNG_NO
+	        , A.CASE_MNG_ODRNO
+	        , B.PROBM_STTS_LCLAS_SE_CD      /*문제상태대분류*/
+	        , B.PROBM_STTS_MLSFC_SE_CD      /*문제상태중분류*/
+	        , B.PROBM_STTS_SCLAS_SE_CD      /*문제상태소분류*/
+	        , E.SRVC_RESRCE_LCLAS_SE_CD     /*자원제공서비스대분류구분코드*/
+	        , E.SRVC_RESRCE_MLSFC_SE_CD     /*자원제공서비스중분류구분코드*/
+	        , ROW_NUMBER() OVER(PARTITION BY TRPR_INFO_NO ORDER BY PROBM_STTS_MLSFC_SE_CD DESC) ROW_NO
+	    FROM SEB100 A
+	    LEFT JOIN SEB130 B
+	    ON A.CASE_MNG_NO = B.CASE_MNG_NO
+	    AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+	    JOIN SEB510 C 
+	    ON A.CASE_MNG_NO = C.CASE_MNG_NO
+	    AND A.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+	    LEFT JOIN SEB500 D
+	    ON C.SRVC_PVSN_NO = D.SRVC_PVSN_NO
+	    AND C.RESRCE_NO = D.RESRCE_NO
+	    JOIN SDA100 E 
+	    ON C.RESRCE_NO = E.RESRCE_NO
+	    LEFT JOIN SEB150 F0 /*사례담당자*/
+	    ON F0.PCHPRS_YN = 'Y'
+	    AND F0.CASE_MNG_NO = A.CASE_MNG_NO
+	    AND F0.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+	    LEFT JOIN SAA000 F3 /*통합기관*/
+	    ON F3.INST_NO = F0.PIC_INST_NO
+	    
+	    WHERE 1=1
+	    AND E.SRVC_RESRCE_LCLAS_SE_CD = '01'
+	    --단위업무구분코드
+	    AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	    --기간검색조건
+	    AND D.SRVC_PVSN_BGNG_YMD BETWEEN TO_DATE(#{SRT_DT} || '000000', 'YYYYMMDDHH24MISS') AND TO_DATE(#{END_DT} || '235959', 'YYYYMMDDHH24MISS')
+	    ]]>
+            <if test="CTPV_CD != NULL and CTPV_CD !=''">
+                -- 시도코드
+                AND F3.CTPV_CD = #{CTPV_CD}
+            </if>
+            <if test="SGG_CD != NULL and SGG_CD != ''">
+                -- 시군구코드
+                AND F3.SGG_CD = #{SGG_CD}
+            </if>
+            <if test="INST_NO != NULL and INST_NO != ''">
+                -- 기관번호
+                AND F3.INST_NO = #{INST_NO}
+            </if>
+            <foreach collection="INST_NOS" item="instNo" open="AND F3.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+        <![CDATA[
+	    
+	)
+	
+	SELECT 
+	      CN_NM                     AS SE
+	    , CN_CD                     
+	    , MCLAS_CD                  
+	    , MCLAS_NM                  AS SE2
+	    , SCLAS_CD                  
+	    , SCLAS_NM                  AS SE3
+	    , NVL(INDV_DSCSN,0)         AS RESULT1                      --개인
+	    , NVL(GR_DSCSN,0)           AS RESULT2                      --집단
+	    , NVL(FAM_DSCSN,0)          AS RESULT3                      --가족
+	    , NVL(TRL_INSP,0)           AS RESULT4                      --심리검사
+	    , NVL(TRL_MDLRT,0)          AS RESULT5                      --심리치료
+	    , NVL(TRL_EDU,0)            AS RESULT6                      --심리교육
+	    , NVL(PARNTS_EDU,0)         AS RESULT7                      --부모교육
+	    , NVL(RESULT8,0)            AS RESULT8                      --교사및지도사(실무자)상담/교육
+	    , NVL(DSCSN_CST_SPRT,0)     AS RESULT9                      --상담심리관련비용지원
+	FROM (
+	    SELECT
+	        '한국 문화적응 ·체류 문제 *주 상태' AS CN_NM
+	        , '01' AS CN_CD
+	        , CMMNS_CD_VALUE AS MCLAS_CD
+	        , CASE WHEN CMMNS_CD_VALUE_NM LIKE '기타(텍스트 입력)' THEN '기타'
+	            ELSE CMMNS_CD_VALUE_NM
+	            END AS MCLAS_NM
+	        , NULL AS SCLAS_CD
+	        , NULL AS SCLAS_NM
+	        , B.*
+	    FROM SAC100 A
+	    LEFT JOIN (
+	        SELECT
+	            COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN 1 END) AS INDV_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN 1 END) AS GR_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN 1 END) AS FAM_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN 1 END) AS TRL_INSP
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN 1 END) AS TRL_MDLRT
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN 1 END) AS TRL_EDU
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN 1 END) AS PARNTS_EDU
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN 1 END) AS RESULT8
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN 1 END) AS DSCSN_CST_SPRT
+	            , PROBM_STTS_MLSFC_SE_CD
+	            , NULL AS PROBM_STTS_SCLAS_SE_CD
+	            , ROW_NO
+	        FROM X
+	        WHERE ROW_NO = 1
+	        GROUP BY PROBM_STTS_MLSFC_SE_CD, ROW_NO
+	    ) B
+	    ON A.CMMNS_CD_VALUE = B.PROBM_STTS_MLSFC_SE_CD
+	    WHERE CMMNS_CD_ID = 'PROBM_STTS_MLSFC_SE_CD'
+	    AND UP_CMMNS_CD_VALUE = '13'
+	    
+	    UNION ALL 
+	    
+	    SELECT
+	        '한국 문화적응 ·체류 문제 *부 상태' AS CN_NM
+	        , '02' AS CN_CD
+	        , CMMNS_CD_VALUE AS MCLAS_CD
+	        , CASE WHEN CMMNS_CD_VALUE_NM LIKE '기타(텍스트 입력)' THEN '기타'
+	            ELSE CMMNS_CD_VALUE_NM
+	            END AS MCLAS_NM
+	        , NULL AS SCLAS_CD
+	        , NULL AS SCLAS_NM
+	        , B.*
+	    FROM SAC100 A
+	    LEFT JOIN (
+	        SELECT
+	            COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN 1 END) AS INDV_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN 1 END) AS GR_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN 1 END) AS FAM_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN 1 END) AS TRL_INSP
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN 1 END) AS TRL_MDLRT
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN 1 END) AS TRL_EDU
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN 1 END) AS PARNTS_EDU
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN 1 END) AS RESULT8
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN 1 END) AS DSCSN_CST_SPRT
+	            , PROBM_STTS_MLSFC_SE_CD
+	            , NULL AS PROBM_STTS_SCLAS_SE_CD
+	            , ROW_NO
+	        FROM X
+	        WHERE ROW_NO != 1
+	        GROUP BY PROBM_STTS_MLSFC_SE_CD, ROW_NO
+	    ) B
+	    ON A.CMMNS_CD_VALUE = B.PROBM_STTS_MLSFC_SE_CD
+	    WHERE CMMNS_CD_ID = 'PROBM_STTS_MLSFC_SE_CD'
+	    AND UP_CMMNS_CD_VALUE = '13'
+	
+	    UNION ALL 
+	    
+	    SELECT
+	        '기타 문제 *복수' AS CN_NM
+	        , '03' AS CN_CD
+	        , CMMNS_CD_VALUE AS MCLAS_CD
+	        , CASE WHEN CMMNS_CD_VALUE_NM LIKE '기타(텍스트 입력)' THEN '기타'
+	            ELSE CMMNS_CD_VALUE_NM
+	            END AS MCLAS_NM
+	        , B.SCLAS_CD
+	        , B.SCLAS_NM
+	        , C.*
+	    FROM SAC100 A
+	    LEFT JOIN (
+	        SELECT
+	            CMMNS_CD_VALUE AS SCLAS_CD
+	            , CMMNS_CD_VALUE_NM AS SCLAS_NM
+	            , UP_CMMNS_CD_VALUE
+	        FROM SAC100
+	        WHERE CMMNS_CD_ID = 'PROBM_STTS_SCLAS_SE_CD'
+	        AND CMMNS_CD_VALUE != '13'
+	    ) B
+	    ON A.CMMNS_CD_VALUE = B.UP_CMMNS_CD_VALUE
+	    LEFT JOIN (
+	        SELECT
+	            COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN 1 END) AS INDV_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN 1 END) AS GR_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN 1 END) AS FAM_DSCSN
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN 1 END) AS TRL_INSP
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN 1 END) AS TRL_MDLRT
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN 1 END) AS TRL_EDU
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN 1 END) AS PARNTS_EDU
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN 1 END) AS RESULT8
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN 1 END) AS DSCSN_CST_SPRT
+	            , PROBM_STTS_MLSFC_SE_CD
+	            , PROBM_STTS_SCLAS_SE_CD
+	            , ROW_NO
+	        FROM X
+	        WHERE ROW_NO != 1
+	        GROUP BY PROBM_STTS_MLSFC_SE_CD, PROBM_STTS_SCLAS_SE_CD, ROW_NO
+	    ) C
+	    ON A.CMMNS_CD_VALUE = C.PROBM_STTS_MLSFC_SE_CD
+	    AND B.UP_CMMNS_CD_VALUE = C.PROBM_STTS_SCLAS_SE_CD
+	    WHERE A.CMMNS_CD_ID = 'PROBM_STTS_MLSFC_SE_CD'
+	    AND A.UP_CMMNS_CD_VALUE != '13'
+	)
+	
+	]]>
+	</select>
+	
+	
+	<!-- 제공방식별 상담통계 -->
+	<select id="selectPvsnMtdDscsnStatsList" resultType="HashMap">
+	/* isry.subms.stats.unitydscsnprfmnc.mapper.UnityDscsnPrfmncMapper.selectPvsnMtdDscsnStatsList  상담통계 - 제공방식별 상담통계  Lee.Seoung.Jae*/
+    <![CDATA[
+    WITH TMP AS (
+	    SELECT
+	        A.SRVC_RESRCE_MLSFC_SE_CD                          --자원제공서비스중분류구분코드
+	        , A.TRPR_INFO_NO                                   --대상자정보번호
+	        , A.SRVC_PVSN_MTHD_SE_CD                           --서비스제공방법구분코드
+	    FROM ACA140 A 
+	    LEFT JOIN SEA200 B 
+	        ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	        AND B.DEL_YN = 'N'
+	    JOIN SAA000 C 
+	        ON A.INST_NO = C.INST_NO
+	        AND C.DEL_YN = 'N'
+	    WHERE A.DSCSN_YMD BETWEEN #{SRT_DT} AND #{END_DT}                                   --상담일자
+            AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+            -- 기간구분
+        ]]>
+            <if test="CTPV_CD != NULL and CTPV_CD !=''">
+                -- 시도코드
+                AND C.CTPV_CD = #{CTPV_CD}
+            </if>
+            <if test="SGG_CD != NULL and SGG_CD != ''">
+                -- 시군구코드
+                AND C.SGG_CD = #{SGG_CD}
+            </if>
+            <if test="INST_NO != NULL and INST_NO != ''">
+                -- 기관번호
+                AND A.INST_NO = #{INST_NO}
+            </if>
+        <foreach collection="INST_NOS" item="instNo" open="AND A.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+        <![CDATA[
+	)
+	
+	SELECT * FROM
+	(
+	    SELECT 
+	        NVL(A.SRVC_PVSN_MTHD_SE_NM,'합계') AS SE
+	        , SUM(B.DSCSN1) AS RESULT1
+	        , SUM(B.DSCSN2) AS RESULT2
+	        , SUM(B.DSCSN3) AS RESULT3
+	        , SUM(B.DSCSN4) AS RESULT4
+	        , SUM(B.DSCSN5) AS RESULT5
+	        , SUM(B.DSCSN6) AS RESULT6
+	        , SUM(B.DSCSN7) AS RESULT7
+	        , SUM(B.DSCSN8) AS RESULT8
+	        , SUM(B.DSCSN9) AS RESULT9
+	        , A.SRTNG_SQNCE
+	    FROM(
+	        SELECT A.CMMNS_CD_VALUE AS SRVC_PVSN_MTHD_SE_CD
+            , A.CMMNS_CD_VALUE_NM AS SRVC_PVSN_MTHD_SE_NM
+            , A.SRTNG_SQNCE
+        FROM SAC100 A
+        JOIN SAC110 B
+            ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+            AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+        WHERE A.CMMNS_CD_ID = 'SRVC_PVSN_MTHD_SE_CD'
+            AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	    ) A
+	    LEFT JOIN (
+	        --비등록사례상담 데이터
+	        SELECT 
+	            SRVC_PVSN_MTHD_SE_CD
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN 1 END) AS DSCSN1
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN 1 END) AS DSCSN2
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN 1 END) AS DSCSN3
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN 1 END) AS DSCSN4
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN 1 END) AS DSCSN5
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN 1 END) AS DSCSN6
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN 1 END) AS DSCSN7
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN 1 END) AS DSCSN8
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN 1 END) AS DSCSN9
+	        FROM TMP 
+	        GROUP BY SRVC_PVSN_MTHD_SE_CD
+	        
+	        UNION ALL
+	        
+	        --사례데이터
+	        SELECT 
+	            SRVC_PVSN_MTHD_SE_CD
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0101' THEN TRPR_INFO_NO END) AS DSCSN1
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0102' THEN TRPR_INFO_NO END) AS DSCSN2
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0103' THEN TRPR_INFO_NO END) AS DSCSN3
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0104' THEN TRPR_INFO_NO END) AS DSCSN4
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0105' THEN TRPR_INFO_NO END) AS DSCSN5
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0106' THEN TRPR_INFO_NO END) AS DSCSN6
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0111' THEN TRPR_INFO_NO END) AS DSCSN7
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0112' THEN TRPR_INFO_NO END) AS DSCSN8
+	            , COUNT(CASE WHEN SRVC_RESRCE_MLSFC_SE_CD = '0107' THEN TRPR_INFO_NO END) AS DSCSN9
+	        FROM
+	        (
+	            SELECT 
+	                A.TRPR_INFO_NO
+	                , D.SRVC_PVSN_MTHD_SE_CD
+	                , E.SRVC_RESRCE_MLSFC_SE_CD
+	            FROM SEA200 A
+	            JOIN SEB100 B
+	                ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	            JOIN SEB510 C
+	                ON B.CASE_MNG_NO = C.CASE_MNG_NO
+	                AND B.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO
+	            JOIN SEB500 D
+	                ON D.SRVC_PVSN_NO = C.SRVC_PVSN_NO
+	                AND D.RESRCE_NO = C.RESRCE_NO
+	            JOIN SDA100 E
+	                ON C.RESRCE_NO = E.RESRCE_NO
+	            JOIN SEB150 F
+	                ON F.CASE_MNG_NO = B.CASE_MNG_NO
+	                AND F.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+	                AND F.PCHPRS_YN = 'Y'
+	            JOIN SAA000 G
+	                ON G.INST_NO = F.PIC_INST_NO
+	            WHERE E.SRVC_RESRCE_LCLAS_SE_CD = '01'                                  /*자원제공서비스대분류구분코드*/
+                   AND E.APRV_STTS_SE_CD = '2'
+                   AND D.SRVC_PVSN_BGNG_YMD BETWEEN #{SRT_DT} AND #{END_DT}         /*서비스제공시작일자~종료일자*/
+                   AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+                   ]]>
+	                   <if test="CTPV_CD != NULL and CTPV_CD !=''">
+	                       -- 시도코드
+	                       AND G.CTPV_CD = #{CTPV_CD}
+	                   </if>
+	                   <if test="SGG_CD != NULL and SGG_CD != ''">
+	                       -- 시군구코드
+	                       AND G.SGG_CD = #{SGG_CD}
+	                   </if>
+	                   <if test="INST_NO != NULL and INST_NO != ''">
+	                       -- 기관번호
+	                       AND G.INST_NO = #{INST_NO}
+	                   </if>
+	                   <foreach collection="INST_NOS" item="instNo" open="AND G.INST_NO IN (" close=")" separator=",">#{instNo}</foreach>
+	               <![CDATA[
+	               AND A.DEL_YN = 'N'
+	               AND C.DEL_YN = 'N'
+	               AND D.DEL_YN = 'N'
+	               AND G.DEL_YN = 'N'
+	        ) 
+	        GROUP BY SRVC_PVSN_MTHD_SE_CD
+	    ) B
+	    ON A.SRVC_PVSN_MTHD_SE_CD = B.SRVC_PVSN_MTHD_SE_CD
+	    GROUP BY GROUPING SETS((SRVC_PVSN_MTHD_SE_NM,SRTNG_SQNCE),())
+	)
+	ORDER BY CASE WHEN SE = '합계' THEN 1 END, SRTNG_SQNCE
+	
+	    
+    ]]>
+	</select>
+</mapper>
+
+
+
+

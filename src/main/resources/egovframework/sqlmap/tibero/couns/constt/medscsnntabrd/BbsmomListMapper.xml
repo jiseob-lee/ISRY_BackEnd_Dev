@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper">
+
+    <select id="getTotalCount" parameterType="HashMap" resultType="int">
+        SELECT /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper : 자녀맘터치법*/
+                count(*)
+        FROM (
+                SELECT 
+                            AA.BBSCTT_CN AS BBSCTT_CN
+                        ,   AA.BBSCTT_ESNTAL_NO AS BBSCTT_ESNTAL_NO
+                        ,   AA.BBSCTT_TTL_NM AS BBSCTT_TTL_NM
+                        ,   AA.FRST_RGTR_ID AS FRST_RGTR_ID
+                        ,   AA.WRTR_NM_ENCPT AS WRTR_NM_ENCPT  
+                        ,   AA.FRST_REG_DT AS FRST_REG_DT
+                        ,   BB.RETE_ESNTAL_NO AS RETE_ESNTAL_NO
+                        ,   '1' AS NUM
+                FROM        AYE100 AS AA
+                            ,AYE120 AS BB
+                WHERE       1=1
+                    AND         AA.BBSCTT_TYPE_SE_CD = '15'
+                    AND         AA.DEL_YN = 'N'
+                    AND         BB.DEL_YN = 'N'
+                    AND         BB.BBSCTT_TYPE_SE_CD(+) = AA.BBSCTT_TYPE_SE_CD
+                    AND         BB.BBSCTT_ESNTAL_NO(+) = AA.BBSCTT_ESNTAL_NO
+                                <if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''"> 
+                    AND         AA.BBSCTT_TTL_NM LIKE '%'||#{BBSCTT_TTL_NM}||'%'
+                                </if>
+                                <if test="FRST_RGTR_ID != null and FRST_RGTR_ID != ''"> 
+                    AND         AA.FRST_RGTR_ID LIKE '%'||#{FRST_RGTR_ID}||'%'
+                                </if>
+                                <if test="BBSCTT_ESNTAL_NO != null and BBSCTT_ESNTAL_NO != ''"> 
+                    AND         AA.BBSCTT_ESNTAL_NO LIKE '%'||#{BBSCTT_ESNTAL_NO}||'%'
+                                </if>
+                                <if test="STARTDATE != null and STARTDATE != ''">
+                                <![CDATA[
+                    AND         AA.FRST_REG_DT  >=  TO_DATE(#{STARTDATE} || '000000', 'YYYYMMDDHH24MISS')
+                                ]]>
+                                </if>
+                                <if test="ENDDATE != null and ENDDATE != ''">
+                                <![CDATA[
+                    AND         AA.FRST_REG_DT  <   TO_DATE(#{ENDDATE} || '000000', 'YYYYMMDDHH24MISS')+1
+                                ]]>
+                                </if>
+        UNION ALL
+                SELECT 
+                                BB.RETE_CN AS BBSCTT_CN
+                            ,   BB.BBSCTT_ESNTAL_NO AS BBSCTT_ESNTAL_NO
+                            ,   BB.RETE_TTL_NM AS BBSCTT_TTL_NM
+                            ,   BB.FRST_RGTR_ID AS FRST_RGTR_ID
+                            ,   BB.WRTR_NM_ENCPT AS WRTR_NM_ENCPT
+                            ,   BB.FRST_REG_DT AS FRST_REG_DT
+                            ,   BB.RETE_ESNTAL_NO AS RETE_ESNTAL_NO
+                            ,   '2' AS NUM
+                FROM        AYE120 AS BB
+                            ,AYE100 AS AA
+                WHERE       1=1
+                    AND        BB.BBSCTT_TYPE_SE_CD = '15'
+                    AND        BB.BBSCTT_TYPE_SE_CD(+)     =       AA.BBSCTT_TYPE_SE_CD
+                    AND        BB.BBSCTT_ESNTAL_NO(+)      =       AA.BBSCTT_ESNTAL_NO
+                    AND         AA.DEL_YN = 'N'
+                    AND         BB.DEL_YN = 'N'
+                    AND        BB.BBSCTT_TYPE_SE_CD        IS NOT NULL
+                               <if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''"> 
+                    AND        BB.RETE_TTL_NM LIKE '%'||#{BBSCTT_TTL_NM}||'%'       /*게시글제목명*/
+                               </if>
+                               <if test="FRST_RGTR_ID != null and FRST_RGTR_ID != ''"> 
+                    AND         BB.FRST_RGTR_ID LIKE '%'||#{FRST_RGTR_ID}||'%'        /*작성자명*/
+                               </if>
+                               <if test="BBSCTT_ESNTAL_NO != null and BBSCTT_ESNTAL_NO != ''"> 
+                    AND         BB.BBSCTT_ESNTAL_NO LIKE '%'||#{BBSCTT_ESNTAL_NO}||'%'        /*게시글번호*/
+                               </if>
+                               <if test="STARTDATE != null and STARTDATE != ''">
+                               <![CDATA[
+                    AND         BB.FRST_REG_DT  >=  TO_DATE(#{STARTDATE} || '000000', 'YYYYMMDDHH24MISS')
+                                ]]>
+                                </if>
+                                <if test="ENDDATE != null and ENDDATE != ''">
+                                <![CDATA[
+                    AND         BB.FRST_REG_DT  <   TO_DATE(#{ENDDATE} || '000000', 'YYYYMMDDHH24MISS')+1
+                                ]]>
+                                </if> 
+                    ) AS EE
+        ORDER BY EE.BBSCTT_ESNTAL_NO ASC
+                 ,   EE.NUM   
+    </select>
+    
+
+    <select id="selectBbsmomList" parameterType="HashMap" resultType="HashMap">
+		SELECT /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper : 자녀맘터치법(조회) (전체)*/
+		        AA.BBSCTT_ESNTAL_NO                                        /* 게시글 고유번호 */
+	        ,   AA.BBSCTT_TTL_NM                                           /* 게시글 제목명    */
+	        ,   C##RG.DEC_B64(AA.WRTR_NM_ENCPT)     AS WRTR_NM_ENCPT    /* 작성자명          */
+	        ,   AA.FRST_RGTR_ID                        AS WRTR_ID          /* 작성자아이디   */
+	        ,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD')  AS WRT_DT           /* 작성일자          */
+	        ,   CC.CMMNS_CD_VALUE_NM AS CRISIS_TYPE_SE_CD                  /* 위기유형구분명      */
+	        ,   COUNT(*) OVER() AS TOTAL_COUNT
+	        , (SELECT MAX(BB.WRTR_NM_ENCPT) 
+	            FROM AYE110  BB      /*  댓글        */ 
+	           WHERE BB.BBSCTT_TYPE_SE_CD     =       AA.BBSCTT_TYPE_SE_CD
+	             AND BB.BBSCTT_ESNTAL_NO      =       AA.BBSCTT_ESNTAL_NO
+	             AND BB.DEL_YN = 'N'
+	            )  AS CNSLTNT_NM_ENCPT     /* 상담원명            */
+	        , (SELECT MAX(BB.FRST_RGTR_ID )
+	            FROM AYE110  BB      /*  댓글        */ 
+	           WHERE BB.BBSCTT_TYPE_SE_CD     =       AA.BBSCTT_TYPE_SE_CD
+	             AND BB.BBSCTT_ESNTAL_NO      =       AA.BBSCTT_ESNTAL_NO
+	             AND BB.DEL_YN = 'N'
+	             )  AS CNSLTNT_ID     /* 상담원아이디            */     
+	        , (SELECT COUNT(1)
+	            FROM AYE110  BB      /*  댓글        */ 
+	           WHERE BB.BBSCTT_TYPE_SE_CD     =       AA.BBSCTT_TYPE_SE_CD
+	             AND BB.BBSCTT_ESNTAL_NO      =       AA.BBSCTT_ESNTAL_NO
+	             AND BB.DEL_YN = 'N'
+	            )  AS REPLY_CNT     /* 댓글수            */      
+	        ,   (SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'PROBM_STTS_LCLAS_SE_CD' AND x.CMMNS_CD_VALUE = AA.PROBM_STTS_LCLAS_SE_CD) AS PROBM_STTS_LCLAS_SE_CD   --문제상태대분류구분코드                   
+	        ,   (SELECT CMMNS_CD_VALUE_NM FROM SAC100 x WHERE x.CMMNS_CD_ID = 'PROBM_CAS_LCLAS_SE_CD' AND x.CMMNS_CD_VALUE = AA.PROBM_CAS_LCLAS_SE_CD) AS PROBM_CAS_LCLAS_SE_CD   --문제원인대분류구분코드   
+	    FROM 
+	            AYE100  AA
+	        ,   SAC100  CC
+<!-- 	        ,   AYE195  DD -->
+	    WHERE 1=1
+	        AND (
+	            AA.DEL_YN                   !=       'Y'
+	        OR  AA.DEL_YN                   IS NULL
+	            )
+	        AND AA.BBSCTT_TYPE_SE_CD        =       '15'                        /* 게시판유형구분코드 */        
+	        AND CC.CMMNS_CD_ID          (+) =       'CRISIS_TYPE_SE_CD'                 /* 위기유형구분코드       */
+	        AND CC.CMMNS_CD_VALUE(+)        =       AA.CRISIS_TYPE_SE_CD
+<!-- 	        AND DD.BBSCTT_ESNTAL_NO     (+) =       AA.BBSCTT_ESNTAL_NO -->
+<!-- 	        AND DD.BBSCTT_TYPE_SE_CD    (+) =       AA.BBSCTT_TYPE_SE_CD -->
+	        <if test='CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ""'>
+	        AND AA.CRISIS_TYPE_SE_CD        =       #{CRISIS_TYPE_SE_CD}         /* 위기유형구분 조회 */
+	        </if>
+	        <if test='BBSCTT_ESNTAL_NO != null and BBSCTT_ESNTAL_NO != ""'>
+	        AND AA.BBSCTT_ESNTAL_NO         LIKE    '%' || #{BBSCTT_ESNTAL_NO} || '%'   /* 게시글 고유번호 조회  */
+	        </if>
+	        <if test='BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ""'>
+	        AND AA.BBSCTT_TTL_NM            LIKE    '%' || #{BBSCTT_TTL_NM} || '%'       /* 게시글 제목 조회      */
+	        </if>
+	        <if test='WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ""'>
+	        AND C##RG.DEC_B64(AA.WRTR_NM_ENCPT) LIKE '%' || #{WRTR_NM_ENCPT} || '%'             /* 작성자 조회             */
+	        </if>
+	        <if test='PROBM_STTS_LCLAS_SE_CD != null and PROBM_STTS_LCLAS_SE_CD != ""'>
+	        AND AA.PROBM_STTS_LCLAS_SE_CD   =      #{PROBM_STTS_LCLAS_SE_CD}            /* 문제상태대분류 조회 */
+	        </if>
+	        <if test='PROBM_CAS_LCLAS_SE_CD != null and PROBM_CAS_LCLAS_SE_CD != ""'>
+	        AND AA.PROBM_CAS_LCLAS_SE_CD   =      #{PROBM_CAS_LCLAS_SE_CD}            /* 문제원인대분류 조회 */
+	        </if>
+	        <if test='PROBM_STTS_REG == "true"'>
+	        AND AA.PROBM_STTS_LCLAS_SE_CD IS NULL               /* 문제상태미등록             */
+	        </if>
+	        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+	        <![CDATA[
+	        AND AA.FRST_REG_DT              >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+	        AND AA.FRST_REG_DT              <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+	        ]]>
+	        </if>
+	    ORDER BY 
+	            AA.BBSCTT_ESNTAL_NO DESC
+	        ,   AA.LAST_MDFCN_DT
+	    OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select>
+    
+    <select id="selectBbsmomListY" parameterType="String" resultType="HashMap">
+        SELECT /*SQL-ID : isry.couns.constt.etcntabrd.mapper.BbsMomtListMapper : 자녀맘터치법(조회)답변완료*/
+                EE.BBSCTT_ESNTAL_NO AS BBSCTT_ESNTAL_NO
+                ,   CASE    WHEN    EE.NUM  =   '2'   THEN 'RE: ' || EE.BBSCTT_CN 
+                ELSE    EE.BBSCTT_CN
+                END     AS  BBSCTT_CN
+                ,   EE.BBSCTT_TTL_NM AS BBSCTT_TTL_NM
+                ,   EE.WRTR_NM_ENCPT AS WRTR_NM_ENCPT
+                ,   EE.CONSTT_NM_ENCPT AS CONSTT_NM_ENCPT
+                ,   EE.FRST_RGTR_ID AS FRST_RGTR_ID
+                ,   TO_CHAR(EE.FRST_REG_DT, 'YYYY-MM-DD') AS FRST_REG_DT
+                ,   EE.NUM AS NUM
+                ,   EE.RETE_ESNTAL_NO AS RETE_ESNTAL_NO
+                ,   COUNT(*) OVER() AS TOTAL_COUNT
+        FROM (
+                SELECT 
+                            AA.BBSCTT_CN AS BBSCTT_CN
+                        ,   AA.BBSCTT_ESNTAL_NO AS BBSCTT_ESNTAL_NO
+                        ,   AA.BBSCTT_TTL_NM AS BBSCTT_TTL_NM
+                        ,   AA.FRST_RGTR_ID AS FRST_RGTR_ID
+                        ,   AA.WRTR_NM_ENCPT AS WRTR_NM_ENCPT  
+                        ,   AA.FRST_REG_DT AS FRST_REG_DT
+                        ,   BB.RETE_ESNTAL_NO AS RETE_ESNTAL_NO
+                        ,   (
+                            SELECT 
+                                    A1.CONSTT_NM_ENCPT
+                            FROM
+                                    AYA150  A1
+                            WHERE   1=1
+                                AND A1.BBSCTT_TYPE_SE_CD = '15'
+                                AND A1.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+                            ) AS CONSTT_NM_ENCPT
+                        ,   '1' AS NUM
+                FROM        AYE100 AS AA
+                            ,AYE120 AS BB
+                WHERE       1=1
+				    AND     BB.BBSCTT_TYPE_SE_CD = '15'
+				    AND     AA.DEL_YN = 'N'
+				    AND     BB.DEL_YN = 'N'
+				    AND     BB.BBSCTT_TYPE_SE_CD = AA.BBSCTT_TYPE_SE_CD
+				    AND     AA.BBSCTT_ESNTAL_NO = BB.BBSCTT_ESNTAL_NO
+				            <if test="LOGIN_ID != null and LOGIN_ID != ''"> 
+                    AND      (
+                                SELECT 
+                                        A1.CONSTT_ID
+                                FROM
+                                        AYA150  A1
+                                WHERE   1=1
+                                    AND A1.BBSCTT_TYPE_SE_CD = '15'
+                                    AND A1.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+                            ) = #{LOGIN_ID}
+                            </if>
+                               <if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''"> 
+                    AND         AA.BBSCTT_TTL_NM LIKE '%'||#{BBSCTT_TTL_NM}||'%'
+                                </if>
+                                <if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''"> 
+                    AND         AA.WRTR_NM_ENCPT LIKE '%'||#{WRTR_NM_ENCPT}||'%'
+                                </if>
+                                <if test="BBSCTT_ESNTAL_NO != null and BBSCTT_ESNTAL_NO != ''"> 
+                    AND         AA.BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+                                </if>
+                                <if test="CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ''"> 
+                    AND         AA.CRISIS_TYPE_SE_CD = #{CRISIS_TYPE_SE_CD}
+                                </if>
+                                <if test="STARTDATE != null and STARTDATE != ''">
+                                <![CDATA[
+                    AND         AA.FRST_REG_DT  >=  TO_DATE(#{STARTDATE} || '000000', 'YYYYMMDDHH24MISS')
+                                ]]>
+                                </if>
+                                <if test="ENDDATE != null and ENDDATE != ''">
+                                <![CDATA[
+                    AND         AA.FRST_REG_DT  <   TO_DATE(#{ENDDATE} || '000000', 'YYYYMMDDHH24MISS')+1
+                                ]]>
+                                </if>
+        UNION ALL
+                SELECT 
+                                BB.RETE_CN AS BBSCTT_CN
+                            ,   BB.BBSCTT_ESNTAL_NO AS BBSCTT_ESNTAL_NO
+                            ,   BB.RETE_TTL_NM AS BBSCTT_TTL_NM
+                            ,   BB.FRST_RGTR_ID AS FRST_RGTR_ID
+                            ,   BB.WRTR_NM_ENCPT AS WRTR_NM_ENCPT
+                            ,   BB.FRST_REG_DT AS FRST_REG_DT
+                            ,   BB.RETE_ESNTAL_NO AS RETE_ESNTAL_NO
+                            ,   '' AS CONSTT_NM_ENCPT
+                            ,   '2' AS NUM
+                FROM        AYE120 AS BB
+                            ,AYE100 AS AA
+                WHERE       1=1
+				    AND     BB.BBSCTT_TYPE_SE_CD = '15'
+				    AND     BB.DEL_YN = 'N'
+				    AND     AA.DEL_YN = 'N'
+				    AND     BB.BBSCTT_TYPE_SE_CD = AA.BBSCTT_TYPE_SE_CD
+				    AND     AA.BBSCTT_ESNTAL_NO = BB.BBSCTT_ESNTAL_NO
+                                <if test="CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ''"> 
+                    AND         AA.CRISIS_TYPE_SE_CD = #{CRISIS_TYPE_SE_CD}
+                                </if>
+						    <if test="LOGIN_ID != null and LOGIN_ID != ''"> 
+		            AND      (
+		                        SELECT 
+		                                A1.CONSTT_ID
+		                        FROM
+		                                AYA150  A1
+		                        WHERE   1=1
+		                            AND A1.BBSCTT_TYPE_SE_CD = '15'
+		                            AND A1.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+		                    ) = #{LOGIN_ID}
+		                    </if>
+                               <if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''"> 
+                    AND        AA.BBSCTT_TTL_NM LIKE '%'||#{BBSCTT_TTL_NM}||'%'       /*게시글제목명*/
+                               </if>
+                               <if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''"> 
+                    AND         BB.WRTR_NM_ENCPT LIKE '%'||#{WRTR_NM_ENCPT}||'%'        /*작성자명*/
+                               </if>
+                               <if test="BBSCTT_ESNTAL_NO != null and BBSCTT_ESNTAL_NO != ''"> 
+                    AND         BB.BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}        /*게시글번호*/
+                               </if>
+                               <if test="STARTDATE != null and STARTDATE != ''">
+                               <![CDATA[
+                    AND         BB.FRST_REG_DT  >=  TO_DATE(#{STARTDATE} || '000000', 'YYYYMMDDHH24MISS')
+                                ]]>
+                                </if>
+                                <if test="ENDDATE != null and ENDDATE != ''">
+                                <![CDATA[
+                    AND         BB.FRST_REG_DT  <   TO_DATE(#{ENDDATE} || '000000', 'YYYYMMDDHH24MISS')+1
+                                ]]>
+                                </if> 
+                    ) AS EE
+        ORDER BY EE.BBSCTT_ESNTAL_NO ASC
+                 ,   EE.NUM   
+        OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select>
+    
+    <select id="selectBbsmomListN" parameterType="String" resultType="HashMap">
+        SELECT /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper : 자녀맘터치법(조회)미답변*/
+                    AA.BBSCTT_CN AS BBSCTT_CN
+		        ,   AA.BBSCTT_ESNTAL_NO AS BBSCTT_ESNTAL_NO
+		        ,   AA.BBSCTT_TTL_NM AS BBSCTT_TTL_NM
+		        ,   AA.FRST_RGTR_ID AS FRST_RGTR_ID
+		        ,   AA.WRTR_NM_ENCPT AS WRTR_NM_ENCPT  
+		        ,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD') AS FRST_REG_DT
+		        ,   '1' AS NUM
+		        ,   COUNT(*) OVER() AS TOTAL_COUNT
+		        ,   (
+                        SELECT 
+                                A1.INDEX_SN
+                        FROM
+                                AYA150  A1
+                        WHERE   1=1
+                            AND A1.BBSCTT_TYPE_SE_CD = '15'
+                            AND A1.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+                    ) AS INDEX_SN       /*상담자배정일련번호*/
+                ,   (
+                        SELECT 
+                                A1.CONSTT_NM_ENCPT
+                        FROM
+                                AYA150  A1
+                        WHERE   1=1
+                            AND A1.BBSCTT_TYPE_SE_CD = '15'
+                            AND A1.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+                    ) AS CONSTT_NM_ENCPT        /*상담사*/
+                ,   (
+                        SELECT 
+                                A1.CONSTT_ID
+                        FROM
+                                AYA150  A1
+                        WHERE   1=1
+                            AND A1.BBSCTT_TYPE_SE_CD = '15'
+                            AND A1.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+                    ) AS CONSTT_ID  /*상담원아이디*/
+		FROM        AYE100 AS AA
+		WHERE   1=1
+		    AND     AA.BBSCTT_TYPE_SE_CD = '15'
+		    AND     AA.DEL_YN = 'N'
+            AND     NOT EXISTS  (
+                                SELECT 'Y'
+								FROM    AYE120  BB
+								WHERE   AA.BBSCTT_ESNTAL_NO = BB.BBSCTT_ESNTAL_NO    
+									AND AA.BBSCTT_TYPE_SE_CD = BB.BBSCTT_TYPE_SE_CD
+									AND BB.DEL_YN = 'N'
+                                ) 
+                    <if test="LOGIN_ID != null and LOGIN_ID != ''"> 
+            AND      (
+                        SELECT 
+                                A1.CONSTT_ID
+                        FROM
+                                AYA150  A1
+                        WHERE   1=1
+                            AND A1.BBSCTT_TYPE_SE_CD = '15'
+                            AND A1.BBSCTT_ESNTAL_NO = AA.BBSCTT_ESNTAL_NO
+                    ) = #{LOGIN_ID}
+                    </if>
+                    <if test="BBSCTT_TTL_NM != null and BBSCTT_TTL_NM != ''"> 
+            AND      AA.BBSCTT_TTL_NM LIKE '%'||#{BBSCTT_TTL_NM}||'%'       /*게시글제목명*/
+                    </if>
+                    <if test="WRTR_NM_ENCPT != null and WRTR_NM_ENCPT != ''"> 
+            AND      AA.WRTR_NM_ENCPT LIKE '%'||#{WRTR_NM_ENCPT}||'%'        /*작성자명*/
+                    </if>
+                    <if test="BBSCTT_ESNTAL_NO != null and BBSCTT_ESNTAL_NO != ''"> 
+            AND      AA.BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}        /*게시글번호*/
+                    </if>
+                        <if test="CRISIS_TYPE_SE_CD != null and CRISIS_TYPE_SE_CD != ''"> 
+            AND         AA.CRISIS_TYPE_SE_CD = #{CRISIS_TYPE_SE_CD}
+                        </if>
+                    <if test="STARTDATE != null and STARTDATE != ''">
+                    <![CDATA[
+            AND      AA.FRST_REG_DT  >=  TO_DATE(#{STARTDATE} || '000000', 'YYYYMMDDHH24MISS')
+                    ]]>
+                    </if>
+                    <if test="ENDDATE != null and ENDDATE != ''">
+                    <![CDATA[
+            AND      AA.FRST_REG_DT  <   TO_DATE(#{ENDDATE} || '000000', 'YYYYMMDDHH24MISS')+1
+                    ]]>
+                    </if> 
+            OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select>
+    
+    <select id="counselorList" parameterType="String" resultType="HashMap">
+        SELECT
+	            C##RG.DEC_B64(BB.FLNM_ENCPT)    AS  NAME     /*  상담원명, 상담원아이디  */
+	        ,   CC.USER_ID                         AS  USER_ID  /*  상담원아이디  */
+	    FROM
+	            AYC100 AA
+	        ,   SCA100 BB
+	        ,   SAA200  CC
+	    WHERE   1=1
+	        AND AA.WORK_YMD         =       #{WORKYMD}
+	        AND AA.USER_ID          =       CC.USER_ID
+	        AND BB.ENFSN_NO   =       CC.ENFSN_NO
+    </select>
+    
+    <update id="updateRdcntDtlList" parameterType="HashMap">
+        /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법(조회수)*/
+        UPDATE AYE100 SET
+            RDCNT_NOCS = NVL(TO_NUMBER(RDCNT_NOCS), 0) +1
+        WHERE 1=1
+        AND BBSCTT_TYPE_SE_CD = '15'
+        AND BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+    </update>
+    
+    <select id="selectBbsmomDetail" parameterType="String" resultType="HashMap">
+        SELECT /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법(상세)*/
+                       AA.BBSCTT_TTL_NM                         AS BBSCTT_TTL_NM        /*제목*/
+                    ,  AA.BBSCTT_ESNTAL_NO                      AS BBSCTT_ESNTAL_NO     /*게시글번호*/
+                    ,  AA.FRST_RGTR_ID                          AS FRST_RGTR_ID         /*작성자아이디*/
+                    ,  C##RG.DEC_B64(AA.WRTR_NM_ENCPT)       AS WRTR_NM_ENCPT        /*작성자*/
+                    ,  AA.BRTH_YMD                              AS BRTH_YMD             /*출생일자*/
+                    ,  AA.RDCNT_NOCS                            AS RDCNT_NOCS           /*조회수*/
+                    ,  to_char(AA.FRST_REG_DT, 'YYYY-MM-DD')    AS FRST_REG_DT          /*최초등록일자*/
+                    ,   (
+                            SELECT 
+                                    A1.CMMNS_CD_VALUE_NM
+                            FROM
+                                    SAC100  A1
+                            WHERE   1=1
+                                AND A1.CMMNS_CD_ID      =   'SXDC_SE_CD'
+                                AND A1.CMMNS_CD_VALUE   =   AA.SXDC_SE_CD
+                        )                                       AS SXDC_SE_CD           /*성별*/
+                    ,  AA.NTABRD_PSWD_ENCPT                     AS NTABRD_PSWD_ENCPT    /*글비번*/
+                    ,  AA.CNTN_IP_ADDR                          AS CNTN_IP_ADDR         /*아이피주소*/
+                    ,  AA.BBSCTT_CN                             AS BBSCTT_CN            /*게시글내용*/
+                    ,   (
+                        SELECT 
+                                to_char(A1.REG_DT, 'YYYYMMDD')
+                        FROM
+                                AYA150  A1
+                        WHERE   1=1
+                            AND A1.BBSCTT_TYPE_SE_CD = '15'
+                            AND A1.BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+                        )                                       AS REG_DT               /*상담자배정일자*/
+                    ,   (
+                        SELECT 
+                                A1.CONSTT_ID
+                        FROM
+                                AYA150  A1
+                        WHERE   1=1
+                            AND A1.BBSCTT_TYPE_SE_CD = '15'
+                            AND A1.BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+                        )                                       AS CONSTT_ID            /*상담사명, 메모*/
+                    ,   (
+                        SELECT 
+                                A1.MEMO_NM
+                        FROM
+                                AYA160  A1
+                        WHERE   1=1
+                            AND A1.BBSCTT_TYPE_SE_CD = '15'
+                            AND A1.BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+                        )                                       AS MEMO_NM              /*상담사명, 메모*/
+        FROM        AYE100 AS AA
+        WHERE 
+                    1=1
+            AND     DEL_YN = 'N'        /*삭제여부*/
+            AND     BBSCTT_TYPE_SE_CD = '15'        /*게시글유형구분코드*/
+            AND     BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}
+    </select>
+    
+    <update id="updateBbsmom" parameterType="HashMap">
+        UPDATE AYE100 SET 
+                    /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법(수정)*/
+                    BBSCTT_TTL_NM = #{BBSCTT_TTL_NM}                        /*게시글제목명*/
+                   ,BBSCTT_CN = #{BBSCTT_CN}                                /*게시글내용*/
+                   ,LAST_MDFR_ID = #{LAST_MDFR_ID}                    
+                   ,LAST_MDFCN_DT = SYSDATE                             
+        WHERE      1=1
+            AND     BBSCTT_TYPE_SE_CD = '15'
+            AND     BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO}                                 
+    </update>
+    
+    <update id="deleteBbsmom" parameterType="HashMap">
+
+        UPDATE AYE100 SET
+                    /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법(삭제)*/
+                      DEL_YN = 'Y'
+                    , LAST_MDFCN_DT = SYSDATE     
+                    , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        WHERE       1=1
+            AND     BBSCTT_TYPE_SE_CD = '15'
+            AND     BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO__origin}
+    </update>
+    
+    <select id="selectRespodDetail" parameterType="String" resultType="HashMap">
+	    SELECT /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법(답글상세)*/
+	            ATFINO     /*파일명*/
+	        ,   CNTN_IP_ADDR       /*아이피번호*/
+	        ,   FRST_RGTR_ID       /*최초등록아이디*/
+	        ,   RETE_CN        /*답글내용*/
+	        ,   RETE_TTL_NM        /*답글제목*/
+	        ,   C##RG.DEC_B64(WRTR_NM_ENCPT)    AS WRTR_NM_ENCPT    /*작성자명*/
+	        ,   RETE_ESNTAL_NO       /*답글고유번호*/
+	        ,   BBSCTT_ESNTAL_NO       /*게시글고유번호*/
+	    FROM    AYE120     /*답글테이블*/
+	    WHERE   1=1
+	        AND BBSCTT_TYPE_SE_CD       =       '15'
+	        AND DEL_YN                  =       'N'
+	     <!--   AND RETE_ESNTAL_NO      =       #{RETE_ESNTAL_NO}  --> 
+	        AND BBSCTT_ESNTAL_NO        =       #{BBSCTT_ESNTAL_NO}  --> 
+    </select>
+    
+    <insert id="insertRespod" parameterType="HashMap" useGeneratedKeys="true" keyProperty="RETE_ESNTAL_NO">
+        <selectKey resultType="String" keyProperty="RETE_ESNTAL_NO" order="AFTER">
+           <![CDATA[            
+                SELECT AYE120_SQ01.CURRVAL AS RETE_ESNTAL_NO
+                FROM DUAL
+           ]]>
+       </selectKey>
+        
+		INSERT INTO AYE120  (/*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법(답글추가)*/
+				    FRST_RGTR_ID        /*작성자아이디*/
+				,   WRTR_NM_ENCPT     /*작성자명*/
+				,   CNTN_IP_ADDR        /*아이피*/
+				,   RETE_CN     /*답글내용*/
+				,   BBSCTT_ESNTAL_NO        /*게시글번호*/
+				,   BBSCTT_TYPE_SE_CD       /*게시글유형구분코드*/
+				,   RETE_ESNTAL_NO      /*답글고유번호*/
+				,   RETE_TTL_NM     /*답글제목*/
+				    <if test="ATFINO != null and ATFINO != ''">
+				,   ATFINO      /*첨부파일명*/
+				    </if>
+		          )
+		VALUES  (
+				   #{FRST_RGTR_ID}        /*작성자아이디*/
+				,  C##RG.ENC_B64(#{WRTR_NM_ENCPT})     /*작성자명*/
+				,  #{CNTN_IP_ADDR}        /*아이피*/
+				,  #{RETE_CN}     /*답글내용*/
+				,  #{BBSCTT_ESNTAL_NO}        /*게시글번호*/
+				,  '15'       /*게시글유형구분코드*/
+				,  AYE120_SQ01.NEXTVAL       /*답글고유번호*/
+				,  #{RETE_TTL_NM}     /*답글제목*/
+				<if test="ATFINO != null and ATFINO != ''">
+				,  #{ATFINO}      /*첨부파일명*/
+				</if>
+		        )
+    </insert>
+    
+    <update id="updateRespod" parameterType="HashMap">
+        UPDATE AYE120 SET 
+                    /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법(답글수정)*/
+                    RETE_CN = #{RETE_CN}
+                   ,LAST_MDFR_ID = #{LAST_MDFR_ID}                    
+                   ,LAST_MDFCN_DT = SYSDATE                             
+        WHERE      1=1
+            AND     BBSCTT_TYPE_SE_CD = '15'
+            AND     BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO__origin}
+            AND     RETE_ESNTAL_NO = #{RETE_ESNTAL_NO__origin}                                 
+    </update>
+    
+    <update id="deleteRespod" parameterType="HashMap">
+        UPDATE AYE120 SET
+                    /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법(답글삭제)*/
+                      DEL_YN = 'Y'
+                    , LAST_MDFCN_DT = SYSDATE     
+                    , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        WHERE       1=1
+            AND     BBSCTT_TYPE_SE_CD = '15'
+            AND     BBSCTT_ESNTAL_NO = #{BBSCTT_ESNTAL_NO__origin}
+            AND     RETE_ESNTAL_NO = #{RETE_ESNTAL_NO__origin}
+    </update>
+    
+    <insert id="insertCounselor" parameterType="HashMap" useGeneratedKeys="true" keyProperty="INDEX_SN">
+        <selectKey resultType="String" keyProperty="INDEX_SN" order="AFTER">
+            <![CDATA[            
+              SELECT AYA150_SQ01.CURRVAL AS INDEX_SN
+              FROM DUAL 
+            ]]>
+        </selectKey>
+        
+        INSERT INTO AYA150  (/*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법()*/
+					   INDEX_SN        /*일련번호*/
+					,  BBSCTT_ESNTAL_NO        /*게시글고유번호*/
+					,  BBSCTT_TYPE_SE_CD       /*게시글유형구분코드*/
+					,  CONSTT_ID       /*상담자아이디*/
+					,  CONSTT_NM_ENCPT     /*상다자명*/
+					,  USE_YN      /*사용여부*/
+					,  REG_DT      /*등록일시*/
+					,  DEL_YN      /*삭제여부*/
+					,  FRST_RGTR_ID    /*최초등록아이디*/
+					,  FRST_REG_DT     /*최초등록일*/
+					,  LAST_MDFR_ID        /*최종수정아이디*/
+					,  LAST_MDFCN_DT       /*최종수정일*/
+                  )
+        VALUES  (
+                       AYA150_SQ01.NEXTVAL        /*일련번호*/
+                    ,  #{BBSCTT_ESNTAL_NO}        /*게시글고유번호*/
+                    ,  '15'       /*게시글유형구분코드*/
+                    ,  #{CONSTT_ID}       /*상담자아이디*/
+                    ,  (SELECT DD.FLNM_ENCPT   
+                        FROM    SAA200 AS CC
+                            ,   SCA100 AS DD  
+                        WHERE     1=1
+                            AND   #{CONSTT_ID} = CC.USER_ID
+                            AND   CC.ENFSN_NO = DD.ENFSN_NO
+                            AND   DD.DEL_YN = 'N'
+                        )
+                    ,  'Y'      /*사용여부*/
+                    ,  #{REG_DT}      /*등록일시*/
+                    ,  'N'      /*삭제여부*/
+                    ,  #{FRST_RGTR_ID}    /*최초등록아이디*/
+                    ,  SYSDATE     /*최초등록일*/
+                    ,  #{LAST_MDFR_ID}        /*최종수정아이디*/
+                    ,  SYSDATE       /*최종수정일*/
+                )
+    </insert>
+    
+    <update id="updateCounselor" parameterType="HashMap">
+        UPDATE AYA150 SET 
+                    /*SQL-ID : isry.couns.constt.medscsnntabrd.mapper.BbsmomListMapper :  자녀맘터치법()*/
+				    CONSTT_ID = #{CONSTT_ID}
+				,   CONSTT_NM_ENCPT = (SELECT DD.FLNM_ENCPT   
+                                       FROM    SAA200 AS CC
+                                           ,   SCA100 AS DD  
+                                       WHERE     1=1
+                                           AND   #{CONSTT_ID} = CC.USER_ID
+                                           AND   CC.ENFSN_NO = DD.ENFSN_NO
+                                           AND   DD.DEL_YN = 'N'
+                                      )
+				,   REG_DT = #{REG_DT}
+				,   LAST_MDFR_ID = #{LAST_MDFR_ID}                    
+				,   LAST_MDFCN_DT = SYSDATE                             
+        WHERE      1=1
+            AND     BBSCTT_TYPE_SE_CD = '15'
+            AND     INDEX_SN = #{INDEX_SN__origin}                              
+    </update>
+    
+    <select id="counselorBoardList" parameterType="String" resultType="HashMap">
+        SELECT 
+				    INDEX_SN        /*일련번호*/
+				,   BBSCTT_ESNTAL_NO        /*게시글고유번호*/
+				,   BBSCTT_TYPE_SE_CD       /*게시글유형구분코드*/
+				,   CONSTT_ID       /*상담자아이디*/
+				,   CONSTT_NM_ENCPT     /*상다자명*/
+				,   USE_YN      /*사용여부*/
+				,   REG_DT      /*등록일시*/
+				,   DEL_YN      /*삭제여부*/
+				,   FRST_RGTR_ID    /*최초등록아이디*/
+				,   FRST_REG_DT     /*최초등록일*/
+				,   LAST_MDFR_ID        /*최종수정아이디*/
+				,   LAST_MDFCN_DT       /*최종수정일*/
+             FROM   AYA150 
+             WHERE  1=1
+                AND INDEX_SN = #{INDEX_SN}
+    </select>
+    
+    <select id="selectMemo" parameterType="HashMap" resultType="HashMap">
+    SELECT
+            RFRNC_NO
+        ,   BBSCTT_ESNTAL_NO
+        ,   CONSTT_ID
+        ,   MEMO_NM
+    FROM
+            AYA160
+    WHERE   1=1
+        AND BBSCTT_ESNTAL_NO        =       #{BBSCTT_ESNTAL_NO}
+        AND BBSCTT_TYPE_SE_CD       =       '15'
+    </select>
+    
+    <insert id="insertMemo" parameterType="HashMap">
+    INSERT  /* isry.couns.constt.medscsnntabrd.mapper.BbscttListMapper.insertMemo : 자녀맘터치법 메모등록 */
+    INTO
+            AYA160
+    (
+            RFRNC_NO
+        ,   BBSCTT_ESNTAL_NO
+        ,   BBSCTT_TYPE_SE_CD
+        ,   CONSTT_ID
+        ,   MEMO_NM
+        ,   FRST_RGTR_ID
+        ,   FRST_REG_DT
+        ,   LAST_MDFR_ID
+        ,   LAST_MDFCN_DT
+    )
+    VALUES
+    (
+            (
+                SELECT NVL(MAX(RFRNC_NO),0)+1
+				FROM AYA160 
+            )
+        ,   #{BBSCTT_ESNTAL_NO}
+        ,   '15'
+        ,   #{CONSTT_ID}
+        ,   #{MEMO_NM}
+        ,   #{FRST_RGTR_ID}
+        ,   SYSDATE
+        ,   #{LAST_MDFR_ID}
+        ,   SYSDATE
+    )
+    </insert>
+    
+    <update id="updateMemo" parameterType="HashMap">
+    UPDATE  /* isry.couns.constt.medscsnntabrd.mapper.BbscttListMapper.updateMemo : 자녀맘터치법 메모수정 */
+            AYA160
+    SET
+            MEMO_NM                 =       #{MEMO_NM}
+        ,   LAST_MDFR_ID            =       #{LAST_MDFR_ID}
+        ,   LAST_MDFCN_DT           =       SYSDATE
+    WHERE   1=1
+        AND BBSCTT_ESNTAL_NO        =       #{BBSCTT_ESNTAL_NO}
+        AND BBSCTT_TYPE_SE_CD       =       '15'
+    </update>
+    
+</mapper>

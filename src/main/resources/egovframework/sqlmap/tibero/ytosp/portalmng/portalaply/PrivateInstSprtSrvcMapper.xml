@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+    namespace="isry.ytosp.portalmng.opnnconvrgnc.mapper.PrivateInstSprtSrvcMapper">
+
+    <select id="selectPrivateInstSprtSrvcList" parameterType="String" resultType="HashMap">
+        SELECT AA.INDEX_SN                                                                                              /*번호*/
+              ,AA.SRVC_NM                                                                                               /*서비스명*/
+              ,TO_CHAR(TO_DATE(AA.SRVC_BGNG_YMD,'YYYYMMDD'),'YYYY-MM-DD') AS SRVC_BGNG_YMD                              /*서비스시작기간*/
+              ,TO_CHAR(TO_DATE(AA.SRVC_END_YMD,'YYYYMMDD'),'YYYY-MM-DD') AS SRVC_END_YMD                                /*서비스종료기간*/
+              ,AA.CONM_NM                                                                                               /*신청회사*/
+              ,TO_CHAR(TO_DATE(AA.APLY_BGNG_YMD,'YYYYMMDD'),'YYYY-MM-DD') AS APLY_BGNG_YMD                              /*신청시작일자*/
+              ,TO_CHAR(TO_DATE(AA.APLY_END_YMD,'YYYYMMDD'),'YYYY-MM-DD') AS APLY_END_YMD                                /*신청종료일자*/
+              ,C##RG.DEC_B64(DD.FLNM_ENCPT) AS USER_NM                                                               /*신청자명*/
+              ,TO_CHAR(AA.ANS_SNDNG_DT,'YYYY-MM-DD') AS ANS_SNDNG_DT                                                    /*답신발송일시*/
+              ,AA.ANS_INST_NO                                                                                           /*답신기관코드*/
+              ,BB.INST_NM                                                                                               /*답신기관명*/
+              ,AA.PRGRS_STTS_SE_CD                                                                                      /*상태*/
+        FROM PAA200 AS AA                 /*민간지원서비스*/
+        LEFT OUTER JOIN SAA000 AS BB      /*통합기관*/
+        ON AA.ANS_INST_NO = BB.INST_NO    /*기관코드*/
+        INNER JOIN SAA200 AS CC           /*유저*/
+        ON AA.USER_ID = CC.USER_ID
+        INNER JOIN SCA200 AS DD
+        ON CC.YNGBGS_PRTCR_NO = DD.YNGBGS_PRTCR_NO
+        WHERE 1=1
+        <if test="SEARCH_ITEM_CD != null and SEARCH_ITEM_CD != ''">
+	        <choose>
+	            <when test='SEARCH_ITEM_CD == "01"'>
+	                <![CDATA[
+	                    AND AA.INDEX_SN = #{SEARCH_ITEM_NM}      /* 번호 */
+	                ]]>
+	            </when>
+	            <when test='SEARCH_ITEM_CD == "02"'>
+	                 <![CDATA[
+	                     AND AA.CONM_NM LIKE '%'||#{SEARCH_ITEM_NM}||'%'   /*신청회사*/
+	                 ]]>
+	            </when>
+	            <when test='SEARCH_ITEM_CD == "03"'>
+	                 <![CDATA[
+	                     AND AA.USER_ID LIKE '%'||#{SEARCH_ITEM_NM}||'%'   /*신청자*/
+	                 ]]>
+	            </when>
+	        </choose>
+        </if>
+        <if test="INST_NO != null and INST_NO != ''">
+            AND AA.ANS_INST_NO = #{INST_NO}
+        </if>
+        <if test="PRGRS_STTS_SE_CD != null and PRGRS_STTS_SE_CD != ''">
+            AND AA.PRGRS_STTS_SE_CD = #{PRGRS_STTS_SE_CD}
+        </if>
+        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+         <![CDATA[
+             AND AA.APLY_BGNG_YMD  >=  TO_DATE(#{START_DATE}, 'YYYYMMDD')
+             AND AA.APLY_END_YMD   <=  TO_DATE(#{END_DATE},   'YYYYMMDD')
+         ]]>
+         </if>
+        <!-- 페이지 인덱서 OFFSET 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+    </select>
+    
+    <select id="getTotalCount" parameterType="HashMap" resultType="int">
+    SELECT COUNT(*)  
+    FROM PAA200
+    WHERE   1=1
+    </select>
+    
+	<select id="selectPrivateInstSprtSrvcListDetail" parameterType="String" resultType="HashMap">
+		SELECT  INDEX_SN                                                                  /*글 번호*/
+		       ,C##RG.DEC_B64(CC.FLNM_ENCPT) AS USER_NM                                /*신청자명*/
+		       ,C##RG.DEC_B64(CC.MBL_TELNO_ENCPT) AS USER_PHONENUM                     /*신청자핸드폰*/
+		       ,C##RG.DEC_B64(CC.EML_ADDR_ENCPT) AS USER_EMAIL                         /*신청자이메일*/
+		       ,AA.CONM_NM                                                                /*상호명*/
+		       ,C##RG.DEC_B64(AA.RPRSV_NM_ENCPT) AS RPRSV_NM_ENCPT                     /*대표자명*/
+		       ,AA.BRNO                                                                   /*사업자등록번호*/
+		       ,AA.SALS_ACCDT_CN                                                          /*업태*/
+		       ,AA.SALS_KND_CN                                                            /*업종(종목)*/
+		       ,CONCAT(GG.CTPV_NM,CONCAT('  ',GG.SGG_NM)) AS SGG_NM                       /*지역*/
+		       ,AA.SRVC_NM                                                                /*서비스명*/
+		       ,AA.SRVC_TRGT_NM                                                           /*서비스 대상*/
+               ,CONCAT(TO_CHAR(TO_DATE(AA.SRVC_BGNG_YMD,'YYYYMMDD'),'YYYY-MM-DD'),CONCAT(' ~ ',TO_CHAR(TO_DATE(AA.SRVC_END_YMD,'YYYYMMDD'),'YYYY-MM-DD'))) AS SRVC_YMD  /*서비스 기간*/
+               ,CONCAT(TO_CHAR(TO_DATE(AA.APLY_BGNG_YMD,'YYYYMMDD'),'YYYY-MM-DD'),CONCAT(' ~ ',TO_CHAR(TO_DATE(AA.APLY_END_YMD,'YYYYMMDD'),'YYYY-MM-DD'))) AS APLY_YMD  /*서비스 신청 기간*/
+		       ,AA.PIC_CTTPC_ENCPT                                                        /*담당자 연락처*/
+		       ,AA.PIC_EML_ADDR_ENCPT                                                     /*담당자 이메일*/
+		       ,AA.SRVC_DTL_CN                                                            /*제공 서비스 설명*/
+		       ,FF.INST_NM                                                                /*답변기관*/
+		       ,C##RG.DEC_B64(DD.FLNM_ENCPT)||' '||(SELECT USER_ID FROM SAA200 WHERE DD.ENFSN_NO = ENFSN_NO) AS FLNM_ENCPT     /*답변자명*/
+		       ,AA.ANS_SNDNG_DT                                                           /*답변발송일시*/
+		       ,TO_CHAR(AA.ANS_SNDNG_DT,'YYYY-MM-DD') AS S_ANS_SNDNG_DT                   /*답변발송일시*/
+		       ,AA.PRGRS_STTS_SE_CD                                                       /*진행상태코드*/
+		       ,AA.PRGRS_STTS_SE_CD AS    PRGRS_STTS_SE_CD2                               /*진행상태코드(BEFORE)*/
+		       ,AA.ANS_CN                                                                 /*답변내용*/
+		       ,AA.ATFINO                                                                 /*첨부파일번호*/
+        FROM PAA200 AA                              /*민간기관지원서비스*/
+        INNER JOIN SAA200 BB                        /*사용자*/
+        ON AA.USER_ID = BB.USER_ID
+        INNER JOIN SCA200 CC                        /*청소년보호자*/
+        ON BB.YNGBGS_PRTCR_NO = CC.YNGBGS_PRTCR_NO
+        LEFT OUTER JOIN SCA100 DD                   /*종사자*/
+        ON AA.ANS_ENFSN_NO = DD.ENFSN_NO
+        LEFT OUTER JOIN SAA000 FF                   /*통합기관*/
+        ON AA.ANS_INST_NO = FF.INST_NO
+        INNER JOIN SAA020 GG                        /*시군구코드*/
+        ON AA.SGG_CD = GG.SGG_CD
+	   AND AA.INDEX_SN = #{INDEX_SN}
+	</select>
+	
+    <update id="updatePrivateInstSprtSrvcList" parameterType="HashMap">
+		UPDATE PAA200
+		SET   ANS_INST_NO = #{ANS_INST_NO}              /*답변기관코드*/
+            ,ANS_ENFSN_NO = #{ANS_ENFSN_NO}             /*답변종사자번호*/
+            ,ANS_SNDNG_DT = #{ANS_SNDNG_DT}             /*답변발송일시*/
+            ,PRGRS_STTS_SE_CD = #{PRGRS_STTS_SE_CD}     /*진행상태구분코드*/
+            ,ANS_CN = #{ANS_CN}                         /*답변내용*/
+		WHERE INDEX_SN = #{INDEX_SN}
+    </update>
+</mapper>

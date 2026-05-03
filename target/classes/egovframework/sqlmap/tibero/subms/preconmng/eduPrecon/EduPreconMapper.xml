@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.subms.preconmng.eduprecon.mapper.EduPreconMapper">
+    
+    <select id="selectEduPreconList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    SELECT 
+	      C.BIZ_YR                                                                                                 /*사업연도*/
+	    , B.SRVC_EXCN_BIZ_NM                                                                                       /*실행사업명*/
+	    , B.SRVC_EXCN_BIZ_NO                                                                                       /*실행사업번호*/
+	    , D.INST_NM                                                                                                /*기관명*/
+	    , D.INST_NO                                                                                                /*기관번호*/
+	    , A.RESRCE_NO                                                                                              /*자원번호*/
+	    , A.PVSN_RESRCE_NM                                                                                         /*자원명*/
+	    , TO_CHAR(TO_DATE(A.PVSN_BGNG_YMD), 'YYYY-MM-DD') || ' ~ ' ||
+            TO_CHAR(TO_DATE(A.PVSN_END_YMD), 'YYYY-MM-DD') AS PVSN_YMD                                             /*교육기간*/
+	    , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	        WHERE CMMNS_CD_ID = 'OPER_SHAPE_SE_CD'
+	        AND CMMNS_CD_VALUE = A.OPER_SHAPE_SE_CD)
+	        AS OPER_SHAPE                                                                                          /*운영형태*/
+	    , NVL(A.UTZTN_PSNCPA_NOPE, 0) AS GOAL_NMPR                                                                 /*목표인원*/
+	    , DEC_B64(D.PIC_NM_ENCPT) AS PIC_NM_ENCPT                                                                  /*담당자*/
+	    , DEC_B64(D.PIC_MBL_TELNO_ENCPT) AS PIC_MBL_TELNO_ENCPT                                                    /*담당자연락처*/
+	    , COUNT(CASE WHEN G.CASE_BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD} THEN E.SRVC_PVSN_NO END) AS NMPR_CNT  /*등록인원*/
+	    , COUNT(CASE WHEN F.CASE_TRMN_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD} THEN F.CASE_MNG_NO END) AS TRMN_CNT   /*수료인원*/
+	FROM SDA100 A
+	JOIN SDA420 B
+	ON A.SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO
+	JOIN SDA400 C 
+	ON B.SRVC_BIZ_NO = C.SRVC_BIZ_NO
+	JOIN SAA000 D
+	ON D.INST_NO = A.RSFR_INST_NO
+	AND D.DEL_YN != 'Y'
+	LEFT JOIN SEB510 E
+	ON A.RESRCE_NO = E.RESRCE_NO
+	LEFT JOIN (
+	    SELECT BB.CASE_MNG_NO, BB.CASE_MNG_ODRNO, BB.TRMN_CS_SE_CD, AA.CASE_TRMN_YMD, BB.TRMN_SE_CD, BB.YNGBGS_CHNG_LAST_RESULT_CN, AA.PIC_OPNN_CN
+	        ,ROW_NUMBER() OVER(PARTITION BY BB.CASE_MNG_NO, BB.CASE_MNG_ODRNO ORDER BY BB.CASE_TRMN_NO DESC) AS RN
+	    FROM SEC100 AA                                                                          /*사례종결 테이블*/
+	    LEFT JOIN SEC100 BB
+	    ON BB.CASE_MNG_NO = AA.CASE_MNG_NO
+	        AND BB.CASE_MNG_NO = AA.CASE_MNG_NO
+	        AND BB.TRMN_SRNG_RESULT_SE_CD = '01'                                                /*종결심사결과구분코드(신청)*/
+	    WHERE AA.TRMN_SRNG_RESULT_SE_CD = '02'     
+	) F
+	ON E.CASE_MNG_NO = F.CASE_MNG_NO
+	AND E.CASE_MNG_ODRNO = F.CASE_MNG_ODRNO
+	AND F.RN=1
+	JOIN SEB100 G 
+	ON E.CASE_MNG_NO = G.CASE_MNG_NO
+	AND E.CASE_MNG_ODRNO = G.CASE_MNG_ODRNO
+	
+	WHERE 1=1
+	AND C.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    AND D.INST_NO IN 
+	]]>
+	<foreach collection="INST_NOS" item="item" open="(" separator="," close=")"> #{item} </foreach>
+	
+	<if test='BIZ_YR != null and BIZ_YR != ""'>
+    	AND C.BIZ_YR = #{BIZ_YR}
+	</if>
+	<if test='INST_NM != null and INST_NM != ""'>
+		AND D.INST_NM LIKE '%' || #{INST_NM} || '%'
+    </if>
+	<if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+		AND B.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    </if>
+	<if test='BGNG_YMD != null and BGNG_YMD != ""'>
+	   <![CDATA[
+		AND A.PVSN_BGNG_YMD <= #{END_YMD} AND NVL(A.PVSN_END_YMD, A.PVSN_BGNG_YMD) >= #{BGNG_YMD}
+		]]>
+    </if>
+	<if test='RESRCE_NO != null and RESRCE_NO != ""'>
+		AND A.RESRCE_NO = #{RESRCE_NO}
+    </if>
+	<if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+		AND A.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+    </if>
+	<if test='UTZTN_PSNCPA_NOPE != null and UTZTN_PSNCPA_NOPE != ""'>
+		AND A.UTZTN_PSNCPA_NOPE = #{UTZTN_PSNCPA_NOPE}
+    </if>
+	<if test='FLNM_ENCPT != null and FLNM_ENCPT != ""'>
+		AND D.PIC_NM_ENCPT LIKE '%' || C##RG.ENC_B64(#{FLNM_ENCPT}) || '%'
+    </if>
+	
+	<![CDATA[
+	GROUP BY C.BIZ_YR, B.SRVC_EXCN_BIZ_NM, B.SRVC_EXCN_BIZ_NO, D.INST_NM, D.INST_NO
+	        , A.RESRCE_NO, A.PVSN_RESRCE_NM, A.UTZTN_PSNCPA_NOPE , D.PIC_NM_ENCPT
+	        , D.PIC_MBL_TELNO_ENCPT, A.OPER_SHAPE_SE_CD, A.PVSN_BGNG_YMD, A.PVSN_END_YMD
+    ]]>
+    </select>
+
+</mapper>

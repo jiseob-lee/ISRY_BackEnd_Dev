@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.taskwksprt.taskwkandatdmng.mapper.TlcmtChgReqstdMapper">
+
+    <select id="selectUserInfo" parameterType="HashMap" resultType="HashMap">
+        /**
+        *       selectUserInfo : isry.couns.taskwksprt.taskwkandatdmng.mapper.TlcmtChgReqstdMapper : 기본정보 조회
+        */
+        SELECT
+                T1.USER_ID                                  AS  USER_ID         /* 상담원 아이디 */
+                , C##RG.DEC_B64(T2.FLNM_ENCPT)           AS  FLNM            /* 상담원 이름 */
+                , TO_CHAR(SYSDATE, 'YYYYMMDD')              AS  WRT_YMD         /* 현재 일자 */
+                , T3.DEPT_NM                                AS  DEPT_NM         /* 부서명 */
+                , C##RG.DEC_B64(T2.MBL_TELNO_ENCPT)      AS  MBL_TELNO_ENCPT /* 휴대전화번호 */
+                , (
+                    SELECT
+                            COUNT(*)
+                    FROM    SAB881      T4      /* 첨부파일상세 */
+                    WHERE   1=1
+                    AND     T4.ATFINO               =       T2.ATFINO
+                    AND     T4.FILE_STTS_SE_CD      =       'N'
+                    AND     T4.ATCMFL_CL_NM         =       '서명사진'
+                   )                                        AS  ATCMFL_CNT      /* 첨부파일 카운트 */
+                , T2.ATFINO                                 AS  ATFINO          /* 첨부파일번호 */
+                , '서명사진'                                AS  ATCMFL_CL_NM    /* 첨부파일분류명 */
+        FROM    SAA200      T1          /* 사용자 테이블 */
+                , SCA100    T2          /* 종사자 테이블 */
+                , SAA300    T3          /* 기관부서 */
+        WHERE   1=1
+        AND     T3.DEPT_CD      =       T2.OGDP_DEPT_CD
+        AND     T1.ENFSN_NO     =       T2.ENFSN_NO
+        AND     T1.USER_ID      =       #{loginId}
+    </select>
+
+	<select id="selectTlcmtChgReqstdList" parameterType="HashMap" resultType="HashMap">
+		/**
+		*		selectTlcmtChgReqstdList : isry.couns.taskwksprt.taskwkandatdmng.mapper.TlcmtChgReqstdMapper : 재택근무지변경신청 목록조회
+		*/
+			SELECT 
+					AA.INDEX_SN			                        AS	INDEX_SN
+				,	AA.CNSLTNT_ID		                        AS	CNSLTNT_ID
+				,	C##RG.DEC_B64(CC.FLNM_ENCPT)		        AS	CNSLTNT_NM
+				,   AA.HMTRC_WORK_CHG_YMD                       AS  HMTRC_WORK_CHG_YMD
+				,	TO_CHAR(AA.FRST_REG_DT,'YYYYMMDD')			AS	REG_YMD
+				,	AA.APRV_STTS_SE_CD		                    AS	APRV_STTS_SE_CD
+				,	CC.MBL_TELNO_ENCPT	                        AS	MBL_TELNO_ENCPT
+			FROM
+					AYC340		AA		/** 재택근무지 변경 **/
+				,	SAA200		BB
+				,	SCA100		CC
+			WHERE	1=1
+				AND	AA.DEL_YN	    =	'N'
+				AND	AA.CNSLTNT_ID	=	#{loginId}
+				AND	AA.CNSLTNT_ID 	=	BB.USER_ID
+				AND BB.ENFSN_NO		=	CC.ENFSN_NO
+			ORDER BY
+					AA.FRST_REG_DT DESC
+	</select>
+	
+	<insert id="insertTlcmtChgReqstd" parameterType="HashMap">
+	/**
+	*		insertTlcmtChgReqstd : isry.couns.taskwksprt.taskwkandatdmng.mapper.TlcmtChgReqstdMapper : 재택근무지변경신청 등록
+	*/
+		INSERT	INTO
+				AYC340	AA		/** 재택근무지 변경 **/
+				(
+						INDEX_SN
+					,	CNSLTNT_ID
+					,	HMTRC_WORK_CHG_YMD
+					,	HMTRC_WORK_CS_CN
+					,   ZIP
+					,	TRPR_ADDR
+					,	TRPR_LCTN_DADDR
+					,	APRV_STTS_SE_CD			/** 승인상태 구분코드 대기 : 0 **/					
+					,	DEL_YN
+					,	FRST_RGTR_ID
+					,	FRST_REG_DT
+					,	LAST_MDFR_ID
+					,	LAST_MDFCN_DT
+				)
+		VALUES
+				(
+						AYC340_SQ01.NEXTVAL
+					,	#{cnsltntId}
+					,	#{hmtrcWorkChgYmd}
+					,	#{hmtrcWorkCsCn}
+					,   #{zip}
+					,	#{trprAddr}
+					,	#{trprLctnDaddr}
+					,	'0'					
+					,	'N'
+					,	#{loginId}
+					,	SYSDATE
+					,	#{loginId}
+					,	SYSDATE
+				)
+	</insert>
+	
+	<update id="deleteTlcmtChgReqstd" parameterType="HashMap">
+	/**
+	*		deleteTlcmtChgReqstd : isry.couns.taskwksprt.taskwkandatdmng.mapper.TlcmtChgReqstdMapper : 재택근무지변경신청 삭제
+	*/
+		UPDATE
+				AYC340		AA		/** 재택근무지 변경 **/
+		SET
+				AA.DEL_YN			=	'Y'
+			,	AA.LAST_MDFR_ID		=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+		WHERE	1=1
+			AND	AA.INDEX_SN	=	#{indexSn}
+	</update>
+	
+</mapper>

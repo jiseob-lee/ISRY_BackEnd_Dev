@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.constt.chttmng.mapper.InqSpclaMapper">
+    
+	<select id="selectSpclaList" parameterType="HashMap" resultType="HashMap">
+	SELECT  /* isry.couns.constt.chttmng.mapper.InqSpclaMapper.selectSpclaList : 특별관리대상자 게시글목록*/
+	        A.CLIENA_ID                                AS CLIENA_ID        /* 내담자아이디      */
+	    ,   C##RG.DEC_B64(MAX(A.CLIENA_NM_ENCPT))   AS CLIENA_NM_ENCPT  /* 내담자명            */
+	    ,   C##RG.DEC_B64(MAX(S2.FLNM_ENCPT))       AS CONSTT_NM        /* 상담원명            */
+	    ,   TO_CHAR(MAX(A.FRST_REG_DT),'YYYY-MM-DD')   AS FRST_REG_DT      /* 등록날짜            */
+        ,   COUNT(*) OVER()                            AS TOTAL_COUNT      /* 전체건수            */
+        ,   COUNT(*)                                   AS CMNT_CNT         /* 댓글갯수            */
+	FROM 
+	        AYB110 A
+	    ,   SAA200 S1
+	    ,   SCA100 S2
+	    
+	WHERE 1=1
+	    AND A.FRST_RGTR_ID = S1.USER_ID
+        AND S1.ENFSN_NO = S2.ENFSN_NO
+        AND (A.DEL_YN != 'Y' OR A.DEL_YN IS NULL)
+        <if test="CLIENA_NM_ENCPT != null and CLIENA_NM_ENCPT != ''">
+        <![CDATA[
+        AND CASE 
+                WHEN LENGTH(A.CLIENA_NM_ENCPT) < 20 
+                    THEN A.CLIENA_NM_ENCPT
+                ELSE  
+                    C##RG.DEC_B64(A.CLIENA_NM_ENCPT) 
+                END 
+                LIKE '%' || #{CLIENA_NM_ENCPT} || '%'
+        ]]>
+        </if>
+        <if test="CONSTT_NM != null and CONSTT_NM != ''">
+        <![CDATA[
+        AND CASE 
+                WHEN LENGTH(S2.FLNM_ENCPT) < 20 
+                    THEN S2.FLNM_ENCPT
+                ELSE  
+                    C##RG.DEC_B64(S2.FLNM_ENCPT) 
+                END 
+                LIKE '%' || #{CONSTT_NM} || '%'
+        ]]>
+        </if>
+	GROUP BY A.CLIENA_ID
+    ORDER BY MAX(A.FRST_REG_DT) DESC
+    OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+	</select>
+
+	<select id="selectSpclaDetail" parameterType="HashMap" resultType="HashMap">
+	SELECT /* isry.couns.constt.chttmng.mapper.InqSpclaMapper.selectSpclaDetail : 특별관리대상자 게시글상세*/
+	       AA.SPCLA_MNG_TRPR_SN 
+	   ,   C##RG.DEC_B64(AA.CLIENA_NM_ENCPT)    AS CLIENA_NM_ENCPT
+	   ,   TO_CHAR(AA.FRST_REG_DT, 'YYYY-MM-DD')   AS FRST_REG_DT   
+	   ,   AA.CLIENA_ID
+	   ,   AA.CNSLTNT_ID 
+	   ,   AA.CNTN_IP_ADDR  
+	   ,   AA.DSCSN_DTL_CN
+	   ,   C##RG.DEC_B64(BB.FLNM_ENCPT)         AS CONSTT_NM
+	   FROM 
+	       AYB110 AA
+	   ,   SCA100 BB
+	   ,   SAA200 CC
+	WHERE 1=1
+	   AND CC.USER_ID                  =       AA.CNSLTNT_ID
+	   AND CC.ENFSN_NO                 =       BB.ENFSN_NO
+	   AND AA.CLIENA_ID                =       #{CLIENA_ID}
+	   AND ( AA.DEL_YN                !=       'Y'
+             OR AA.DEL_YN IS NULL
+           )
+       ORDER BY AA.FRST_REG_DT ASC   
+	   <!-- AND AA.SPCLA_MNG_TRPR_SN        =       #{SPCLA_MNG_TRPR_SN} -->
+	</select>
+
+    <insert id="insertSpcla" parameterType="HashMap">
+    <selectKey resultType="String" keyProperty="SPCLA_MNG_TRPR_SN" order="AFTER">
+    <![CDATA[
+    SELECT 
+            AYB110_SQ01.CURRVAL     AS  SPCLA_MNG_TRPR_SN
+    FROM
+            DUAL
+    ]]>
+    </selectKey>
+	INSERT /* isry.couns.constt.chttmng.mapper.InqSpclaMapper.insertSpcla : 특별관리대상자 게시글등록*/ 
+	INTO 
+	       AYB110
+	(
+		   SPCLA_MNG_TRPR_SN
+	   ,   CLIENA_ID
+	   ,   CLIENA_NM_ENCPT
+	   ,   DSCSN_DTL_CN
+	   ,   CNSLTNT_ID
+	   ,   CNTN_IP_ADDR
+	   ,   FRST_RGTR_ID
+	   ,   FRST_REG_DT
+	   ,   LAST_MDFR_ID
+	   ,   LAST_MDFCN_DT
+	)
+	VALUES
+	(
+	       AYB110_SQ01.NEXTVAL                          /* 게시글번호    */
+	   ,   #{CLIENA_ID}                                 /* 내담자아이디 */
+	   ,   C##RG.ENC_B64(#{CLIENA_NM_ENCPT})         /* 내담자명      */
+	   ,   #{DSCSN_DTL_CN}                              /* 상담내용      */
+	   ,   #{CNSLTNT_ID}                                /* 상담자아이디 */
+	   ,   #{CNTN_IP_ADDR}                              /* 내담자아이피 */
+	   ,   #{FRST_RGTR_ID}                              
+	   ,   SYSDATE 
+	   ,   #{LAST_MDFR_ID}
+	   ,   SYSDATE
+	)
+	
+    </insert>
+    
+    <update id="updateSpcla" parameterType="HashMap">
+	UPDATE  /* isry.couns.constt.chttmng.mapper.InqSpclaMapper.updateSpcla : 특별관리대상자 게시글수정*/ 
+	        AYB110 
+	SET
+        <if test="CLIENA_ID != null">
+            CLIENA_ID                  =       #{CLIENA_ID}
+        </if>
+        <if test="CLIENA_NM_ENCPT != null">
+	    ,   CLIENA_NM_ENCPT            =       C##RG.ENC_B64(#{CLIENA_NM_ENCPT})
+        </if>
+	    <if test="DSCSN_DTL_CN != null">
+	    ,   DSCSN_DTL_CN               =       #{DSCSN_DTL_CN}
+        </if>
+	    <if test="CNSLTNT_ID != null">
+	    ,   CNSLTNT_ID                 =       #{CNSLTNT_ID}
+        </if>
+	    ,   CNTN_IP_ADDR               =       #{CNTN_IP_ADDR}
+	    ,   LAST_MDFR_ID               =       #{LAST_MDFR_ID}
+	    ,   LAST_MDFCN_DT              =       SYSDATE
+	WHERE   SPCLA_MNG_TRPR_SN          =       #{SPCLA_MNG_TRPR_SN}
+    </update>
+    
+    <update id="deleteSpcla" parameterType="HashMap">
+    UPDATE  /* isry.couns.constt.chttmng.mapper.InqSpclaMapper.deleteSpcla : 특별관리대상자 게시글삭제*/
+            AYB110 
+    SET
+            DEL_YN = 'Y'
+        ,   LAST_MDFCN_DT = SYSDATE     
+        ,   LAST_MDFR_ID = #{LAST_MDFR_ID}
+    WHERE   SPCLA_MNG_TRPR_SN          =       #{SPCLA_MNG_TRPR_SN}   
+    </update>
+    
+    <update id="saveClientName" parameterType="HashMap">
+    UPDATE  AYB200 
+    SET
+            CLIENA_NM_ENCPT = C##RG.ENC_B64(#{CLIENA_NM})
+    WHERE   CHRO_NO = #{CHRO_NO}
+    </update>
+</mapper>

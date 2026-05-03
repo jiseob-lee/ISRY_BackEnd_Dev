@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+                http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+
+    <context:component-scan
+        base-package="egovframework,com.tomatosystem.exbuilder6,isry">
+        <context:include-filter type="annotation"
+            expression="org.springframework.stereotype.Controller" />
+        <context:exclude-filter type="annotation"
+            expression="org.springframework.stereotype.Service" />
+        <context:exclude-filter type="annotation"
+            expression="org.springframework.stereotype.Repository" />
+    </context:component-scan>
+    
+    <!-- 공통 페이징 처리를 위한 PageMappingInterceptor -->
+    <mvc:interceptors>       
+        <mvc:interceptor>
+            <mvc:mapping path="/**/*.do" />
+            <mvc:exclude-mapping path="/index.do" />
+            <mvc:exclude-mapping path="/login.do" />
+            <bean class="com.tomatosystem.exbuilder6.core.interceptor.PageMappingInterceptor" />            
+        </mvc:interceptor>
+    </mvc:interceptors>
+    
+    <!-- exception 처리를 위한 ExceptionResolver -->
+    <bean id="exceptionResolver"
+        class="com.tomatosystem.exbuilder6.core.resolver.DefaultExceptionResolver" />
+    
+    
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <!-- com.cleopatra.spring.DataRequestResolver 는 eXbuilder6 프로토콜을 파싱하여 DataRequest 
+            파라미터를 자동 생성해 주는 Resolver -->
+        <property name="customArgumentResolvers">
+            <list>
+                <bean class="com.cleopatra.spring.DataRequestResolver">
+                    <property name = "requestFilter">
+                        <bean class="com.tomatosystem.exbuilder6.core.filter.XBDataRequestFilter"/>
+                    </property>
+                </bean>
+            </list>
+        </property>
+
+        <property name="messageConverters">
+            <list>
+                <ref bean="mappingJackson2HttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter" >
+                    <property name = "supportedMediaTypes">
+                        <list>
+                            <value>*/*;charset=UTF-8</value>                            
+                        </list>
+                    </property> 
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+
+    <bean id="mappingJackson2HttpMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+        <property name="supportedMediaTypes">
+            <list>
+                <value>text/html;charset=UTF-8</value>
+                <value>application/json;charset=UTF-8</value>
+            </list>
+        </property>
+    </bean>
+    
+    <bean
+        class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+        <property name="interceptors">
+            <list>
+                <ref bean="localeChangeInterceptor" />
+            </list>
+        </property>
+    </bean>
+    
+
+    <!-- 쿠키를 이용한 Locale 이용시 <bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"/> -->
+    <bean id="localeChangeInterceptor"
+        class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+        <property name="paramName" value="language" />
+    </bean>
+
+
+    <bean id="localeResolver"
+        class="org.springframework.web.servlet.i18n.SessionLocaleResolver" />
+
+    <bean
+        class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="defaultErrorView" value="egovframework/com/egovError" />
+        <property name="exceptionMappings">
+            <props>
+                <prop key="org.springframework.dao.DataAccessException">egovframework/com/dataAccessFailure</prop>
+                <prop
+                    key="org.springframework.transaction.TransactionException">egovframework/com/transactionFailure</prop>
+                <prop
+                    key="egovframework.rte.fdl.cmmn.exception.EgovBizException">egovframework/com/egovError</prop>
+                <prop key="org.springframework.security.AccessDeniedException">egovframework/com/egovError</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.web.servlet.view.BeanNameViewResolver" p:order="0"/>
+    
+    <bean
+        class="org.springframework.web.servlet.view.UrlBasedViewResolver"
+        p:order="1"
+        p:viewClass="org.springframework.web.servlet.view.JstlView"
+        p:prefix="/WEB-INF/jsp/" p:suffix=".jsp" />
+    
+    <!-- JsonView 추가 설정(4월4일 추가 )-->    
+    <bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView">
+        <property name="contentType" value="text/html;charset=UTF-8"/>
+    </bean>
+
+    <!-- For Pagination Tag -->
+    <bean id="imageRenderer"
+        class="egovframework.com.cmm.web.EgovImgPaginationRenderer" />
+
+    <bean id="paginationManager"
+        class="egovframework.rte.ptl.mvc.tags.ui.pagination.DefaultPaginationManager">
+        <property name="rendererType">
+            <map>
+                <entry key="image" value-ref="imageRenderer" />
+            </map>
+        </property>
+    </bean>
+    
+    <!--
+    <bean id="applicationContextProvider"
+        class="isry.itgcms.sysmgmt.util.ApplicationContextProvider" />
+    -->
+    
+    <!-- /For Pagination Tag -->
+    <!-- <mvc:resources mapping="/ui/**" location="/ui/" /> -->
+    <mvc:resources mapping="/resource/**" location="/resource/" />
+    <mvc:resources mapping="/css/**" location="/css/" />
+    <mvc:resources mapping="/images/**" location="/images/" />
+    <mvc:resources mapping="/js/**" location="/js/" />
+
+
+</beans>

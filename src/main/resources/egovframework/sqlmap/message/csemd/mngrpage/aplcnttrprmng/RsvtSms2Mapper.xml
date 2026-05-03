@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="isry2.csemd.mngrpage.aplcnttrprmng.mapper.RsvtSms2Mapper">
+
+    <select id="selectRcptnTrprList" parameterType="HashMap" resultType="HashMap">
+    /* selectRcptnTrprList (문자수신대상자목록 조회) - Lee Hye Sun */
+    SELECT 
+	      B.TRPR_NM_ENCPT                          AS RCPTN_TRPR_NM            --수신자명
+	    , B.MBL_TELNO_ENCPT                        AS RCPTN_MBL_TELNO          --암호화된수신휴대폰번호
+        , B.MBL_TELNO_ENCPT                        AS CALL_TO                  --실제 발송될 수신번호
+	    , B.TRPR_NM_ENCPT                          AS TRPR_NM                  --대상자명
+	    , (SELECT CMMNS_CD_VALUE FROM SAC100
+	        WHERE CMMNS_CD_ID = 'TRPR_REL_SE_CD'
+	        AND CMMNS_CD_VALUE = '11')             AS TRPR_REL_SE_CD           --관계구분코드
+	    , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	        WHERE CMMNS_CD_ID = 'TRPR_REL_SE_CD'
+	        AND CMMNS_CD_VALUE = '11')             AS TRPR_REL                 --대상자와의관계
+	    , A.TRPR_INFO_NO
+	FROM AFA100 A
+	LEFT JOIN SEA200 B ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	WHERE A.TRPR_INFO_NO = #{TRPR_INFO_NO}
+	UNION ALL
+	SELECT 
+	      B.PRTCR_NM_ENCPT                         AS RCPTN_TRPR_NM            --수신자명
+        , B.PRTCR_MBL_TELNO_ENCPT                        AS RCPTN_MBL_TELNO          --암호화된수신휴대폰번호
+        , B.PRTCR_MBL_TELNO_ENCPT                        AS CALL_TO                  --실제 발송될 수신번호
+	    , B.TRPR_NM_ENCPT                          AS TRPR_NM                  --대상자명
+	    , (SELECT CMMNS_CD_VALUE FROM SAC100
+            WHERE CMMNS_CD_ID = 'TRPR_REL_SE_CD'
+            AND CMMNS_CD_VALUE = '12')             AS TRPR_REL_SE_CD           --관계구분코드
+	    , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	        WHERE CMMNS_CD_ID = 'TRPR_REL_SE_CD'
+	        AND CMMNS_CD_VALUE = '12')             AS TRPR_REL                 --대상자와의관계
+        , A.TRPR_INFO_NO
+	FROM AFA100 A
+	LEFT JOIN SEA200 B ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	WHERE A.TRPR_INFO_NO = #{TRPR_INFO_NO}
+	UNION ALL
+	SELECT 
+	      A.PIC_NM_ENCPT                           AS RCPTN_TRPR_NM            --수신자명
+	    , A.PIC_MBL_TELNO_ENCPT                    AS RCPTN_MBL_TELNO          --암호화된수신휴대폰번호
+        , A.PIC_MBL_TELNO_ENCPT                    AS CALL_TO                  --실제 발송될 수신번호
+	    , B.TRPR_NM_ENCPT                          AS TRPR_NM                  --대상자명
+	    , (SELECT CMMNS_CD_VALUE FROM SAC100
+            WHERE CMMNS_CD_ID = 'TRPR_REL_SE_CD'
+            AND CMMNS_CD_VALUE = '13')             AS TRPR_REL_SE_CD           --관계구분코드
+	    , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	        WHERE CMMNS_CD_ID = 'TRPR_REL_SE_CD'
+	        AND CMMNS_CD_VALUE = '13')             AS TRPR_REL                 --대상자와의관계
+        , A.TRPR_INFO_NO
+	FROM AFA100 A
+	LEFT JOIN SEA200 B ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+	WHERE A.TRPR_INFO_NO = #{TRPR_INFO_NO}
+	
+	ORDER BY TRPR_REL_SE_CD
+    </select>
+    
+    <insert id="insertMmsContentsInfo" parameterType="HashMap">
+	    <selectKey resultType="String" keyProperty="CONT_SEQ" order="BEFORE">
+	    
+	        SELECT ISRY_SMS.MMS_CONTENTS_INFO_SEQ.NEXTVAL AS CONT_SEQ FROM DUAL
+	    
+	    </selectKey>
+    /* insertMmsContentsInfo (MMS 컨텐츠정보 INSERT) - Lee Hye Sun */
+    INSERT INTO ISRY_SMS.MMS_CONTENTS_INFO (
+	      CONT_SEQ                             --MMS컨텐츠
+	    , FILE_CNT                             --MMS 전송시 첨부파일 갯수 
+	    , MMS_BODY                             --본문내용
+	    , MMS_SUBJECT                          --메시지타이틀
+	) VALUES (
+	      #{CONT_SEQ}
+	    , NVL(#{FILE_CNT}, 0)
+	    , #{RSVT_CHRCTR_CN}
+	    , SUBSTR(#{RSVT_CHRCTR_CN}, 0, 8) || '..'
+	)
+    </insert>
+    
+    <insert id="insertMsgData" parameterType="HashMap">
+        <selectKey resultType="String" keyProperty="MSG_SEQ" order="BEFORE">
+        
+            SELECT ISRY_SMS.MSG_DATA_SEQ.NEXTVAL AS MSG_SEQ FROM DUAL
+        
+        </selectKey>
+    /* insertMsgData (MSG_DATA ISNERT) - Lee Hye Sun */
+    INSERT INTO ISRY_SMS.MSG_DATA (
+          MSG_SEQ                           --메시지고유번호
+        , CUR_STATE                         --상태값
+        , REQ_DATE                          --즉시전송 및 예약일시
+        , CALL_TO                           --수신번호
+        , CALL_FROM                         --발신번호
+        , SMS_TXT                           --SMS용 메시지 본문
+        , MSG_TYPE                          --메시지타입 (4:SMS OR 6:MMS)
+        , CONT_SEQ                          --MMS컨텐츠
+        , USER_ID                           --사용자ID
+    ) VALUES (
+          #{MSG_SEQ} 
+        , 0
+        ,
+        <choose>
+            <when test="RSVT_MMDD != null and RSVT_MMDD != ''">
+             <![CDATA[
+                    TO_DATE(#{RSVT_MMDD} || #{RSVT_HHSS}, 'YYYY-MM-DD HH24:MI')
+             ]]>
+            </when>
+            <otherwise>
+             <![CDATA[
+                    SYSDATE
+             ]]>
+            </otherwise>
+        </choose>
+        , #{CALL_TO}
+        , #{CALL_FROM}
+        , SUBSTR(#{RSVT_CHRCTR_CN}, 0, 8) || '..'
+        , 6
+        , #{CONT_SEQ}
+        , #{FRST_RGTR_ID}
+    )
+    </insert>
+    
+    <insert id="insertNtcnSnsSndng" parameterType="HashMap">
+        <selectKey resultType="String" keyProperty="NTCN_CHRCTR_SNDNG_MNG_NO" order="BEFORE">
+            <![CDATA[
+                SELECT 
+                    ISRY_APP.SA_FN_GET_RENU_NO('NC', #{LAST_MDFR_ID}, '') AS NTCN_CHRCTR_SNDNG_MNG_NO
+                FROM DUAL
+            ]]>
+        </selectKey>
+    
+    /* insertNtcnSnsSndng (알림문자발송 insert) - Lee Hye Sun */
+    INSERT INTO SAB980 (
+	      NTCN_CHRCTR_SNDNG_MNG_NO          --알림문자발송일련번호(채번)
+	    , TRPR_INFO_NO                      --대상자정보번호       
+	    , TRPR_REL_SE_CD                    --대상자관계구분코드 
+	    , RCPTN_TRPR_NM_ENCPT               --수신대상자명암호화 
+	    , RCPTN_MBL_TELNO_ENCPT             --수신휴대전화번호암호화
+	    , MSSAGE_ESNTAL_NO                  --메시지고유번호
+	    , RSVT_SNDNG_YN                     --예약발송여부
+	    , RSVT_CHRCTR_SNDNG_DT              --예약문자발송일시
+	    , RSVT_CHRCTR_CN                    --예약문자내용
+	    , CHRCTR_SNDNG_RTRCN_YN             --문자발송취소여부
+	    , DSPTCH_TRPR_NM_ENCPT              --발신대상자명암호화
+	    , DSPTCH_MBL_TELNO_ENCPT            --발신휴대전화번호암호화
+	    , PIC_NO                            --담당자번호
+	    , TRNSMI_INST_NO                    --송신기관번호
+	    , REG_YMD                           --등록일자
+	    , FRST_RGTR_ID                      --최초등록아이디
+	    , FRST_REG_DT                       --최초등록일시    
+	    , LAST_MDFR_ID                      --최종수정자아이디
+	    , LAST_MDFCN_DT                     --최종수정일시
+	) VALUES (
+	      #{NTCN_CHRCTR_SNDNG_MNG_NO}
+	    , #{TRPR_INFO_NO}
+	    , #{TRPR_REL_SE_CD}
+	    , #{RCPTN_TRPR_NM_ENCPT}
+	    , #{CALL_TO}
+	    , #{MSG_SEQ}
+	    , #{RSVT_SNDNG_YN}
+	    , TO_DATE(#{RSVT_MMDD} || #{RSVT_HHSS}, 'YYYY-MM-DD HH24:MI')
+	    , #{RSVT_CHRCTR_CN}
+	    , 'N'
+	    , #{DSPTCH_TRPR_NM_ENCPT}
+	    , #{CALL_FROM} 
+	    , #{PIC_NO}
+	    , #{TRNSMI_INST_NO}
+	    , TO_CHAR(SYSDATE, 'YYYYMMDD')
+	    , #{FRST_RGTR_ID}
+	    , SYSDATE   
+	    , #{LAST_MDFR_ID}
+	    , SYSDATE           
+    )
+    </insert>
+</mapper>

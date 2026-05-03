@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <!-- ===================================================== -->
+    <!--                REAL server Config                      -->
+    <!-- ===================================================== -->
+
+
+<!-- ============================================================================= -->
+<!-- ===============    Jedis Pool Redis Client Config   ============= -->
+<!-- ============================================================================= -->
+    <!--
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="2048" />
+        <property name="maxIdle" value="200" />
+        <property name="numTestsPerEvictionRun" value="1024" />
+        <property name="timeBetweenEvictionRunsMillis" value="30000" />
+        <property name="minEvictableIdleTimeMillis" value="-1" />
+        <property name="softMinEvictableIdleTimeMillis" value="10000" />
+        <property name="maxWaitMillis" value="1500" />
+        <property name="testOnBorrow" value="true" />
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnReturn" value="false" />
+        <property name="jmxEnabled" value="true" />
+        <property name="blockWhenExhausted" value="false" />
+    </bean>
+    -->
+    
+
+<!-- ============================================================================= -->
+<!-- ===============   Dev Server Jedis Centinel Config          ============= -->
+<!-- ============================================================================= -->
+    
+    <bean id="redisSentinelConfiguration"
+        class="org.springframework.data.redis.connection.RedisSentinelConfiguration">
+        <property name="master">
+            <bean class="org.springframework.data.redis.connection.RedisNode">
+                <property name="name" value="mymaster">
+                </property>
+            </bean>
+        </property>
+        <property name="sentinels">
+            <set>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg name="host" value="10.188.91.183" />
+                    <constructor-arg name="port" value="11001" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg name="host" value="10.188.91.183" />
+                    <constructor-arg name="port" value="11002" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode ">
+                    <constructor-arg name="host" value="10.188.91.183" />
+                    <constructor-arg name="port" value="11003" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode ">
+                    <constructor-arg name="host" value="10.188.91.184" />
+                    <constructor-arg name="port" value="11004" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode ">
+                    <constructor-arg name="host" value="10.188.91.184" />
+                    <constructor-arg name="port" value="11005" />
+                </bean>
+            </set>
+        </property>
+    </bean>
+    
+    
+
+<!-- ============================================================================= -->
+<!-- ===============   Dev Server redisConnectionFactory       ============= -->
+<!-- ============================================================================= -->
+    
+    <bean id="redisConnectionFactory"
+        class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory"
+        p:password="foobared">
+        <constructor-arg name="sentinelConfiguration" ref="redisSentinelConfiguration"></constructor-arg>
+    </bean>
+    
+    <!--
+    <bean id="redisConnectionFactory"
+        class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+        p:password="foobared">
+        <constructor-arg name="sentinelConfig" ref="redisSentinelConfiguration"></constructor-arg>
+        <constructor-arg name="poolConfig" ref="jedisPoolConfig"></constructor-arg>
+    </bean>
+    -->
+    
+    
+<!-- ============================================================================= -->
+<!-- ===============   Dev Server redisTemplate          ============= -->
+<!-- ============================================================================= -->
+    
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <property name="connectionFactory" ref="redisConnectionFactory" />
+    </bean>
+    
+
+
+</beans>

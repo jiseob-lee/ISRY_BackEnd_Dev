@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri Oct 22 16:29:19 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.userauth.mapper.MgmtGrpAuthMapper">
+
+
+    <select id="getGrpAuthExists" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* getGrpAuthExists - Lee JiSeob */
+        
+        SELECT
+            MENU_NO
+        FROM SAB300 /* 권한별 메뉴 */
+        WHERE AUTHRT_ID = #{rightId} 
+        AND MENU_NO IN
+    ]]> 
+        <foreach item="item" collection="list" open="(" separator="," close=")">
+    <![CDATA[
+            #{item}
+    ]]>
+        </foreach>
+
+    </select>
+
+
+    <insert id="saveGrpAuth" parameterType="HashMap">
+    <![CDATA[
+        /* saveGrpAuth - Lee JiSeob */
+    
+        INSERT INTO SAB300 /* 권한별 메뉴 */
+        (
+            AUTHRT_ID, 
+            MENU_NO,
+            INQ_BUTTON_USE_YN,
+            DTL_INQ_BUTTON_USE_YN,
+            INITL_BUTTON_USE_YN,
+            REG_BUTTON_USE_YN,
+            MDFCN_BUTTON_USE_YN,
+            DEL_BUTTON_USE_YN,
+            MNG_BUTTON_USE_YN
+        )
+        VALUES
+        (
+            #{rightId}, 
+            #{menuId}, 
+            'N',
+            'N',
+            'N', 
+            'N', 
+            'N', 
+            'N', 
+            'N'
+        )
+    ]]>
+    </insert>
+
+
+    <insert id="saveGrpAuthHistory" parameterType="HashMap">
+    <![CDATA[
+        /* saveGrpAuthHistory - Lee JiSeob */
+    
+        INSERT INTO SAB301 /* 권한별 메뉴 이력 */
+        (
+            AUTHRT_ID, 
+            MENU_NO,
+            MDFCN_DT,
+            DATAA_CHG_SE_CD,
+            INQ_BUTTON_USE_YN,
+            DTL_INQ_BUTTON_USE_YN,
+            INITL_BUTTON_USE_YN,
+            REG_BUTTON_USE_YN,
+            MDFCN_BUTTON_USE_YN,
+            DEL_BUTTON_USE_YN,
+            MNG_BUTTON_USE_YN,
+            FRST_RGTR_ID,
+			FRST_REG_DT,
+			LAST_MDFR_ID,
+			LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{rightId}, 
+            #{menuId},
+            SYSDATE,
+            #{DATAA_CHG_SE_CD}, 
+            'N',
+            'N',
+            'N', 
+            'N', 
+            'N', 
+            'N', 
+            'N',
+            #{USER_ID},
+			SYSDATE,
+			#{USER_ID},
+			SYSDATE
+        )
+    ]]>
+    </insert>
+
+
+    <delete id="deleteGrpAuth" parameterType="HashMap">
+    <![CDATA[
+        /* deleteGrpAuth - Lee JiSeob */
+        
+        DELETE FROM SAB300 /* 권한별 메뉴 */
+        WHERE AUTHRT_ID = #{rightId} 
+        AND MENU_NO = #{menuId}
+    
+    ]]>
+    </delete>
+    
+    <delete id="deleteGrpAuthAll" parameterType="HashMap">
+    <![CDATA[
+        /* deleteGrpAuthAll - Kang.hwayoung */
+        
+        DELETE FROM SAB300 /* 권한별 메뉴 */
+        WHERE AUTHRT_ID = #{rightId} 
+    
+    ]]>
+    </delete>
+    
+
+    <delete id="deleteUnavailGrpAuth">
+    <![CDATA[
+        /* deleteUnavailGrpAuth - Lee JiSeob */
+        
+        DELETE FROM SAB300 C /* 권한별 메뉴 */
+        WHERE NOT EXISTS (
+            SELECT D.MENU_NO FROM SAB200 D WHERE D.MENU_NO = C.MENU_NO
+        )
+    ]]>
+    </delete>
+    
+    <update id="saveGroupDetailAuths" parameterType="HashMap">
+    <![CDATA[
+        /* saveGroupDetailAuths - Lee JiSeob */
+    
+        UPDATE SAB300 /* 권한별 메뉴 */
+        SET
+            INQ_BUTTON_USE_YN = #{RIGHT_VIEW},
+            DTL_INQ_BUTTON_USE_YN = #{RIGHT_DETAIL},
+            INITL_BUTTON_USE_YN = #{RIGHT_INIT},
+            REG_BUTTON_USE_YN = #{RIGHT_CREATE},
+            MDFCN_BUTTON_USE_YN = #{RIGHT_UPDATE},
+            DEL_BUTTON_USE_YN = #{RIGHT_DELETE},
+            MNG_BUTTON_USE_YN = #{RIGHT_MANAGE}
+        WHERE
+            AUTHRT_ID = #{AUTHRT_ID}
+            AND MENU_NO = #{MENU_NO}
+
+    ]]>
+    </update>
+
+    
+    <update id="saveGroupDetailAuthsHistory" parameterType="HashMap">
+    <![CDATA[
+        /* saveGroupDetailAuthsHistory - Lee JiSeob */
+    
+        INSERT INTO SAB301 /* 권한별 메뉴 이력 */
+        (
+            AUTHRT_ID, 
+            MENU_NO,
+            MDFCN_DT,
+            DATAA_CHG_SE_CD,
+            INQ_BUTTON_USE_YN,
+            DTL_INQ_BUTTON_USE_YN,
+            INITL_BUTTON_USE_YN,
+            REG_BUTTON_USE_YN,
+            MDFCN_BUTTON_USE_YN,
+            DEL_BUTTON_USE_YN,
+            MNG_BUTTON_USE_YN,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{AUTHRT_ID},
+            #{MENU_NO},
+            SYSDATE,
+            #{DATAA_CHG_SE_CD},
+            #{RIGHT_VIEW},
+            #{RIGHT_DETAIL},
+            #{RIGHT_INIT},
+            #{RIGHT_CREATE},
+            #{RIGHT_UPDATE},
+            #{RIGHT_DELETE},
+            #{RIGHT_MANAGE},
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </update>
+    
+    <insert id="saveGrpAuthAll" parameterType="HashMap">
+    <![CDATA[
+        /* saveGrpAuthAll - Lee JiSeob */
+    
+        INSERT INTO SAB300 /* 권한별 메뉴 */
+        (
+            AUTHRT_ID, 
+            MENU_NO,
+            INQ_BUTTON_USE_YN,
+            DTL_INQ_BUTTON_USE_YN,
+            INITL_BUTTON_USE_YN,
+            REG_BUTTON_USE_YN,
+            MDFCN_BUTTON_USE_YN,
+            DEL_BUTTON_USE_YN,
+            MNG_BUTTON_USE_YN,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{AUTHRT_ID}, 
+            #{MENU_NO}, 
+            #{RIGHT_VIEW},
+            #{RIGHT_DETAIL},
+            #{RIGHT_INIT},
+            #{RIGHT_CREATE},
+            #{RIGHT_UPDATE},
+            #{RIGHT_DELETE},
+            #{RIGHT_MANAGE},
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+	
+	
+    <select id="selectGrpAuthPersons" parameterType="String" resultType="String">
+    <![CDATA[
+        /* selectGrpAuthPersons - Lee JiSeob */
+        
+        SELECT
+            DISTINCT USER_ID
+        
+        FROM SAB230 /* 사용자별 기관 권한 */
+        
+        WHERE AUTHRT_SE_CD = #{AUTHRT_SE_CD}
+        
+    ]]>
+    </select>
+
+    
+    <select id="selectGrpAuthPersonsSysMgr" parameterType="String" resultType="String">
+    <![CDATA[
+        /* selectGrpAuthPersons - Lee JiSeob */
+        
+        SELECT
+            DISTINCT USER_ID
+        
+        FROM SAB230 /* 사용자별 기관 권한 */
+        
+        WHERE SYS_MNGR_YN = 'Y'
+        
+    ]]>
+    </select>
+
+
+    <update id="savePersonalGrpAuth" parameterType="HashMap">
+    <![CDATA[
+        /* savePersonalGrpAuth - Lee JiSeob */
+        
+        MERGE INTO SAB250 C /* 사용자별 메뉴권한 */
+        
+        USING (
+        
+            SELECT 
+                AUTHRT_ID,
+	            MENU_NO,
+				INQ_BUTTON_USE_YN,
+				INITL_BUTTON_USE_YN,
+				REG_BUTTON_USE_YN,
+				MDFCN_BUTTON_USE_YN,
+				DEL_BUTTON_USE_YN,
+				MNG_BUTTON_USE_YN,
+				DTL_INQ_BUTTON_USE_YN
+				
+            FROM SAB300 /* 권한별 메뉴 */
+            
+            WHERE AUTHRT_ID = #{rightId}
+        ) D
+        
+        ON ( C.USER_ID = #{userId} AND C.MENU_NO = D.MENO_NO )
+        
+        
+        WHEN MATCHED THEN
+        
+            UPDATE SET
+                C.INQ_BUTTON_USE_YN = INQ_BUTTON_USE_YN,
+                C.INITL_BUTTON_USE_YN = INITL_BUTTON_USE_YN,
+                C.REG_BUTTON_USE_YN = REG_BUTTON_USE_YN,
+                C.MDFCN_BUTTON_USE_YN = MDFCN_BUTTON_USE_YN,
+                C.DEL_BUTTON_USE_YN = DEL_BUTTON_USE_YN,
+                C.MNG_BUTTON_USE_YN = MNG_BUTTON_USE_YN,
+                C.DTL_INQ_BUTTON_USE_YN = DTL_INQ_BUTTON_USE_YN
+        
+        
+        WHEN NOT MATCHED THEN
+        
+            INSERT
+            (
+				USER_ID,
+				MENU_NO,
+				INQ_BUTTON_USE_YN,
+				INITL_BUTTON_USE_YN,
+				REG_BUTTON_USE_YN,
+				MDFCN_BUTTON_USE_YN,
+				DEL_BUTTON_USE_YN,
+				MNG_BUTTON_USE_YN,
+				DTL_INQ_BUTTON_USE_YN,
+				FRST_RGTR_ID,
+				FRST_REG_DT,
+				LAST_MDFR_ID,
+				LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{userId},
+                D.MENU_NO,
+                D.INQ_BUTTON_USE_YN,
+                D.INITL_BUTTON_USE_YN,
+                D.REG_BUTTON_USE_YN,
+                D.MDFCN_BUTTON_USE_YN,
+                D.DEL_BUTTON_USE_YN,
+                D.MNG_BUTTON_USE_YN,
+                D.DTL_INQ_BUTTON_USE_YN,
+                SYSDATE,
+                #{userId2},
+                SYSDATE,
+                #{userId2}
+            )
+    ]]>
+    </update>
+
+
+
+    <select id="selectMenuAuths" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectMenuAuths - Lee JiSeob */
+        
+        SELECT
+			AUTHRT_ID,
+			MENU_NO,
+			
+			INQ_BUTTON_USE_YN,
+			INITL_BUTTON_USE_YN,
+			REG_BUTTON_USE_YN,
+			MDFCN_BUTTON_USE_YN,
+			DEL_BUTTON_USE_YN,
+			MNG_BUTTON_USE_YN,
+			DTL_INQ_BUTTON_USE_YN
+			
+        FROM SAB300 C /* 권한별 메뉴 */
+        
+        WHERE C.AUTHRT_ID = #{rightId}
+        
+    ]]>
+    </select>
+
+    <select id="selectMenuAuthCount" parameterType="HashMap" resultType="int">
+    <![CDATA[
+        /* selectMenuAuthCount - Lee JiSeob */
+        
+        SELECT
+            COUNT(*) AS CNT
+            
+        FROM SAB250 C /* 사용자별 메뉴권한 */
+        
+        WHERE C.USER_ID = #{userId}
+        AND C.MENU_NO = #{menuNo}
+        
+    ]]>
+    </select>
+
+
+    <insert id="insertPersonalGrpAuth" parameterType="HashMap">
+    <![CDATA[
+        /* insertPersonalGrpAuth - Lee JiSeob */
+        
+        INSERT INTO SAB250 C /* 사용자별 메뉴권한 */
+        (
+            USER_ID,
+            MENU_NO,
+            
+            INQ_BUTTON_USE_YN,
+            INITL_BUTTON_USE_YN,
+            REG_BUTTON_USE_YN,
+            MDFCN_BUTTON_USE_YN,
+            DEL_BUTTON_USE_YN,
+            MNG_BUTTON_USE_YN,
+            DTL_INQ_BUTTON_USE_YN,
+            
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES 
+        (
+            #{USER_ID},
+            #{MENU_NO},
+            
+            CASE #{INQ_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(INQ_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+
+            CASE #{INITL_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(INITL_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+
+            CASE #{REG_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(REG_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+
+            CASE #{MDFCN_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(MDFCN_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+
+            CASE #{DEL_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(DEL_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+
+            CASE #{MNG_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(MNG_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+
+            CASE #{DTL_INQ_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(DTL_INQ_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+
+            #{USER_ID2},
+            SYSDATE,
+            #{USER_ID2},
+            SYSDATE        
+        )
+        
+    ]]>
+    </insert>
+
+
+    <insert id="insertPersonalGrpAuthHistory" parameterType="HashMap">
+    <![CDATA[
+        /* insertPersonalGrpAuthHistory - Lee JiSeob */
+        
+        INSERT INTO SAB251 C /* 사용자별 메뉴권한 이력 */
+        (
+	        USER_ID,
+			MENU_NO,
+			MDFCN_DT,
+			DATAA_CHG_SE_CD,
+			
+			INQ_BUTTON_USE_YN,
+			INITL_BUTTON_USE_YN,
+			REG_BUTTON_USE_YN,
+			MDFCN_BUTTON_USE_YN,
+			DEL_BUTTON_USE_YN,
+			MNG_BUTTON_USE_YN,
+			DTL_INQ_BUTTON_USE_YN,
+			
+			FRST_RGTR_ID,
+			FRST_REG_DT,
+			LAST_MDFR_ID,
+			LAST_MDFCN_DT
+        )
+        VALUES 
+        (
+            #{USER_ID},
+            #{MENU_NO},
+            SYSDATE,
+            #{DATAA_CHG_SE_CD},
+
+            #{INQ_BUTTON_USE_YN},
+            #{INITL_BUTTON_USE_YN},
+            #{REG_BUTTON_USE_YN},
+            #{MDFCN_BUTTON_USE_YN},
+            #{DEL_BUTTON_USE_YN},
+            #{MNG_BUTTON_USE_YN},
+            #{DTL_INQ_BUTTON_USE_YN},
+            
+            #{USER_ID2},
+            SYSDATE,
+            #{USER_ID2},
+            SYSDATE
+        )
+        
+    ]]>
+    </insert>
+
+    <update id="updatePersonalGrpAuth" parameterType="HashMap">
+    <![CDATA[
+        /* updatePersonalGrpAuth - Lee JiSeob */
+        
+        UPDATE SAB250 C /* 사용자별 메뉴권한 */
+        SET
+			C.INQ_BUTTON_USE_YN = CASE #{INQ_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(INQ_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+            
+			C.INITL_BUTTON_USE_YN = CASE #{INITL_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(INITL_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+            
+			C.REG_BUTTON_USE_YN = CASE #{REG_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(REG_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+            
+			C.MDFCN_BUTTON_USE_YN = CASE #{MDFCN_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(MDFCN_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+            
+			C.DEL_BUTTON_USE_YN = CASE #{DEL_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(DEL_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+            
+			C.MNG_BUTTON_USE_YN = CASE #{MNG_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(MNG_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+            
+			C.DTL_INQ_BUTTON_USE_YN = CASE #{DTL_INQ_BUTTON_USE_YN} WHEN 'Y' THEN 'Y'
+            ELSE (SELECT NVL(MAX(DTL_INQ_BUTTON_USE_YN), 'N') FROM SAB300 D /* 권한별 메뉴 */ WHERE D.AUTHRT_ID IN ${IN_AUTHRT_ID} AND D.MENU_NO = #{MENU_NO}) END,
+			
+			C.LAST_MDFR_ID = #{USER_ID2},
+			C.LAST_MDFCN_DT = SYSDATE
+			
+        WHERE USER_ID = #{USER_ID} 
+        AND MENU_NO = #{MENU_NO}
+        
+    ]]>
+    </update>
+
+
+    <delete id="deleteMenuAuths" parameterType="HashMap">
+    <![CDATA[
+        /* deleteMenuAuths - Lee JiSeob */
+        
+        DELETE FROM SAB250 C /* 사용자별 메뉴권한 */
+        
+        WHERE USER_ID = #{USER_ID} 
+        AND MENU_NO = #{MENU_NO}
+        
+    ]]>
+    </delete>
+
+
+    <select id="selectExistsMenuAuth" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectExistsMenuAuth - Lee JiSeob */
+            
+        SELECT
+            COUNT(*) AS CNT
+        
+        FROM SAB300 /* 권한별 메뉴 */
+        
+        WHERE MENU_NO = #{MENU_NO}
+        AND AUTHRT_ID IN ${IN_AUTHRT_ID}
+        
+    ]]>
+    </select>
+    
+</mapper>

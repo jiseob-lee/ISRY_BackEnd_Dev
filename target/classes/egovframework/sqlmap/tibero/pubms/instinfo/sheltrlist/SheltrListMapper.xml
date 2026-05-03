@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubms.instinfo.sheltrlist.mapper.SheltrListMapper">
+
+    <select id="selectSheltrList" resultType="HashMap" parameterType="Integer">
+    <![CDATA[
+        /* selectSheltrList - Jeong HJ */
+			SELECT
+			    T1.INST_NM AS simter_name,
+			    T3.INST_NO AS INST_NO,
+			    NVL((
+			    SELECT
+			        ADDTNG_MNG_VALUE2
+			    FROM
+			        SAC000 A
+			    JOIN SAC100 B ON
+			        A.CMMNS_CD_ID = B.CMMNS_CD_ID
+			        AND B.CMMNS_CD_ID = 'CTPV_SE_CD'
+			    WHERE
+			        B.CMMNS_CD_VALUE = T2.CTPV_SE_CD),
+			    'GW') AS local_cd,
+			    NVL((
+			    SELECT
+			        SRTNG_SQNCE
+			    FROM
+			        SAC000 A
+			    JOIN SAC100 B ON
+			        A.CMMNS_CD_ID = B.CMMNS_CD_ID
+			        AND B.CMMNS_CD_ID = 'CTPV_SE_CD'
+			    WHERE
+			        B.CMMNS_CD_VALUE = T2.CTPV_SE_CD),
+			    '9') AS local,			    
+			    NVL((
+			    SELECT
+			        CMMNS_CD_VALUE
+			    FROM
+			        SAC000 A
+			    JOIN SAC100 B ON
+			        A.CMMNS_CD_ID = B.CMMNS_CD_ID
+			    WHERE
+			        A.CMMNS_CD_ID = 'FCLTY_TYPE_SE_CD'
+			        AND CMMNS_CD_VALUE = T3.FCLTY_TYPE_SE_CD),
+			    '미확인') AS careterm,
+			    NVL((
+			    SELECT
+			        CASE
+			            WHEN CMMNS_CD_VALUE_NM = '남자' THEN 'M'
+			            WHEN CMMNS_CD_VALUE_NM = '여자' THEN 'F'
+			            WHEN CMMNS_CD_VALUE_NM = '남자+여자' THEN 'MF'
+			            ELSE CMMNS_CD_VALUE_NM
+			        END
+			    FROM
+			        SAC000 A
+			    JOIN SAC100 B ON
+			        A.CMMNS_CD_ID = B.CMMNS_CD_ID
+			    WHERE
+			        A.CMMNS_CD_ID = 'PRTCTN_YNGBGS_TYPE_SE_CD'
+			        AND CMMNS_CD_VALUE = T3.PRTCTN_YNGBGS_TYPE_SE_CD),
+			    '미확인') AS gender,
+			    CONCAT(T1.BPLC_PST_ADDR, T1.BPLC_DADDR) AS addr,
+			    (
+			    SELECT
+			        COUNT(DISTINCT TRPR_INFO_NO)
+			    FROM
+			        SEB100 C
+			    JOIN AEA100 D ON
+			        C.CASE_MNG_NO = D.CASE_MNG_NO
+			    WHERE
+			        C.CASE_MNG_NO IN (
+			        SELECT
+			            B.CASE_MNG_NO
+			        FROM
+			            SEB150 B
+			        WHERE
+			            B.PIC_INST_NO = T3.INST_NO)
+			        AND (C.CASE_TRMN_YMD IS NULL
+			            OR C.CASE_TRMN_YMD > TO_CHAR(SYSDATE,
+			            'yyyyMMDD'))
+			            AND D.SHELTR_TRPR_SE_CD = 1) AS h_cnt,
+			    NVL(T3.PRTCTN_PSNCPA_CNT,
+			    '0') AS j_cnt /*,
+			    NVL(T1.RPRS_TELNO,'미확인') AS tel,
+                NVL(T1.HPGE_URL_ADDR,'미확인') AS homepage */
+			FROM
+			    SAA000 T1
+			JOIN SAA020 T2 ON
+			    T1.RGN_CD = T2.SGG_CD
+			JOIN AKA500 T3 ON
+			    T1.INST_NO = T3.INST_NO
+			WHERE
+			    T1.UNT_TASKWK_SE_CD IN ('U04')
+			    AND T1.DEL_YN = 'N'
+    ]]>
+       <if test="value != null and value !='' and value != 9">
+        <![CDATA[ 
+             AND (SELECT SRTNG_SQNCE FROM SAC000 A
+             JOIN SAC100 B ON A.CMMNS_CD_ID=B.CMMNS_CD_ID 
+             AND B.CMMNS_CD_ID='CTPV_SE_CD'
+             WHERE B.CMMNS_CD_VALUE = T2.CTPV_SE_CD ) = #{local}
+        ]]>
+        </if>
+        <if test="value == 9">
+            <![CDATA[ 
+             AND T1.CTPV_CD = '51'
+        ]]>
+        </if>;
+    </select>
+
+</mapper>

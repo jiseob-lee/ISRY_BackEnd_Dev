@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ISRY_BackEnd" basedir=".">
+	<!-- 빌드 환경 설정 -->
+	<property name="target.dir" location="./target" />
+	<property name="exbuilder.build-lib.dir" location="ci-lib/clx" />
+	<property name="exbuilder.workspace.dir" location="../ISRY_FrontEnd" />
+	<property name="key_file_path" value="/home/sw/.ssh/id_rsa"/>
+	<property name="was.war.filename" value="ISRY_BackEnd-${build.system}.war" />
+    <property name="web.tgz.filename" value="ISRY_FrontEnd-${build.system}.tar.gz" />
+    <property name="deploy.target.path" value="/data/DEPLOY_APP" />
+    <property name="maven.war.filename" value="ISRY_BackEnd-1.0.0-${build.system}.war" />
+
+    <property name="greal.was.server01.hostname" value="grybwas11" />
+    <property name="greal.was.server02.hostname" value="grybwas21" />
+    <property name="greal.was.user.id" value="sw" />
+    <property name="greal.was.server01.ip" value="10.188.131.221" />
+    <property name="greal.was.server02.ip" value="10.188.131.222" />
+    <property name="greal.was.server01.ssh.port" value="10022" />
+    <property name="greal.was.server02.ssh.port" value="10022" />
+
+    <property name="greal.web.user.id" value="sw" />
+    <property name="greal.web.server01.ip" value="10.188.131.217" />
+    <property name="greal.web.server02.ip" value="10.188.131.218" />
+    <property name="greal.web.server01.ssh.port" value="10022" />
+    <property name="greal.web.server02.ssh.port" value="10022" />
+	
+    <target name="init">
+        <tstamp>
+            <format property="DAYTIME" pattern="yyyyMMddHHmmss" />
+        </tstamp>
+        <property name="build.datetime" value="${DAYTIME}" />
+        <property name="deploy.was.war.filename" value="ISRY_BackEnd_${DAYTIME}.war" />
+        <property name="deploy.web.tgz.filename" value="ISRY_FrontEnd_${DAYTIME}.tar.gz" />
+    </target>
+
+    <!-- eXbuilder 빌드 -->
+    <target name="build.exbuilder">
+        <echo>=====================================================</echo>
+        <echo>[start] eXbuilder Build</echo>
+        <echo>=====================================================</echo>
+	    <taskdef name="clxcompile"
+	        classname="kr.co.tomatosystem.exbuilder.cikit.build.ant.Compile"
+	        classpath="${exbuilder.build-lib.dir}/e6-compiler.jar"
+	    />
+        <clxcompile
+            src="${exbuilder.workspace.dir}"
+            out="${target.dir}/clx-build"
+            minify="true"
+            single="false"
+            language="true"
+            main=""
+            relativizelessurl="true"
+        >
+            <exclude pattern="**/.svn/**" />
+        </clxcompile>
+        <echo>=====================================================</echo>
+        <echo>[end] eXbuilder Build</echo>
+        <echo>=====================================================</echo>
+    </target>
+    
+    <!-- 빌드후 복사할 파일 -->
+    <target name="make.src.package">
+        <echo>=====================================================</echo>
+        <echo>[start] Copy Build Config Files</echo>
+        <echo>=====================================================</echo>
+        <copy verbose="true" file="${target.dir}/clx-build/env.json" tofile="${target.dir}/ISRY_BackEnd-1.0.0/ui/env.json" overwrite="true" failonerror="true" />
+        <copy todir="${target.dir}/ISRY_BackEnd-1.0.0/ui">
+            <fileset dir="${target.dir}/clx-build">
+                <include name="**" />
+            </fileset>
+        </copy>
+        <echo>=====================================================</echo>
+        <echo>[end] Copy Build Config Files</echo>
+        <echo>=====================================================</echo>
+    </target>
+    
+    <!-- WAR 파일 생성 -->
+    <target name="make.war.deploy.file" depends="init">
+        <echo>=======================================================</echo>
+        <echo>[start] Make WAR Deploy File</echo>
+        <echo>=======================================================</echo>
+        <delete file="${target.dir}/${was.war.filename}" />
+        <war destfile="${target.dir}/${was.war.filename}" basedir="${target.dir}/ISRY_BackEnd-1.0.0">
+            <include name="**/*" />
+            <include name="META-INF/**/*" />
+            <include name="WEB-INF/**/*" />
+            <include name="**/*.jsp" />
+            <include name="**/*.class" />
+            <include name="ui/**/**" />
+            <exclude name="**/*.java" />
+            <exclude name="css/**/**" />
+            <exclude name="js/**/**" />
+            <exclude name="fonts/**/**" />
+            <exclude name="images/**/**" />
+            <exclude name="resource/**/**" />
+            <exclude name="html/**/**" />
+            <exclude name="raonnx/cmn/**" />
+            <exclude name="raonnx/demo/**" />
+            <exclude name="raonnx/extension/**" />
+            <exclude name="raonnx/image/**" />
+            <exclude name="raonnx/install/**" />
+            <exclude name="raonnx/jquery/**" />
+            <exclude name="raonnx/nxWeb/**" />
+            <exclude name="favicon.ico" />
+        </war>
+        <echo>=====================================================</echo>
+        <echo>[end] Make WAR Deploy File</echo>
+        <echo>=====================================================</echo>
+    </target>    
+    
+    <!-- WEB 파일 생성 -->
+    <target name="make.web.deploy.file">
+        <echo>=======================================================</echo>
+        <echo>[end] Make WEB Deploy File</echo>
+        <echo>=======================================================</echo>
+        <delete file="${target.dir}/${web.tgz.filename}" />
+        <tar destfile="${target.dir}/${web.tgz.filename}" compression="gzip">  
+            <fileset dir="${target.dir}/ISRY_BackEnd-1.0.0">
+	            <include name="css/**/**" />
+	            <include name="js/**/**" />
+                <include name="fonts/**/**" />
+	            <include name="images/**/**" />
+	            <include name="resource/**/**" />
+	            <include name="html/**/**" />
+	            <include name="raonnx/cmn/**" />
+	            <include name="raonnx/image/**" />
+	            <include name="raonnx/install/**" />
+	            <include name="raonnx/jquery/**" />
+	            <include name="raonnx/nxWeb/**" />
+            	<include name="MagicLine4Web/ML4Web/*.html" />
+	            <include name="MagicLine4Web/ML4Web/install_bin/**" />
+	            <include name="MagicLine4Web/ML4Web/install_page/**" />
+	            <include name="MagicLine4Web/ML4Web/js/**" />
+	            <include name="MagicLine4Web/ML4Web/UI/*.html" />
+	            <include name="MagicLine4Web/ML4Web/UI/css/**" />
+	            <include name="MagicLine4Web/ML4Web/UI/font/**" />
+	            <include name="MagicLine4Web/ML4Web/UI/images/**" />
+	            <include name="MagicLine4Web/ML4Web/UI/js/**" />
+	            <include name="MagicLine4Web/ML4WebProcess/css/**" />
+	            <include name="MagicLine4Web/ML4WebProcess/images/**" />
+                <include name="favicon.ico" />
+            </fileset>
+        </tar>
+        <echo>=======================================================</echo>
+        <echo>[end] Make WEB Deploy File</echo>
+        <echo>=======================================================</echo>
+    </target>   
+
+    <!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="tran.war.real1" depends="init">
+        <echo>=====================================================</echo>
+        <echo>trans war file dev was</echo>
+        <echo>=====================================================</echo>
+        <scp file="${target.dir}/${was.war.filename}" todir="${greal.was.user.id}@${greal.was.server01.ip}:${deploy.target.path}/was/${deploy.was.war.filename}" keyfile="${key_file_path}" port="${greal.was.server01.ssh.port}" sftp="true" trust="true"></scp>
+    </target>
+
+	<!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="tran.war.real2" depends="init">
+        <echo>=====================================================</echo>
+        <echo>trans war file dev was</echo>
+        <echo>=====================================================</echo>
+        <scp file="${target.dir}/${was.war.filename}" todir="${greal.was.user.id}@${greal.was.server02.ip}:${deploy.target.path}/was/${deploy.was.war.filename}" keyfile="${key_file_path}" port="${greal.was.server02.ssh.port}" sftp="true" trust="true"></scp>
+    </target>
+
+    <!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="deploy.was.real1">
+        <echo>=====================================================</echo>
+        <echo>Stop dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${greal.was.server01.ip}" port="${greal.was.server01.ssh.port}" username="${greal.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="cd /GCLOUD/JBOSS/domains/${greal.was.server01.hostname}/bin;./kill.sh"/>
+        <echo>=====================================================</echo>
+        <echo>Deploy war file dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${greal.was.server01.ip}" port="${greal.was.server01.ssh.port}" username="${greal.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="rm -rf /app/ISRY_BackEnd.war;mkdir /app/ISRY_BackEnd.war;cd /app/ISRY_BackEnd.war;jar -xvf ${deploy.target.path}/was/${deploy.was.war.filename};"/>
+        <echo>=====================================================</echo>
+        <echo>Start dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${greal.was.server01.ip}" port="${greal.was.server01.ssh.port}" username="${greal.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command=". .bash_profile; cd /GCLOUD/JBOSS/domains/${greal.was.server01.hostname}/bin;./start.sh"/>
+    </target>
+
+    <target name="deploy.was.real2">
+        <echo>=====================================================</echo>
+        <echo>Stop dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${greal.was.server02.ip}" port="${greal.was.server02.ssh.port}" username="${greal.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="cd /GCLOUD/JBOSS/domains/${greal.was.server02.hostname}/bin;./kill.sh"/>
+        <echo>=====================================================</echo>
+        <echo>Deploy war file dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${greal.was.server02.ip}" port="${greal.was.server02.ssh.port}" username="${greal.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="rm -rf /app/ISRY_BackEnd.war;mkdir /app/ISRY_BackEnd.war;cd /app/ISRY_BackEnd.war;jar -xvf ${deploy.target.path}/was/${deploy.was.war.filename};"/>
+        <echo>=====================================================</echo>
+        <echo>Start dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${greal.was.server02.ip}" port="${greal.was.server02.ssh.port}" username="${greal.was.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command=". .bash_profile; cd /GCLOUD/JBOSS/domains/${greal.was.server02.hostname}/bin;./start.sh"/>
+    </target>
+	
+    <!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="tran.web.real1" depends="init">
+        <echo>=====================================================</echo>
+        <echo>trans war file dev was</echo>
+        <echo>=====================================================</echo>
+        <scp file="${target.dir}/${web.tgz.filename}" todir="${greal.web.user.id}@${greal.web.server01.ip}:${deploy.target.path}/web/${deploy.web.tgz.filename}" keyfile="${key_file_path}" port="${greal.web.server01.ssh.port}" sftp="true" trust="true"></scp>
+    </target>
+
+	<target name="tran.web.real2" depends="init">
+        <echo>=====================================================</echo>
+        <echo>trans war file dev was</echo>
+        <echo>=====================================================</echo>
+        <scp file="${target.dir}/${web.tgz.filename}" todir="${greal.web.user.id}@${greal.web.server02.ip}:${deploy.target.path}/web/${deploy.web.tgz.filename}" keyfile="${key_file_path}" port="${greal.web.server02.ssh.port}" sftp="true" trust="true"></scp>
+    </target>
+
+    <!-- DEV WAS, 소스 전송 ( from CI server to WAS ) -->
+    <target name="deploy.web.real1">
+        <echo>=====================================================</echo>
+        <echo>Deploy war file dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${greal.web.server01.ip}" port="${greal.web.server01.ssh.port}" username="${greal.web.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="cd /data/WebApp/web_data/www; mkdir ${build.datetime}; cd ${build.datetime}; tar xvfz ${deploy.target.path}/web/${deploy.web.tgz.filename};chmod -R 755 /data/WebApp/web_data/www/${build.datetime}; ln -snf /data/WebApp/web_data/www/${build.datetime} /data/WebApp/doc_home/www"/>
+    </target>
+
+	<target name="deploy.web.real2">
+        <echo>=====================================================</echo>
+        <echo>Deploy war file dev was</echo>
+        <echo>=====================================================</echo>
+        <sshexec host="${greal.web.server02.ip}" port="${greal.web.server02.ssh.port}" username="${greal.web.user.id}" keyfile="${key_file_path}"
+                 trust="yes" failonerror="true" command="cd /data/WebApp/web_data/www; mkdir ${build.datetime}; cd ${build.datetime}; tar xvfz ${deploy.target.path}/web/${deploy.web.tgz.filename};chmod -R 755 /data/WebApp/web_data/www/${build.datetime}; ln -snf /data/WebApp/web_data/www/${build.datetime} /data/WebApp/doc_home/www"/>
+    </target>
+
+	
+    <!-- 11) sleep -->
+    <target name="sleep.30">
+        <echo>=====================================================</echo>
+        <echo>sleep 30 sec                                         </echo>
+        <echo>=====================================================</echo>
+         <sleep seconds="30" />
+    </target>
+    <!-- 12) sleep -->
+    <target name="sleep.300">
+        <echo>=====================================================</echo>
+        <echo>sleep 300 sec                                         </echo>
+        <echo>=====================================================</echo>
+         <sleep seconds="300" />
+    </target>
+    <!-- 13) sleep -->
+    <target name="sleep.600">
+        <echo>=====================================================</echo>
+        <echo>sleep 600 sec                                         </echo>
+        <echo>=====================================================</echo>
+         <sleep seconds="600" />
+    </target>
+</project>

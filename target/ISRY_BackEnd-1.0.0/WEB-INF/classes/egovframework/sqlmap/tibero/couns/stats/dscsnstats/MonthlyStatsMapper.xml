@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.stats.dscsnstats.mapper.MonthlyStatsMapper">
+
+    <sql id="ZZ_SQL">
+            SELECT
+                    #{writeType}                                                AS  WRITE_TYPE
+                ,   #{memType}                                                  AS  MEM_TYPE
+                ,   #{gender}                                                   AS  GENDER
+                ,   TO_DATE(#{startDate}, 'YYYYMMDD')                           AS  START_DATE
+                ,   TO_DATE(#{endDate}, 'YYYYMMDD')+0.9999                      AS  END_DATE
+            FROM
+                    DUAL
+    </sql>
+    
+    <sql id="Z1_SQL">
+            SELECT
+                    AA.BBSCTT_TYPE_SE_CD
+                ,   'A'||TO_CHAR(AA.FRST_REG_DT, 'YYYYMM')   AS  YYYYMM
+                ,   COUNT(*)                                 AS  CCNT
+            FROM
+                    <if test='writeType == "1"'>
+                    AYE100      AA      /* 사이버상담게시글 */
+                        <if test='memType != null and memType != ""'>
+                            <if test='memType == "M"'>
+                ,   SAA200      BB      /* 사용자 */
+                ,   SCA200      CC      /* 청소년학부모 */
+                            </if>
+                        </if>
+                    </if>
+                    <if test='writeType == "2"'>
+                    AYE120      AA      /* 사이버상담답글 */
+                ,   SAA200      BB      /* 사용자 */
+                ,   SCA100      CC      /* 종사자 */
+                    </if>
+                ,   ZZ
+            WHERE   1=1
+                AND AA.FRST_REG_DT          BETWEEN ZZ.START_DATE
+                AND                                 ZZ.END_DATE
+	                <if test='writeType == "1"'>
+	                    <if test='memType != null and memType != ""'>
+	                        <if test='memType == "B"'>     /* 비회원 */
+                AND AA.FRST_RGTR_ID         =       '********'
+                            </if>
+                            <if test='memType == "M"'>      /* 회원 */
+                AND BB.USER_ID              =       AA.FRST_RGTR_ID
+                AND CC.YNGBGS_PRTCR_SE_CD   =       BB.YNGBGS_PRTCR_NO      /* 청소년학부모번호 */
+                            </if>
+                        </if>
+                        <if test='gender != null and gender != ""'>
+                AND AA.SXDC_SE_CD           =       ZZ.GENDER
+                        </if>
+                        
+                    </if>
+                    <if test='writeType == "2"'>
+                AND BB.USER_ID              =       AA.FRST_RGTR_ID
+                AND CC.ENFSN_NO             =       BB.ENFSN_NO
+                        <if test='gender != null and gender != ""'>
+                AND AA.SXDC_SE_CD           =       ZZ.GENDER
+                        </if>
+                    </if>
+                AND AA.SXDC_SE_CD           IN      ('M', 'F')
+                AND AA.BBSCTT_TYPE_SE_CD    IN      (
+                                                    SELECT  CMMNS_CD_VALUE
+										            FROM
+										                    SAC100      AA
+										            WHERE   1=1
+										                AND AA.CMMNS_CD_ID      =   'MM_DSCSN_STATS_TYPE_SE_CD'  /* 월상담통계유형구분코드 */
+                                                    )
+            GROUP BY
+                    AA.BBSCTT_TYPE_SE_CD
+                ,   'A'||TO_CHAR(AA.FRST_REG_DT, 'YYYYMM')
+    </sql>
+
+	<select id="selectMonthlyStats" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            <include refid="ZZ_SQL">
+            </include>
+    )
+    ,   Z1  AS
+    (
+            <include refid="Z1_SQL">
+            </include>
+    )
+    SELECT  /* SQL-ID : isry.couns.stats.dscsnstats.mapper.MonthlyStatsMapper.selectMonthlyStats : 월별통계 LIST */
+            FF.CMMNS_CD_VALUE_NM    AS  BBSCTT_TITLE
+        ,   EE.*
+    FROM
+            (
+		    SELECT  
+		            *
+		    FROM
+		            Z1
+            PIVOT   (
+                    SUM( CCNT )    
+		    FOR     YYYYMM  IN      
+					            <foreach collection="month" item="item" index="index" separator="," open="(" close=")">
+					                '${item}' AS ${item}  
+					            </foreach>
+		            )
+            )       EE
+        ,   (
+            SELECT
+                    AA.*
+            FROM
+                    SAC100      AA
+            WHERE   1=1
+                AND AA.CMMNS_CD_ID      =   'MM_DSCSN_STATS_TYPE_SE_CD'  /* 월상담통계유형구분코드 */
+            )       FF
+    WHERE   1=1
+        AND EE.BBSCTT_TYPE_SE_CD(+)     =       FF.CMMNS_CD_VALUE
+    ORDER BY
+            FF.SRTNG_SQNCE
+        
+	</select>
+
+    <select id="selectMonthStatsChart" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            <include refid="ZZ_SQL">
+            </include>
+    )
+    ,       Z1  AS
+    (
+            <foreach collection="month" item="item" index="index" separator="UNION ALL">
+            SELECT SUBSTR('${item}', 2, 6)  AS  YYYYMM  FROM    DUAL
+            </foreach>
+    )
+    SELECT  /* SQL-ID : isry.couns.stats.dscsnstats.mapper.MonthlyStatsMapper.selectMonthStatsChart : 월별챠트통계 LIST */
+            Z1.YYYYMM
+        ,   SUM(DECODE( BB.BBSCTT_TYPE_SE_CD, '05', BB.CCNT, 0 ))   AS  VAL1
+        ,   SUM(DECODE( BB.BBSCTT_TYPE_SE_CD, '11', BB.CCNT, 0 ))   AS  VAL2
+        ,   SUM(DECODE( BB.BBSCTT_TYPE_SE_CD, '24', BB.CCNT, 0 ))   AS  VAL3
+    FROM
+            (
+            SELECT
+                    TO_CHAR(AA.FRST_REG_DT, 'YYYYMM')   AS  YYYYMM
+                ,   AA.BBSCTT_TYPE_SE_CD
+                ,   COUNT(*)                            AS  CCNT
+            FROM
+                    <if test='writeType == "1"'>
+                    AYE100      AA      /* 사이버상담게시글 */
+                        <if test='memType != null and memType != ""'>
+                            <if test='memType == "M"'>
+                ,   SAA200      BB      /* 사용자 */
+                ,   SCA200      CC      /* 청소년학부모 */
+                            </if>
+                        </if>
+                    </if>
+                    <if test='writeType == "2"'>
+                    AYE120      AA      /* 사이버상담답글 */
+                ,   SAA200      BB      /* 사용자 */
+                ,   SCA100      CC      /* 종사자 */
+                    </if>
+                ,   ZZ
+            WHERE   1=1
+                AND AA.BBSCTT_TYPE_SE_CD    IN  (
+                                                    '05'        /* 비밀상담 */
+                                                ,   '11'        /* 공개상담 */
+                                                ,   '24'        /* 채팅상담 */
+                                                )
+                AND AA.FRST_REG_DT          BETWEEN ZZ.START_DATE
+                AND                                 ZZ.END_DATE
+<!--
+                    <if test='writeType == "1"'>
+                        <if test='memType != null and memType != ""'>
+                            <if test='memType == "B"'>
+                AND AA.FRST_RGTR_ID         =       '********'
+                            </if>
+                            <if test='memType == "M"'>
+                AND BB.USER_ID              =       AA.FRST_RGTR_ID
+                AND CC.YNGBGS_PRTCR_SE_CD   =       BB.YNGBGS_PRTCR_NO      /* 청소년학부모번호 */
+                            <if test='gender != null and gender != ""'>
+                AND CC.SXDC_SE_CD           =       ZZ.GENDER
+                            </if>
+                            </if>
+                        </if>
+                    </if>
+                    <if test='writeType == "2"'>
+                AND BB.USER_ID              =       AA.FRST_RGTR_ID
+                AND CC.ENFSN_NO             =       BB.ENFSN_NO
+                        <if test='gender != null and gender != ""'>
+                AND CC.SXDC_SE_CD           =       ZZ.GENDER
+                        </if>
+                    </if>
+-->                    
+                    <if test='writeType == "1"'>
+                        <if test='memType != null and memType != ""'>
+                            <if test='memType == "B"'>     /* 비회원 */
+                AND AA.FRST_RGTR_ID         =       '********'
+                            </if>
+                            <if test='memType == "M"'>      /* 회원 */
+                AND BB.USER_ID              =       AA.FRST_RGTR_ID
+                AND CC.YNGBGS_PRTCR_SE_CD   =       BB.YNGBGS_PRTCR_NO      /* 청소년학부모번호 */
+                            </if>
+                        </if>
+                        <if test='gender != null and gender != ""'>
+                AND AA.SXDC_SE_CD           =       ZZ.GENDER
+                        </if>
+                        
+                    </if>
+                    <if test='writeType == "2"'>
+                AND BB.USER_ID              =       AA.FRST_RGTR_ID
+                AND CC.ENFSN_NO             =       BB.ENFSN_NO
+                        <if test='gender != null and gender != ""'>
+                AND AA.SXDC_SE_CD           =       ZZ.GENDER
+                        </if>
+                    </if>
+                AND AA.SXDC_SE_CD           IN      ('M', 'F')
+                AND AA.BBSCTT_TYPE_SE_CD    IN      (
+                                                    SELECT  CMMNS_CD_VALUE
+                                                    FROM
+                                                            SAC100      AA
+                                                    WHERE   1=1
+                                                        AND AA.CMMNS_CD_ID      =   'MM_DSCSN_STATS_TYPE_SE_CD'  /* 월상담통계유형구분코드 */
+                                                    )
+                    
+            GROUP BY
+                    TO_CHAR(AA.FRST_REG_DT, 'YYYYMM')
+                ,   AA.BBSCTT_TYPE_SE_CD
+            )   BB
+        ,   Z1
+    WHERE   1=1
+        AND BB.YYYYMM(+)    =       Z1.YYYYMM
+    GROUP BY
+            Z1.YYYYMM
+    ORDER BY
+            Z1.YYYYMM
+    </select>
+
+    <sql id="YY_SQL">
+            SELECT
+                    #{writeType}                                                AS  WRITE_TYPE
+                ,   #{memType}                                                  AS  MEM_TYPE
+                ,   #{gender}                                                   AS  GENDER
+                ,   TO_DATE(#{yearMonth} || '01', 'YYYYMMDD')                               AS  START_DATE
+                ,   LAST_DAY(TO_DATE(#{yearMonth} || '01', 'YYYYMMDD'))+0.99999             AS  END_DATE
+                
+            FROM
+                    DUAL
+    </sql>
+    
+    <sql id="Y1_SQL">
+            SELECT
+                    AA.BBSCTT_TYPE_SE_CD
+                ,   TO_CHAR(AA.FRST_REG_DT, 'DD')                                                           AS  YYYYMMDD
+                ,   COUNT(*)                                                                                AS  CCNT
+            FROM
+                    <if test='writeType == "1"'>
+                    AYE100      AA      /* 사이버상담게시글 */
+                        <if test='memType != null and memType != ""'>
+                            <if test='memType == "M"'>
+                ,   SAA200      BB      /* 사용자 */
+                ,   SCA200      CC      /* 청소년학부모 */
+                            </if>
+                        </if>
+                    </if>
+                    <if test='writeType == "2"'>
+                    AYE120      AA      /* 사이버상담답글 */
+                ,   SAA200      BB      /* 사용자 */
+                ,   SCA100      CC      /* 종사자 */
+                    </if>
+                ,   ZZ
+            WHERE   1=1
+                AND AA.FRST_REG_DT          BETWEEN ZZ.START_DATE
+                AND                                 ZZ.END_DATE
+                    <if test='writeType == "1"'>
+                        <if test='memType != null and memType != ""'>
+                            <if test='memType == "B"'>     /* 비회원 */
+                AND AA.FRST_RGTR_ID         =       '********'
+                            </if>
+                            <if test='memType == "M"'>      /* 회원 */
+                AND BB.USER_ID              =       AA.FRST_RGTR_ID
+                AND CC.YNGBGS_PRTCR_SE_CD   =       BB.YNGBGS_PRTCR_NO      /* 청소년학부모번호 */
+                            </if>
+                        </if>
+                        <if test='gender != null and gender != ""'>
+                AND AA.SXDC_SE_CD           =       ZZ.GENDER
+                        </if>
+                        
+                    </if>
+                    <if test='writeType == "2"'>
+                AND BB.USER_ID              =       AA.FRST_RGTR_ID
+                AND CC.ENFSN_NO             =       BB.ENFSN_NO
+                        <if test='gender != null and gender != ""'>
+                AND AA.SXDC_SE_CD           =       ZZ.GENDER
+                        </if>
+                    </if>
+                AND AA.SXDC_SE_CD           IN      ('M', 'F')
+                AND AA.BBSCTT_TYPE_SE_CD    IN      (
+                                                    SELECT  CMMNS_CD_VALUE
+                                                    FROM
+                                                            SAC100      AA
+                                                    WHERE   1=1
+                                                        AND AA.CMMNS_CD_ID      =   'MM_DSCSN_STATS_TYPE_SE_CD'  /* 월상담통계유형구분코드 */
+                                                    )
+                    
+            GROUP BY
+                    BBSCTT_TYPE_SE_CD
+                ,   TO_CHAR(AA.FRST_REG_DT, 'DD')
+    </sql>
+
+    <select id="selectMonthlyStatsDetail" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+            <include refid="YY_SQL">
+            </include>
+    )
+    ,   Z1  AS
+    (
+            <include refid="Y1_SQL">
+            </include>
+    )
+    SELECT  /* SQL-ID : isry.couns.stats.dscsnstats.mapper.MonthlyStatsMapper.selectMonthlyStatsDetail : 월상세통계 LIST */
+            FF.CMMNS_CD_VALUE_NM    AS  BBSCTT_TITLE
+        ,   EE.*
+    FROM
+            (
+            SELECT  
+                    *
+            FROM
+                    Z1
+            PIVOT   (
+                    SUM( CCNT )    
+            FOR     YYYYMMDD  IN      
+                                <foreach collection="ddday" item="item" index="index" separator="," open="(" close=")">
+                                    '${item}' AS  A${item}  
+                                </foreach>
+                    )
+            )       EE
+        ,   (
+            SELECT
+                    AA.*
+            FROM
+                    SAC100      AA
+            WHERE   1=1
+                AND AA.CMMNS_CD_ID      =   'MM_DSCSN_STATS_TYPE_SE_CD'  /* 월상담통계유형구분코드 */
+            )       FF
+    WHERE   1=1
+        AND EE.BBSCTT_TYPE_SE_CD(+)     =       FF.CMMNS_CD_VALUE
+        
+    ORDER BY
+            FF.SRTNG_SQNCE
+
+    </select>
+
+</mapper>

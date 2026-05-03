@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : CaseTrmnMapper.xml
+* @Description : 사례종결 SQL Mapper
+*
+* @author  : Seo.Hae.Seok
+* @since   : 2022. 05. 09.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 05. 09.  Seo.Hae.Seok    최초작성
+* </pre>
+-->
+<mapper namespace="isry.itgcm.casemng.caseunity.mapper.CaseTrmnMapper">
+
+    <!-- 사례종결 목록조회 -->
+    <select id="selectCaseTrmnList" parameterType="HashMap" resultType="HashMap">
+      <![CDATA[
+        SELECT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.selectCaseTrmnList(사례종결목록조회) */
+               T1.TRPR_INFO_NO                                              AS TRPR_INFO_NO                 -- 대상자정보번호(TR)
+             , T2.CASE_MNG_NO                                               AS CASE_MNG_NO                  -- 사례관리번호(CS)
+             , T2.CASE_MNG_ODRNO                                            AS CASE_MNG_ODRNO               -- 사례관리차수
+             , T2.CASE_PRGRS_STTS_SE_CD                                     AS CASE_PRGRS_STTS_SE_CD        -- 사례진행상태구분코드
+             , T3.CASE_TRMN_NO                                              AS CASE_TRMN_NO                 -- 사례종결번호(CT)
+             , T3.TRMN_APLY_YMD                                             AS TRMN_APLY_YMD                -- 종결신청일자
+             , T3.TRMN_SRNG_YMD                                             AS TRMN_SRNG_YMD                -- 종결심사일자
+             , T3.TRMN_SRNG_RESULT_SE_CD                                    AS TRMN_SRNG_RESULT_SE_CD       -- 종결심사결과구분코드
+             , T3.CASE_TRMN_YMD                                             AS CASE_TRMN_YMD                -- 사례종결일자
+             , T3.TRMN_CS_SE_CD                                             AS TRMN_CS_SE_CD                -- 종결사유구분코드
+             , T3.TRMN_CS_SE_CD_ETC_CN                                      AS TRMN_CS_SE_CD_ETC_CN         -- 종결사유구분코드기타내용
+             , T3.GOAL_ACHIV_DGREE_SE_CD                                    AS GOAL_ACHIV_DGREE_SE_CD       -- 목표달성정도구분코드
+             , T3.GOAL_ACHIV_OUTC_CN                                        AS GOAL_ACHIV_OUTC_CN           -- 목표달성성과내용
+             , T3.CASE_TRMN_HR                                              AS CASE_TRMN_HR                 -- 사례종결시간
+             , T3.ATFINO                                                    AS ATFINO                       -- 첨부파일번호
+             , T3.YNGBGS_CHNG_LAST_RESULT_CN                                AS YNGBGS_CHNG_LAST_RESULT_CN   -- 청소년변화최종결과내용
+             , T3.MIND_MDCINE_DSCSN_CN                                      AS MIND_MDCINE_DSCSN_CN         -- 정신의학상담내용
+             , T3.PROBM_SLTN_SE_CD                                          AS PROBM_SLTN_SE_CD             -- 문제해결구분코드
+             , T3.MDSTRM_FAILR_CS_SE_CD                                     AS MDSTRM_FAILR_CS_SE_CD        -- 중도탈락사유구분코드
+             , T3.PIC_OPNN_CN                                               AS PIC_OPNN_CN                  -- 담당자의견내용
+             , T3.PSTRTR_RESDN_SE_CD                                        AS PSTRTR_RESDN_SE_CD           -- 퇴소후거주구분코드
+             , T3.PSTRTR_SCHULW_SE_CD                                       AS PSTRTR_SCHULW_SE_CD          -- 퇴소후학업구분코드
+             , T3.PSTRTR_SLFRL_SE_CD                                        AS PSTRTR_SLFRL_SE_CD           -- 퇴소후자립구분코드
+             , T3.TRMN_SE_CD                                                AS TRMN_SE_CD                   -- 종결구분코드
+             , T3.TRMN_AFTR_ZIP                                             AS TRMN_AFTR_ZIP                -- 종결이후우편번호
+             , T3.TRMN_AFTR_PST_ADDR                                        AS TRMN_AFTR_PST_ADDR           -- 종결이후우편주소
+             , T3.TRMN_AFTR_DADDR                                           AS TRMN_AFTR_DADDR              -- 종결이후상세주소
+             , T3.FRST_REG_DT                                               AS FRST_REG_DT                  -- 최초등록일시
+             , T3.LAST_MDFCN_DT                                             AS LAST_MDFCN_DT                -- 최종수정일시
+             , T2.AFTFCT_MNG_YN                                             AS AFTFCT_MNG_YN                -- 사후관리여부
+             , T4.PIC_NO                                                    AS PIC_NO                       -- 심사자번호
+             , (SELECT (C##RG.ENC_B64(#{FLNM_ENCPT})) FROM SCA100 WHERE ENFSN_NO = T4.PIC_NO)   AS PIC_NM_ENCPT                 -- 심사자명
+             , T4.PIC_INST_NO                                               AS PIC_INST_NO                  -- 심사자기관번호
+             , (SELECT INST_NM FROM SAA000 WHERE INST_NO = T4.PIC_INST_NO)  AS PIC_INST_NM                  -- 심사자기관명
+             , T4.REJDGE_TKCG_YN                                            AS REJDGE_TKCG_YN               -- 재심사담당여부
+             , T4.TRMN_SRNG_TKCG_YN                                         AS TRMN_SRNG_TKCG_YN            -- 종결심사담당여부
+          FROM SEA200 T1  /* 대상자정보 */
+             , SEB100 T2  /* 사례기본 */
+             , SEC100 T3  /* 사례종결 */
+             , SEC120 T4  /* 심사담당자 */
+         WHERE 1 = 1
+           AND T1.TRPR_INFO_NO   = T2.TRPR_INFO_NO
+           AND T2.CASE_MNG_NO    = T3.CASE_MNG_NO
+           AND T2.CASE_MNG_ODRNO = T3.CASE_MNG_ODRNO
+           AND T3.CASE_TRMN_NO   = T4.CASE_TRMN_NO(+)
+           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+      ORDER BY T2.CASE_MNG_NO
+             , T2.CASE_MNG_ODRNO
+             , T3.CASE_TRMN_NO DESC
+      ]]>
+    </select>
+    
+    <!-- 사례종결신청 (병무청종결대상자필요정보정보조회) -->
+    <select id="selectCaseTrmnMmaInfo" parameterType="HashMap" resultType="HashMap">
+      <![CDATA[
+	     SELECT  /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.selectCaseTrmnMmaInfo(사례종결신청 (병무청종결대상자필요정보정보조회)) */
+	            RNUM AS RNUM
+	          , CASE_TRMN_NO AS CASE_TRMN_NO
+	          , GOAL_ACHIV_OUTC_CN AS GOAL_ACHIV_OUTC_CN
+	     FROM (  
+		     SELECT 
+		                ROW_NUMBER() OVER(PARTITION BY CASE_MNG_NO ORDER BY CASE_TRMN_NO DESC) AS  RNUM       
+		             ,  FRST_REG_DT                                             AS FRST_REG_DT
+		             , CASE_TRMN_NO                                              AS CASE_TRMN_NO                 -- 사례종결번호(CT)
+		             , CASE_MNG_NO                                               AS CASE_MNG_NO                  -- 사례관리번호(CS)
+		             , CASE_MNG_ODRNO                                            AS CASE_MNG_ODRNO               -- 사례관리차수
+		             , GOAL_ACHIV_OUTC_CN                                        AS GOAL_ACHIV_OUTC_CN           -- 목표달성성과내용
+		       FROM (
+			        SELECT
+			               TO_CHAR(T3.FRST_REG_DT , 'YYYY-MM-DD HH24:MI:SS')                                            AS FRST_REG_DT
+			             , T3.CASE_TRMN_NO                                              AS CASE_TRMN_NO                 -- 사례종결번호(CT)
+			             , T2.CASE_MNG_NO                                               AS CASE_MNG_NO                  -- 사례관리번호(CS)
+			             , T2.CASE_MNG_ODRNO                                            AS CASE_MNG_ODRNO               -- 사례관리차수
+			             , T2.CASE_PRGRS_STTS_SE_CD                                     AS CASE_PRGRS_STTS_SE_CD        -- 사례진행상태구분코드
+			             , T3.TRMN_SRNG_RESULT_SE_CD                                    AS TRMN_SRNG_RESULT_SE_CD       -- 종결심사결과구분코드
+			             , T3.GOAL_ACHIV_DGREE_SE_CD                                    AS GOAL_ACHIV_DGREE_SE_CD       -- 목표달성정도구분코드
+			             , T3.GOAL_ACHIV_OUTC_CN                                        AS GOAL_ACHIV_OUTC_CN           -- 목표달성성과내용
+			          FROM SEA200 T1  /* 대상자정보 */
+			             , SEB100 T2  /* 사례기본 */
+			             , SEC100 T3  /* 사례종결 */
+			             , SEC120 T4  /* 심사담당자 */
+			         WHERE 1 = 1
+			           AND T1.TRPR_INFO_NO   = T2.TRPR_INFO_NO
+			           AND T2.CASE_MNG_NO    = T3.CASE_MNG_NO
+			           AND T2.CASE_MNG_ODRNO = T3.CASE_MNG_ODRNO
+			           AND T3.CASE_TRMN_NO   = T4.CASE_TRMN_NO(+)
+			           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+			           AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+			           AND T3.TRMN_SRNG_RESULT_SE_CD = '01'
+			      ORDER BY T3.CASE_TRMN_NO DESC, T3.FRST_REG_DT DESC           
+			             )
+		      )
+          WHERE RNUM = 1
+      ]]>
+    </select>
+
+
+    <!-- 종결 이후 종결내역 수정 시작 -->
+    
+    <sql id="TRMN_APRV_LIST_WHERE">
+        <choose>
+            <when test="INST_NOS != null and INST_NOS.size == 1">
+                AND T5.PIC_INST_NO = #{INST_NOS[0]}
+            </when>
+            <otherwise>
+		        AND T5.PIC_INST_NO IN
+		        <foreach collection="INST_NOS" item="item" open="("
+		            separator="," close=")">
+		            #{item}
+		        </foreach>
+            </otherwise>
+        </choose>
+        <if test=" GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString() ">
+                /*종사자 권한 selectCaseTrmnAprvList*/
+                AND T5.CASE_PIC_NO  = #{ENFSN_NO}
+        </if>    
+    
+      <if test="CASE_TRMN_BGNG_YMD != null and CASE_TRMN_BGNG_YMD != ''">
+           AND T3.CASE_TRMN_YMD          BETWEEN TO_DATE(#{CASE_TRMN_BGNG_YMD} || '000000', 'YYYYMMDDHH24MISS')        -- 등록시작일자
+                                             AND TO_DATE(#{CASE_TRMN_END_YMD}  || '235959', 'YYYYMMDDHH24MISS')        -- 등록종료일자       
+      </if>
+      <if test="TRMN_SRNG_BGNG_YMD != null and TRMN_SRNG_BGNG_YMD != ''">
+           AND T3.TRMN_SRNG_YMD          BETWEEN TO_DATE(#{TRMN_SRNG_BGNG_YMD} || '000000', 'YYYYMMDDHH24MISS')        -- 등록시작일자
+                                             AND TO_DATE(#{TRMN_SRNG_END_YMD}  || '235959', 'YYYYMMDDHH24MISS')        -- 등록종료일자       
+      </if>
+      <if test="CASE_MNG_NO != null and CASE_MNG_NO != ''">
+           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+      </if>      
+      <if test="TRPR_INFO_NO != null and TRPR_INFO_NO != ''">
+           AND T2.TRPR_INFO_NO    = #{TRPR_INFO_NO}
+      </if>      
+      <if test="CASE_PIC_NM_ENCPT != null and CASE_PIC_NM_ENCPT != ''">
+           AND T5.CASE_PIC_NO  IN ( SELECT X.ENFSN_NO 
+                                     FROM SCA100 X 
+                                    WHERE X.ENFSN_NO   = T5.CASE_PIC_NO
+                                      AND X.FLNM_ENCPT = C##RG.ENC_B64(#{CASE_PIC_NM_ENCPT}) -- 담당자명암호화
+                                )            
+      </if>      
+      <if test="CASE_PIC_INST_NO != null and CASE_PIC_INST_NO != ''">
+           AND T5.PIC_INST_NO    = #{CASE_PIC_INST_NO}
+      </if>      
+      <if test="PIC_NM_ENCPT != null and PIC_NM_ENCPT != ''">
+           AND T4.PIC_NO  IN ( SELECT X.ENFSN_NO 
+                                     FROM SCA100 X 
+                                    WHERE X.ENFSN_NO   = T4.PIC_NO
+                                      AND X.FLNM_ENCPT = C##RG.ENC_B64(#{PIC_NM_ENCPT}) -- 담당자명암호화
+                                )           
+      </if>     
+    </sql> 
+    
+    <!-- 사례종결 목록건수 -->
+    <select id="getCaseTrmnAprvList" parameterType="HashMap" resultType="Integer">
+           SELECT COUNT(*)
+             FROM (   
+			      SELECT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.selectCaseTrmnAprvList(사례종결승인목록조회) */
+			             ROW_NUMBER() OVER(PARTITION BY T2.CASE_MNG_NO, T2.CASE_MNG_ODRNO ORDER BY T2.FRST_REG_DT DESC) AS RM  
+			        FROM SEA200 T1  /* 대상자정보 */
+			           , SEB100 T2  /* 사례기본 */
+			           , SEC100 T3  /* 사례종결 */
+			           , SEC120 T4  /* 심사담당자 */
+			           , SEB150 T5
+			       WHERE 1 = 1
+			         AND T1.TRPR_INFO_NO     = T2.TRPR_INFO_NO
+			         AND T2.CASE_MNG_NO      = T3.CASE_MNG_NO
+			         AND T2.CASE_MNG_ODRNO   = T3.CASE_MNG_ODRNO
+			         AND T3.CASE_TRMN_NO     = T4.CASE_TRMN_NO(+)
+			         AND T2.CASE_MNG_NO      = T5.CASE_MNG_NO
+			         AND T2.CASE_MNG_ODRNO   = T5.CASE_MNG_ODRNO
+			         AND T2.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+			         AND T2.CASE_PRGRS_STTS_SE_CD IN ('04','06','08','10')   -- 종결, 사후관리, 사후종결, 재개입    
+			         AND T3.TRMN_SRNG_RESULT_SE_CD = '02'
+			         AND T4.TRMN_SRNG_TKCG_YN = 'Y'
+			        <include refid="TRMN_APRV_LIST_WHERE"/>            
+                  ) T    
+           WHERE 1 = 1
+             AND RM = 1
+    </select>    
+
+    <!-- 사례종결 목록조회 -->
+    <select id="selectCaseTrmnAprvList" parameterType="HashMap" resultType="HashMap">
+          SELECT * 
+            FROM ( 
+		           SELECT #{TOT_CNT} AS TOT_CNT
+		                , ROWNUM AS SEQ
+		                , T.*
+		             FROM (   
+					      SELECT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.selectCaseTrmnAprvList(사례종결승인목록조회) */
+					             ROW_NUMBER() OVER(PARTITION BY T2.CASE_MNG_NO, T2.CASE_MNG_ODRNO ORDER BY T2.FRST_REG_DT DESC) AS RM  
+					           , T1.TRPR_INFO_NO                                              AS TRPR_INFO_NO                 -- 대상자정보번호(TR)
+					           , C##RG.DEC_B64(T1.TRPR_NM_ENCPT)                           AS TRPR_NM_ENCPT
+					           , T1.TRPR_BRTH_YMD                                             AS TRPR_BRTH_YMD                -- 대상자출생일자   
+					           , T1.SXDC_SE_CD                                                AS SXDC_SE_CD                   -- 성별구분코드                       
+					           , T2.CASE_MNG_NO                                               AS CASE_MNG_NO                  -- 사례관리번호(CS)
+					           , T2.UNT_TASKWK_SE_CD                                          AS UNT_TASKWK_SE_CD             -- 단위업무구분코드
+					           , T2.CASE_MNG_ODRNO                                            AS CASE_MNG_ODRNO               -- 사례관리차수
+					           , T2.CASE_PRGRS_STTS_SE_CD                                     AS CASE_PRGRS_STTS_SE_CD        -- 사례진행상태구분코드
+					           , T3.CASE_TRMN_NO                                              AS CASE_TRMN_NO                 -- 사례종결번호(CT)
+					           , T3.TRMN_APLY_YMD                                             AS TRMN_APLY_YMD                -- 종결신청일자
+					           , T3.TRMN_SRNG_YMD                                             AS TRMN_SRNG_YMD                -- 종결심사일자
+					           , T3.TRMN_SRNG_RESULT_SE_CD                                    AS TRMN_SRNG_RESULT_SE_CD       -- 종결심사결과구분코드
+					           , T3.CASE_TRMN_YMD                                             AS CASE_TRMN_YMD                -- 사례종결일자
+					           , T3.TRMN_CS_SE_CD                                             AS TRMN_CS_SE_CD                -- 종결사유구분코드
+					           , T3.TRMN_CS_SE_CD_ETC_CN                                      AS TRMN_CS_SE_CD_ETC_CN         -- 종결사유구분코드기타내용
+					           , T3.GOAL_ACHIV_DGREE_SE_CD                                    AS GOAL_ACHIV_DGREE_SE_CD       -- 목표달성정도구분코드
+					           , T3.GOAL_ACHIV_OUTC_CN                                        AS GOAL_ACHIV_OUTC_CN           -- 목표달성성과내용
+					           , T3.CASE_TRMN_HR                                              AS CASE_TRMN_HR                 -- 사례종결시간
+					           , T3.ATFINO                                                    AS ATFINO                       -- 첨부파일번호
+					           , T3.YNGBGS_CHNG_LAST_RESULT_CN                                AS YNGBGS_CHNG_LAST_RESULT_CN   -- 청소년변화최종결과내용
+					           , T3.MIND_MDCINE_DSCSN_CN                                      AS MIND_MDCINE_DSCSN_CN         -- 정신의학상담내용
+					           , T3.PROBM_SLTN_SE_CD                                          AS PROBM_SLTN_SE_CD             -- 문제해결구분코드
+					           , T3.MDSTRM_FAILR_CS_SE_CD                                     AS MDSTRM_FAILR_CS_SE_CD        -- 중도탈락사유구분코드
+					           , T3.PIC_OPNN_CN                                               AS PIC_OPNN_CN                  -- 담당자의견내용
+					           , T3.PSTRTR_RESDN_SE_CD                                        AS PSTRTR_RESDN_SE_CD           -- 퇴소후거주구분코드
+					           , T3.PSTRTR_SCHULW_SE_CD                                       AS PSTRTR_SCHULW_SE_CD          -- 퇴소후학업구분코드
+					           , T3.PSTRTR_SLFRL_SE_CD                                        AS PSTRTR_SLFRL_SE_CD           -- 퇴소후자립구분코드
+					           , T3.TRMN_SE_CD                                                AS TRMN_SE_CD                   -- 종결구분코드
+					           , T3.TRMN_AFTR_ZIP                                             AS TRMN_AFTR_ZIP                -- 종결이후우편번호
+					           , T3.TRMN_AFTR_PST_ADDR                                        AS TRMN_AFTR_PST_ADDR           -- 종결이후우편주소
+					           , T3.TRMN_AFTR_DADDR                                           AS TRMN_AFTR_DADDR              -- 종결이후상세주소
+					           , T3.FRST_REG_DT                                               AS FRST_REG_DT                  -- 최초등록일시
+					           , T3.LAST_MDFCN_DT                                             AS LAST_MDFCN_DT                -- 최종수정일시
+					           , T2.AFTFCT_MNG_YN                                             AS AFTFCT_MNG_YN                -- 사후관리여부
+					           , T4.PIC_NO                                                    AS PIC_NO                       -- 심사자번호
+					           , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100 WHERE ENFSN_NO = T4.PIC_NO)   AS PIC_NM_ENCPT                 -- 종결최종처리자(승인)
+					           , T4.PIC_INST_NO                                               AS PIC_INST_NO                  -- 심사자기관번호
+					           , (SELECT INST_NM FROM SAA000 WHERE INST_NO = T4.PIC_INST_NO)  AS PIC_INST_NM                  -- 심사자기관명
+					           , T4.REJDGE_TKCG_YN                                            AS REJDGE_TKCG_YN               -- 재심사담당여부
+					           , T4.TRMN_SRNG_TKCG_YN                                         AS TRMN_SRNG_TKCG_YN            -- 종결심사담당여부
+					           , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100 WHERE ENFSN_NO = T5.CASE_PIC_NO)   AS CASE_PIC_NM_ENCPT                 -- 사례담당자
+					           , (SELECT INST_NM FROM SAA000 WHERE INST_NO = T5.PIC_INST_NO)  AS CASE_PIC_INST_NM                  -- 사례담당자기관명
+					           , T5.PIC_INST_NO                                               AS CASE_PIC_INST_NO
+					        FROM SEA200 T1  /* 대상자정보 */
+					           , SEB100 T2  /* 사례기본 */
+					           , SEC100 T3  /* 사례종결 */
+					           , SEC120 T4  /* 심사담당자 */
+					           , SEB150 T5
+					       WHERE 1 = 1
+					         AND T1.TRPR_INFO_NO     = T2.TRPR_INFO_NO
+					         AND T2.CASE_MNG_NO      = T3.CASE_MNG_NO
+					         AND T2.CASE_MNG_ODRNO   = T3.CASE_MNG_ODRNO
+					         AND T3.CASE_TRMN_NO     = T4.CASE_TRMN_NO(+)
+					         AND T2.CASE_MNG_NO      = T5.CASE_MNG_NO
+					         AND T2.CASE_MNG_ODRNO   = T5.CASE_MNG_ODRNO
+					         AND T2.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+					         AND T2.CASE_PRGRS_STTS_SE_CD IN ('04','06','08','10')   -- 종결, 사후관리, 사후종결, 재개입    
+					         AND T3.TRMN_SRNG_RESULT_SE_CD = '02'
+					         AND T4.TRMN_SRNG_TKCG_YN = 'Y'
+					        <include refid="TRMN_APRV_LIST_WHERE"/>
+		                  ) T    
+			        WHERE 1 = 1
+			          AND RM = 1
+                 )
+            WHERE 1 = 1
+              <![CDATA[
+              AND SEQ >= #{START_IDX} AND SEQ <= #{LAST_IDX}
+              ]]>                    
+    </select>
+    
+    <select id="selectCaseTrmnAply" parameterType="HashMap" resultType="HashMap">
+        SELECT *
+          FROM (
+		      SELECT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.selectCaseTrmnAply(사례종결신청정보조회) */
+		             ROW_NUMBER() OVER(PARTITION BY T3.CASE_MNG_NO, T3.CASE_MNG_ODRNO ORDER BY T3.FRST_REG_DT DESC) AS RM
+		           , T1.TRPR_INFO_NO                                              AS TRPR_INFO_NO                 -- 대상자정보번호(TR)
+		           , C##RG.DEC_B64(T1.TRPR_NM_ENCPT)                           AS TRPR_NM_ENCPT
+		           , T1.TRPR_BRTH_YMD                                             AS TRPR_BRTH_YMD                -- 대상자출생일자   
+		           , T1.SXDC_SE_CD                                                AS SXDC_SE_CD                   -- 성별구분코드                       
+		           , T2.CASE_MNG_NO                                               AS CASE_MNG_NO                  -- 사례관리번호(CS)
+		           , T2.CASE_MNG_ODRNO                                            AS CASE_MNG_ODRNO               -- 사례관리차수
+		           , T2.CASE_PRGRS_STTS_SE_CD                                     AS CASE_PRGRS_STTS_SE_CD        -- 사례진행상태구분코드
+		           , T3.CASE_TRMN_NO                                              AS CASE_TRMN_NO                 -- 사례종결번호(CT)
+		           , T3.TRMN_APLY_YMD                                             AS TRMN_APLY_YMD                -- 종결신청일자
+		           , T3.TRMN_SRNG_YMD                                             AS TRMN_SRNG_YMD                -- 종결심사일자
+		           , T3.TRMN_SRNG_RESULT_SE_CD                                    AS TRMN_SRNG_RESULT_SE_CD       -- 종결심사결과구분코드
+		           , T3.CASE_TRMN_YMD                                             AS CASE_TRMN_YMD                -- 사례종결일자
+		           , T3.TRMN_CS_SE_CD                                             AS TRMN_CS_SE_CD                -- 종결사유구분코드
+		           , T3.TRMN_CS_SE_CD_ETC_CN                                      AS TRMN_CS_SE_CD_ETC_CN         -- 종결사유구분코드기타내용
+		           , T3.GOAL_ACHIV_DGREE_SE_CD                                    AS GOAL_ACHIV_DGREE_SE_CD       -- 목표달성정도구분코드
+		           , T3.GOAL_ACHIV_OUTC_CN                                        AS GOAL_ACHIV_OUTC_CN           -- 목표달성성과내용
+		           , T3.CASE_TRMN_HR                                              AS CASE_TRMN_HR                 -- 사례종결시간
+		           , T3.ATFINO                                                    AS ATFINO                       -- 첨부파일번호
+		           , T3.YNGBGS_CHNG_LAST_RESULT_CN                                AS YNGBGS_CHNG_LAST_RESULT_CN   -- 청소년변화최종결과내용
+		           , T3.MIND_MDCINE_DSCSN_CN                                      AS MIND_MDCINE_DSCSN_CN         -- 정신의학상담내용
+		           , T3.PROBM_SLTN_SE_CD                                          AS PROBM_SLTN_SE_CD             -- 문제해결구분코드
+		           , T3.MDSTRM_FAILR_CS_SE_CD                                     AS MDSTRM_FAILR_CS_SE_CD        -- 중도탈락사유구분코드
+		           , T3.PIC_OPNN_CN                                               AS PIC_OPNN_CN                  -- 담당자의견내용
+		           , T3.PSTRTR_RESDN_SE_CD                                        AS PSTRTR_RESDN_SE_CD           -- 퇴소후거주구분코드
+		           , T3.PSTRTR_SCHULW_SE_CD                                       AS PSTRTR_SCHULW_SE_CD          -- 퇴소후학업구분코드
+		           , T3.PSTRTR_SLFRL_SE_CD                                        AS PSTRTR_SLFRL_SE_CD           -- 퇴소후자립구분코드
+		           , T3.TRMN_SE_CD                                                AS TRMN_SE_CD                   -- 종결구분코드
+		           , T3.TRMN_AFTR_ZIP                                             AS TRMN_AFTR_ZIP                -- 종결이후우편번호
+		           , T3.TRMN_AFTR_PST_ADDR                                        AS TRMN_AFTR_PST_ADDR           -- 종결이후우편주소
+		           , T3.TRMN_AFTR_DADDR                                           AS TRMN_AFTR_DADDR              -- 종결이후상세주소
+		           , T3.FRST_REG_DT                                               AS FRST_REG_DT                  -- 최초등록일시
+		           , T3.LAST_MDFCN_DT                                             AS LAST_MDFCN_DT                -- 최종수정일시
+		           , T2.AFTFCT_MNG_YN                                             AS AFTFCT_MNG_YN                -- 사후관리여부
+		           , T4.PIC_NO                                                    AS PIC_NO                       -- 심사자번호
+		           , (SELECT C##RG.DEC_B64(FLNM_ENCPT) FROM SCA100 WHERE ENFSN_NO = 
+		              (SELECT ENFSN_NO FROM SAA200 WHERE USER_ID = T3.LAST_MDFR_ID))   AS PIC_NM_ENCPT                 -- 종결최종처리자(승인)
+		           , T4.PIC_INST_NO                                               AS PIC_INST_NO                  -- 심사자기관번호
+		           , (SELECT INST_NM FROM SAA000 WHERE INST_NO = T4.PIC_INST_NO)  AS PIC_INST_NM                  -- 심사자기관명
+		           , T4.REJDGE_TKCG_YN                                            AS REJDGE_TKCG_YN               -- 재심사담당여부
+		           , T4.TRMN_SRNG_TKCG_YN                                         AS TRMN_SRNG_TKCG_YN            -- 종결심사담당여부
+		        FROM SEA200 T1  /* 대상자정보 */
+		           , SEB100 T2  /* 사례기본 */
+		           , SEC100 T3  /* 사례종결 */
+		           , SEC120 T4  /* 심사담당자 */
+		       WHERE 1 = 1
+		         AND T1.TRPR_INFO_NO   = T2.TRPR_INFO_NO
+		         AND T2.CASE_MNG_NO    = T3.CASE_MNG_NO
+		         AND T2.CASE_MNG_ODRNO = T3.CASE_MNG_ODRNO
+		         AND T3.CASE_TRMN_NO   = T4.CASE_TRMN_NO(+)
+		         AND T3.TRMN_SRNG_RESULT_SE_CD = '01'
+		         AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+		         AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+		  )
+		WHERE 1 = 1
+		  AND RM = 1          
+    </select> 
+    
+    <select id="selectUpperInst" parameterType="HashMap" resultType="HashMap">
+		SELECT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.selectUpperInst(종결수정 접속종사자 상위기관 조회) */
+		       INST_NO
+		     , UNT_TASKWK_SE_CD
+		     , INST_NM
+		     , UP_INST_NO
+		     , UP_APRV_INST_NO
+		  FROM SAA000
+		 WHERE 1 = 1
+		   AND UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+		   AND UP_INST_NO = #{INST_NO}    
+    </select>    
+
+    <!-- 사례종결 상세등록 -->
+    <insert id="insertCaseTrmnDetail" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.insertCaseTrmnDetail(사례종결상세등록) */
+          INTO SEC100 T1  /* 사례종결 */
+             ( T1.CASE_TRMN_NO                  -- 사례종결번호(CT)
+             , T1.CASE_MNG_NO                   -- 사례관리번호(CS)
+             , T1.CASE_MNG_ODRNO                -- 사례관리차수
+             , T1.TRMN_APLY_YMD                 -- 종결신청일자
+             , T1.TRMN_SRNG_YMD                 -- 종결심사일자
+             , T1.TRMN_SRNG_RESULT_SE_CD        -- 종결심사결과구분코드
+             , T1.CASE_TRMN_YMD                 -- 사례종결일자
+             , T1.CASE_TRMN_HR                  -- 사례종결시간
+             , T1.TRMN_CS_SE_CD                 -- 종결사유구분코드
+             , T1.TRMN_CS_SE_CD_ETC_CN          -- 종결사유구분코드기타내용
+             , T1.GOAL_ACHIV_DGREE_SE_CD        -- 목표달성정도구분코드
+             , T1.GOAL_ACHIV_OUTC_CN            -- 목표달성성과내용             
+             , T1.ATFINO                        -- 첨부파일번호
+             , T1.YNGBGS_CHNG_LAST_RESULT_CN    -- 청소년변화최종결과내용
+             , T1.MIND_MDCINE_DSCSN_CN          -- 정신의학상담내용
+             , T1.PROBM_SLTN_SE_CD              -- 문제해결구분코드
+             , T1.MDSTRM_FAILR_CS_SE_CD         -- 중도탈락사유구분코드
+             , T1.PIC_OPNN_CN                   -- 담당자의견내용
+             , T1.PSTRTR_RESDN_SE_CD            -- 퇴소후거주구분코드
+             , T1.PSTRTR_SCHULW_SE_CD           -- 퇴소후학업구분코드
+             , T1.PSTRTR_SLFRL_SE_CD            -- 퇴소후자립구분코드
+             , T1.TRMN_SE_CD                    -- 종결구분코드
+             , T1.TRMN_AFTR_ZIP                 -- 종결이후우편번호
+             , T1.TRMN_AFTR_PST_ADDR            -- 종결이후우편주소
+             , T1.TRMN_AFTR_DADDR               -- 종결이후상세주소
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{CASE_TRMN_NO}                  -- 사례종결번호(CT)
+             , #{CASE_MNG_NO}                   -- 사례관리번호(CS)
+             , #{CASE_MNG_ODRNO}                -- 사례관리차수
+             , #{TRMN_APLY_YMD}                 -- 종결신청일자
+             , #{TRMN_SRNG_YMD}                 -- 종결심사일자
+             , #{TRMN_SRNG_RESULT_SE_CD}        -- 종결심사결과구분코드
+             , #{CASE_TRMN_YMD}                 -- 사례종결일자
+             , #{CASE_TRMN_HR}                  -- 사례종결시간
+             , #{TRMN_CS_SE_CD}                 -- 종결사유구분코드
+             , #{TRMN_CS_SE_CD_ETC_CN}          -- 종결사유구분코드기타내용             
+             , #{GOAL_ACHIV_DGREE_SE_CD}        -- 목표달성정도구분코드
+             , #{GOAL_ACHIV_OUTC_CN}            -- 목표달성성과내용             
+             , #{ATFINO}                        -- 첨부파일번호
+             , #{YNGBGS_CHNG_LAST_RESULT_CN}    -- 청소년변화최종결과내용
+             , #{MIND_MDCINE_DSCSN_CN}          -- 정신의학상담내용
+             , #{PROBM_SLTN_SE_CD}              -- 문제해결구분코드
+             , #{MDSTRM_FAILR_CS_SE_CD}         -- 중도탈락사유구분코드
+             , #{PIC_OPNN_CN}                   -- 담당자의견내용
+             , #{PSTRTR_RESDN_SE_CD}            -- 퇴소후거주구분코드
+             , #{PSTRTR_SCHULW_SE_CD}           -- 퇴소후학업구분코드
+             , #{PSTRTR_SLFRL_SE_CD}            -- 퇴소후자립구분코드
+             , #{TRMN_SE_CD}                    -- 종결구분코드
+             , #{TRMN_AFTR_ZIP}                 -- 종결이후우편번호
+             , #{TRMN_AFTR_PST_ADDR}            -- 종결이후우편주소
+             , #{TRMN_AFTR_DADDR}               -- 종결이후상세주소
+             , #{USER_ID}                       -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{USER_ID}                       -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+    <!-- 사례종결 상세수정 -->
+    <update id="updateCaseTrmnDetail" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.updateCaseTrmnDetail(사례종결상세수정) */
+               SEC100 T1  /* 사례종결 */
+           SET T1.TRMN_APLY_YMD              = #{TRMN_APLY_YMD}                  -- 종결신청일자
+             , T1.TRMN_SRNG_YMD              = #{TRMN_SRNG_YMD}                  -- 종결심사일자
+             , T1.TRMN_SRNG_RESULT_SE_CD     = #{TRMN_SRNG_RESULT_SE_CD}         -- 종결심사결과구분코드
+             , T1.CASE_TRMN_YMD              = #{CASE_TRMN_YMD}                  -- 사례종결일자
+             , T1.CASE_TRMN_HR               = #{CASE_TRMN_HR}                   -- 사례종결시간
+             , T1.TRMN_CS_SE_CD              = #{TRMN_CS_SE_CD}                  -- 종결사유구분코드
+             , T1.TRMN_CS_SE_CD_ETC_CN       = #{TRMN_CS_SE_CD_ETC_CN}           -- 종결사유구분코드기타내용
+             , T1.GOAL_ACHIV_DGREE_SE_CD     = #{GOAL_ACHIV_DGREE_SE_CD}         -- 목표달성정도구분코드
+             , T1.GOAL_ACHIV_OUTC_CN         = #{GOAL_ACHIV_OUTC_CN}             -- 목표달성성과내용
+             , T1.ATFINO                     = #{ATFINO}                         -- 첨부파일번호
+             , T1.YNGBGS_CHNG_LAST_RESULT_CN = #{YNGBGS_CHNG_LAST_RESULT_CN}     -- 청소년변화최종결과내용
+             , T1.MIND_MDCINE_DSCSN_CN       = #{MIND_MDCINE_DSCSN_CN}           -- 정신의학상담내용
+             , T1.PROBM_SLTN_SE_CD           = #{PROBM_SLTN_SE_CD}               -- 문제해결구분코드
+             , T1.MDSTRM_FAILR_CS_SE_CD      = #{MDSTRM_FAILR_CS_SE_CD}          -- 중도탈락사유구분코드
+             , T1.PIC_OPNN_CN                = #{PIC_OPNN_CN}                    -- 담당자의견내용
+             , T1.PSTRTR_RESDN_SE_CD         = #{PSTRTR_RESDN_SE_CD}             -- 퇴소후거주구분코드
+             , T1.PSTRTR_SCHULW_SE_CD        = #{PSTRTR_SCHULW_SE_CD}            -- 퇴소후학업구분코드
+             , T1.PSTRTR_SLFRL_SE_CD         = #{PSTRTR_SLFRL_SE_CD}             -- 퇴소후자립구분코드
+             , T1.TRMN_SE_CD                 = #{TRMN_SE_CD}                     -- 종결구분코드
+             , T1.TRMN_AFTR_ZIP              = #{TRMN_AFTR_ZIP}                  -- 종결이후우편번호
+             , T1.TRMN_AFTR_PST_ADDR         = #{TRMN_AFTR_PST_ADDR}             -- 종결이후우편주소
+             , T1.TRMN_AFTR_DADDR            = #{TRMN_AFTR_DADDR}                -- 종결이후상세주소
+             , T1.LAST_MDFR_ID               = #{USER_ID}                        -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT              = SYSDATE                           -- 최종수정일시
+         WHERE T1.CASE_TRMN_NO   = #{CASE_TRMN_NO}   -- 사례종결번호
+           AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}    -- 사례관리번호(CS)
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO} -- 사례관리차수
+    </update>
+
+    <!-- 사례기본 사후관리여부 수정 -->
+    <update id="updateAftfctMngYn" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.updateAftfctMngYn(사례기본사후관리여부수정) */
+               SEB100 T1  /* 사례기본 */
+           SET T1.AFTFCT_MNG_YN  = #{AFTFCT_MNG_YN}   -- 사후관리여부
+             , T1.LAST_MDFR_ID   = #{USER_ID}         -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT  = SYSDATE            -- 최종수정일시
+         WHERE T1.CASE_MNG_NO    = #{CASE_MNG_NO}     -- 사례관리번호(CS)
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}  -- 사례관리차수
+    </update>
+    
+    <!-- 사례기본 사례진행상태구분/사례종결일자 수정 -->
+    <update id="updateCasePrgrsSttsSeCd" parameterType="HashMap">
+        UPDATE /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.updateCasePrgrsSttsSeCd(사례기본사례진행상태구분수정) */
+               SEB100 T1  /* 사례기본 */
+           SET T1.CASE_PRGRS_STTS_SE_CD = #{CASE_PRGRS_STTS_SE_CD}          -- 사례진행상태구분코드
+           <if test="CASE_TRMN_YMD != null and CASE_TRMN_YMD != ''">
+	       <![CDATA[
+	         , T1.CASE_TRMN_YMD         = #{CASE_TRMN_YMD}                  -- 사례종결일자
+	       ]]>
+	       </if> 
+	       <if test="CASE_TRMN_HR != null and CASE_TRMN_HR != ''">
+           <![CDATA[
+             , T1.CASE_TRMN_HR          = #{CASE_TRMN_HR}                   -- 사례종결시간
+           ]]>
+           </if>   
+             , T1.LAST_MDFR_ID          = #{USER_ID}                        -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT         = SYSDATE                           -- 최종수정일시
+         WHERE T1.CASE_MNG_NO    = #{CASE_MNG_NO}     -- 사례관리번호(CS)
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}  -- 사례관리차수
+    </update>
+
+    <!-- 사례종결 상세삭제 -->
+    <delete id="deleteCaseTrmnDetail" parameterType="HashMap">
+        DELETE /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.deleteCaseTrmnDetail(사례종결상세삭제) */
+          FROM SEC100 T1  /* 사례종결 */
+         WHERE T1.CASE_TRMN_NO = #{CASE_TRMN_NO}     -- 사례종결번호
+    </delete>
+
+    <!-- 사례종결 이력등록 -->
+    <insert id="insertCaseTrmnHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.insertCaseTrmnHistory(사례종결이력등록) */
+          INTO SEC101 T1  /* 사례종결이력 */
+             ( T1.CASE_TRMN_NO                  -- 사례종결번호(CT)
+             , T1.CASE_MNG_NO                   -- 사례관리번호(CS)
+             , T1.CASE_MNG_ODRNO                -- 사례관리차수
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.TRMN_APLY_YMD                 -- 종결신청일자
+             , T1.TRMN_SRNG_YMD                 -- 종결심사일자
+             , T1.TRMN_SRNG_RESULT_SE_CD        -- 종결심사결과구분코드
+             , T1.CASE_TRMN_YMD                 -- 사례종결일자
+             , T1.CASE_TRMN_HR                  -- 사례종결시간
+             , T1.TRMN_CS_SE_CD                 -- 종결사유구분코드
+             , T1.TRMN_CS_SE_CD_ETC_CN          -- 종결사유구분코드기타내용             
+             , T1.GOAL_ACHIV_DGREE_SE_CD        -- 목표달성정도구분코드
+             , T1.GOAL_ACHIV_OUTC_CN            -- 목표달성성과내용             
+             , T1.ATFINO                        -- 첨부파일번호
+             , T1.YNGBGS_CHNG_LAST_RESULT_CN    -- 청소년변화최종결과내용
+             , T1.MIND_MDCINE_DSCSN_CN          -- 정신의학상담내용
+             , T1.PROBM_SLTN_SE_CD              -- 문제해결구분코드
+             , T1.MDSTRM_FAILR_CS_SE_CD         -- 중도탈락사유구분코드
+             , T1.PIC_OPNN_CN                   -- 담당자의견내용
+             , T1.PSTRTR_RESDN_SE_CD            -- 퇴소후거주구분코드
+             , T1.PSTRTR_SCHULW_SE_CD           -- 퇴소후학업구분코드
+             , T1.PSTRTR_SLFRL_SE_CD            -- 퇴소후자립구분코드
+             , T1.TRMN_SE_CD                    -- 종결구분코드
+             , T1.TRMN_AFTR_ZIP                 -- 종결이후우편번호
+             , T1.TRMN_AFTR_PST_ADDR            -- 종결이후우편주소
+             , T1.TRMN_AFTR_DADDR               -- 종결이후상세주소
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{CASE_TRMN_NO}                  -- 사례종결번호(CT)
+             , #{CASE_MNG_NO}                   -- 사례관리번호(CS)
+             , #{CASE_MNG_ODRNO}                -- 사례관리차수
+             , SYSDATE                          -- 수정일시
+             , #{DATAA_CHG_SE_CD}               -- 데이터변경구분코드
+             , #{TRMN_APLY_YMD}                 -- 종결신청일자
+             , #{TRMN_SRNG_YMD}                 -- 종결심사일자
+             , #{TRMN_SRNG_RESULT_SE_CD}        -- 종결심사결과구분코드
+             , #{CASE_TRMN_YMD}                 -- 사례종결일자
+             , #{CASE_TRMN_HR}                  -- 사례종결시간
+             , #{TRMN_CS_SE_CD}                 -- 종결사유구분코드
+             , #{TRMN_CS_SE_CD_ETC_CN}          -- 종결사유구분코드기타내용             
+             , #{GOAL_ACHIV_DGREE_SE_CD}        -- 목표달성정도구분코드
+             , #{GOAL_ACHIV_OUTC_CN}            -- 목표달성성과내용
+             , #{ATFINO}                        -- 첨부파일번호
+             , #{YNGBGS_CHNG_LAST_RESULT_CN}    -- 청소년변화최종결과내용
+             , #{MIND_MDCINE_DSCSN_CN}          -- 정신의학상담내용
+             , #{PROBM_SLTN_SE_CD}              -- 문제해결구분코드
+             , #{MDSTRM_FAILR_CS_SE_CD}         -- 중도탈락사유구분코드
+             , #{PIC_OPNN_CN}                   -- 담당자의견내용
+             , #{PSTRTR_RESDN_SE_CD}            -- 퇴소후거주구분코드
+             , #{PSTRTR_SCHULW_SE_CD}           -- 퇴소후학업구분코드
+             , #{PSTRTR_SLFRL_SE_CD}            -- 퇴소후자립구분코드
+             , #{TRMN_SE_CD}                    -- 종결구분코드
+             , #{TRMN_AFTR_ZIP}                 -- 종결이후우편번호
+             , #{TRMN_AFTR_PST_ADDR}            -- 종결이후우편주소
+             , #{TRMN_AFTR_DADDR}               -- 종결이후상세주소
+             , #{USER_ID}                       -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{USER_ID}                       -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+    
+    <!-- 사례종결 심사담당자 등록 -->
+    <insert id="insertCaseTrmnPic" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.insertCaseTrmnPic(사례종결 심사담당자 등록) */
+          INTO SEC120 T1  /* 심사담당자 */
+             ( T1.PIC_NO                -- 담당자번호
+             , T1.CASE_TRMN_NO          -- 사례종결번호
+             , T1.CASE_MNG_NO           -- 사례관리번호(CS)
+             , T1.CASE_MNG_ODRNO        -- 사례관리차수              
+             , T1.PIC_INST_NO           -- 담당자기관번호
+             , T1.TRMN_SRNG_TKCG_YN     -- 종결심사담당여부
+             , T1.REJDGE_TKCG_YN        -- 재심사담당여부
+             , T1.FRST_RGTR_ID          -- 최초등록자아이디
+             , T1.FRST_REG_DT           -- 최초등록일시
+             , T1.LAST_MDFR_ID          -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT         -- 최종수정일시
+             )
+        VALUES
+             ( #{PIC_NO}                -- 담당자번호
+             , #{CASE_TRMN_NO}          -- 사례종결번호
+             , #{CASE_MNG_NO}           -- 사례관리번호(CS)
+             , #{CASE_MNG_ODRNO}        -- 사례관리차수
+             , #{PIC_INST_NO}           -- 담당자기관번호
+             , #{TRMN_SRNG_TKCG_YN}     -- 종결심사담당여부
+             , #{REJDGE_TKCG_YN}        -- 재심사담당여부
+             , #{USER_ID}               -- 최초등록자아이디
+             , SYSDATE                  -- 최초등록일시
+             , #{USER_ID}               -- 최종수정자아이디
+             , SYSDATE                  -- 최종수정일시
+             )
+    </insert>
+    
+    <!-- 사례종결 심사담당자 이력등록 -->
+    <insert id="insertCaseTrmnPicHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseTrmnMapper.insertCaseTrmnPicHistory(사례종결 심사담당자 이력등록) */
+          INTO SEC121 T1  /* 심사담당자이력 */
+             ( T1.PIC_NO                -- 담당자번호
+             , T1.CASE_TRMN_NO          -- 사례종결번호
+             , T1.CASE_MNG_NO           -- 사례관리번호(CS)
+             , T1.CASE_MNG_ODRNO        -- 사례관리차수
+             , T1.MDFCN_DT              -- 수정일시
+             , T1.DATAA_CHG_SE_CD       -- 데이터변경구분코드
+             , T1.PIC_INST_NO           -- 담당자기관번호
+             , T1.TRMN_SRNG_TKCG_YN     -- 종결심사담당여부
+             , T1.REJDGE_TKCG_YN        -- 재심사담당여부
+             , T1.FRST_RGTR_ID          -- 최초등록자아이디
+             , T1.FRST_REG_DT           -- 최초등록일시
+             , T1.LAST_MDFR_ID          -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT         -- 최종수정일시
+             )
+        VALUES
+             ( #{PIC_NO}                -- 담당자번호
+             , #{CASE_TRMN_NO}          -- 사례종결번호
+             , #{CASE_MNG_NO}           -- 사례관리번호(CS)
+             , #{CASE_MNG_ODRNO}        -- 사례관리차수
+             , SYSDATE                  -- 수정일시
+             , #{DATAA_CHG_SE_CD}       -- 데이터변경구분코드
+             , #{PIC_INST_NO}           -- 담당자기관번호
+             , #{TRMN_SRNG_TKCG_YN}     -- 종결심사담당여부
+             , #{REJDGE_TKCG_YN}        -- 재심사담당여부
+             , #{USER_ID}               -- 최초등록자아이디
+             , SYSDATE                  -- 최초등록일시
+             , #{USER_ID}               -- 최종수정자아이디
+             , SYSDATE                  -- 최종수정일시
+             )
+    </insert>
+
+    <!-- 종결심사결과 -->
+    <select id="selectTrmnSrngResultSeCd" parameterType="HashMap" resultType="String">
+      <![CDATA[
+		SELECT TRMN_SRNG_RESULT_SE_CD AS TRMN_SRNG_RESULT_SE_CD
+		   FROM SEC100 T1
+		  WHERE T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+		    AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+		    AND T1.CASE_TRMN_NO   = ( SELECT MAX(X.CASE_TRMN_NO)
+		                                FROM SEC100 X
+		                               WHERE X.CASE_MNG_NO    = T1.CASE_MNG_NO
+		                                 AND X.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO )
+      ]]>
+    </select>
+
+    <select id="selectCaseTrmnYmd" parameterType="HashMap" resultType="HashMap">
+        SELECT CASE_TRMN_YMD
+        FROM SEC100
+        WHERE CASE_TRMN_NO  = #{CASE_TRMN_NO}
+    </select>
+    
+    <update id="updateCaseTrmnYmd" parameterType="HashMap">
+        UPDATE SEC100
+        SET CASE_TRMN_YMD = #{CASE_TRMN_YMD}
+        WHERE CASE_TRMN_NO  = #{CASE_TRMN_NO}
+    </update>
+</mapper>

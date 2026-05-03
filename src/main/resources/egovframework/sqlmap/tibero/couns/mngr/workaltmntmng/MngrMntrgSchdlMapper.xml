@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.couns.mngr.workaltmntmng.mapper.MngrMntrgSchdlMapper">
+	<select id="selectMngrMntrgSchdlList" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		selectMngrMntrgSchdlList : isry.couns.mngr.workaltmntmng.mapper.MngrMntrgSchdlMapper :  관리자모니터링일정목록조회
+	*/
+		SELECT 
+		        T1.CNSLTNT_ID                             AS      CNSLTNT_ID      /** 상담사아이디 **/
+		    ,   C##RG.DEC_B64(T1.CNSLTNT_NM_ENCPT)     AS      CNSLTNT_NM      /** 상담사명 **/
+		    ,   T1.MNGR_INPT_YMD                          AS      MNGR_INPT_YMD   /** 관리자입력일자 **/
+		    ,   SUBSTR(T1.MNGR_INPT_YMD,0,6)           AS      CRTR_YM
+		    ,   T1.INDEX_SN                               AS      INDEX_SN        /** 색인일련번호 **/
+		    ,   T3.WRD_TELNO                              AS      WRD_TELNO       /** 유선전화번호 **/
+		    ,   C##RG.DEC_B64(T3.MBL_TELNO_ENCPT)      AS      MBL_TELNO_ENCPT /** 휴대전화번호암호화 **/
+		FROM
+		        AYC160      T1
+		        , SAA200    T2
+		        , SCA100    T3
+		WHERE   1=1
+		AND     T1.CNSLTNT_ID       =       T2.USER_ID
+		AND     T2.ENFSN_NO         =       T3.ENFSN_NO
+		AND     T1.DEL_YN           =       'N'
+		AND     T3.DEL_YN           =       'N'
+		<if test="crtrYm != null and crtrYm != ''">
+			<![CDATA[
+			AND	T1.MNGR_INPT_YMD	LIKE	#{crtrYm} || '%'
+			]]>
+		</if>
+	</select>
+	
+	<!-- <select id="selectMngrMntrgSchdlList" parameterType="HashMap" resultType="HashMap">
+    /**
+    *       selectMngrMntrgSchdlList : isry.couns.mngr.workaltmntmng.mapper.MngrMntrgSchdlMapper :  관리자모니터링일정목록조회
+    */
+        SELECT 
+                AA.CNSLTNT_ID                       AS      CNSLTNT_ID      /** 상담사아이디 **/
+            ,   AA.CNSLTNT_NM_ENCPT                     AS      CNSLTNT_NM      /** 상담사명 **/
+            ,   AA.MNGR_INPT_YMD                    AS      MNGR_INPT_YMD   /** 관리자입력일자 **/
+            ,   SUBSTR(AA.MNGR_INPT_YMD,0,6)     AS      CRTR_YM
+            ,   AA.INDEX_SN                         AS      INDEX_SN        /** 색인일련번호 **/
+        FROM
+                AYC160      AA
+        WHERE   1=1
+            AND AA.DEL_YN   =   'N'
+        <if test="crtrYm != null and crtrYm != ''">
+            <![CDATA[
+            AND AA.MNGR_INPT_YMD    LIKE    #{crtrYm} || '%'
+            ]]>
+        </if>
+    </select> -->
+	
+	<select id="selectMngrMntrgSchdlDelInfo" parameterType="HashMap" resultType="HashMap">
+	   /**
+	    *       selectMngrMntrgSchdlDelInfo : isry.couns.mngr.workaltmntmng.mapper.selectMngrMntrgSchdlDelInfo :  관리자모니터링 삭제일정정보 조회
+	    */
+	    SELECT
+	           T1.INDEX_SN         AS      INDEX_SN
+	    FROM
+	           AYC160      T1
+	    WHERE  1=1
+	    AND    T1.DEL_YN           =          'N'
+	    AND    T1.MNGR_INPT_YMD    =          #{mngrInptYmd}
+	</select>
+	
+	<insert id="insertMngrMntrgSchdl" parameterType="HashMap">
+	/**
+	*		insertMngrMntrgSchdl : isry.couns.mngr.workaltmntmng.mapper.MngrMntrgSchdlMapper :  관리자모니터링일정목록 등록
+	*/
+		INSERT INTO
+				AYC160		/** 관리자 일정표 **/
+				(
+						INDEX_SN
+					,	CNSLTNT_ID
+					,	CNSLTNT_NM_ENCPT
+					,	MNGR_INPT_YMD			/** 관리자 입력일자 **/
+					,	REG_YMD					/** 등록일자 **/
+					,	FRST_RGTR_ID
+					,	FRST_REG_DT
+					,	LAST_MDFR_ID
+					,	LAST_MDFCN_DT
+				)
+		VALUES
+				(
+						AYC160_SQ01.NEXTVAL
+					,	#{cnsltntId}
+					,	C##RG.ENC_B64(#{cnsltntNm})
+					,	#{mngrInptYmd}
+					,	TO_CHAR(SYSDATE,'YYYYMMDD')
+					,	#{loginId}
+					,	SYSDATE
+					,	#{loginId}
+					,	SYSDATE
+				)
+	</insert>
+	
+	<update id="updateMngrMntrgSchdl" parameterType="HashMap">
+	/**
+	*		updateMngrMntrgSchdl : isry.couns.mngr.workaltmntmng.mapper.MngrMntrgSchdlMapper :  관리자모니터링일정목록 수정
+	*/
+		UPDATE
+				AYC160		AA		/** 관리자 일정표 **/
+		SET
+				AA.CNSLTNT_ID			=	#{cnsltntId}
+			,	AA.CNSLTNT_NM_ENCPT		=	C##RG.ENC_B64(#{cnsltntNm})
+			,	LAST_MDFR_ID			=	#{loginId}
+			,	LAST_MDFCN_DT			=	SYSDATE
+		WHERE	1=1
+			AND	AA.INDEX_SN	=	#{indexSn}
+	</update>
+	
+	<update id="deleteMngrMntrgSchdl" parameterType="HashMap">
+	/**
+	*		deleteMngrMntrgSchdl : isry.couns.mngr.workaltmntmng.mapper.MngrMntrgSchdlMapper :  관리자모니터링일정목록 삭제
+	*/
+		UPDATE
+				AYC160		AA		/** 관리자 일정표 **/
+		SET
+				AA.DEL_YN				=	'Y'
+			,	LAST_MDFR_ID			=	#{loginId}
+			,	LAST_MDFCN_DT			=	SYSDATE
+		WHERE	1=1
+			AND	AA.INDEX_SN	=	#{indexSn}
+	</update>
+	
+</mapper>

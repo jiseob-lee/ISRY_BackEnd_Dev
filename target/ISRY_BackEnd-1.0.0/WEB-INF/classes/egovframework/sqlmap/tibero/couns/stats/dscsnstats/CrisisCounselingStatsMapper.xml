@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.stats.dscsnstats.mapper.CrisisCounselingStatsMapper">
+
+	<select id="list" parameterType="HashMap" resultType="HashMap">
+    WITH    ZZ  AS
+    (
+     SELECT TO_DATE(#{startDate} || '000000', 'YYYYMMDDHH24MISS') AS  START_DATE
+          , TO_DATE(#{endDate} || '000000', 'YYYYMMDDHH24MISS')+1 AS  END_DATE
+       FROM DUAL
+    )
+    SELECT /*SQL-ID : isry.couns.stats.dscsnstats.mapper.CrisisCounselingStatsMapper.list : 위기유형별 통계 LIST */
+           FF.CMMNS_CD_VALUE    AS  CODE_VALUE
+         , FF.CMMNS_CD_VALUE_NM AS  GUBUN
+         , FF.SRTNG_SQNCE       AS  SRTNG_SQNCE
+         , NVL(CC.V01, 0)       AS  V01      /* 학업중단 */
+         , NVL(CC.V02, 0)       AS  V02      /* 가출 */
+         , NVL(CC.V03, 0)       AS  V03      /* 대인관계 */
+         , NVL(CC.V04, 0)       AS  V04      /* 학업·진로 */
+         , NVL(CC.V05, 0)       AS  V05      /* 과의존·중독  */
+         , NVL(CC.V06, 0)       AS  V06      /* 정신건강 */
+         , NVL(CC.V07, 0)       AS  V07      /* 폭력피해 */
+         , NVL(CC.V08, 0)       AS  V08      /* 폭력가해·비행  */
+         , NVL(CC.V09, 0)       AS  V09      /* 성 */
+         , NVL(CC.V10, 0)       AS  V10      /* 노동·근로  */
+         , NVL(CC.V11, 0)       AS  V11      /* 결핍·빈곤  */
+         , NVL(CC.V12, 0)       AS  V12      /* 신체건강·인식  */
+         , NVL(CC.V13, 0)       AS  V13      /* 한국문화적응·체류  */
+         , NVL(CC.V14, 0)       AS  V14      /* 법적처분 */
+         , NVL(CC.CCNT, 0)      AS  SSUM       
+      FROM (
+            SELECT A.CRISIS_TYPE_SE_CD AS CRISIS_TYPE_SE_CD
+                 , COUNT(*)            AS CCNT
+                 , SUM(A.V01)          AS V01               /* 학업중단 */
+                 , SUM(A.V02)          AS V02               /* 가출 */
+                 , SUM(A.V03)          AS V03               /* 대인관계 */
+                 , SUM(A.V04)          AS V04               /* 학업·진로 */
+                 , SUM(A.V05)          AS V05               /* 과의존·중독  */
+                 , SUM(A.V06)          AS V06               /* 정신건강 */
+                 , SUM(A.V07)          AS V07               /* 폭력피해 */
+                 , SUM(A.V08)          AS V08               /* 폭력가해·비행  */
+                 , SUM(A.V09)          AS V09               /* 성 */
+                 , SUM(A.V10)          AS V10               /* 노동·근로  */
+                 , SUM(A.V11)          AS V11               /* 결핍·빈곤  */
+                 , SUM(A.V12)          AS V12               /* 신체건강·인식  */
+                 , SUM(A.V13)          AS V13               /* 한국문화적응·체류  */
+                 , SUM(A.V14)          AS V14               /* 법적처분 */
+              FROM (                               
+                    SELECT A.CRISIS_TYPE_SE_CD                          AS CRISIS_TYPE_SE_CD
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '01', 1, 0) AS V01      /* 학업중단 */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '02', 1, 0) AS V02      /* 가출 */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '03', 1, 0) AS V03      /* 대인관계 */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '04', 1, 0) AS V04      /* 학업·진로 */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '05', 1, 0) AS V05      /* 과의존·중독  */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '06', 1, 0) AS V06      /* 정신건강 */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '07', 1, 0) AS V07      /* 폭력피해 */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '08', 1, 0) AS V08      /* 폭력가해·비행  */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '09', 1, 0) AS V09      /* 성 */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '10', 1, 0) AS V10      /* 노동·근로  */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '11', 1, 0) AS V11      /* 결핍·빈곤  */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '12', 1, 0) AS V12      /* 신체건강·인식  */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '13', 1, 0) AS V13      /* 한국문화적응·체류  */
+                         , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '14', 1, 0) AS V14      /* 법적처분 */
+                      FROM AYE100 A /* 사이버상담게시글 */
+                         , ZZ
+                         , AYA120 C /* 위기상담_개인 */
+                     WHERE 1=1
+<!--                        AND A.CRISIS_TYPE_SE_CD      IS NOT NULL -->
+<!--                        AND A.PROBM_STTS_LCLAS_SE_CD IS NOT NULL -->
+                     <![CDATA[
+                       AND A.BBSCTT_ESNTAL_NO  = C.BBSCTT_ESNTAL_NO
+                       AND A.BBSCTT_TYPE_SE_CD = C.BBSCTT_TYPE_SE_CD
+                       AND A.DEL_YN = 'N'  
+                       AND C.DEL_YN = 'N'   
+                       AND C.FRST_REG_DT            >= ZZ.START_DATE
+                       AND C.FRST_REG_DT            <  ZZ.END_DATE
+                     ]]>
+                     UNION ALL
+                     SELECT C.CRISIS_TYPE_SE_CD                          AS CRISIS_TYPE_SE_CD
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '01', 1, 0) AS V01      /* 학업중단 */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '02', 1, 0) AS V02      /* 가출 */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '03', 1, 0) AS V03      /* 대인관계 */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '04', 1, 0) AS V04      /* 학업·진로 */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '05', 1, 0) AS V05      /* 과의존·중독  */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '06', 1, 0) AS V06      /* 정신건강 */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '07', 1, 0) AS V07      /* 폭력피해 */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '08', 1, 0) AS V08      /* 폭력가해·비행  */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '09', 1, 0) AS V09      /* 성 */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '10', 1, 0) AS V10      /* 노동·근로  */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '11', 1, 0) AS V11      /* 결핍·빈곤  */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '12', 1, 0) AS V12      /* 신체건강·인식  */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '13', 1, 0) AS V13      /* 한국문화적응·체류  */
+                          , DECODE(A.PROBM_STTS_LCLAS_SE_CD, '14', 1, 0) AS V14      /* 법적처분 */
+                       FROM AYB200 A /* 사이버상담게시글 */
+                          , ZZ
+<!--                           , AYA110 C /* 위기상담게시판 */ -->
+                          , AYA120 C /* 위기상담_개인 */
+                      WHERE 1=1
+<!--                         AND A.CHRO_NO                = C.CHRO_NO -->
+                        AND C.BBSCTT_ESNTAL_NO       = A.CHRO_NO
+                        AND A.DEL_YN = 'N'  
+                        AND C.DEL_YN = 'N'
+<!--                         AND C.CRISIS_TYPE_SE_CD      IS NOT NULL -->
+<!--                         AND A.PROBM_STTS_LCLAS_SE_CD IS NOT NULL -->
+                      <![CDATA[
+                        AND C.FRST_REG_DT            >= ZZ.START_DATE
+                        AND C.FRST_REG_DT            <  ZZ.END_DATE
+                      ]]>
+              ) A              
+              GROUP BY A.CRISIS_TYPE_SE_CD
+           ) CC
+         , ( 
+            SELECT AA.CMMNS_CD_VALUE    AS CMMNS_CD_VALUE
+                 , AA.CMMNS_CD_VALUE_NM AS CMMNS_CD_VALUE_NM
+                 , AA.SRTNG_SQNCE       AS  SRTNG_SQNCE                                  
+              FROM SAC100 AA
+             WHERE AA.CMMNS_CD_ID = 'CRISIS_TYPE_SE_CD'  /* 위기유형구분코드 */                
+            ) FF
+      WHERE FF.CMMNS_CD_VALUE = CC.CRISIS_TYPE_SE_CD(+)       
+      ORDER BY 3
+	</select>
+</mapper>

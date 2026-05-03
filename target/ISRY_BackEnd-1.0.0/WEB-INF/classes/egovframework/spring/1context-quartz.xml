@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	
+    <!-- ===================================================== -->
+    <!--                src/main/resources Config              -->
+    <!-- ===================================================== -->
+	
+	
+	<!-- <bean name="wordCloudJob" class="org.springframework.scheduling.quartz.JobDetailBean"> Quartz 1.8.x버전-->
+
+    
+    <bean name="longTermNotConnectedJob" class="org.springframework.scheduling.quartz.JobDetailFactoryBean"> <!-- Quartz 2.x 버전 -->
+        <property name="jobClass">
+            <value>isry.itgcms.sysmgmt.quartz.LongTermNotConnectedJob</value>
+        </property>
+        <!-- <property name="applicationContextJobDataKey" value="applicationContext" /> -->
+    </bean>
+    
+    <bean id="longTermNotConnectedTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean"> <!-- Quartz 2.x 버전 -->
+        
+        <property name="jobDetail">
+            <ref bean="longTermNotConnectedJob"/>
+        </property>
+        <property name="cronExpression">
+            <!-- 매  5분마다 실행 --> 
+            <!-- <value>0 0/5 * * * ?</value> -->
+            <!-- 매일 오후 3시 20분마다 실행  -->
+            <!-- <value>0 57 15 * * ?</value> -->
+            <!-- <value>0 32 0/1 * * ?</value> -->
+            
+            <value>0 50 6 * * ?</value>
+        
+        </property>
+    </bean>
+
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="longTermNotConnectedTrigger"/>
+            </list>
+        </property>
+        <property name="applicationContextSchedulerContextKey" value="applicationContext" />
+    </bean>
+    
+    
+	<bean name="jusoUpdateJob" class="org.springframework.scheduling.quartz.JobDetailFactoryBean"> <!-- Quartz 2.x 버전 -->
+		<property name="jobClass">
+			<value>isry.itgcms.sysmgmt.quartz.JusoUpdateJob</value>
+		</property>
+		<!-- <property name="applicationContextJobDataKey" value="applicationContext" /> -->
+	</bean>
+	
+	
+	<!-- <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"> Quartz 1.8.x 버전-->
+	<bean id="jusoUpdateTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean"> <!-- Quartz 2.x 버전 -->
+		
+		<property name="jobDetail">
+			<ref bean="jusoUpdateJob"/>
+		</property>
+		<property name="cronExpression">
+			<!-- 매  5분마다 실행 --> 
+			<!-- <value>0 0/5 * * * ?</value> -->
+			<!-- 매일 오후 3시 20분마다 실행  -->
+			<!-- <value>0 57 15 * * ?</value> -->
+			<!-- <value>0 32 0/1 * * ?</value> -->
+			
+			<value>0 10 1,7 * * ?</value>
+			
+			<!-- <value>0 10 14 * * ?</value> -->
+		
+		</property>
+	</bean>
+	
+    
+    <bean name="systemLogJob" class="org.springframework.scheduling.quartz.JobDetailFactoryBean"> <!-- Quartz 2.x 버전 -->
+        <property name="jobClass">
+            <value>isry.itgcms.sysmgmt.quartz.SystemLogJob</value>
+        </property>
+        <!-- <property name="applicationContextJobDataKey" value="applicationContext" /> -->
+    </bean>
+    
+    
+    <!-- <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"> Quartz 1.8.x 버전-->
+    <bean id="systemLogTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean"> <!-- Quartz 2.x 버전 -->
+        
+        <property name="jobDetail">
+            <ref bean="systemLogJob"/>
+        </property>
+        <property name="cronExpression">
+            <!-- 매주 일요일 오후 2시 15분마다 실행  -->
+            <!-- <value>0 15 14 ? * 1</value> -->
+            <!-- <value>0 5 0/1 * * ?</value> -->
+            <value>0 0/30 * * * ?</value>
+            <!-- <value>0 15 14 * * ?</value> -->
+        </property>
+    </bean>
+    
+	
+    <!-- <bean name="wordCloudJob" class="org.springframework.scheduling.quartz.JobDetailBean"> Quartz 1.8.x버전-->
+    <!--
+    <bean name="jusoSearchJob" class="org.springframework.scheduling.quartz.JobDetailFactoryBean"><- Quartz 2.x 버전 ->
+        <property name="jobClass">
+            <value>isry.itgcms.sysmgmt.quartz.JusoSearchJob</value>
+        </property>
+        <property name="applicationContextJobDataKey" value="applicationContext" />
+    </bean>
+    -->
+    
+    <!-- <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"> Quartz 1.8.x 버전-->
+    <!-- <bean id="jusoSearchTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">  --> <!-- Quartz 2.x 버전 -->
+        <!--
+        <property name="jobDetail">
+            <ref bean="jusoSearchJob"/>
+        </property>
+        <property name="cronExpression"> -->
+            <!-- 매  5분마다 실행 --> 
+            <!-- <value>0 0/5 * * * ?</value> -->
+            <!-- 매일 오후 3시 20분마다 실행  -->
+            <!-- <value>0 20 15 * * ?</value> -->
+            <!-- <value>0 32 0/1 * * ?</value> -->
+            
+            <!-- <value>0 10 5 * * ?</value> -->
+            
+            <!-- <value>0 10 14 * * ?</value> -->
+        <!--
+        </property>
+    </bean>
+    -->
+    
+    
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <!-- <ref bean="jusoUpdateTrigger"/> -->
+                <ref bean="systemLogTrigger"/>
+            </list>
+        </property>
+        <property name="applicationContextSchedulerContextKey" value="applicationContext" />
+    </bean>
+    
+    
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="jusoUpdateTrigger"/>
+                <!-- <ref bean="systemLogTrigger"/> -->
+            </list>
+        </property>
+        <property name="applicationContextSchedulerContextKey" value="applicationContext" />
+    </bean>
+    
+	
+	<bean id="gitpleJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	   <property name="targetObject" ref="gitpleEventService"></property>
+	   <property name="targetMethod" value="gitpleSearch"></property>
+	   <property name="concurrent" value="false"></property>
+	</bean>
+	 <!-- 
+	<bean id="gitpleJobTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail" ref="gitpleJob" />
+        <property name="startDelay" value="60000" />
+        <property name="repeatInterval" value="60000000" />
+    </bean>
+     -->
+     
+    <bean id="gitpleJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="gitpleJob" />
+        <property name="cronExpression" value="0 0/10 * * * ?" />
+    </bean>
+     
+    <bean id="gitpleJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="gitpleJobTrigger" /></list>
+        </property>
+    </bean>
+    
+    <!-- 복지부 공유자원 제공서비스 사보정 송신 연계 -->
+    <bean id="linkMohwPvsnSrvcJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="linkMohwJobService"></property>
+        <property name="targetMethod" value="linkMohwPvsnSrvc"></property>
+        <property name="concurrent" value="false"></property>
+    </bean>
+
+    <bean id="linkMohwPvsnSrvcJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMohwPvsnSrvcJob" />
+	    <!-- 매일 오전7시-->
+        <property name="cronExpression" value="0 0 7 1/1 * ? *" />
+    </bean>
+
+    <bean id="linkMohwPvsnSrvcJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list><ref bean="linkMohwPvsnSrvcJobTrigger" /></list>
+        </property>
+    </bean>
+
+    <!-- 복지부 공유자원 제공주체 사보정 송신 연계 -->    
+    <bean id="linkMohwPvsnMbyJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMohwJobService"></property>
+       <property name="targetMethod" value="linkMohwPvsnMby"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+    <bean id="linkMohwPvsnMbyJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMohwPvsnMbyJob" />
+        <!-- 매일 오전7시-->        
+        <property name="cronExpression" value="0 0 7 1/1 * ? *" />
+    </bean>
+
+    <bean id="linkMohwPvsnMbyJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="linkMohwPvsnMbyJobTrigger" /></list>
+        </property>
+    </bean>
+    
+    <!-- 복지부 상담이력 사보정 송신 연계 -->
+    <bean id="linkMohwDscsnHstrJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="linkMohwJobService"></property>
+        <property name="targetMethod" value="linkMohwDscsnHstr"></property>
+        <property name="concurrent" value="false"></property>
+    </bean>
+
+    <bean id="linkMohwDscsnHstrJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMohwDscsnHstrJob" />
+        <!-- 매일 오전8시-->        
+        <property name="cronExpression" value="0 0 8 1/1 * ? *" />
+    </bean>
+
+    <bean id="linkMohwDscsnHstrJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list><ref bean="linkMohwDscsnHstrJobTrigger" /></list>
+        </property>
+    </bean>
+    
+    <!-- 복지부 서비스이력 사보정 송신 연계 -->
+    <bean id="linkMohwSrvcHstrJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMohwJobService"></property>
+       <property name="targetMethod" value="linkMohwSrvcHstr"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+    
+    <bean id="linkMohwSrvcHstrJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMohwSrvcHstrJob" />
+        <!-- 매일 오전8시-->         
+        <property name="cronExpression" value="0 0 8 1/1 * ? *" />
+    </bean>
+    
+    <bean id="linkMohwSrvcHstrJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="linkMohwSrvcHstrJobTrigger" /></list>
+        </property>
+    </bean>
+    
+    <!-- 복지부 사례관리 사보정 송신 연계 -->
+    <bean id="linkMohwCaseMngJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="linkMohwJobService"></property>
+        <property name="targetMethod" value="linkMohwCaseMng"></property>
+        <property name="concurrent" value="false"></property>
+    </bean>
+
+    <bean id="linkMohwCaseMngJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMohwCaseMngJob" />
+        <!-- 매일 오전8시-->         
+        <property name="cronExpression" value="0 0 8 1/1 * ? *" />
+    </bean>
+
+    <bean id="linkMohwCaseMngJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list><ref bean="linkMohwCaseMngJobTrigger" /></list>
+        </property>
+    </bean>
+    
+    <!--  복지부 서비스의뢰접수 사례등록 -->
+    <bean id="linkMohwSrvcRqstCaseRegJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMohwSrvcRqstService"></property>
+       <property name="targetMethod" value="linkMohwCaseReg"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+    
+    <bean id="linkMohwSrvcRqstCaseRegJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMohwSrvcRqstCaseRegJob" />
+        <!-- 매 5분 주기-->         
+        <property name="cronExpression" value="0 0/5 * * * ?" />
+    </bean>
+    
+    <bean id="linkMohwSrvcRqstCaseRegJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="linkMohwSrvcRqstCaseRegJobTrigger" /></list>
+        </property>
+    </bean>     
+ 
+     <!-- 심리취약 병역의무자지원 구분 및 자원기관정보 연계 -->    
+    <bean id="linkMmaSprtJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMmaRcptJobService"></property>
+       <property name="targetMethod" value="linkMmaSprt"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+    <bean id="linkMmaSprtJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMmaSprtJob" />
+        <property name="cronExpression" value="0 0/5 * * * ?" />
+    </bean>
+
+    <bean id="linkMmaSprtJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="linkMmaSprtJobTrigger" /></list>
+        </property>
+    </bean>
+    
+    <!-- 심리취약한 병역의무자 상담지원 의뢰 종결처리 현황 연계 --> 
+    <bean id="linkMmaTrmnPrcsJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMmaRcptJobService"></property>
+       <property name="targetMethod" value="linkMmaTrmnPrcs"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+    
+    <bean id="linkMmaTrmnPrcsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMmaTrmnPrcsJob" />
+        <property name="cronExpression" value="0 0/5 * * * ?" />
+<!--        <property name="cronExpression" value="0 0/3 * * * ?" /> -->
+    </bean>
+    
+    <bean id="linkMmaTrmnPrcsJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="linkMmaTrmnPrcsJobTrigger" /></list>
+        </property>
+    </bean>
+
+    <!-- 병무청 연계 사례등록 --> 
+    <bean id="linkMmaCaseRegJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMmaRcptJobService"></property>
+       <property name="targetMethod" value="linkMmaCaseReg"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+    <bean id="linkMmaCaseRegJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="linkMmaCaseRegJob" />
+        <property name="cronExpression" value="0 0/5 * * * ?" />
+<!--        <property name="cronExpression" value="0 0/3 * * * ?" /> -->
+    </bean>
+    
+    <bean id="linkMmaCaseRegJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="linkMmaCaseRegJobTrigger" /></list>
+        </property>
+    </bean>
+    
+    <!-- 현황별 집계 데이터 생성 --> 
+    <bean id="dashBoardPreconJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="dashBoardPreconService"></property>
+       <property name="targetMethod" value="createPreconTotData"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+    <bean id="dashBoardPreconJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="dashBoardPreconJob" />
+        <property name="cronExpression" value="0 0/5 * * * ?" />
+    </bean>
+
+    <bean id="dashBoardPreconJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="dashBoardPreconJobTrigger" /></list>
+        </property>
+    </bean>
+
+
+    <!-- 미디어연계  --> 
+        <!-- 복지센터정보 job--> 
+    <bean id="wlfarCnterJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMediaService"></property>
+       <property name="targetMethod" value="saveWlfarCnterData"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+        <!-- 복지센터정보 트리거--> 
+    <bean id="wlfarCnterJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="wlfarCnterJob" />
+        <property name="cronExpression" value="0 00 1 * * ?" />
+    </bean>
+
+        <!-- 복지센터정보 스케줄러 --> 
+    <bean id="wlfarCnterJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="wlfarCnterJobTrigger" /></list>
+        </property>
+    </bean>
+
+        <!-- 학교진단점수 job--> 
+    <bean id="schlScoreJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMediaService"></property>
+       <property name="targetMethod" value="saveSchlScoreData"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+        <!-- 학교진단점수 트리거--> 
+    <bean id="schlScoreJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="schlScoreJob" />
+        <property name="cronExpression" value="0 10,40 * * * ?" />
+    </bean>
+
+        <!-- 학교진단점수 스케줄러 --> 
+    <bean id="schlScoreJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="schlScoreJobTrigger" /></list>
+        </property>
+    </bean>
+
+        <!-- 기관진단점수 job--> 
+    <bean id="instScoreJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMediaService"></property>
+       <property name="targetMethod" value="saveInstScoreData"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+        <!-- 기관진단점수 트리거--> 
+    <bean id="instScoreJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="instScoreJob" />
+        <property name="cronExpression" value="0 15,45 * * * ?" />
+    </bean>
+
+        <!-- 기관진단점수 스케줄러 --> 
+    <bean id="instScoreJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="instScoreJobTrigger" /></list>
+        </property>
+    </bean>
+    
+        <!-- 학교진단 job--> 
+    <bean id="schlDgnssJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMediaService"></property>
+       <property name="targetMethod" value="saveSchlDgnssData"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+        <!-- 학교진단 트리거--> 
+    <bean id="schlDgnssJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="schlDgnssJob" />
+        <property name="cronExpression" value="0 0,30 * * * ?" />
+    </bean>
+
+        <!-- 학교진단 스케줄러 --> 
+    <bean id="schlDgnssJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="schlDgnssJobTrigger" /></list>
+        </property>
+    </bean>
+
+        <!-- 기관진단 job--> 
+    <bean id="instDgnssJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+       <property name="targetObject" ref="linkMediaService"></property>
+       <property name="targetMethod" value="saveInstDgnssData"></property>
+       <property name="concurrent" value="false"></property>
+    </bean>
+
+        <!-- 기관진단 트리거--> 
+    <bean id="instDgnssJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="instDgnssJob" />
+        <property name="cronExpression" value="0 5,35 * * * ?" />
+    </bean>
+
+        <!-- 기관진단 스케줄러 --> 
+    <bean id="instDgnssJobScheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+           <list><ref bean="instDgnssJobTrigger" /></list>
+        </property>
+    </bean>
+
+    
+</beans>

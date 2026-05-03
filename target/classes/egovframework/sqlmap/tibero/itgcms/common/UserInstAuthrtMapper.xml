@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="isry.itgcms.sysmgmt.cmmn.mapper.UserInstAuthrtMapper">
+    <!-- [BEGIN] 시스템관리_공통매퍼 (사용자별 기관 권한) -->
+    
+    <!-- 승인기관목록_임시테이블 -->
+    <sql id="withAprvInstList">
+    <![CDATA[
+        WITH TMP_APRV_INST AS (
+            SELECT 
+                 INST_NO                /* 기관번호 */
+                 , INST_NM              /* 기관명 */
+                 , UNT_TASKWK_SE_CD     /* 단위업무구분코드 */
+                 , UP_INST_NO           /* 상위기관번호 */
+                 , UP_APRV_INST_NO      /* 상위승인기관번호 */
+                 , INST_TYPE_SE_CD      /* 기관유형구분코드 */
+                 , MAIN_ENFC_INST_SE_CD /* 주요시행기관구분코드 */
+                 , RGN_CD               /* 지역코드 */
+                 , CTPV_CD              /* 시도코드 */
+                 , SGG_CD               /* 시군구코드 */
+                 , RSFR_INST_YN         /* 자원제공기관여부 */
+            FROM SAA000 /** 통합기관 */
+            WHERE DEL_YN = 'N'    /* 삭제여부 */
+            AND APRV_YN = 'Y'     /* 승인여부 */
+        )]]>
+    </sql>
+    
+    <!-- [END] 시스템관리_공통매퍼 (사용자별 기관 권한) -->
+</mapper>

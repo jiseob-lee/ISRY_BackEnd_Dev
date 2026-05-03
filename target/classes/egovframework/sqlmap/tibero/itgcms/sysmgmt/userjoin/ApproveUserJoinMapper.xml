@@ -1,0 +1,805 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.itgcms.sysmgmt.userjoin.mapper.ApproveUserJoinMapper">
+
+    <select id="selectUserJoinCount" parameterType="HashMap" resultType="Integer">
+    <!-- 2022.03.07 승인기관목록_임시테이블 include -->
+    <include refid="isry.itgcms.sysmgmt.cmmn.mapper.UserInstAuthrtMapper.withAprvInstList" />
+    <![CDATA[
+        /* selectUserJoinCount - Lee JiSeob */
+        
+        SELECT
+           
+           COUNT(*) AS CNT
+        
+        FROM (
+        
+        SELECT 
+            D.USER_ID 
+        FROM SCA100 C /* 종사자 */
+        JOIN SAA200 D /* 사용자 */ ON D.ENFSN_NO = C.ENFSN_NO
+        JOIN TMP_APRV_INST F /* 승인기관 (임시테이블) */ ON F.INST_NO = C.OGDP_INST_NO   /* 소속기관번호 */
+    ]]>
+        
+        <where>
+    <choose>
+	    <when test='ALL_LWPRT_INST_YN != null and ALL_LWPRT_INST_YN == "Y"'>
+	    <![CDATA[
+	        AND F.INST_NO IN (
+	            SELECT INST_NO    /* 기관번호 */
+	            FROM SAA000     /** 통합기관 */
+	            START WITH INST_NO = #{SRCH_UP_INST_NO}     /* 검색할 상위기관번호 */
+	            CONNECT BY PRIOR INST_NO = UP_INST_NO
+	        )
+	    ]]>
+	    </when><!-- 전체 하위 기관 목록 조회 -->
+	    <otherwise>
+	        <if test='APRV_INST_NO != null and APRV_INST_NO != ""'><!-- 총괄관리자: 승인기관번호 -->
+	        <![CDATA[ AND (F.INST_NO = #{APRV_INST_NO} OR F.UP_INST_NO = #{APRV_INST_NO} OR F.UP_APRV_INST_NO = #{APRV_INST_NO}) ]]>
+	        </if>
+	        <if test='OGDP_INST_NO != null and OGDP_INST_NO != ""'><!-- 소속기관번호 (시스템관리자 옵션이 활성화 된 경우) -->
+	        <![CDATA[ AND F.INST_NO = #{OGDP_INST_NO} ]]>
+	        </if>
+	    </otherwise>
+    </choose>
+            <if test='SEARCH_TYPE != null and SEARCH_TYPE != "" and SEARCH_VALUE != null and SEARCH_VALUE != ""'>
+                <if test='SEARCH_TYPE == "ID"'>
+    <![CDATA[
+                    AND D.USER_ID LIKE '%' || #{SEARCH_VALUE} || '%'
+    ]]>
+                </if>
+                <if test='SEARCH_TYPE == "NAME"'>
+    <![CDATA[
+                    AND C.FLNM_ENCPT = #{SEARCH_VALUE_ENCPT}
+    ]]>
+                </if>
+            </if>
+            <if test='APPLY_START_DATE != null and APPLY_START_DATE != ""'>
+    <![CDATA[
+                AND D.JOIN_APLY_DT >= TO_DATE(#{APPLY_START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='APPLY_END_DATE != null and APPLY_END_DATE != ""'>
+    <![CDATA[
+                AND D.JOIN_APLY_DT <= TO_DATE(#{APPLY_END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='USER_TYPE != null and USER_TYPE != ""'>
+                <if test='USER_TYPE == "WORKER"'>
+    <![CDATA[
+                    AND 1=1
+    ]]>
+                </if>
+                <if test='USER_TYPE != "WORKER"'>
+    <![CDATA[
+                    AND 1=2
+    ]]>
+                </if>
+            </if>
+            <if test='USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ""'>
+    <![CDATA[
+                AND D.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+            <if test='UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ""'>
+    <![CDATA[
+                AND F.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test='INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ""'>
+    <![CDATA[
+                AND F.INST_TYPE_SE_CD = #{INST_TYPE_SE_CD}
+    ]]>
+            </if>
+            <if test='INST_NM != null and INST_NM != ""'>
+    <![CDATA[
+                AND F.INST_NM LIKE '%' || #{INST_NM} || '%'
+    ]]>
+            </if>
+        </where>
+
+    <![CDATA[
+        
+        ) X        
+    ]]>
+    </select>
+
+
+    <select id="selectUserJoinCount_backup" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectUserJoinCount_backup - Lee JiSeob */
+        
+        SELECT
+           
+           COUNT(*) AS CNT
+        
+        FROM (
+        
+        SELECT 
+            D.USER_ID 
+        FROM SCA100 C /* 종사자 */
+        JOIN SAA200 D /* 사용자 */ ON D.ENFSN_NO = C.ENFSN_NO 
+        JOIN SAB230 DF /* 사용자기관 */ ON DF.USER_ID = D.USER_ID 
+
+    ]]>
+        
+        <where>
+            <if test='SEARCH_TYPE != null and SEARCH_TYPE != "" and SEARCH_VALUE != null and SEARCH_VALUE != ""'>
+                <if test='SEARCH_TYPE == "ID"'>
+    <![CDATA[
+                    AND D.USER_ID LIKE '%' || #{SEARCH_VALUE} || '%'
+    ]]>
+                </if>
+                <if test='SEARCH_TYPE == "NAME"'>
+    <![CDATA[
+                    AND C.FLNM_ENCPT = #{SEARCH_VALUE_ENCPT}
+    ]]>
+                </if>
+            </if>
+            <if test='APPLY_START_DATE != null and APPLY_START_DATE != ""'>
+    <![CDATA[
+                AND D.JOIN_APLY_DT >= TO_DATE(#{APPLY_START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='APPLY_END_DATE != null and APPLY_END_DATE != ""'>
+    <![CDATA[
+                AND D.JOIN_APLY_DT <= TO_DATE(#{APPLY_END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='USER_TYPE != null and USER_TYPE != ""'>
+                <if test='USER_TYPE == "WORKER"'>
+    <![CDATA[
+                    AND 1=1
+    ]]>
+                </if>
+                <if test='USER_TYPE != "WORKER"'>
+    <![CDATA[
+                    AND 1=2
+    ]]>
+                </if>
+            </if>
+            <if test='USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ""'>
+    <![CDATA[
+                AND D.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+             AND DF.MAIST_YN = 'Y'
+        </where>
+        
+    <![CDATA[
+        
+        UNION ALL
+        
+        SELECT 
+            F.USER_ID
+        FROM SAA000 E /* 기관 */
+        JOIN SAB230 EF /* 사용자기관 */ ON EF.INST_NO = E.INST_NO 
+        JOIN SAA200 F /* 사용자 */ ON F.USER_ID = EF.USER_ID 
+
+    ]]>
+        
+        <where>
+            <if test='SEARCH_TYPE != null and SEARCH_TYPE != "" and SEARCH_VALUE != null and SEARCH_VALUE != ""'>
+                <if test='SEARCH_TYPE == "ID"'>
+    <![CDATA[
+                    AND F.USER_ID LIKE '%' || #{SEARCH_VALUE} || '%'
+    ]]>
+                </if>
+                <if test='SEARCH_TYPE == "NAME"'>
+    <![CDATA[
+                    AND E.INST_NM = #{SEARCH_VALUE}
+    ]]>
+                </if>
+            </if>
+            <if test='APPLY_START_DATE != null and APPLY_START_DATE != ""'>
+    <![CDATA[
+                AND F.JOIN_APLY_DT >= TO_DATE(#{APPLY_START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='APPLY_END_DATE != null and APPLY_END_DATE != ""'>
+    <![CDATA[
+                AND F.JOIN_APLY_DT <= TO_DATE(#{APPLY_END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='USER_TYPE != null and USER_TYPE != ""'>
+                <if test='USER_TYPE == "INSTITUTE"'>
+    <![CDATA[
+                    AND 1=1
+    ]]>
+                </if>
+                <if test='USER_TYPE != "INSTITUTE"'>
+    <![CDATA[
+                    AND 1=2
+    ]]>
+                </if>
+            </if>
+            <if test='USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ""'>
+    <![CDATA[
+                AND F.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+            AND EF.MAIST_YN = 'Y'
+        </where>
+
+
+    <![CDATA[
+        
+        UNION ALL
+        
+        SELECT 
+            H.USER_ID
+        FROM SCA200 G /* 청소년 보호자 */
+        JOIN SAA200 H /* 사용자 */ ON H.YNGBGS_PRTCR_NO = G.YNGBGS_PRTCR_NO 
+
+    ]]>
+        
+        <where>
+            <if test='SEARCH_TYPE != null and SEARCH_TYPE != "" and SEARCH_VALUE != null and SEARCH_VALUE != ""'>
+                <if test='SEARCH_TYPE == "ID"'>
+    <![CDATA[
+                    AND H.USER_ID LIKE '%' || #{SEARCH_VALUE} || '%'
+    ]]>
+                </if>
+                <if test='SEARCH_TYPE == "NAME"'>
+    <![CDATA[
+                    AND G.FLNM_ENCPT = #{SEARCH_VALUE_ENCPT}
+    ]]>
+                </if>
+            </if>
+            <if test='APPLY_START_DATE != null and APPLY_START_DATE != ""'>
+    <![CDATA[
+                AND H.JOIN_APLY_DT >= TO_DATE(#{APPLY_START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='APPLY_END_DATE != null and APPLY_END_DATE != ""'>
+    <![CDATA[
+                AND H.JOIN_APLY_DT <= TO_DATE(#{APPLY_END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='USER_TYPE != null and USER_TYPE != ""'>
+                <choose>
+                    <when test='USER_TYPE == "YOUTH"'>
+    <![CDATA[
+                    AND G.YNGBGS_PRTCR_SE_CD = 'Y'
+    ]]>
+                    </when>
+                    <when test='USER_TYPE == "GUARDIAN"'>
+    <![CDATA[
+                    AND G.YNGBGS_PRTCR_SE_CD = 'G'
+    ]]>
+                    </when>
+                    <otherwise>
+    <![CDATA[
+                    AND 1=2
+    ]]>
+                    </otherwise>
+                </choose>
+            </if>
+            <if test='USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ""'>
+    <![CDATA[
+                AND H.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+        </where>
+    <![CDATA[
+        
+        ) X        
+    ]]>
+    </select>
+
+
+    <!-- 회원 가입 승인 종사자만 대상으로 함. 2023-01-26 -->
+    <select id="selectUserJoin" parameterType="HashMap" resultType="HashMap">
+    <!-- 2022.03.07 승인기관목록_임시테이블 include -->
+    <include refid="isry.itgcms.sysmgmt.cmmn.mapper.UserInstAuthrtMapper.withAprvInstList" />
+    <![CDATA[
+        /* selectUserJoin - Lee JiSeob */
+        
+        SELECT
+        
+            X.USER_ID,
+            C##RG.DEC_B64(X.USER_NM) AS USER_NM,
+            X.USER_ID_USE_SE_CD,
+            X.USER_ID_USE_SE_NM,
+            X.USER_TYPE,
+            X.USER_TYPE_NM,
+            TO_CHAR(X.JOIN_APLY_DT, 'YYYY-MM-DD HH24:MI:SS') AS JOIN_APLY_DT,
+            X.ENFSN_NO,
+            X.UNT_TASKWK_SE_CD,
+            X.INST_NM,
+            X.INST_TYPE_SE_CD,
+            X.INST_TYPE_SE_NM
+        FROM (
+        
+        SELECT 
+            D.USER_ID,
+            C.FLNM_ENCPT AS USER_NM,
+            D.USER_ID_USE_SE_CD,
+            (SELECT G.CMMNS_CD_VALUE_NM FROM SAC100 G /* 공통코드 값 */ WHERE G.CMMNS_CD_ID = 'USER_ID_USE_SE_CD' AND G.CMMNS_CD_VALUE = D.USER_ID_USE_SE_CD) AS USER_ID_USE_SE_NM,
+            'WORKER' AS USER_TYPE,
+            '종사자' AS USER_TYPE_NM,
+            D.JOIN_APLY_DT,
+            C.ENFSN_NO,
+            F.UNT_TASKWK_SE_CD,
+            F.INST_NM,
+	        F.INST_TYPE_SE_CD,
+	        CASE WHEN F.INST_TYPE_SE_CD IS NULL THEN ''
+	        ELSE (
+	            SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	            WHERE CMMNS_CD_ID = 'INST_TYPE_SE_CD'       /* 공통코드아이디 */
+	            AND CMMNS_CD_VALUE = F.INST_TYPE_SE_CD      /* 기관유형구분코드 */
+	            AND USE_YN = 'Y'    /* 공통코드_사용여부 */
+	        ) END AS INST_TYPE_SE_NM        /* 기관유형구분명 */
+        FROM SCA100 C /* 종사자 */
+        JOIN SAA200 D /* 사용자 */ ON D.ENFSN_NO = C.ENFSN_NO
+        JOIN TMP_APRV_INST F /* 승인기관 (임시테이블) */ ON F.INST_NO = C.OGDP_INST_NO   /* 소속기관번호 */
+    ]]>
+        
+        <where>
+    <choose><!-- 여성가족부/중앙관리기관 (개발원) 및 총괄관리자 및 시스템관리자 여부 (Y) 인 경우 하위기관 전체 -->
+        <when test='ALL_LWPRT_INST_YN != null and ALL_LWPRT_INST_YN == "Y"'>
+        <![CDATA[
+            AND F.INST_NO IN (
+		        SELECT INST_NO    /* 기관번호 */
+		        FROM SAA000     /** 통합기관 */
+		        START WITH INST_NO = #{SRCH_UP_INST_NO}     /* 검색할 상위기관번호 */
+		        CONNECT BY PRIOR INST_NO = UP_INST_NO
+		    )
+        ]]>
+        </when><!-- 전체 하위 기관 목록 조회 -->
+        <otherwise>
+            <if test='APRV_INST_NO != null and APRV_INST_NO != ""'><!-- 총괄관리자: 승인기관번호 -->
+            <![CDATA[ AND (F.INST_NO = #{APRV_INST_NO} OR F.UP_INST_NO = #{APRV_INST_NO} OR F.UP_APRV_INST_NO = #{APRV_INST_NO}) ]]>
+            </if>
+            <if test='OGDP_INST_NO != null and OGDP_INST_NO != ""'><!-- 소속기관번호 (시스템관리자 옵션이 활성화 된 경우) -->
+            <![CDATA[ AND F.INST_NO = #{OGDP_INST_NO} ]]>
+            </if>
+        </otherwise>
+    </choose>
+            <if test='SEARCH_TYPE != null and SEARCH_TYPE != "" and SEARCH_VALUE != null and SEARCH_VALUE != ""'>
+                <if test='SEARCH_TYPE == "ID"'>
+    <![CDATA[
+                    AND D.USER_ID LIKE '%' || #{SEARCH_VALUE} || '%'
+    ]]>
+                </if>
+                <if test='SEARCH_TYPE == "NAME"'>
+    <![CDATA[
+                    AND C.FLNM_ENCPT = C##RG.ENC_B64(#{SEARCH_VALUE})
+    ]]>
+                </if>
+            </if>
+            <if test='APPLY_START_DATE != null and APPLY_START_DATE != ""'>
+    <![CDATA[
+                AND D.JOIN_APLY_DT >= TO_DATE(#{APPLY_START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='APPLY_END_DATE != null and APPLY_END_DATE != ""'>
+    <![CDATA[
+                AND D.JOIN_APLY_DT <= TO_DATE(#{APPLY_END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='USER_TYPE != null and USER_TYPE != ""'>
+                <if test='USER_TYPE == "WORKER"'>
+    <![CDATA[
+                    AND 1=1
+    ]]>
+                </if>
+                <if test='USER_TYPE != "WORKER"'>
+    <![CDATA[
+                    AND 1=2
+    ]]>
+                </if>
+            </if>
+            <if test='USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ""'>
+    <![CDATA[
+                AND D.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+            <if test='UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ""'>
+    <![CDATA[
+                AND F.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test='INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ""'>
+    <![CDATA[
+                AND F.INST_TYPE_SE_CD = #{INST_TYPE_SE_CD}
+    ]]>
+            </if>
+            <if test='INST_NM != null and INST_NM != ""'>
+    <![CDATA[
+                AND F.INST_NM LIKE #{INST_NM} || '%'   
+    ]]>
+            </if>
+        </where>
+
+    <![CDATA[
+    
+        ) X
+        
+        ORDER BY X.JOIN_APLY_DT DESC, X.USER_ID ASC, X.USER_TYPE ASC
+        
+        OFFSET #{OFFSET_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+        
+    ]]>
+    </select>
+
+
+    <select id="selectUserJoin_backup" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectUserJoin - Lee JiSeob */
+        
+        SELECT
+        
+            X.USER_ID,
+            X.USER_NM,
+            X.USER_ID_USE_SE_CD,
+            X.USER_ID_USE_SE_NM,
+            X.USER_TYPE,
+            X.USER_TYPE_NM,
+            TO_CHAR(X.JOIN_APLY_DT, 'YYYY-MM-DD HH24:MI:SS') AS JOIN_APLY_DT
+            
+        FROM (
+        
+		SELECT 
+			D.USER_ID,
+			C.FLNM_ENCPT AS USER_NM,
+			D.USER_ID_USE_SE_CD,
+			(SELECT G.CMMNS_CD_VALUE_NM FROM SAC100 G /* 공통코드 값 */ WHERE G.CMMNS_CD_ID = 'USER_ID_USE_SE_CD' AND G.CMMNS_CD_VALUE = D.USER_ID_USE_SE_CD) AS USER_ID_USE_SE_NM,
+			'WORKER' AS USER_TYPE,
+			'종사자' AS USER_TYPE_NM,
+			D.JOIN_APLY_DT 
+		FROM SCA100 C /* 종사자 */
+		JOIN SAA200 D /* 사용자 */ ON D.ENFSN_NO = C.ENFSN_NO 
+
+    ]]>
+        
+        <where>
+            <if test='SEARCH_TYPE != null and SEARCH_TYPE != "" and SEARCH_VALUE != null and SEARCH_VALUE != ""'>
+                <if test='SEARCH_TYPE == "ID"'>
+    <![CDATA[
+                    AND D.USER_ID LIKE '%' || #{SEARCH_VALUE} || '%'
+    ]]>
+                </if>
+                <if test='SEARCH_TYPE == "NAME"'>
+    <![CDATA[
+                    AND C.FLNM_ENCPT = #{SEARCH_VALUE_ENCPT}
+    ]]>
+                </if>
+            </if>
+            <if test='APPLY_START_DATE != null and APPLY_START_DATE != ""'>
+    <![CDATA[
+                AND D.JOIN_APLY_DT >= TO_DATE(#{APPLY_START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='APPLY_END_DATE != null and APPLY_END_DATE != ""'>
+    <![CDATA[
+                AND D.JOIN_APLY_DT <= TO_DATE(#{APPLY_END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='USER_TYPE != null and USER_TYPE != ""'>
+                <if test='USER_TYPE == "WORKER"'>
+    <![CDATA[
+                    AND 1=1
+    ]]>
+                </if>
+                <if test='USER_TYPE != "WORKER"'>
+    <![CDATA[
+                    AND 1=2
+    ]]>
+                </if>
+            </if>
+            <if test='USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ""'>
+    <![CDATA[
+                AND D.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+        </where>
+        
+    <![CDATA[
+
+		UNION ALL
+		
+		SELECT 
+			F.USER_ID,
+			'____' || E.INST_NM AS USER_NM,
+			F.USER_ID_USE_SE_CD,
+			(SELECT H.CMMNS_CD_VALUE_NM FROM SAC100 H /* 공통코드 값 */ WHERE H.CMMNS_CD_ID = 'USER_ID_USE_SE_CD' AND H.CMMNS_CD_VALUE = F.USER_ID_USE_SE_CD) AS USER_ID_USE_SE_NM,
+			'INSTITUTE' AS USER_TYPE,
+			'기관' AS USER_TYPE_NM,
+			F.JOIN_APLY_DT
+		FROM SAA000 E /* 기관 */
+        JOIN SAB230 FE /* 사용자기관 */ ON FE.INST_NO = E.INST_NO 
+		JOIN SAA200 F /* 사용자 */ ON F.USER_ID = FE.USER_ID 
+
+    ]]>
+        
+        <where>
+            <if test='SEARCH_TYPE != null and SEARCH_TYPE != "" and SEARCH_VALUE != null and SEARCH_VALUE != ""'>
+                <if test='SEARCH_TYPE == "ID"'>
+    <![CDATA[
+                    AND F.USER_ID LIKE '%' || #{SEARCH_VALUE} || '%'
+    ]]>
+                </if>
+                <if test='SEARCH_TYPE == "NAME"'>
+    <![CDATA[
+                    AND E.INST_NM = #{SEARCH_VALUE}
+    ]]>
+                </if>
+            </if>
+            <if test='APPLY_START_DATE != null and APPLY_START_DATE != ""'>
+    <![CDATA[
+                AND F.JOIN_APLY_DT >= TO_DATE(#{APPLY_START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='APPLY_END_DATE != null and APPLY_END_DATE != ""'>
+    <![CDATA[
+                AND F.JOIN_APLY_DT <= TO_DATE(#{APPLY_END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='USER_TYPE != null and USER_TYPE != ""'>
+                <if test='USER_TYPE == "INSTITUTE"'>
+    <![CDATA[
+                    AND 1=1
+    ]]>
+                </if>
+                <if test='USER_TYPE != "INSTITUTE"'>
+    <![CDATA[
+                    AND 1=2
+    ]]>
+                </if>
+            </if>
+            <if test='USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ""'>
+    <![CDATA[
+                AND F.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+        </where>
+
+
+    <![CDATA[
+
+		UNION ALL
+		
+		SELECT 
+			H.USER_ID,
+			G.FLNM_ENCPT AS USER_NM,
+			H.USER_ID_USE_SE_CD,
+			(SELECT I.CMMNS_CD_VALUE_NM FROM SAC100 I /* 공통코드 값 */ 
+			WHERE I.CMMNS_CD_ID = 'USER_ID_USE_SE_CD' AND I.CMMNS_CD_VALUE = H.USER_ID_USE_SE_CD) AS USER_ID_USE_SE_NM,
+			CASE WHEN G.YNGBGS_PRTCR_SE_CD = 'G' THEN 'GUARDIAN' ELSE 'YOUTH' END AS USER_TYPE,
+			CASE WHEN G.YNGBGS_PRTCR_SE_CD = 'G' THEN '보호자' ELSE '청소년' END  AS USER_TYPE_NM,
+			H.JOIN_APLY_DT
+		FROM SCA200 G /* 청소년 보호자 */
+		JOIN SAA200 H /* 사용자 */ ON H.YNGBGS_PRTCR_NO = G.YNGBGS_PRTCR_NO 
+
+    ]]>
+        
+        <where>
+            <if test='SEARCH_TYPE != null and SEARCH_TYPE != "" and SEARCH_VALUE != null and SEARCH_VALUE != ""'>
+                <if test='SEARCH_TYPE == "ID"'>
+    <![CDATA[
+                    AND H.USER_ID LIKE '%' || #{SEARCH_VALUE} || '%'
+    ]]>
+                </if>
+                <if test='SEARCH_TYPE == "NAME"'>
+    <![CDATA[
+                    AND G.FLNM_ENCPT = #{SEARCH_VALUE_ENCPT}
+    ]]>
+                </if>
+            </if>
+            <if test='APPLY_START_DATE != null and APPLY_START_DATE != ""'>
+    <![CDATA[
+                AND H.JOIN_APLY_DT >= TO_DATE(#{APPLY_START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='APPLY_END_DATE != null and APPLY_END_DATE != ""'>
+    <![CDATA[
+                AND H.JOIN_APLY_DT <= TO_DATE(#{APPLY_END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test='USER_TYPE != null and USER_TYPE != ""'>
+            	<choose>
+                	<when test='USER_TYPE == "YOUTH"'>
+    <![CDATA[
+                    AND G.YNGBGS_PRTCR_SE_CD = 'Y'
+    ]]>
+                	</when>
+                	<when test='USER_TYPE == "GUARDIAN"'>
+    <![CDATA[
+                    AND G.YNGBGS_PRTCR_SE_CD = 'G'
+    ]]>
+                	</when>
+                	<otherwise>
+    <![CDATA[
+                    AND 1=2
+    ]]>
+                	</otherwise>
+                </choose>
+            </if>
+            <if test='USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ""'>
+    <![CDATA[
+                AND H.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+        </where>
+
+
+    <![CDATA[
+    
+        ) X
+        
+        ORDER BY X.JOIN_APLY_DT DESC, X.USER_ID ASC, X.USER_TYPE ASC
+        
+        OFFSET #{OFFSET_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+        
+    ]]>
+    </select>
+
+
+    <update id="saveGiveBackUserJoin" parameterType="HashMap">
+    <![CDATA[
+        /* saveGiveBackUserJoin - Lee JiSeob */
+        
+        UPDATE SAA200 /*  사용자 */
+        
+        SET
+        
+            JOIN_AUTZR_ID = #{JOIN_AUTZR_ID},
+            JOIN_APRV_YN = 'Y',
+            JOIN_APRV_YMD = #{JOIN_APRV_YMD},
+            
+            JOIN_RJCT_CS_CN = #{JOIN_RJCT_CS_CN},
+            DEL_CS_CN = #{DEL_CS_CN},
+			USE_STPGE_CS_CN = #{USE_STPGE_CS_CN},
+			
+            LAST_MDFR_ID = #{LAST_MDFR_ID},
+            LAST_MDFCN_DT = SYSDATE,
+            
+            USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+            
+        WHERE USER_ID = #{USER_ID}
+        
+    ]]>
+    </update>
+
+
+    <update id="saveUserJoin" parameterType="HashMap">
+    <![CDATA[
+        /* saveUserJoin - Lee JiSeob */
+        
+        UPDATE SAA200 /*  사용자 */
+        
+        SET
+        
+            JOIN_AUTZR_ID = #{JOIN_AUTZR_ID},
+            JOIN_APRV_YN = 'Y',
+            JOIN_APRV_YMD = #{JOIN_APRV_YMD},
+            LAST_MDFR_ID = #{LAST_MDFR_ID},
+            LAST_MDFCN_DT = SYSDATE,
+            
+            USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+            
+        WHERE USER_ID = #{USER_ID}
+        
+    ]]>
+    </update>
+    
+    <update id="updateWorkerInfoByUserJoin" parameterType="HashMap">
+    <![CDATA[   /* SQL-ID : isry.itgcms.sysmgmt.userjoin.mapper.ApproveUserJoinMapper.updateWorkerInfoByUserJoin : 종사자 정보 수정 (회원가입승인) */
+        UPDATE SCA100   /** 종사자 */
+        SET
+            ENFSN_ROLE_SE_CD = #{ENFSN_ROLE_SE_CD},
+		    LAST_MDFR_ID = #{LAST_MDFR_ID},
+		    LAST_MDFCN_DT = SYSDATE
+		WHERE ENFSN_NO = #{ENFSN_NO}  /* 종사자번호 */
+    ]]>
+    </update>
+    
+    <select id="selectUserAuthInfo" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+	    SELECT     /* SQL-ID : isry.itgcms.sysmgmt.userjoin.mapper.ApproveUserJoinMapper.selectUserAuthInfo : 사용자 권한 정보 조회 (회원가입승인 팝업) */
+		    U.USER_ID                         /* 사용자아이디 */
+		    , C##RG.DEC_B64(W.FLNM_ENCPT) AS USER_FLNM       /* 사용자성명 */
+		    , I.UNT_TASKWK_SE_CD              /* 단위업무구분코드 */
+		    , W.OGDP_INST_NO                  /* 소속기관번호 */
+		    , CASE WHEN (W.OGDP_INST_NO = 0 OR W.OGDP_INST_NO IS NULL) THEN ''
+		        ELSE I.INST_NM END AS OGDP_INST_NM          /* 소속기관명 */
+		    , I.INST_TYPE_SE_CD                 /* 기관유형구분코드 */
+		    , CASE WHEN I.INST_TYPE_SE_CD IS NULL THEN ''
+		        ELSE (
+		            SELECT CMMNS_CD_VALUE_NM FROM SAC100
+		            WHERE CMMNS_CD_ID = 'INST_TYPE_SE_CD'       /* 공통코드아이디 */
+		            AND CMMNS_CD_VALUE = I.INST_TYPE_SE_CD        /* 기관유형구분코드 */
+		            AND USE_YN = 'Y'    /* 공통코드_사용여부 */
+		        ) END AS INST_TYPE_SE_NM        /* 기관유형구분명 */
+		    , W.PRVUSE_JOIN_SE_CD               /* 전용가입구분코드 */
+		    , CASE WHEN W.PRVUSE_JOIN_SE_CD IS NULL THEN ''
+		        ELSE (
+		            SELECT CMMNS_CD_VALUE_NM FROM SAC100
+		            WHERE CMMNS_CD_ID = 'PRVUSE_JOIN_SE_CD'     /* 공통코드아이디 */
+		            AND CMMNS_CD_VALUE = W.PRVUSE_JOIN_SE_CD    /* 전용가입구분코드 */
+		            AND USE_YN = 'Y'    /* 공통코드_사용여부 */
+		        ) END AS PRVUSE_JOIN_SE_NM      /* 전용가입구분명 */
+		   , A.GROUP_AUTHRT_SE_CD             /* 그룹권한구분코드 */
+		   , A.AUTHRT_SE_CD                    /* 권한구분코드 */
+		FROM SAA200 U     /** 사용자 */
+		    , SCA100 W    /** 종사자 */
+		    , SAA000 I    /** 통합기관 */
+		    , SAB230 A    /** 사용자별 기관 권한 */
+		WHERE 1=1
+		AND U.ENFSN_NO = W.ENFSN_NO           /* SCA100: 종사자번호 */
+		AND W.OGDP_INST_NO = I.INST_NO      /* SCA100: 기관번호 */
+		AND U.USER_ID = A.USER_ID           /* SAB230: 사용자아이디 */
+		AND I.INST_NO = A.INST_NO           /* SAB230: 기관번호 */
+		AND U.USER_ID = #{USER_ID}        /* 사용자아이디 */
+    ]]>
+    </select>
+    
+    <update id="updateUserInstAuthrtByUserJoin" parameterType="HashMap">
+    <![CDATA[   /* SQL-ID : isry.itgcms.sysmgmt.userjoin.mapper.ApproveUserJoinMapper.updateUserInstAuthrtByUserJoin : 기관 권한 업데이트 (회원가입승인) */
+        UPDATE SAB230   /** 사용자별 기관 권한 */
+		SET
+		    GROUP_AUTHRT_SE_CD = #{GROUP_AUTHRT_SE_CD}  /* 그룹권한구분코드 */
+		    , AUTHRT_SE_CD = #{AUTHRT_SE_CD}            /* 권한구분코드 */
+		    , LAST_MDFR_ID = #{LAST_MDFR_ID}            /* 최종수정자아이디 */
+		    , LAST_MDFCN_DT = SYSDATE                   /* 최종수정일시 */
+		WHERE 1=1
+		AND USER_ID = #{USER_ID}          /* 사용자아이디 */
+		AND INST_NO = #{OGDP_INST_NO}     /* 소속기관번호 (주기관) */
+    ]]>
+    </update>
+
+    
+    <delete id="deleteSAB230" parameterType="String">
+    <![CDATA[
+        /* deleteSAB230 - Lee JiSeob */
+        
+        DELETE FROM SAB230  /* 사용자별 기관 권한 */
+        
+        WHERE USER_ID = #{USER_ID}
+
+    ]]>
+    </delete>
+
+
+    <delete id="deleteSAB250" parameterType="String">
+    <![CDATA[
+        /* deleteSAB250 - Lee JiSeob */
+        
+        DELETE FROM SAB250  /* 사용자별 메뉴 권한 */
+        
+        WHERE USER_ID = #{USER_ID}
+
+    ]]>
+    </delete>
+
+    <select id="selectUserJoinInfo" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectUserJoinInfo - Lee JiSeob */
+
+        SELECT
+            
+            C.USER_ID,
+
+            TO_CHAR(C.JOIN_APLY_DT, 'YYYY') || '년 ' 
+            || TO_CHAR(C.JOIN_APLY_DT, 'MM') || '월 ' 
+            || TO_CHAR(C.JOIN_APLY_DT, 'DD') || '일' AS JOIN_APLY_DT,
+            
+            SUBSTR(C.JOIN_APRV_YMD, 1, 4) || '년 ' 
+            || SUBSTR(C.JOIN_APRV_YMD, 5, 2) || '월 ' 
+            || SUBSTR(C.JOIN_APRV_YMD, 7, 2) || '일' AS JOIN_APRV_YMD,
+
+            C.JOIN_RJCT_CS_CN,
+            C##RG.DEC_B64(D.MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT
+        
+        FROM SAA200 C /* 사용자 */
+        JOIN SCA100 D /* 종사자 */ ON D.ENFSN_NO = C.ENFSN_NO
+        
+        WHERE USER_ID = #{userId}
+        
+    ]]>
+    </select>
+
+</mapper>

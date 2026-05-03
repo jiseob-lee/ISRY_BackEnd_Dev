@@ -1,0 +1,1269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.history.mapper.HistoryMapper">
+
+	<select id="selectProgramHistoryTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectProgramHistoryTotalCount - Park Kyuyoung */
+
+        SELECT
+
+            COUNT(*) AS CNT
+
+        FROM SAB101
+        WHERE 1=1
+        ]]>
+
+		<if test="PROGRM_NM != null and PROGRM_NM != ''">
+        <![CDATA[
+            AND PROGRM_NM LIKE '%' || #{PROGRM_NM} || '%'
+        ]]>
+		</if>
+		<if test='UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != "" and UNT_SYS_SE_CD != "0"'>
+        <![CDATA[
+            AND UNT_SYS_SE_CD LIKE '%' || #{UNT_SYS_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="URL_ADDR != null and URL_ADDR != ''">
+        <![CDATA[
+            AND URL_ADDR LIKE '%' || #{URL_ADDR} || '%'
+        ]]>
+		</if>
+		<if test='PROGRM_USE_SE_CD != null and PROGRM_USE_SE_CD != "" and PROGRM_USE_SE_CD != "0"'>
+        <![CDATA[
+            AND PROGRM_USE_SE_CD LIKE '%' || #{PROGRM_USE_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test='DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != "" and DATAA_CHG_SE_CD != "0"'>
+        <![CDATA[
+            AND DATAA_CHG_SE_CD LIKE '%' || #{DATAA_CHG_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+        <![CDATA[
+            AND MDFCN_DT >= TO_DATE(#{START_DATE} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="END_DATE != null and END_DATE != ''">
+        <![CDATA[
+            AND MDFCN_DT <= TO_DATE(#{END_DATE} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+
+	</select>
+
+	<select id="selectProgramHistory" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectProgramHistory - Park Kyuyoung */
+
+        SELECT
+
+            D.PROGRM_ID,
+            D.UNT_SYS_SE_CD,
+            D.DATAA_CHG_SE_CD,
+            D.PROGRM_NM,
+            D.OUTSD_PROGRM_YN,
+            D.URL_ADDR,
+            D.PROGRM_USE_SE_CD,
+            D.RM_CN,
+            D.FRST_RGTR_ID,
+            TO_CHAR(D.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT,
+            D.LAST_MDFR_ID,
+            TO_CHAR(D.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT,
+            TO_CHAR(D.MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS MDFCN_DT
+
+        FROM SAB101 D /* 프로그램 이력 */
+        WHERE 1=1
+    ]]>
+		<if test="PROGRM_NM != null and PROGRM_NM != ''">
+        <![CDATA[
+            AND PROGRM_NM LIKE '%' || #{PROGRM_NM} || '%'
+        ]]>
+		</if>
+		<if test='UNT_SYS_SE_CD != null and UNT_SYS_SE_CD != "" and UNT_SYS_SE_CD != "0"'>
+        <![CDATA[
+            AND UNT_SYS_SE_CD LIKE '%' || #{UNT_SYS_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="URL_ADDR != null and URL_ADDR != ''">
+        <![CDATA[
+            AND URL_ADDR LIKE '%' || #{URL_ADDR} || '%'
+        ]]>
+		</if>
+		<if test='PROGRM_USE_SE_CD != null and PROGRM_USE_SE_CD != "" and PROGRM_USE_SE_CD != "0"'>
+        <![CDATA[
+            AND PROGRM_USE_SE_CD LIKE '%' || #{PROGRM_USE_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test='DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != "" and DATAA_CHG_SE_CD != "0"'>
+        <![CDATA[
+            AND DATAA_CHG_SE_CD LIKE '%' || #{DATAA_CHG_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+        <![CDATA[
+            AND MDFCN_DT >= TO_DATE(#{START_DATE} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="END_DATE != null and END_DATE != ''">
+        <![CDATA[
+            AND MDFCN_DT <= TO_DATE(#{END_DATE} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		ORDER BY MDFCN_DT DESC
+		OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+	</select>
+
+	<select id="selectMenuHistoryTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectMenuHistoryTotalCount - Park Kyuyoung */
+
+        SELECT
+
+            COUNT(*) AS CNT
+
+        FROM (
+            SELECT
+                D.MENU_NO AS MENU_NO /* 메뉴번호 */
+                , D.DATAA_CHG_SE_CD AS DATAA_CHG_SE_CD /* 데이터변경구분코드 */
+                , D.MENU_NM AS MENU_NM /* 메뉴명 */
+                , D.UP_MENU_ID /* 상위메뉴아이디 */ AS UP_MENU_ID
+                , D.MENU_LEVELA_NO /* 메뉴레벨번호 */ AS MENU_LEVELA_NO
+                , D.PROGRM_ID /* 프로그램아이디 */ AS PROGRM_ID
+                , C.URL_ADDR /* URL 주소 */ AS URL_ADDR
+                , D.RM_CN /* 비고내용 */ AS RM_CN
+                , D.FRST_RGTR_ID AS FRST_RGTR_ID
+                , TO_CHAR(D.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT
+                , D.LAST_MDFR_ID AS LAST_MDFR_ID
+                , TO_CHAR(D.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT
+                , D.MDFCN_DT AS MDFCN_DT
+                , NVL(D.LAST_MDFR_ID, D.FRST_RGTR_ID) AS WORKER
+                , ( SELECT E.UNT_TASKWK_SE_CD FROM SAB200 E /* 메뉴 */ WHERE E.MENU_NO = D.MENU_NO ) AS UNT_TASKWK_SE_CD
+
+            FROM SAB201 D /* 메뉴이력 */
+            JOIN SAB100 C /* 프로그램 */
+                ON D.PROGRM_ID = C.PROGRM_ID
+            ) E
+        ]]>
+
+        <where>
+
+		<if test="MENU_NM != null and MENU_NM != ''">
+        <![CDATA[
+            AND E.MENU_NM LIKE '%' || #{MENU_NM} || '%'
+        ]]>
+		</if>
+		<if test="UP_MENU_ID != null and UP_MENU_ID != ''">
+        <![CDATA[
+            AND E.UP_MENU_ID LIKE '%' || #{UP_MENU_ID} || '%'
+        ]]>
+		</if>
+		<if test="URL_ADDR != null and URL_ADDR != ''">
+        <![CDATA[
+            AND E.URL_ADDR LIKE '%' || #{URL_ADDR} || '%'
+        ]]>
+		</if>
+		<if test="RM_CN != null and RM_CN != ''">
+        <![CDATA[
+            AND E.RM_CN LIKE '%' || #{RM_CN} || '%'
+        ]]>
+		</if>
+		<if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+        <![CDATA[
+            AND E.DATAA_CHG_SE_CD LIKE '%' || #{DATAA_CHG_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+        <![CDATA[
+            AND E.MDFCN_DT >= TO_DATE(#{START_DATE} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="END_DATE != null and END_DATE != ''">
+        <![CDATA[
+            AND E.MDFCN_DT <= TO_DATE(#{END_DATE} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+        <![CDATA[
+            AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        ]]>
+        </if>
+        <if test="WORKER != null and WORKER != ''">
+        <![CDATA[
+            AND E.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+        ]]>
+        </if>
+
+        </where>
+
+	</select>
+
+	<select id="selectMenuHistory" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectMenuHistory - Park Kyuyoung */
+
+        SELECT
+
+            MENU_NO
+            , DATAA_CHG_SE_CD
+            , MENU_NM
+            , UP_MENU_ID
+            , MENU_LEVELA_NO
+            , PROGRM_ID
+            , URL_ADDR
+            , RM_CN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT
+            , MDFCN_DT
+            , WORKER
+            , UNT_TASKWK_SE_CD
+
+        FROM (
+            SELECT
+                D.MENU_NO AS MENU_NO /* 메뉴번호 */
+                , D.DATAA_CHG_SE_CD AS DATAA_CHG_SE_CD /* 데이터변경구분코드 */
+                , D.MENU_NM AS MENU_NM /* 메뉴명 */
+                , D.UP_MENU_ID /* 상위메뉴아이디 */ AS UP_MENU_ID
+                , D.MENU_LEVELA_NO /* 메뉴레벨번호 */ AS MENU_LEVELA_NO
+                , D.PROGRM_ID /* 프로그램아이디 */ AS PROGRM_ID
+                , C.URL_ADDR /* URL 주소 */ AS URL_ADDR
+                , D.RM_CN /* 비고내용 */ AS RM_CN
+                , D.FRST_RGTR_ID AS FRST_RGTR_ID
+                , TO_CHAR(D.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT
+                , D.LAST_MDFR_ID AS LAST_MDFR_ID
+                , TO_CHAR(D.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT
+                , D.MDFCN_DT AS MDFCN_DT
+                , NVL(D.LAST_MDFR_ID, D.FRST_RGTR_ID) AS WORKER
+                , ( SELECT E.UNT_TASKWK_SE_CD FROM SAB200 E /* 메뉴 */ WHERE E.MENU_NO = D.MENU_NO ) AS UNT_TASKWK_SE_CD
+
+            FROM SAB201 D /* 메뉴이력 */
+            JOIN SAB100 C /* 프로그램 */
+                ON D.PROGRM_ID = C.PROGRM_ID
+            ) E
+    ]]>
+    <where>
+		<if test="MENU_NM != null and MENU_NM != ''">
+        <![CDATA[
+            AND E.MENU_NM LIKE '%' || #{MENU_NM} || '%'
+        ]]>
+		</if>
+		<if test='UP_MENU_ID != null and UP_MENU_ID != "" and UP_MENU_ID != "0"'>
+        <![CDATA[
+            AND E.UP_MENU_ID LIKE '%' || #{UP_MENU_ID} || '%'
+        ]]>
+		</if>
+		<if test="URL_ADDR != null and URL_ADDR != ''">
+        <![CDATA[
+            AND E.URL_ADDR LIKE '%' || #{URL_ADDR} || '%'
+        ]]>
+		</if>
+		<if test="RM_CN != null and RM_CN != ''">
+        <![CDATA[
+            AND E.RM_CN LIKE '%' || #{RM_CN} || '%'
+        ]]>
+		</if>
+		<if test='DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != "" and DATAA_CHG_SE_CD != "0"'>
+        <![CDATA[
+            AND E.DATAA_CHG_SE_CD LIKE '%' || #{DATAA_CHG_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+        <![CDATA[
+            AND E.MDFCN_DT >= TO_DATE(#{START_DATE} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="END_DATE != null and END_DATE != ''">
+        <![CDATA[
+            AND E.MDFCN_DT <= TO_DATE(#{END_DATE} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+        <![CDATA[
+            AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        ]]>
+        </if>
+        <if test="WORKER != null and WORKER != ''">
+        <![CDATA[
+            AND E.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+        ]]>
+        </if>
+    </where>
+        <![CDATA[
+		ORDER BY MDFCN_DT DESC
+		OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+	    ]]>
+	</select>
+
+	<select id="selectDeptHistoryTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectDeptHistoryTotalCount - Park Kyuyoung */
+
+        SELECT
+
+            COUNT(*) AS CNT
+
+        FROM SAA301 D,   /*부서 이력*/
+             SAA000 C
+        WHERE C.INST_NO = D.INST_NO
+    ]]>
+		<if test="INST_NM != null and INST_NM != ''">
+        <![CDATA[
+            AND INST_NM LIKE '%' || #{INST_NM} || '%'
+        ]]>
+		</if>
+		<if test="DEPT_NM != null and DEPT_NM != ''">
+        <![CDATA[
+            AND DEPT_NM LIKE '%' || #{DEPT_NM} || '%'
+        ]]>
+		</if>
+		<if test="MAIN_TASKWK_CN != null and MAIN_TASKWK_CN != ''">
+        <![CDATA[
+            AND MAIN_TASKWK_CN LIKE '%' || #{MAIN_TASKWK_CN} || '%'
+        ]]>
+		</if>
+		<if test="DEPT_TELNO != null and DEPT_TELNO != ''">
+        <![CDATA[
+            AND DEPT_TELNO LIKE '%' || #{DEPT_TELNO} || '%'
+        ]]>
+		</if>
+		<if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+        <![CDATA[
+            AND DATAA_CHG_SE_CD LIKE '%' || #{DATAA_CHG_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+        <![CDATA[
+            AND MDFCN_DT >= TO_DATE(#{START_DATE} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="END_DATE != null and END_DATE != ''">
+        <![CDATA[
+            AND MDFCN_DT <= TO_DATE(#{END_DATE} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+        <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+        <![CDATA[
+            AND C.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        ]]>
+        </if>
+        <if test="WORKER != null and WORKER != ''">
+        <![CDATA[
+            AND D.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+        ]]>
+        </if>
+	</select>
+
+	<select id="selectDeptHistory" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectDeptHistory - Park Kyuyoung */
+
+        SELECT
+
+            D.DEPT_CD,
+			D.INST_NO,
+			C.INST_NM,
+			D.DATAA_CHG_SE_CD,
+			D.UP_DEPT_CD,
+			D.DEPT_NM,
+			D.MAIN_TASKWK_CN,
+			D.DEPT_TELNO,
+			D.DEPT_FXNO,
+            D.DEL_YN,
+            TO_CHAR(D.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT,
+            NVL(D.LAST_MDFR_ID, D.FRST_RGTR_ID) AS WORKER,
+            TO_CHAR(D.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT,
+            TO_CHAR(D.MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS MDFCN_DT
+
+        FROM SAA301 D,    /*부서 이력 */
+             SAA000 C
+        WHERE C.INST_NO = D.INST_NO
+    ]]>
+		<if test="INST_NM != null and INST_NM != ''">
+        <![CDATA[
+            AND INST_NM LIKE '%' || #{INST_NM} || '%'
+        ]]>
+		</if>
+		<if test="DEPT_NM != null and DEPT_NM != ''">
+        <![CDATA[
+            AND DEPT_NM LIKE '%' || #{DEPT_NM} || '%'
+        ]]>
+		</if>
+		<if test="MAIN_TASKWK_CN != null and MAIN_TASKWK_CN != ''">
+        <![CDATA[
+            AND MAIN_TASKWK_CN LIKE '%' || #{MAIN_TASKWK_CN} || '%'
+        ]]>
+		</if>
+		<if test="DEPT_TELNO != null and DEPT_TELNO != ''">
+        <![CDATA[
+            AND DEPT_TELNO LIKE '%' || #{DEPT_TELNO} || '%'
+        ]]>
+		</if>
+		<if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+        <![CDATA[
+            AND DATAA_CHG_SE_CD LIKE '%' || #{DATAA_CHG_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+        <![CDATA[
+            AND MDFCN_DT >= TO_DATE(#{START_DATE} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="END_DATE != null and END_DATE != ''">
+        <![CDATA[
+            AND MDFCN_DT <= TO_DATE(#{END_DATE} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+        <![CDATA[
+            AND C.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        ]]>
+        </if>
+        <if test="WORKER != null and WORKER != ''">
+        <![CDATA[
+            AND D.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+        ]]>
+        </if>
+		ORDER BY MDFCN_DT DESC
+		OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+	</select>
+
+	<select id="selectInstituteHistoryTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectInstituteHistoryTotalCount - Park Kyuyoung */
+
+        SELECT
+
+            COUNT(*) AS CNT
+
+        FROM SAA001 D  /*통합기관 이력*/
+        LEFT JOIN SAA000 E /* 통합기관 */ ON E.INST_NO = D.INST_NO
+        WHERE 1=1
+    ]]>
+		<if test="INST_NM != null and INST_NM != ''">
+        <![CDATA[
+            AND D.INST_NM LIKE '%' || #{INST_NM} || '%'
+        ]]>
+		</if>
+		<if test="INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ''">
+        <![CDATA[
+            AND D.INST_TYPE_SE_CD LIKE '%' || #{INST_TYPE_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="RGN_CD != null and RGN_CD != ''">
+        <![CDATA[
+            AND D.RGN_CD LIKE '%' || #{RGN_CD} || '%'
+        ]]>
+		</if>
+		<if test="RPRSV_NM_ENCPT != null and RPRSV_NM_ENCPT != ''">
+        <![CDATA[
+            AND D.RPRSV_NM_ENCPT LIKE '%' || ENC_B64(#{RPRSV_NM_ENCPT}) || '%'
+        ]]>
+		</if>
+		<if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+        <![CDATA[
+            AND D.DATAA_CHG_SE_CD LIKE '%' || #{DATAA_CHG_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+        <![CDATA[
+            AND D.MDFCN_DT >= TO_DATE(#{START_DATE} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="END_DATE != null and END_DATE != ''">
+        <![CDATA[
+            AND D.MDFCN_DT <= TO_DATE(#{END_DATE} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+        <![CDATA[
+            AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        ]]>
+        </if>
+        <if test="WORKER != null and WORKER != ''">
+        <![CDATA[
+            AND D.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+        ]]>
+        </if>
+
+	</select>
+
+	<select id="selectInstituteHistory" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectInstituteHistory - Park Kyuyoung */
+
+        SELECT
+
+            D.INST_NO,
+            D.DATAA_CHG_SE_CD,
+            D.INST_NM,
+            D.UP_INST_NO,
+            (SELECT E.INST_NM FROM SAA000 E /* 통합기관 */ WHERE E.INST_NO = D.UP_INST_NO) AS UP_INST_NM,
+            D.INST_TYPE_SE_CD,
+            D.RGN_CD,
+            D.HPGE_URL_ADDR,
+            D.MAIN_ENFC_INST_SE_CD,
+            D.BPLC_ZIP,
+            D.BPLC_PST_ADDR,
+            D.BPLC_DADDR,
+            DEC_B64(D.RPRSV_NM_ENCPT) AS RPRSV_NM_ENCPT,
+            D.RPRS_TELNO,
+            D.RPRS_FXNO,
+            D.APLCN_BGNG_YMD,
+            D.APLCN_END_YMD,
+            DEC_B64(D.PIC_NM_ENCPT) AS PIC_NM_ENCPT,
+            D.PIC_ENFSN_NO,
+            D.PIC_TELNO,
+            DEC_B64(D.PIC_MBL_TELNO_ENCPT) AS PIC_MBL_TELNO_ENCPT,
+            DEC_B64(D.PIC_EML_ADDR_ENCPT) AS PIC_EML_ADDR_ENCPT,
+            D.CNSGN_YMD,
+            D.APLY_YMD,
+            D.APLCNT_ID,
+            D.APRV_YN,
+            D.RJCT_CS_CN,
+            D.PRCS_YMD,
+            D.AUTZR_ID,
+            D.OFFCS_SGNNG_NO,
+            D.ATFINO,
+            D.CTPV_LINK_PBADMS_RGN_CD,
+            D.SGG_LINK_PBADMS_RGN_CD,
+            D.EMD_LINK_PBADMS_RGN_CD,
+            D.DEL_YN,
+            TO_CHAR(D.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT,
+            NVL(D.LAST_MDFR_ID, D.FRST_RGTR_ID) AS WORKER,
+            TO_CHAR(D.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT,
+            TO_CHAR(D.MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS MDFCN_DT,
+            E.UNT_TASKWK_SE_CD
+
+        FROM SAA001 D    /*통합기관 이력 */
+        LEFT JOIN SAA000 E /* 통합기관 */ ON E.INST_NO = D.INST_NO
+        WHERE 1=1
+    ]]>
+		<if test="INST_NM != null and INST_NM != ''">
+        <![CDATA[
+            AND D.INST_NM LIKE '%' || #{INST_NM} || '%'
+        ]]>
+		</if>
+		<if test="INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ''">
+        <![CDATA[
+            AND D.INST_TYPE_SE_CD LIKE '%' || #{INST_TYPE_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="RGN_CD != null and RGN_CD != ''">
+        <![CDATA[
+            AND D.RGN_CD LIKE '%' || #{RGN_CD} || '%'
+        ]]>
+		</if>
+		<if test="RPRSV_NM_ENCPT != null and RPRSV_NM_ENCPT != ''">
+        <![CDATA[
+            AND D.RPRSV_NM_ENCPT LIKE '%' || ENC_B64(#{RPRSV_NM_ENCPT}) || '%'
+        ]]>
+		</if>
+		<if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+        <![CDATA[
+            AND D.DATAA_CHG_SE_CD LIKE '%' || #{DATAA_CHG_SE_CD} || '%'
+        ]]>
+		</if>
+		<if test="START_DATE != null and START_DATE != ''">
+        <![CDATA[
+            AND D.MDFCN_DT >= TO_DATE(#{START_DATE} || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="END_DATE != null and END_DATE != ''">
+        <![CDATA[
+            AND D.MDFCN_DT <= TO_DATE(#{END_DATE} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        ]]>
+		</if>
+		<if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+		<![CDATA[
+		    AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+		]]>
+		</if>
+		<if test="WORKER != null and WORKER != ''">
+        <![CDATA[
+            AND D.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+        ]]>
+        </if>
+		ORDER BY MDFCN_DT DESC
+		OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+	</select>
+
+
+	<select id="selectOrg" resultType="HashMap">
+    <![CDATA[
+        /* selectOrg - Park Kyuyoung */
+
+        SELECT
+
+            INST_NO,
+            UP_INST_NO,
+            INST_NM
+
+        FROM SAA000 /*통합기관*/
+
+    ]]>
+	</select>
+
+
+    <select id="selectRightsHistoryCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectRightsHistoryCount - Ji-Seob Lee */
+
+        SELECT
+            COUNT(*) AS CNT
+
+        FROM
+
+        (
+        SELECT
+            AUTHRT_ID,
+            MDFCN_DT,
+            DATAA_CHG_SE_CD,
+            AUTHRT_NM,
+            DEL_YN,
+            RM_CN,
+            INST_TYPE_SE_CD,
+            INST_NO,
+            (SELECT D.INST_NM FROM SAA000 D /* 통합기관 */ WHERE D.INST_NO = C.INST_NO) AS INST_NM,
+            ENFSN_ROLE_SE_CD,
+            SRTNG_SQNCE,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT,
+            (SELECT D.UNT_TASKWK_SE_CD FROM SAA000 D /* 통합기관 */ WHERE D.INST_NO = C.INST_NO) AS UNT_TASKWK_SE_CD
+
+        FROM SAB401 C
+        ) E
+    ]]>
+
+        <where>
+            <if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+    <![CDATA[
+                AND E.DATAA_CHG_SE_CD = #{DATAA_CHG_SE_CD}
+    ]]>
+            </if>
+            <if test="INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ''">
+    <![CDATA[
+                AND E.INST_TYPE_SE_CD = #{INST_TYPE_SE_CD}
+    ]]>
+            </if>
+            <if test="ENFSN_ROLE_SE_CD != null and ENFSN_ROLE_SE_CD != ''">
+    <![CDATA[
+                AND E.ENFSN_ROLE_SE_CD = #{ENFSN_ROLE_SE_CD}
+    ]]>
+            </if>
+            <if test="RM_CN != null and RM_CN != ''">
+    <![CDATA[
+                AND E.RM_CN LIKE '%' || #{RM_CN} || '%'
+    ]]>
+            </if>
+            <if test="AUTHRT_NM != null and AUTHRT_NM != ''">
+    <![CDATA[
+                AND E.AUTHRT_NM LIKE '%' || #{AUTHRT_NM} || '%'
+    ]]>
+            </if>
+            <if test="INST_NM != null and INST_NM != ''">
+    <![CDATA[
+                AND E.INST_NM LIKE '%' || #{INST_NM} || '%'
+    ]]>
+            </if>
+            <if test="START_DATE != null and START_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="END_DATE != null and END_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+    <![CDATA[
+                AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test="WORKER != null and WORKER != ''">
+    <![CDATA[
+                AND E.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+    ]]>
+            </if>
+        </where>
+
+    </select>
+
+
+    <select id="selectRightsHistory" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectRightsHistory - Ji-Seob Lee */
+
+        SELECT
+            E.AUTHRT_ID,
+            TO_CHAR(E.MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS MDFCN_DT,
+            E.DATAA_CHG_SE_CD,
+            E.AUTHRT_NM,
+            E.DEL_YN,
+            E.RM_CN,
+            E.INST_TYPE_SE_CD,
+            E.INST_NO,
+            E.INST_NM,
+            E.ENFSN_ROLE_SE_CD,
+            E.SRTNG_SQNCE,
+            E.FRST_RGTR_ID,
+            TO_CHAR(E.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT,
+            E.LAST_MDFR_ID,
+            TO_CHAR(E.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT,
+            E.UNT_TASKWK_SE_CD,
+            NVL(E.LAST_MDFR_ID, E.FRST_RGTR_ID) AS WORKER
+
+        FROM
+
+        (
+        SELECT
+            AUTHRT_ID,
+            MDFCN_DT,
+            DATAA_CHG_SE_CD,
+            AUTHRT_NM,
+            DEL_YN,
+            RM_CN,
+            INST_TYPE_SE_CD,
+            INST_NO,
+            (SELECT D.INST_NM FROM SAA000 D /* 통합기관 */ WHERE D.INST_NO = C.INST_NO) AS INST_NM,
+            ENFSN_ROLE_SE_CD,
+            SRTNG_SQNCE,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT,
+            (SELECT D.UNT_TASKWK_SE_CD FROM SAA000 D /* 통합기관 */ WHERE D.INST_NO = C.INST_NO) AS UNT_TASKWK_SE_CD
+
+        FROM SAB401 C
+        ) E
+    ]]>
+
+        <where>
+            <if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+    <![CDATA[
+                AND E.DATAA_CHG_SE_CD = #{DATAA_CHG_SE_CD}
+    ]]>
+            </if>
+            <if test="INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ''">
+    <![CDATA[
+                AND E.INST_TYPE_SE_CD = #{INST_TYPE_SE_CD}
+    ]]>
+            </if>
+            <if test="ENFSN_ROLE_SE_CD != null and ENFSN_ROLE_SE_CD != ''">
+    <![CDATA[
+                AND E.ENFSN_ROLE_SE_CD = #{ENFSN_ROLE_SE_CD}
+    ]]>
+            </if>
+            <if test="RM_CN != null and RM_CN != ''">
+    <![CDATA[
+                AND E.RM_CN LIKE '%' || #{RM_CN} || '%'
+    ]]>
+            </if>
+            <if test="AUTHRT_NM != null and AUTHRT_NM != ''">
+    <![CDATA[
+                AND E.AUTHRT_NM LIKE '%' || #{AUTHRT_NM} || '%'
+    ]]>
+            </if>
+            <if test="INST_NM != null and INST_NM != ''">
+    <![CDATA[
+                AND E.INST_NM LIKE '%' || #{INST_NM} || '%'
+    ]]>
+            </if>
+            <if test="START_DATE != null and START_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="END_DATE != null and END_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+    <![CDATA[
+                AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test="WORKER != null and WORKER != ''">
+    <![CDATA[
+                AND E.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+    ]]>
+            </if>
+        </where>
+
+    <![CDATA[
+
+        ORDER BY E.MDFCN_DT DESC
+
+        OFFSET #{OFFSET_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    ]]>
+    </select>
+
+
+
+    <select id="selectRightsHistoryGroupCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectRightsHistoryGroupCount - Ji-Seob Lee */
+
+        SELECT
+            COUNT(*) AS CNT
+
+        FROM
+        (
+
+            SELECT
+                AUTHRT_ID,
+                (SELECT D.AUTHRT_NM FROM SAB400 D /* 권한 */ WHERE D.AUTHRT_ID = C.AUTHRT_ID) AS AUTHRT_NM,
+                MENU_NO,
+                (SELECT D.MENU_NM FROM SAB200 D /* 메뉴 */ WHERE D.MENU_NO = C.MENU_NO) AS MENU_NM,
+                (SELECT D.UNT_TASKWK_SE_CD FROM SAB200 D /* 단위업무구분 */ WHERE D.MENU_NO = C.MENU_NO) AS UNT_TASKWK_SE_CD,
+                (
+                SELECT F.MENU_NM
+                FROM SAB200 F /* 메뉴 */
+                WHERE F.MENU_NO =
+                    (
+                    SELECT D.MENU_NO
+                    FROM SAB200 D
+                    WHERE D.MENU_LEVELA_NO = 1
+                    START WITH D.MENU_NO = C.MENU_NO
+                    CONNECT BY PRIOR D.UP_MENU_NO = D.MENU_NO
+                    )
+                ) AS TOP_MENU_NM,
+
+                MDFCN_DT,
+                DATAA_CHG_SE_CD,
+                INQ_BUTTON_USE_YN,
+                DTL_INQ_BUTTON_USE_YN,
+                INITL_BUTTON_USE_YN,
+                REG_BUTTON_USE_YN,
+                MDFCN_BUTTON_USE_YN,
+                DEL_BUTTON_USE_YN,
+                MNG_BUTTON_USE_YN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+
+            FROM SAB301 C
+
+        ) E
+    ]]>
+
+        <where>
+            <if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+    <![CDATA[
+                AND E.DATAA_CHG_SE_CD = #{DATAA_CHG_SE_CD}
+    ]]>
+            </if>
+            <if test="AUTHRT_NM != null and AUTHRT_NM != ''">
+    <![CDATA[
+                AND E.AUTHRT_NM LIKE '%' || #{AUTHRT_NM} || '%'
+    ]]>
+            </if>
+            <if test="MENU_NM != null and MENU_NM != ''">
+    <![CDATA[
+                AND E.MENU_NM LIKE '%' || #{MENU_NM} || '%'
+    ]]>
+            </if>
+            <if test="TOP_MENU_NM != null and TOP_MENU_NM != ''">
+    <![CDATA[
+                AND E.TOP_MENU_NM LIKE '%' || #{TOP_MENU_NM} || '%'
+    ]]>
+            </if>
+            <if test="START_DATE != null and START_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="END_DATE != null and END_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+    <![CDATA[
+                AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test="WORKER != null and WORKER != ''">
+    <![CDATA[
+                AND E.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+    ]]>
+            </if>
+        </where>
+
+    </select>
+
+
+    <select id="selectRightsHistoryGroup" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectRightsHistoryGroup - Ji-Seob Lee */
+
+        SELECT
+            E.AUTHRT_ID,
+            E.AUTHRT_NM,
+            E.MENU_NO,
+            E.MENU_NM,
+            E.TOP_MENU_NM,
+            TO_CHAR(E.MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS MDFCN_DT,
+            E.DATAA_CHG_SE_CD,
+            E.INQ_BUTTON_USE_YN,
+            E.DTL_INQ_BUTTON_USE_YN,
+            E.INITL_BUTTON_USE_YN,
+            E.REG_BUTTON_USE_YN,
+            E.MDFCN_BUTTON_USE_YN,
+            E.DEL_BUTTON_USE_YN,
+            E.MNG_BUTTON_USE_YN,
+            E.FRST_RGTR_ID,
+            TO_CHAR(E.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT,
+            E.LAST_MDFR_ID,
+            TO_CHAR(E.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT,
+            E.UNT_TASKWK_SE_CD,
+            NVL(E.LAST_MDFR_ID, E.FRST_RGTR_ID) AS WORKER
+
+        FROM
+        (
+
+            SELECT
+                AUTHRT_ID,
+                (SELECT D.AUTHRT_NM FROM SAB400 D /* 권한 */ WHERE D.AUTHRT_ID = C.AUTHRT_ID) AS AUTHRT_NM,
+                MENU_NO,
+                (SELECT D.MENU_NM FROM SAB200 D /* 메뉴 */ WHERE D.MENU_NO = C.MENU_NO) AS MENU_NM,
+                (SELECT D.UNT_TASKWK_SE_CD FROM SAB200 D /* 단위업무구분 */ WHERE D.MENU_NO = C.MENU_NO) AS UNT_TASKWK_SE_CD,
+                (
+                SELECT F.MENU_NM
+                FROM SAB200 F /* 메뉴 */
+                WHERE F.MENU_NO =
+	                (
+		            SELECT D.MENU_NO
+		            FROM SAB200 D
+		            WHERE D.MENU_LEVELA_NO = 1
+		            START WITH D.MENU_NO = C.MENU_NO
+		            CONNECT BY PRIOR D.UP_MENU_NO = D.MENU_NO
+		            )
+                ) AS TOP_MENU_NM,
+
+                MDFCN_DT,
+                DATAA_CHG_SE_CD,
+                INQ_BUTTON_USE_YN,
+                DTL_INQ_BUTTON_USE_YN,
+                INITL_BUTTON_USE_YN,
+                REG_BUTTON_USE_YN,
+                MDFCN_BUTTON_USE_YN,
+                DEL_BUTTON_USE_YN,
+                MNG_BUTTON_USE_YN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+
+            FROM SAB301 C
+
+        ) E
+    ]]>
+
+        <where>
+            <if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+    <![CDATA[
+                AND E.DATAA_CHG_SE_CD = #{DATAA_CHG_SE_CD}
+    ]]>
+            </if>
+            <if test="AUTHRT_NM != null and AUTHRT_NM != ''">
+    <![CDATA[
+                AND E.AUTHRT_NM LIKE '%' || #{AUTHRT_NM} || '%'
+    ]]>
+            </if>
+            <if test="MENU_NM != null and MENU_NM != ''">
+    <![CDATA[
+                AND E.MENU_NM LIKE '%' || #{MENU_NM} || '%'
+    ]]>
+            </if>
+            <if test="TOP_MENU_NM != null and TOP_MENU_NM != ''">
+    <![CDATA[
+                AND E.TOP_MENU_NM LIKE '%' || #{TOP_MENU_NM} || '%'
+    ]]>
+            </if>
+            <if test="START_DATE != null and START_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="END_DATE != null and END_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+    <![CDATA[
+                AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test="WORKER != null and WORKER != ''">
+    <![CDATA[
+                AND E.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+    ]]>
+            </if>
+        </where>
+
+    <![CDATA[
+
+        ORDER BY E.MDFCN_DT DESC
+
+        OFFSET #{OFFSET_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    ]]>
+    </select>
+
+    <select id="selectRightsHistoryUserMenuCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectRightsHistoryUserMenuCount - Ji-Seob Lee */
+
+        SELECT
+            COUNT(*) AS CNT
+
+        FROM
+
+        (
+            SELECT
+                C.USER_ID,
+
+                CASE
+                WHEN F.ENFSN_NO IS NOT NULL THEN G.FLNM_ENCPT
+                WHEN H.INST_NO IS NOT NULL THEN '____' || H.INST_NM
+                WHEN F.YNGBGS_PRTCR_NO IS NOT NULL THEN I.FLNM_ENCPT
+                ELSE ''
+                END AS USER_NM,
+
+                C.MENU_NO,
+
+                (SELECT D.MENU_NM FROM SAB200 D /* 메뉴 */ WHERE D.MENU_NO = C.MENU_NO) AS MENU_NM,
+                (SELECT D.UNT_TASKWK_SE_CD FROM SAB200 D /* 메뉴 */ WHERE D.MENU_NO = C.MENU_NO) AS UNT_TASKWK_SE_CD,
+                (
+                SELECT J.MENU_NM
+                FROM SAB200 J /* 메뉴 */
+                WHERE J.MENU_NO =
+                    (
+                    SELECT D.MENU_NO
+                    FROM SAB200 D
+                    WHERE D.MENU_LEVELA_NO = 1
+                    START WITH D.MENU_NO = C.MENU_NO
+                    CONNECT BY PRIOR D.UP_MENU_NO = D.MENU_NO
+                    )
+                ) AS TOP_MENU_NM,
+
+                C.MDFCN_DT,
+                C.DATAA_CHG_SE_CD,
+                C.INQ_BUTTON_USE_YN,
+                C.DTL_INQ_BUTTON_USE_YN,
+                C.INITL_BUTTON_USE_YN,
+                C.REG_BUTTON_USE_YN,
+                C.MDFCN_BUTTON_USE_YN,
+                C.DEL_BUTTON_USE_YN,
+                C.MNG_BUTTON_USE_YN,
+                C.FRST_RGTR_ID,
+                C.FRST_REG_DT,
+                C.LAST_MDFR_ID,
+                C.LAST_MDFCN_DT
+
+            FROM SAB251 C
+
+            LEFT JOIN SAA200 F /* 사용자 */ ON F.USER_ID = C.USER_ID
+            LEFT JOIN SCA100 G /* 종사자 */ ON G.ENFSN_NO = F.ENFSN_NO
+            LEFT JOIN SAA000 H /* 통합기관 */ ON H.INST_NO = G.OGDP_INST_NO
+            LEFT JOIN SCA200 I /* 청소년보호자 */ ON I.YNGBGS_PRTCR_NO = F.YNGBGS_PRTCR_NO
+
+        ) E
+    ]]>
+
+        <where>
+            <if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+    <![CDATA[
+                AND E.DATAA_CHG_SE_CD = #{DATAA_CHG_SE_CD}
+    ]]>
+            </if>
+            <if test="USER_ID != null and USER_ID != ''">
+    <![CDATA[
+                AND E.USER_ID LIKE '%' || #{USER_ID} || '%'
+    ]]>
+            </if>
+            <if test="USER_NM != null and USER_NM != ''">
+    <![CDATA[
+                AND (E.USER_NM = ENC_B64(#{USER_NM_ENCPT}) OR E.USER_NM = '____' || #{USER_NM})
+    ]]>
+            </if>
+            <if test="MENU_NM != null and MENU_NM != ''">
+    <![CDATA[
+                AND E.MENU_NM LIKE '%' || #{MENU_NM} || '%'
+    ]]>
+            </if>
+            <if test="TOP_MENU_NM != null and TOP_MENU_NM != ''">
+    <![CDATA[
+                AND E.TOP_MENU_NM LIKE '%' || #{TOP_MENU_NM} || '%'
+    ]]>
+            </if>
+            <if test="START_DATE != null and START_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="END_DATE != null and END_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+    <![CDATA[
+                AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test="WORKER != null and WORKER != ''">
+    <![CDATA[
+                AND E.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+    ]]>
+            </if>
+        </where>
+
+    </select>
+
+
+    <select id="selectRightsHistoryUserMenu" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectRightsHistoryUserMenu - Ji-Seob Lee */
+
+        SELECT
+            USER_ID,
+            USER_NM,
+            MENU_NO,
+            MENU_NM,
+            TOP_MENU_NM,
+            TO_CHAR(E.MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS MDFCN_DT,
+            DATAA_CHG_SE_CD,
+            INQ_BUTTON_USE_YN,
+            DTL_INQ_BUTTON_USE_YN,
+            INITL_BUTTON_USE_YN,
+            REG_BUTTON_USE_YN,
+            MDFCN_BUTTON_USE_YN,
+            DEL_BUTTON_USE_YN,
+            MNG_BUTTON_USE_YN,
+            FRST_RGTR_ID,
+            TO_CHAR(E.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT,
+            LAST_MDFR_ID,
+            TO_CHAR(E.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT,
+            E.UNT_TASKWK_SE_CD AS UNT_TASKWK_SE_CD,
+            NVL(LAST_MDFR_ID, FRST_RGTR_ID) AS WORKER
+        FROM
+
+        (
+            SELECT
+                C.USER_ID,
+
+                CASE
+                WHEN F.ENFSN_NO IS NOT NULL THEN DEC_B64(G.FLNM_ENCPT)
+                WHEN H.INST_NO IS NOT NULL THEN '____' || H.INST_NM
+                WHEN F.YNGBGS_PRTCR_NO IS NOT NULL THEN DEC_B64(I.FLNM_ENCPT)
+                ELSE ''
+                END AS USER_NM,
+
+                C.MENU_NO,
+
+                (SELECT D.MENU_NM FROM SAB200 D /* 메뉴 */ WHERE D.MENU_NO = C.MENU_NO) AS MENU_NM,
+                (SELECT D.UNT_TASKWK_SE_CD FROM SAB200 D /* 메뉴 */ WHERE D.MENU_NO = C.MENU_NO) AS UNT_TASKWK_SE_CD,
+                (
+                SELECT J.MENU_NM
+                FROM SAB200 J /* 메뉴 */
+                WHERE J.MENU_NO =
+                    (
+                    SELECT D.MENU_NO
+                    FROM SAB200 D
+                    WHERE D.MENU_LEVELA_NO = 1
+                    START WITH D.MENU_NO = C.MENU_NO
+                    CONNECT BY PRIOR D.UP_MENU_NO = D.MENU_NO
+                    )
+                ) AS TOP_MENU_NM,
+
+                C.MDFCN_DT,
+                C.DATAA_CHG_SE_CD,
+                C.INQ_BUTTON_USE_YN,
+                C.DTL_INQ_BUTTON_USE_YN,
+                C.INITL_BUTTON_USE_YN,
+                C.REG_BUTTON_USE_YN,
+                C.MDFCN_BUTTON_USE_YN,
+                C.DEL_BUTTON_USE_YN,
+                C.MNG_BUTTON_USE_YN,
+                C.FRST_RGTR_ID,
+                C.FRST_REG_DT,
+                C.LAST_MDFR_ID,
+                C.LAST_MDFCN_DT
+
+            FROM SAB251 C
+
+            LEFT JOIN SAA200 F /* 사용자 */ ON F.USER_ID = C.USER_ID
+            LEFT JOIN SCA100 G /* 종사자 */ ON G.ENFSN_NO = F.ENFSN_NO
+            LEFT JOIN SAA000 H /* 통합기관 */ ON H.INST_NO = G.OGDP_INST_NO
+            LEFT JOIN SCA200 I /* 청소년보호자 */ ON I.YNGBGS_PRTCR_NO = F.YNGBGS_PRTCR_NO
+
+        ) E
+    ]]>
+
+        <where>
+            <if test="DATAA_CHG_SE_CD != null and DATAA_CHG_SE_CD != ''">
+    <![CDATA[
+                AND E.DATAA_CHG_SE_CD = #{DATAA_CHG_SE_CD}
+    ]]>
+            </if>
+            <if test="USER_ID != null and USER_ID != ''">
+    <![CDATA[
+                AND E.USER_ID LIKE '%' || #{USER_ID} || '%'
+    ]]>
+            </if>
+            <if test="USER_NM != null and USER_NM != ''">
+    <![CDATA[
+                AND (E.USER_NM = ENC_B64(#{USER_NM_ENCPT}) OR E.USER_NM = '____' || #{USER_NM})
+    ]]>
+            </if>
+            <if test="MENU_NM != null and MENU_NM != ''">
+    <![CDATA[
+                AND E.MENU_NM LIKE '%' || #{MENU_NM} || '%'
+    ]]>
+            </if>
+            <if test="TOP_MENU_NM != null and TOP_MENU_NM != ''">
+    <![CDATA[
+                AND E.TOP_MENU_NM LIKE '%' || #{TOP_MENU_NM} || '%'
+    ]]>
+            </if>
+            <if test="START_DATE != null and START_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="END_DATE != null and END_DATE != ''">
+    <![CDATA[
+                AND E.MDFCN_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS')
+    ]]>
+            </if>
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+    <![CDATA[
+                AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test="WORKER != null and WORKER != ''">
+    <![CDATA[
+                AND E.LAST_MDFR_ID LIKE '%' || #{WORKER} || '%'
+    ]]>
+            </if>
+        </where>
+
+    <![CDATA[
+
+        ORDER BY E.MDFCN_DT DESC
+
+        OFFSET #{OFFSET_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    ]]>
+    </select>
+
+
+</mapper>

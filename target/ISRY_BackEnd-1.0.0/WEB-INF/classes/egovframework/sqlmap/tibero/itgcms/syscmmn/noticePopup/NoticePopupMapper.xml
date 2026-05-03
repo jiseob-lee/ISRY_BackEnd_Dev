@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.syscmmn.noticepopup.mapper.NoticePopupMapper">
+
+
+    <select id="selectSeq" resultType="Integer">
+	<![CDATA[
+        /* selectSeq - Lee JiSeob */
+
+		SELECT
+			SAB970_SQ01.NEXTVAL
+			
+		FROM
+			DUAL
+			
+	]]>
+    </select>
+
+    
+        
+    <update id="savePopup" parameterType="HashMap">
+	<![CDATA[
+        /* savePopup - Lee JiSeob */
+		
+		MERGE INTO SAB970 /* 팝업창 관리 */
+		USING DUAL
+        ON (POPUP_NO = #{POPUP_NO})
+        
+        WHEN MATCHED THEN
+        	
+        	UPDATE SET
+				POPUP_NM = #{POPUP_NM}, 
+				POPUP_DTL_CN = #{POPUP_DTL_CN}, 
+				POPUP_WDTH_SIZEA_SZ = #{POPUP_WDTH_SIZEA_SZ}, 
+				POPUP_VRTICL_SIZEA_SZ = #{POPUP_VRTICL_SIZEA_SZ}, 
+				PSTG_PRD_BGNG_DT = TO_DATE(#{PSTG_PRD_BGNG_DT}, 'YYYYMMDDHH24MI'), 
+				PSTG_PRD_END_DT = TO_DATE(#{PSTG_PRD_END_DT}, 'YYYYMMDDHH24MI'), 
+				THTDAY_UNFOLL_INDCT_YN = #{THTDAY_UNFOLL_INDCT_YN}, 
+				PSTG_STTS_YN = #{PSTG_STTS_YN}, 
+				RM_CN = #{RM_CN},
+				
+				SRTNG_CRTR_VALUE = #{SRTNG_CRTR_VALUE},
+				LESI_LC_VALUE = #{LESI_LC_VALUE},
+				UPDRC_LC_VALUE = #{UPDRC_LC_VALUE},
+				OPEN_LC_VALUE = #{OPEN_LC_VALUE},
+
+				LAST_MDFR_ID = #{USER_ID}, 
+				LAST_MDFCN_DT = SYSDATE
+        	
+        		
+        WHEN NOT MATCHED THEN
+        
+	        INSERT
+			(
+				POPUP_NO, 
+				POPUP_NM, 
+				POPUP_DTL_CN, 
+				POPUP_WDTH_SIZEA_SZ, 
+				POPUP_VRTICL_SIZEA_SZ, 
+				PSTG_PRD_BGNG_DT, 
+				PSTG_PRD_END_DT, 
+				THTDAY_UNFOLL_INDCT_YN, 
+				PSTG_STTS_YN, 
+				RM_CN, 
+                
+                SRTNG_CRTR_VALUE,
+                LESI_LC_VALUE,
+                UPDRC_LC_VALUE,
+                OPEN_LC_VALUE,
+
+				FRST_RGTR_ID, 
+				FRST_REG_DT, 
+				LAST_MDFR_ID, 
+				LAST_MDFCN_DT
+			)
+			VALUES
+			(
+				#{POPUP_NO}, 
+				#{POPUP_NM}, 
+				#{POPUP_DTL_CN}, 
+				#{POPUP_WDTH_SIZEA_SZ}, 
+				#{POPUP_VRTICL_SIZEA_SZ}, 
+				TO_DATE(#{PSTG_PRD_BGNG_DT}, 'YYYYMMDDHH24MI'), 
+				TO_DATE(#{PSTG_PRD_END_DT}, 'YYYYMMDDHH24MI'), 
+				#{THTDAY_UNFOLL_INDCT_YN}, 
+				#{PSTG_STTS_YN}, 
+				#{RM_CN}, 
+                
+                #{SRTNG_CRTR_VALUE},
+                #{LESI_LC_VALUE},
+                #{UPDRC_LC_VALUE},
+                #{OPEN_LC_VALUE},
+
+				#{USER_ID}, 
+				SYSDATE, 
+				#{USER_ID}, 
+				SYSDATE
+			)
+	        
+	]]>
+    </update>
+        
+    <insert id="insertPopup" parameterType="HashMap">
+	<![CDATA[
+        /* insertPopup - Lee JiSeob */
+        
+		INSERT INTO SAB970 /* 팝업창 관리 */
+		(
+			POPUP_NO, 
+	]]>
+		<if test="POPUP_NM != null and POPUP_NM != ''">
+	<![CDATA[
+			POPUP_NM, 
+	]]>
+		</if>
+		<if test="POPUP_DTL_CN != null and POPUP_DTL_CN != ''">
+	<![CDATA[
+			POPUP_DTL_CN, 
+	]]>
+		</if>
+		<if test="POPUP_WDTH_SIZEA_SZ != null and POPUP_WDTH_SIZEA_SZ != ''">
+	<![CDATA[
+			POPUP_WDTH_SIZEA_SZ, 
+	]]>
+		</if>
+		<if test="POPUP_VRTICL_SIZEA_SZ != null and POPUP_VRTICL_SIZEA_SZ != ''">
+	<![CDATA[
+			POPUP_VRTICL_SIZEA_SZ, 
+	]]>
+		</if>
+		<if test="PSTG_PRD_BGNG_DT != null and PSTG_PRD_BGNG_DT != ''">
+	<![CDATA[
+			PSTG_PRD_BGNG_DT, 
+	]]>
+		</if>
+		<if test="PSTG_PRD_END_DT != null and PSTG_PRD_END_DT != ''">
+	<![CDATA[
+			PSTG_PRD_END_DT, 
+	]]>
+		</if>
+		<if test="THTDAY_UNFOLL_INDCT_YN != null and THTDAY_UNFOLL_INDCT_YN != ''">
+	<![CDATA[
+			THTDAY_UNFOLL_INDCT_YN, 
+	]]>
+		</if>
+		<if test="PSTG_STTS_YN != null and PSTG_STTS_YN != ''">
+	<![CDATA[
+			PSTG_STTS_YN, 
+	]]>
+		</if>
+		<if test="RM_CN != null and RM_CN != ''">
+	<![CDATA[
+			RM_CN,
+	]]>
+		</if>
+
+	<![CDATA[
+			FRST_RGTR_ID, 
+			FRST_REG_DT, 
+			LAST_MDFR_ID, 
+			LAST_MDFCN_DT
+		)
+		VALUES
+		(
+			#{POPUP_NO},
+	]]>
+		<if test="POPUP_NM != null and POPUP_NM != ''">
+	<![CDATA[
+			#{POPUP_NM}, 
+	]]>
+		</if>
+		<if test="POPUP_DTL_CN != null and POPUP_DTL_CN != ''">
+	<![CDATA[
+			#{POPUP_DTL_CN}, 
+	]]>
+		</if>
+		<if test="POPUP_WDTH_SIZEA_SZ != null and POPUP_WDTH_SIZEA_SZ != ''">
+	<![CDATA[
+			#{POPUP_WDTH_SIZEA_SZ}, 
+	]]>
+		</if>
+		<if test="POPUP_VRTICL_SIZEA_SZ != null and POPUP_VRTICL_SIZEA_SZ != ''">
+	<![CDATA[
+			#{POPUP_VRTICL_SIZEA_SZ}, 
+	]]>
+		</if>
+		<if test="PSTG_PRD_BGNG_DT != null and PSTG_PRD_BGNG_DT != ''">
+	<![CDATA[
+			TO_DATE(#{PSTG_PRD_BGNG_DT}, 'YYYYMMDDHH24MI'), 
+	]]>
+		</if>
+		<if test="PSTG_PRD_END_DT != null and PSTG_PRD_END_DT != ''">
+	<![CDATA[
+			TO_DATE(#{PSTG_PRD_END_DT}, 'YYYYMMDDHH24MI'), 
+	]]>
+		</if>
+		<if test="THTDAY_UNFOLL_INDCT_YN != null and THTDAY_UNFOLL_INDCT_YN != ''">
+	<![CDATA[
+			#{THTDAY_UNFOLL_INDCT_YN}, 
+	]]>
+		</if>
+		<if test="PSTG_STTS_YN != null and PSTG_STTS_YN != ''">
+	<![CDATA[
+			#{PSTG_STTS_YN}, 
+	]]>
+		</if>
+		<if test="RM_CN != null and RM_CN != ''">
+	<![CDATA[
+			#{RM_CN},
+	]]>
+		</if>
+
+	<![CDATA[ 
+			
+			#{USER_ID}, 
+			SYSDATE, 
+			#{USER_ID}, 
+			SYSDATE
+		)
+
+	]]>
+    </insert>
+
+
+    <update id="updatePopup" parameterType="HashMap">
+	<![CDATA[
+        /* updatePopup - Lee JiSeob */
+        
+		UPDATE SAB970  /* 팝업창 관리 */
+		SET 
+	]]>
+		<if test="POPUP_NM != null and POPUP_NM != ''">
+	<![CDATA[
+			POPUP_NM = #{POPUP_NM}, 
+	]]>
+		</if>
+		<if test="POPUP_DTL_CN != null and POPUP_DTL_CN != ''">
+	<![CDATA[
+			POPUP_DTL_CN = #{POPUP_DTL_CN}, 
+	]]>
+		</if>
+		<if test="POPUP_WDTH_SIZEA_SZ != null and POPUP_WDTH_SIZEA_SZ != ''">
+	<![CDATA[
+			POPUP_WDTH_SIZEA_SZ = #{POPUP_WDTH_SIZEA_SZ}, 
+	]]>
+		</if>
+		<if test="POPUP_VRTICL_SIZEA_SZ != null and POPUP_VRTICL_SIZEA_SZ != ''">
+	<![CDATA[
+			POPUP_VRTICL_SIZEA_SZ = #{POPUP_VRTICL_SIZEA_SZ}, 
+	]]>
+		</if>
+		<if test="PSTG_PRD_BGNG_DT != null and PSTG_PRD_BGNG_DT != ''">
+	<![CDATA[
+			PSTG_PRD_BGNG_DT = TO_DATE(#{PSTG_PRD_BGNG_DT}, 'YYYYMMDDHH24MI'), 
+	]]>
+		</if>
+		<if test="PSTG_PRD_END_DT != null and PSTG_PRD_END_DT != ''">
+	<![CDATA[
+			PSTG_PRD_END_DT = TO_DATE(#{PSTG_PRD_END_DT}, 'YYYYMMDDHH24MI'), 
+	]]>
+		</if>
+		<if test="THTDAY_UNFOLL_INDCT_YN != null and THTDAY_UNFOLL_INDCT_YN != ''">
+	<![CDATA[
+			THTDAY_UNFOLL_INDCT_YN = #{THTDAY_UNFOLL_INDCT_YN}, 
+	]]>
+		</if>
+		<if test="PSTG_STTS_YN != null and PSTG_STTS_YN != ''">
+	<![CDATA[
+			PSTG_STTS_YN = #{PSTG_STTS_YN}, 
+	]]>
+		</if>
+		<if test="RM_CN != null and RM_CN != ''">
+	<![CDATA[
+			RM_CN = #{RM_CN},
+	]]>
+		</if>
+
+	<![CDATA[
+			LAST_MDFR_ID = #{USER_ID}, 
+			LAST_MDFCN_DT = SYSDATE
+		
+		WHERE POPUP_NO = #{POPUP_NO}
+		
+	]]>
+    </update>
+
+
+        
+    <delete id="deletePopup" parameterType="HashMap">
+	<![CDATA[
+        /* deletePopup - Lee JiSeob */
+        
+		DELETE SAB970 /* 팝업창 관리 */
+		WHERE 
+			POPUP_NO = #{POPUP_NO}
+
+	]]>
+    </delete>
+
+
+        
+    <select id="selectPopupCount" parameterType="HashMap" resultType="Integer">
+	<![CDATA[
+        /* selectPopupCount - Lee JiSeob */
+        
+        
+		SELECT 
+			COUNT(*) AS CNT
+        
+        FROM 
+        (
+			SELECT 
+				G.POPUP_NO, 
+				G.POPUP_NM, 
+				G.POPUP_DTL_CN, 
+				G.POPUP_WDTH_SIZEA_SZ, 
+				G.POPUP_VRTICL_SIZEA_SZ, 
+				G.PSTG_PRD_BGNG_DT, 
+				G.PSTG_PRD_END_DT, 
+				G.THTDAY_UNFOLL_INDCT_YN, 
+				G.PSTG_STTS_YN, 
+				G.RM_CN,
+				            
+	            G.SRTNG_CRTR_VALUE,
+	            G.LESI_LC_VALUE,
+	            G.UPDRC_LC_VALUE,
+	            G.OPEN_LC_VALUE,
+					 
+				G.FRST_RGTR_ID, 
+				G.FRST_REG_DT, 
+				G.LAST_MDFR_ID, 
+				G.LAST_MDFCN_DT,
+				
+	            CASE WHEN C.ENFSN_NO IS NOT NULL THEN D.FLNM_ENCPT
+	            WHEN E.INST_NO IS NOT NULL THEN '____' || E.INST_NM 
+	            WHEN C.YNGBGS_PRTCR_NO IS NOT NULL THEN F.FLNM_ENCPT
+	            ELSE '' END AS FRST_RGTR_NM
+	        
+	
+			FROM SAB970 G /* 팝업창 관리 */
+			
+	        LEFT JOIN SAA200 C /* 사용자 */ ON C.USER_ID = G.FRST_RGTR_ID
+	        
+	        LEFT JOIN SCA100 D /* 종사자 */ ON D.ENFSN_NO = C.ENFSN_NO
+	        LEFT JOIN SAA000 E /* 통합기관 */ ON E.INST_NO = D.OGDP_INST_NO
+	        LEFT JOIN SCA200 F /* 청소년학부모 */ ON F.YNGBGS_PRTCR_NO = C.YNGBGS_PRTCR_NO
+	]]>
+			<where>
+				<if test="POPUP_NM != null and POPUP_NM != ''">
+	<![CDATA[
+					AND G.POPUP_NM LIKE '%' || #{POPUP_NM} || '%'
+	]]>
+				</if>
+				<if test="OPEN_DATE != null and OPEN_DATE != ''">
+	<![CDATA[
+					AND G.PSTG_PRD_BGNG_DT <= TO_DATE(#{OPEN_DATE} || '235959', 'YYYYMMDDHH24MISS')
+					AND G.PSTG_PRD_END_DT >= TO_DATE(#{OPEN_DATE} || '000000', 'YYYYMMDDHH24MISS')
+	]]>
+				</if>
+				<if test="PSTG_STTS_YN != null and PSTG_STTS_YN != ''">
+	<![CDATA[
+					AND G.PSTG_STTS_YN = #{PSTG_STTS_YN}
+	]]>
+				</if>
+				<if test="RM_CN != null and RM_CN != ''">
+	<![CDATA[
+					AND G.RM_CN LIKE '%' || #{RM_CN} || '%'
+	]]>
+				</if>
+			</where>
+	<![CDATA[
+        ) X
+	]]>        
+		<where>
+			<if test="FRST_RGTR_NM != null and FRST_RGTR_NM != ''">
+				AND (X.FRST_RGTR_NM = C##RG.ENC_B64(#{FRST_RGTR_NM}) OR X.FRST_RGTR_NM = '____' || #{FRST_RGTR_NM})
+			</if>
+		</where>
+
+    </select>
+
+
+
+        
+    <select id="selectPopupList" parameterType="HashMap" resultType="HashMap">
+	<![CDATA[
+        /* selectPopupList - Lee JiSeob */
+
+		SELECT 
+			ROWNUM AS SEQ, 
+			X.POPUP_NO, 
+			X.POPUP_NM, 
+			X.POPUP_DTL_CN, 
+			X.POPUP_WDTH_SIZEA_SZ, 
+			X.POPUP_VRTICL_SIZEA_SZ, 
+			TO_CHAR(X.PSTG_PRD_BGNG_DT, 'YYYYMMDDHH24MI') AS PSTG_PRD_BGNG_DT, 
+			TO_CHAR(X.PSTG_PRD_END_DT, 'YYYYMMDDHH24MI') AS PSTG_PRD_END_DT, 
+			X.THTDAY_UNFOLL_INDCT_YN, 
+			X.PSTG_STTS_YN, 
+			X.RM_CN,
+			         
+            X.SRTNG_CRTR_VALUE,
+            X.LESI_LC_VALUE,
+            X.UPDRC_LC_VALUE,
+            X.OPEN_LC_VALUE,
+			 
+			X.FRST_RGTR_ID, 
+			TO_CHAR(X.FRST_REG_DT, 'YYYY-MM-DD HH24:MI') AS FRST_REG_DT, 
+			X.LAST_MDFR_ID, 
+			TO_CHAR(X.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI') AS LAST_MDFCN_DT,
+			X.FRST_RGTR_NM
+        
+        FROM 
+        (
+			SELECT 
+				G.POPUP_NO, 
+				G.POPUP_NM, 
+				G.POPUP_DTL_CN, 
+				G.POPUP_WDTH_SIZEA_SZ, 
+				G.POPUP_VRTICL_SIZEA_SZ, 
+				G.PSTG_PRD_BGNG_DT, 
+				G.PSTG_PRD_END_DT, 
+				G.THTDAY_UNFOLL_INDCT_YN, 
+				G.PSTG_STTS_YN, 
+				G.RM_CN,
+				            
+	            G.SRTNG_CRTR_VALUE,
+	            G.LESI_LC_VALUE,
+	            G.UPDRC_LC_VALUE,
+	            G.OPEN_LC_VALUE,
+					
+				G.FRST_RGTR_ID, 
+				G.FRST_REG_DT, 
+				G.LAST_MDFR_ID, 
+				G.LAST_MDFCN_DT,
+				
+	            CASE WHEN C.ENFSN_NO IS NOT NULL THEN C##RG.DEC_B64(D.FLNM_ENCPT)
+	            WHEN E.INST_NO IS NOT NULL THEN E.INST_NM 
+	            WHEN C.YNGBGS_PRTCR_NO IS NOT NULL THEN C##RG.DEC_B64(F.FLNM_ENCPT)
+	            ELSE '' END AS FRST_RGTR_NM
+	        
+	
+			FROM SAB970 G /* 팝업창 관리 */
+			
+	        LEFT JOIN SAA200 C /* 사용자 */ ON C.USER_ID = G.FRST_RGTR_ID
+	        
+	        LEFT JOIN SCA100 D /* 종사자 */ ON D.ENFSN_NO = C.ENFSN_NO
+	        LEFT JOIN SAA000 E /* 통합기관 */ ON E.INST_NO = D.OGDP_INST_NO
+	        LEFT JOIN SCA200 F /* 청소년학부모 */ ON F.YNGBGS_PRTCR_NO = C.YNGBGS_PRTCR_NO
+	]]>
+			<where>
+				<if test="POPUP_NM != null and POPUP_NM != ''">
+	<![CDATA[
+					AND G.POPUP_NM LIKE '%' || #{POPUP_NM} || '%'
+	]]>
+				</if>
+				<if test="OPEN_DATE != null and OPEN_DATE != ''">
+	<![CDATA[
+					AND G.PSTG_PRD_BGNG_DT <= TO_DATE(#{OPEN_DATE} || '235959', 'YYYYMMDDHH24MISS')
+					AND G.PSTG_PRD_END_DT >= TO_DATE(#{OPEN_DATE} || '000000', 'YYYYMMDDHH24MISS')
+	]]>
+				</if>
+				<if test="PSTG_STTS_YN != null and PSTG_STTS_YN != ''">
+	<![CDATA[
+					AND G.PSTG_STTS_YN = #{PSTG_STTS_YN}
+	]]>
+				</if>
+				<if test="RM_CN != null and RM_CN != ''">
+	<![CDATA[
+					AND G.RM_CN LIKE '%' || #{RM_CN} || '%'
+	]]>
+				</if>
+			</where>
+	<![CDATA[
+        ) X
+	]]>        
+		<where>
+			<if test="FRST_RGTR_NM != null and FRST_RGTR_NM != ''">
+				AND (X.FRST_RGTR_NM = C##RG.ENC_B64(#{FRST_RGTR_NM}) OR X.FRST_RGTR_NM = '____' || #{FRST_RGTR_NM})
+			</if>
+		</where>
+	<![CDATA[
+	    ORDER BY X.FRST_REG_DT DESC
+        OFFSET #{OFFSET_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+	]]>
+    </select>
+
+
+
+        
+    <select id="selectNoticePopupList" parameterType="HashMap" resultType="HashMap">
+	<![CDATA[
+        /* selectNoticePopupList - Lee JiSeob */
+
+		SELECT 
+			G.POPUP_NO, 
+			G.POPUP_NM, 
+			G.POPUP_DTL_CN, 
+			G.POPUP_WDTH_SIZEA_SZ, 
+			G.POPUP_VRTICL_SIZEA_SZ, 
+			TO_CHAR(G.PSTG_PRD_BGNG_DT, 'YYYYMMDDHH24MI') AS PSTG_PRD_BGNG_DT, 
+			TO_CHAR(G.PSTG_PRD_END_DT, 'YYYYMMDDHH24MI') AS PSTG_PRD_END_DT, 
+			G.THTDAY_UNFOLL_INDCT_YN, 
+			G.PSTG_STTS_YN, 
+			G.RM_CN, 
+			
+			G.SRTNG_CRTR_VALUE,
+			G.LESI_LC_VALUE,
+			G.UPDRC_LC_VALUE,
+			G.OPEN_LC_VALUE,
+
+			G.FRST_RGTR_ID, 
+			TO_CHAR(G.FRST_REG_DT, 'YYYY-MM-DD HH24:MI') AS FRST_REG_DT, 
+			G.LAST_MDFR_ID, 
+			TO_CHAR(G.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI') AS LAST_MDFCN_DT
+
+		FROM SAB970 G /* 팝업창 관리 */
+
+		WHERE
+			G.PSTG_PRD_BGNG_DT <= SYSDATE
+			AND G.PSTG_PRD_END_DT >= SYSDATE
+			AND G.PSTG_STTS_YN = 'Y'
+	]]>
+        <choose>
+            <when test='OPEN_LC_VALUE == "inner"'>
+                AND OPEN_LC_VALUE = 'INNER'
+            </when>
+            <when test='OPEN_LC_VALUE == "outer"'>
+                AND OPEN_LC_VALUE = 'OUTER'
+            </when>
+        </choose>
+    <![CDATA[
+        
+		ORDER BY
+			G.FRST_REG_DT ASC
+	]]>
+    </select>
+
+
+</mapper>

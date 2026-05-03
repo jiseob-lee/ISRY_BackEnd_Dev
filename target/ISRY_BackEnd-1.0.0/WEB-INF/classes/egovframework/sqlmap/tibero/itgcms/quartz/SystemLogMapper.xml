@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.quartz.mapper.SystemLogMapper">
+
+    <delete id="clearSystemLogOlderThan1Months">
+    <![CDATA[
+        /* clearSystemLogOlderThan1Months - Lee JiSeob */
+        
+        DELETE FROM SAB920 /* 시스템 로그 */
+        
+        WHERE FRST_REG_DT < ADD_MONTHS(SYSDATE, -1)
+
+    ]]>
+    </delete>
+
+</mapper>

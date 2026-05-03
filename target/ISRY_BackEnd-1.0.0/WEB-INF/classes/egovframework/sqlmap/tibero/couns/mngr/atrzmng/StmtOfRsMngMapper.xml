@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.couns.mngr.atrzmng.mapper.StmtOfRsMngMapper">
+	
+	<select id="searchComboBoxAprv" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		searchComboBoxAprv : isry.couns.mngr.atrzmng.mapper.StmtOfRsMngMapper : 승인상태구분코드 조회
+	*/
+		SELECT 
+				AA.CMMNS_CD_VALUE			AS	CD_VALUE
+			,	AA.CMMNS_CD_VALUE_NM		AS	CD_NAME
+		FROM
+				SAC100	AA
+		WHERE 	1=1
+			AND	AA.CMMNS_CD_ID = 'APRV_STTS_SE_CD'
+			AND	AA.CMMNS_CD_VALUE IN ('0','2','3')
+	</select>
+	
+	<select id="selectStmtOfRsMngList" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		selectStmtOfRsMngList : isry.couns.mngr.atrzmng.mapper.StmtOfRsMngMapper : 사유서 목록조회
+	*/
+		SELECT 
+				C##RG.DEC_B64(CC.FLNM_ENCPT)			AS		WRTR_NM
+			,	AA.WRTR_ID				AS		WRTR_ID
+			,	SUBSTR(AA.WRT_YMD, 1,4)||'-'||SUBSTR(AA.WRT_YMD, 5,2)||'-'||SUBSTR(AA.WRT_YMD, 7,2)				AS		WRT_YMD
+			,	AA.STOFRE_TTL_NM		AS		STOFRE_TTL_NM
+			,	AA.APRV_STTS_SE_CD		AS		APRV_STTS_SE_CD
+			,	AA.STOFRE_SN			AS		STOFRE_SN
+			,	(
+					SELECT 
+							A1.CMMNS_CD_VALUE_NM
+					FROM
+							SAC100	A1
+					WHERE	1=1
+						AND	A1.CMMNS_CD_ID		=	'APRV_STTS_SE_CD'
+						AND	A1.CMMNS_CD_VALUE	=	AA.APRV_STTS_SE_CD
+				)						AS		APRV_STTS_SE_NM
+			,   COUNT(*) OVER() AS TOTAL_COUNT				
+		FROM
+				AYC320		AA
+			,	SAA200		BB
+			,	SCA100		CC
+		WHERE	1=1
+			AND	AA.DEL_YN	=	'N'
+			AND	AA.WRTR_ID	=	BB.USER_ID
+			AND	BB.ENFSN_NO	=	CC.ENFSN_NO(+)             /* 종사자번호 */
+			AND CC.DEL_YN = 'N'                            /* 종사자 삭제여부 */
+		<if test="userId != null and userId != ''">
+			<![CDATA[
+			AND	AA.WRTR_ID		like	'%'||#{userId}||'%'
+			]]>
+		</if>
+		<if test="userNm != null and userNm != ''">
+			<![CDATA[
+			AND	CC.FLNM_ENCPT	=	C##RG.ENC_B64(#{userNm})
+			]]>
+		</if>
+		<if test="aprvSttsSeCd != null and aprvSttsSeCd != ''">
+			<![CDATA[
+			AND	AA.APRV_STTS_SE_CD	=	#{aprvSttsSeCd}
+			]]>
+		</if>
+		<if test="deptCd != null and deptCd != ''">
+			<![CDATA[
+			AND CC.OGDP_DEPT_CD	=	#{deptCd}
+			]]>
+		</if>
+		ORDER BY AA.WRT_YMD DESC
+	</select>
+	
+	<select id="selectStmtOfRsMngDetail" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		selectStmtOfRsMngDetail : isry.couns.mngr.atrzmng.mapper.StmtOfRsMngMapper : 사유서 상세조회
+	*/
+		SELECT 
+				AA.WRTR_ID					                 AS		WRTR_ID
+			,   CC.ENFSN_NO                                  AS     ENFSN_NO
+			,   C##RG.DEC_B64(CC.FLNM_ENCPT)              AS     FLNM_ENCPT
+            ,   C##RG.DEC_B64(CC.MBL_TELNO_ENCPT)         AS     MBL_TELNO_ENCPT
+			,	AA.WRT_YMD					                 AS		WRT_YMD
+			,	AA.STOFRE_TTL_NM			                 AS		STOFRE_TTL_NM
+			,	AA.STOFRE_CN				                 AS		STOFRE_CN
+			,	AA.ATFINO					                 AS		ATFINO
+			,   DD.ATFINO                                    AS     SGNNG_ATFINO
+			,	'서명사진'				                     AS		SGNNG_ATCMFL_CL_NM
+			,	AA.APRV_STTS_SE_CD			                 AS		APRV_STTS_SE_CD
+			,	AA.RJCT_CS_CN				                 AS		RJCT_CS_CN
+			,   DD.STRG_COURS_NM || DD.STRG_FILE_NM          AS     FILE_INFO  /*사진*/
+		FROM
+				AYC320		AA
+				, SAA200    BB
+				, SCA100    CC
+				, (SELECT *
+				   FROM   SAB881
+				   WHERE  ATCMFL_CL_NM      =       '서명사진'
+				   AND    FILE_STTS_SE_CD   =       'N'         )   DD
+		WHERE 1=1
+		AND   AA.DEL_YN           =       'N'
+		AND   AA.STOFRE_SN        =       #{stofreSn}
+		AND   AA.WRTR_ID          =       BB.USER_ID
+		AND   BB.ENFSN_NO         =       CC.ENFSN_NO
+		AND   AA.ATFINO           =       DD.ATFINO(+)
+	</select>
+	
+	<update id="updateStmtOfRsMng" parameterType="HashMap">
+	/**
+	*		updateStmtOfRsMng : isry.couns.mngr.atrzmng.mapper.StmtOfRsMngMapper : 사유서관리 상세 수정
+	*/
+		UPDATE
+				AYC320		AA		/** 사이버상담 사유서 **/
+		SET
+				AA.WRT_YMD			=	#{wrtYmd}			/** 작성일자 **/
+			,	AA.STOFRE_TTL_NM	=	#{stofreTtlNm}		/** 사유서제목명 **/
+			,	AA.STOFRE_CN		=	#{stofreCn}			/** 사유서 내용 **/
+			,	AA.APRV_STTS_SE_CD	=	#{aprvSttsSeCd}		/** 승인상태구분코드 **/
+			<if test="rjctCsCn != null and rjctCsCn != ''">
+				<![CDATA[
+			,	AA.RJCT_CS_CN		=	#{rjctCsCn}			/** 반려사유내용 **/
+				]]>
+			</if>
+			<if test="atfino != null and atfino != ''">
+				<![CDATA[
+			,	AA.ATFINO		=	#{atfino}			/** 파일첨부번호 **/
+				]]>
+			</if>
+		WHERE	1=1		
+			AND	AA.STOFRE_SN	=	#{stofreSn}
+			
+	</update>
+	
+	<update id="deleteStmtOfRsMng" parameterType="HashMap">
+	/**
+	*		deleteStmtOfRsMng : isry.couns.mngr.atrzmng.mapper.StmtOfRsMngMapper : 사유서관리 상세 삭제
+	*/
+		UPDATE
+				AYC320		AA		/** 사이버상담 사유서 **/
+		SET
+				AA.DEL_YN	=	'Y'
+			,	AA.LAST_MDFR_ID		=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+		WHERE	1=1
+			AND	AA.STOFRE_SN	=	#{stofreSn}
+	</update>
+</mapper>

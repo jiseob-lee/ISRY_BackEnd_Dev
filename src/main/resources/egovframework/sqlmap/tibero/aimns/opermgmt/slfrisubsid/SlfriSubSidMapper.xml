@@ -1,0 +1,1480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.aimns.opermgmt.slfrisubsid.mapper.SlfriSubSidMapper">
+
+	<select id="selectSlfrisubSidStatusList" parameterType="HashMap" resultType="HashMap">
+	<![CDATA[
+	/* selectSlfrisubSidStatusList - Lee SangHoon */
+
+    SELECT T.*
+    ]]>
+    <if test='strMonth == "01" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_01 >= 80
+                THEN CEIL(300000 * AMT_RATE_01/1000)*1000
+            WHEN RATE_01 >= 70
+                THEN CEIL(200000 * AMT_RATE_01/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_01          -- 01월 금액
+    </if>
+    <if test='strMonth == "02" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_02 >= 80
+                THEN CEIL(300000 * AMT_RATE_02/1000)*1000
+            WHEN RATE_02 >= 70
+                THEN CEIL(200000 * AMT_RATE_02/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_02          -- 02월 금액
+    </if>
+    <if test='strMonth == "03" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_03 >= 80
+                THEN CEIL(300000 * AMT_RATE_03/1000)*1000
+            WHEN RATE_03 >= 70
+                THEN CEIL(200000 * AMT_RATE_03/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_03          -- 03월 금액
+    </if>
+    <if test='strMonth == "04" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_04 >= 80
+                THEN CEIL(300000 * AMT_RATE_04/1000)*1000
+            WHEN RATE_04 >= 70
+                THEN CEIL(200000 * AMT_RATE_04/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_04          -- 04월 금액
+    </if>
+    <if test='strMonth == "05" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_05 >= 80
+                THEN CEIL(300000 * AMT_RATE_05/1000)*1000
+            WHEN RATE_05 >= 70
+                THEN CEIL(200000 * AMT_RATE_05/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_05          -- 05월 금액
+    </if>
+    <if test='strMonth == "06" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_06 >= 80
+                THEN CEIL(300000 * AMT_RATE_06/1000)*1000
+            WHEN RATE_06 >= 70
+                THEN CEIL(200000 * AMT_RATE_06/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_06          -- 06월 금액
+    </if>
+    <if test='strMonth == "07" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_07 >= 80
+                THEN CEIL(300000 * AMT_RATE_07/1000)*1000
+            WHEN RATE_07 >= 70
+                THEN CEIL(200000 * AMT_RATE_07/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_07          -- 07월 금액
+    </if>
+    <if test='strMonth == "08" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_08 >= 80
+                THEN CEIL(300000 * AMT_RATE_08/1000)*1000
+            WHEN RATE_08 >= 70
+                THEN CEIL(200000 * AMT_RATE_08/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_08          -- 08월 금액
+    </if>
+    <if test='strMonth == "09" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_09 >= 80
+                THEN CEIL(300000 * AMT_RATE_09/1000)*1000
+            WHEN RATE_09 >= 70
+                THEN CEIL(200000 * AMT_RATE_09/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_09          -- 09월 금액
+    </if>
+    <if test='strMonth == "10" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_10 >= 80
+                THEN CEIL(300000 * AMT_RATE_10/1000)*1000
+            WHEN RATE_10 >= 70
+                THEN CEIL(200000 * AMT_RATE_10/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_10          -- 10월 금액
+    </if>
+    <if test='strMonth == "11" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_11 >= 80
+                THEN CEIL(300000 * AMT_RATE_11/1000)*1000
+            WHEN RATE_11 >= 70
+                THEN CEIL(200000 * AMT_RATE_11/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_11          -- 11월 금액
+    </if>
+    <if test='strMonth == "12" or strMonth == "all"'>
+    ,   CASE
+            WHEN RATE_12 >= 80
+                THEN CEIL(300000 * AMT_RATE_12/1000)*1000
+            WHEN RATE_12 >= 70
+                THEN CEIL(200000 * AMT_RATE_12/1000)*1000
+            ELSE 0
+        END                                                                 AS COST_12          -- 12월 금액
+    </if>
+    FROM (
+        SELECT T.*
+    <if test='strMonth == "01" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_01 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_01-MAX_TIME_01*TRUNC(LATEN_CNT_01/3))/CLASS_TIME_01*100
+            END                                                             AS RATE_01          -- 01월 출석률
+        ,   CASE
+                WHEN TOT_DAY_01 = 0
+                    THEN 0
+                ELSE CLASS_DAY_01/TOT_DAY_01
+            END                                                             AS AMT_RATE_01      -- 01월 금액비율
+    </if>
+    <if test='strMonth == "02" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_02 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_02-MAX_TIME_02*TRUNC(LATEN_CNT_02/3))/CLASS_TIME_02*100
+            END                                                             AS RATE_02          -- 02월 출석률
+        ,   CASE
+                WHEN TOT_DAY_02 = 0
+                    THEN 0
+                ELSE CLASS_DAY_02/TOT_DAY_02
+            END                                                             AS AMT_RATE_02      -- 02월 금액비율
+    </if>
+    <if test='strMonth == "03" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_03 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_03-MAX_TIME_03*TRUNC(LATEN_CNT_03/3))/CLASS_TIME_03*100
+            END                                                             AS RATE_03          -- 03월 출석률
+        ,   CASE
+                WHEN TOT_DAY_03 = 0
+                    THEN 0
+                ELSE CLASS_DAY_03/TOT_DAY_03
+            END                                                             AS AMT_RATE_03      -- 03월 금액비율
+    </if>
+    <if test='strMonth == "04" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_04 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_04-MAX_TIME_04*TRUNC(LATEN_CNT_04/3))/CLASS_TIME_04*100
+            END                                                             AS RATE_04          -- 04월 출석률
+        ,   CASE
+                WHEN TOT_DAY_04 = 0
+                    THEN 0
+                ELSE CLASS_DAY_04/TOT_DAY_04
+            END                                                             AS AMT_RATE_04      -- 04월 금액비율
+    </if>
+    <if test='strMonth == "05" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_05 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_05-MAX_TIME_05*TRUNC(LATEN_CNT_05/3))/CLASS_TIME_05*100
+            END                                                             AS RATE_05          -- 05월 출석률
+        ,   CASE
+                WHEN TOT_DAY_05 = 0
+                    THEN 0
+                ELSE CLASS_DAY_05/TOT_DAY_05
+            END                                                             AS AMT_RATE_05      -- 05월 금액비율
+    </if>
+    <if test='strMonth == "06" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_06 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_06-MAX_TIME_06*TRUNC(LATEN_CNT_06/3))/CLASS_TIME_06*100
+            END                                                             AS RATE_06          -- 06월 출석률
+        ,   CASE
+                WHEN TOT_DAY_06 = 0
+                    THEN 0
+                ELSE CLASS_DAY_06/TOT_DAY_06
+            END                                                             AS AMT_RATE_06      -- 06월 금액비율
+    </if>
+    <if test='strMonth == "07" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_07 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_07-MAX_TIME_07*TRUNC(LATEN_CNT_07/3))/CLASS_TIME_07*100
+            END                                                             AS RATE_07          -- 07월 출석률
+        ,   CASE
+                WHEN TOT_DAY_07 = 0
+                    THEN 0
+                ELSE CLASS_DAY_07/TOT_DAY_07
+            END                                                             AS AMT_RATE_07      -- 07월 금액비율
+    </if>
+    <if test='strMonth == "08" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_08 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_08-MAX_TIME_08*TRUNC(LATEN_CNT_08/3))/CLASS_TIME_08*100
+            END                                                             AS RATE_08          -- 08월 출석률
+        ,   CASE
+                WHEN TOT_DAY_08 = 0
+                    THEN 0
+                ELSE CLASS_DAY_08/TOT_DAY_08
+            END                                                             AS AMT_RATE_08      -- 08월 금액비율
+    </if>
+    <if test='strMonth == "09" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_09 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_09-MAX_TIME_09*TRUNC(LATEN_CNT_09/3))/CLASS_TIME_09*100
+            END                                                             AS RATE_09          -- 09월 출석률
+        ,   CASE
+                WHEN TOT_DAY_09 = 0
+                    THEN 0
+                ELSE CLASS_DAY_09/TOT_DAY_09
+            END                                                             AS AMT_RATE_09      -- 09월 금액비율
+    </if>
+    <if test='strMonth == "10" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_10 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_10-MAX_TIME_10*TRUNC(LATEN_CNT_10/3))/CLASS_TIME_10*100
+            END                                                             AS RATE_10          -- 10월 출석률
+        ,   CASE
+                WHEN TOT_DAY_10 = 0
+                    THEN 0
+                ELSE CLASS_DAY_10/TOT_DAY_10
+            END                                                             AS AMT_RATE_10      -- 10월 금액비율
+    </if>
+    <if test='strMonth == "11" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_11 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_11-MAX_TIME_11*TRUNC(LATEN_CNT_11/3))/CLASS_TIME_11*100
+            END                                                             AS RATE_11          -- 11월 출석률
+        ,   CASE
+                WHEN TOT_DAY_11 = 0
+                    THEN 0
+                ELSE CLASS_DAY_11/TOT_DAY_11
+            END                                                             AS AMT_RATE_11      -- 11월 금액비율
+    </if>
+    <if test='strMonth == "12" or strMonth == "all"'>
+        ,   CASE
+                WHEN CLASS_TIME_12 = 0
+                    THEN 0
+                ELSE (ATEND_TIME_12-MAX_TIME_12*TRUNC(LATEN_CNT_12/3))/CLASS_TIME_12*100
+            END                                                             AS RATE_12          -- 12월 출석률
+        ,   CASE
+                WHEN TOT_DAY_12 = 0
+                    THEN 0
+                ELSE CLASS_DAY_12/TOT_DAY_12
+            END                                                             AS AMT_RATE_12      -- 12월 금액비율
+    </if>
+	    FROM (
+	        SELECT T.*
+    <if test='strMonth == "01" or strMonth == "all"'>
+    <![CDATA[
+	        ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0101','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0101') - TO_DATE(BIZ_YR||'0101','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_01_                                                 AS TOT_DAY_01       -- 01월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "02" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0201','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0201') - TO_DATE(BIZ_YR||'0201','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_02_                                                 AS TOT_DAY_02       -- 02월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "03" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0301','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0301') - TO_DATE(BIZ_YR||'0301','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_03_                                                 AS TOT_DAY_03       -- 03월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "04" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0401','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0401') - TO_DATE(BIZ_YR||'0401','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_04_                                                 AS TOT_DAY_04       -- 04월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "05" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0501','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0501') - TO_DATE(BIZ_YR||'0501','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_05_                                                 AS TOT_DAY_05       -- 05월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "06" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0601','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0601') - TO_DATE(BIZ_YR||'0601','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_06_                                                 AS TOT_DAY_06       -- 06월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "07" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0701','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0701') - TO_DATE(BIZ_YR||'0701','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_07_                                                 AS TOT_DAY_07       -- 07월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "08" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0801','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0801') - TO_DATE(BIZ_YR||'0801','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_08_                                                 AS TOT_DAY_08       -- 08월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "09" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'0901','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'0901') - TO_DATE(BIZ_YR||'0901','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_09_                                                 AS TOT_DAY_09       -- 09월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "10" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'1001','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'1001') - TO_DATE(BIZ_YR||'1001','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_10_                                                 AS TOT_DAY_10       -- 10월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "11" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'1101','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'1101') - TO_DATE(BIZ_YR||'1101','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_11_                                                 AS TOT_DAY_11       -- 11월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "12" or strMonth == "all"'>
+    <![CDATA[
+            ,   (SELECT COUNT(YMD)
+                FROM (
+                    SELECT TO_DATE(BIZ_YR||'1201','YYYYMMDD') + LEVEL - 1 AS YMD FROM DUAL
+                    CONNECT BY LEVEL <= LAST_DAY(BIZ_YR||'1201') - TO_DATE(BIZ_YR||'1201','YYYYMMDD') + 1) A
+                LEFT JOIN SAB900 B  /* 공휴일 정보 */
+                    ON  A.YMD BETWEEN B.BGNG_YMD AND B.END_YMD
+                    AND B.UNT_TASKWK_SE_CD = T.UNT_TASKWK_SE_CD
+                WHERE   TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '토'
+                    AND TO_CHAR(A.YMD,'DY','NLS_DATE_LANGUAGE=korean') != '일'
+                    AND A.YMD NOT BETWEEN EDU_STRT_YMD AND EDU_END_YMD
+                    AND B.SCHDL_NO IS NULL
+                ) + TOT_DAY_12_                                                 AS TOT_DAY_12       -- 12월 영업일 수
+    ]]>
+    </if>
+    <![CDATA[
+	        FROM (
+	            SELECT
+	                D.BIZ_YR                                                    AS BIZ_YR           -- 사업연도
+	            ,   C.INST_NM                                                   AS INST_NM          -- 기관명
+	            ,   B.PVSN_RESRCE_NM                                            AS PVSN_RESRCE_NM   -- 제공자원명
+	            ,   NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)   AS PVSN_BGNG_YMD    -- 제공시작일자
+	            ,   NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)     AS PVSN_END_YMD     -- 제공종료일자
+	            ,   G.TRPR_BRTH_YMD                                             AS TRPR_BRTH_YMD    -- 대상자출생일자
+	            ,   DEC_B64(G.TRPR_NM_ENCPT)                                    AS TRPR_NM          -- 이름
+	            ,   C.INST_NO                                                   AS INST_NO          -- 기관번호
+	            ,   E.RESRCE_NO                                                 AS RESRCE_NO        -- 자원번호
+                ,   MIN(I.LCTRE_YMD)                                            AS EDU_STRT_YMD     -- 과정시작일자
+                ,   MAX(I.LCTRE_YMD)                                            AS EDU_END_YMD      -- 과정종료일자
+                ,   C.UNT_TASKWK_SE_CD                                                              -- 단위업무구분코드
+    ]]>
+    <if test='strMonth == "01" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0101' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0101'),'YYYYMMDD')
+			                    AND I.LCTRE_YMD
+			                        BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+			                             AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_01    -- 01월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0101' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0101'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_01    -- 01월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0101' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0101'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_01      -- 01월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0101' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0101'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_01     -- 01월 지조외기타횟수
+	            ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0101','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0101')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_01     -- 01월 교육일 수
+	            ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0101','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0101')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_01_      -- 01월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "02" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0201' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0201'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_02    -- 02월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0201' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0201'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_02    -- 02월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0201' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0201'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_02      -- 02월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0201' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0201'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_02     -- 02월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0201','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0201')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_02     -- 02월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0201','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0201')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_02_      -- 02월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "03" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0301' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0301'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_03    -- 03월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0301' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0301'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_03    -- 03월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0301' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0301'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_03      -- 03월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0301' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0301'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_03     -- 03월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0301','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0301')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_03     -- 03월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0301','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0301')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_03_      -- 03월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "04" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0401' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0401'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_04    -- 04월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0401' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0401'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_04    -- 04월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0401' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0401'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_04      -- 04월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0401' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0401'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_04     -- 04월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0401','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0401')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_04     -- 04월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0401','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0401')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_04_      -- 04월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "05" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0501' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0501'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_05    -- 05월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0501' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0501'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_05    -- 05월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0501' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0501'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_05      -- 05월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0501' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0501'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_05     -- 05월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0501','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0501')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_05     -- 05월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0501','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0501')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_05_      -- 05월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "06" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0601' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0601'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_06    -- 06월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0601' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0601'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_06    -- 06월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0601' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0601'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_06      -- 06월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0601' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0601'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_06     -- 06월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0601','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0601')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_06     -- 06월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0601','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0601')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_06_      -- 06월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "07" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0701' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0701'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_07    -- 07월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0701' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0701'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_07    -- 07월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0701' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0701'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_07      -- 07월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0701' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0701'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_07     -- 07월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0701','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0701')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_07     -- 07월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0701','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0701')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_07_      -- 07월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "08" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0801' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0801'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_08    -- 08월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0801' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0801'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_08    -- 08월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0801' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0801'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_08      -- 08월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0801' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0801'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_08     -- 08월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0801','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0801')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_08     -- 08월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0801','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0801')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_08_      -- 08월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "09" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0901' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0901'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_09    -- 09월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0901' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0901'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_09    -- 09월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0901' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0901'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_09      -- 09월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'0901' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'0901'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_09     -- 09월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0901','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0901')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_09     -- 09월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'0901','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'0901')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_09_      -- 09월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "10" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1001' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1001'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_10    -- 10월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1001' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1001'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_10    -- 10월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1001' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1001'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_10      -- 10월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1001' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1001'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_10     -- 10월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'1001','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'1001')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_10     -- 10월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'1001','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'1001')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_10_      -- 10월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "11" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1101' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1101'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_11    -- 11월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1101' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1101'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_11    -- 11월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1101' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1101'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_11      -- 11월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1101' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1101'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_11     -- 11월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'1101','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'1101')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_11     -- 11월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'1101','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'1101')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_11_      -- 11월 영업일 수
+    ]]>
+    </if>
+    <if test='strMonth == "12" or strMonth == "all"'>
+    <![CDATA[
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1201' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1201'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('01','03','04','05','07','08','09')
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS ATEND_TIME_12    -- 12월 출석시간(3회지각계산X)
+	            ,   NVL(SUM (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1201' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1201'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS CLASS_TIME_12    -- 12월 총교육시간
+	            ,   NVL(MAX (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1201' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1201'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            THEN    I.LCTRE_HR
+	                    END
+	                ),0)                                                        AS MAX_TIME_12      -- 12월 일일최대교육시간
+	            ,   COUNT (
+	                    CASE
+	                        WHEN    I.LCTRE_YMD BETWEEN D.BIZ_YR||'1201' AND TO_CHAR(LAST_DAY(D.BIZ_YR||'1201'),'YYYYMMDD')
+                                AND I.LCTRE_YMD
+                                    BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+                                        AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	                            AND J.ATNC_SE_CD IN ('03','04','05','07','08','09')
+	                            THEN    1
+	                    END
+	                )                                                           AS LATEN_CNT_12     -- 12월 지조외기타횟수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'1201','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'1201')
+                            AND I.LCTRE_YMD BETWEEN NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD) AND NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+                            AND K.TRMN_CS_SE_CD IS NULL
+                        THEN I.LCTRE_YMD END)                                   AS CLASS_DAY_12     -- 12월 교육일 수
+                ,   COUNT(
+                        CASE
+                        WHEN    I.LCTRE_YMD BETWEEN TO_DATE(D.BIZ_YR||'1201','YYYYMMDD') AND LAST_DAY(D.BIZ_YR||'1201')
+                        THEN I.LCTRE_YMD END)                                   AS TOT_DAY_12_      -- 12월 영업일 수
+    ]]>
+    </if>
+    <![CDATA[
+	            FROM SEB500 A       /* 서비스제공 */
+	            JOIN SDA100 B       /* 자원기본 */
+	                ON  B.RESRCE_NO                 =   A.RESRCE_NO
+	            JOIN SAA000 C       /* 통합기관 */
+	                ON  C.INST_NO                   =   B.RSFR_INST_NO
+	                AND	C.DEL_YN = 'N'
+	            JOIN SDA400 D       /* 서비스사업 */
+	                ON  D.SRVC_BIZ_NO               =   (SELECT SRVC_BIZ_NO FROM SDA420 /* 서비스실행사업 */
+	                                                    WHERE SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO)
+
+	            JOIN SEB510 E       /* 서비스제공대상자 */
+	                ON  E.SRVC_PVSN_NO              =   A.SRVC_PVSN_NO
+	                AND E.RESRCE_NO                 =   A.RESRCE_NO
+	                AND E.DEL_YN = 'N'
+	            JOIN SEB100 F       /* 사례기본 */
+	                ON  F.CASE_MNG_NO               =   E.CASE_MNG_NO
+	                AND F.CASE_MNG_ODRNO            =   E.CASE_MNG_ODRNO
+	            JOIN SEA200 G           /* 대상자정보 */
+	                ON  G.TRPR_INFO_NO              =   F.TRPR_INFO_NO
+	                AND	G.DEL_YN = 'N'
+	            LEFT JOIN AFA330 H  /* 교육이수일정내역 */
+	                ON  H.CASE_MNG_NO               =   F.CASE_MNG_NO
+	                AND H.CASE_MNG_ODRNO            =   F.CASE_MNG_ODRNO
+
+	            LEFT JOIN (
+	                SELECT
+	                    I1.RESRCE_NO
+	                ,   I3.LCTRE_YMD
+	                ,   SUM(I3.LCTRE_HR) AS LCTRE_HR
+	                FROM SDA300 I1
+	                LEFT JOIN SDA340 I2
+	                    ON  I2.PROGRM_NO    =   I1.PROGRM_NO
+	                    AND I2.RESRCE_NO    =   I1.RESRCE_NO
+	                    AND I2.DEL_YN       =   'N'
+	                LEFT JOIN SDA320 I3
+	                    ON  I3.PROGRM_NO    =   I2.PROGRM_NO
+	                    AND I3.RESRCE_NO    =   I2.RESRCE_NO
+	                    AND I3.LCTRE_SN     =   I2.LCTRE_SN
+	                WHERE I1.DEL_YN         =   'N'
+	                GROUP BY I1.RESRCE_NO, I3.LCTRE_YMD
+	                ) I
+	                ON  I.RESRCE_NO                 =   B.RESRCE_NO
+	            LEFT JOIN SEB530 J  /* 자원프로그램제공 */
+	                ON  J.SRVC_PVSN_NO              =   E.SRVC_PVSN_NO
+	                AND J.CASE_MNG_NO               =   E.CASE_MNG_NO
+	                AND J.CASE_MNG_ODRNO            =   E.CASE_MNG_ODRNO
+	                AND J.RESRCE_NO                 =   E.RESRCE_NO
+	                AND J.PTCPTN_YMD                =   I.LCTRE_YMD
+	                AND J.PROGRM_CRSE_SE_CD         =   '1'
+
+		        LEFT JOIN
+		            (SELECT K2.*
+		                , ROW_NUMBER() OVER(PARTITION BY K2.CASE_MNG_NO, K2.CASE_MNG_ODRNO ORDER BY K2.CASE_TRMN_NO DESC) AS RNUM
+		            FROM SEC100 K1
+		            LEFT JOIN SEC100 K2
+                    ON  K2.CASE_MNG_NO              =   K1.CASE_MNG_NO
+                    AND K2.CASE_MNG_ODRNO           =   K1.CASE_MNG_ODRNO
+                    AND K2.TRMN_SRNG_RESULT_SE_CD   =   '01'
+                    WHERE K1.TRMN_SRNG_RESULT_SE_CD =   '02'
+		            ) K   /* 사례종결 */
+                    ON  K.CASE_MNG_NO               =   F.CASE_MNG_NO
+                    AND K.CASE_MNG_ODRNO            =   F.CASE_MNG_ODRNO
+                    AND K.RNUM = 1
+                    AND SUBSTR(F.CASE_TRMN_YMD,1,6) <=  SUBSTR(I.LCTRE_YMD,1,6)
+                    AND K.TRMN_CS_SE_CD             >=  '049'
+
+	            WHERE   1 = 1
+	                AND A.DEL_YN                    =   'N'
+	                AND B.SRVC_RESRCE_LCLAS_SE_CD   !=  '01'
+	                AND B.APRV_STTS_SE_CD           =   '2'
+	                AND C.APRV_YN                   =   'Y'
+	                AND C.UNT_TASKWK_SE_CD          =   #{UNT_TASKWK_SE_CD}
+
+	                AND D.BIZ_YR                    =   #{BIZ_YR}
+	                AND C.INST_NO                   =   #{INST_NO}
+    ]]>
+    <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+                    AND B.RESRCE_NO                 =   #{RESRCE_NO}
+    </if>
+    <if test='strMonth != "all"'>
+                    AND D.BIZ_YR || #{strMonth}
+                        BETWEEN SUBSTR(NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD),1,6)
+                            AND SUBSTR(NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD),1,6)
+    </if>
+    <![CDATA[
+	                AND #{INST_NO} IN (
+	                    SELECT PIC_INST_NO FROM SEB150
+	                    WHERE   CASE_MNG_NO     =   F.CASE_MNG_NO
+	                        AND CASE_MNG_ODRNO  =   F.CASE_MNG_ODRNO)
+
+	            GROUP BY
+	                D.BIZ_YR
+	            ,   C.INST_NM
+	            ,   B.PVSN_RESRCE_NM
+	            ,   NVL(NVL(H.BGNG_YMD,F.CASE_BGNG_YMD),A.SRVC_PVSN_BGNG_YMD)
+	            ,   NVL(NVL(H.END_YMD,F.CASE_TRMN_YMD),A.SRVC_PVSN_END_YMD)
+	            ,   G.TRPR_BRTH_YMD
+	            ,   G.TRPR_NM_ENCPT
+	            ,   C.INST_NO
+	            ,   E.SRVC_PVSN_NO
+	            ,   E.CASE_MNG_NO
+	            ,   E.CASE_MNG_ODRNO
+	            ,   E.RESRCE_NO
+	            ,   C.UNT_TASKWK_SE_CD
+
+	            ORDER BY PVSN_RESRCE_NM, TRPR_NM
+	            ) T
+            ) T
+        ) T
+	]]>
+	</select>
+
+	<select id="selectSlfriSubSidList" parameterType="HashMap"
+		resultType="HashMap">
+
+		<!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" />
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+
+	   <![CDATA[
+	       /* selectSlfriSubSidList - Lee SangHoon */
+
+	           (SELECT INST_NM FROM SAA000         /* 통합기관 */
+	               WHERE INST_NO = B.RSFR_INST_NO      --기관번호
+	               ) AS INST_NM                                        /* 기관명 */
+	           ,B.PVSN_RESRCE_NM AS PVSN_RESRCE_NM                     /* 제공자원명 */
+	           ,A.GIVE_YM AS GIVE_YM                                   /* 지급연월 */
+	           ,A.GIVE_AMT AS GIVE_AMT                                 /* 지급금액 */
+	           ,DEC_B64((SELECT FLNM_ENCPT FROM SCA100
+	               WHERE ENFSN_NO = A.APLY_PIC_NO
+	               )) AS APLCNT_NM                                      /* 성명암호화(신청자) */
+	           ,A.APLY_DT AS APLY_DT                                   /* 신청일시 */
+	           ,A.APLY_PIC_NO                                          /* 신청담당자번호 */
+	           ,DEC_B64((SELECT FLNM_ENCPT FROM SCA100
+	               WHERE ENFSN_NO = A.APRV_PIC_NO
+	               )) AS AUTZR_NM                                       /* 성명암호화(승인자) */
+	           ,A.APRV_DT AS APRV_DT                                   /* 승인일시 */
+	           ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100      /* 공통코드 */
+	            WHERE CMMNS_CD_ID LIKE 'APRV_STTS_SE_CD'       --공통코드아이디
+	               AND CMMNS_CD_VALUE = A.APRV_STTS_SE_CD      --공통코드값
+	           ) AS APRV_STTS                                          /* 승인상태 */
+
+	           ,A.SLFRL_SUBSID_NO AS SLFRL_SUBSID_NO                   /* 자립장려금번호 */
+	           ,A.RESRCE_NO AS RESRCE_NO                               /* 자원번호 */
+	           ,A.APRV_STTS_SE_CD AS APRV_STTS_SE_CD                   /* 승인상태구분코드 */
+
+	       FROM AFA500 A                       /* 자립장려금 */
+	       LEFT JOIN SDA100 B                  /* 자원기본 */
+	           ON B.RESRCE_NO = A.RESRCE_NO        -- 자원번호
+
+	       WHERE 1=1
+	       AND A.GIVE_YM BETWEEN #{BGNG_YM}
+	                         AND #{END_YM}                         -- 지급연월
+	       AND B.RSFR_INST_NO LIKE #{INST_NO} || '%'               -- 자원제공주체번호
+	       AND A.APRV_STTS_SE_CD LIKE #{APRV_STTS_SE_CD} || '%'    -- 승인상태구분코드
+	       AND A.DEL_YN != 'Y'                                     -- 삭제여부
+
+	       ORDER BY B.RSFR_INST_NO, B.RESRCE_NO DESC, A.GIVE_YM
+	   ]]>
+      <!-- 페이지 인덱서 OFFSET 조건 -->
+      <include refid="ComPagingMapper.pageOffset"/>
+	</select>
+
+	<select id="selectSlfriSubSidInfo" parameterType="HashMap"
+		resultType="HashMap">
+        <![CDATA[
+            /* selectSlfriSubSidInfo - Lee SangHoon */
+
+            SELECT
+
+                A.RESRCE_NO AS RESRCE_NO                            /* 자원번호 */
+                ,A.SLFRL_SUBSID_NO AS SLFRL_SUBSID_NO               /* 자립장려금번호 */
+
+                ,B.RSFR_INST_NO AS INST_NO                                                          /* 기관번호 */
+				,A.GIVE_YM AS GIVE_YM                                                               /* 지급연월 */
+				,A.GIVE_AMT AS GIVE_AMT                                                             /* 지급금액 */
+				,A.APRV_STTS_SE_CD AS APRV_STTS_SE_CD                                               /* 승인상태구분코드 */
+				,DEC_B64((SELECT FLNM_ENCPT FROM SCA100 WHERE ENFSN_NO = A.APLY_PIC_NO)) AS APLCNT_NM        /* 신청자 */
+				,A.APLY_DT AS APLY_DT                                                               /* 신청일시 */
+				,DEC_B64((SELECT FLNM_ENCPT FROM SCA100 WHERE ENFSN_NO = A.APRV_PIC_NO)) AS AUTZR_NM         /* 승인자 */
+				,A.APRV_DT AS APRV_DT                                                               /* 승인일시 */
+				,A.PRGRS_RESULT_CN AS PRGRS_RESULT_CN                                               /* 진행결과내용 */
+				,A.ATFINO AS ATFINO                                                                 /* 첨부파일번호 */
+
+				,A.APLY_PIC_NO          /* 신청담당자번호 */
+				,A.APRV_PIC_NO          /* 승인담당자번호 */
+				,A.DEL_YN               /* 삭제여부 */
+				,A.FRST_RGTR_ID         /* 최초등록자아이디 */
+				,A.FRST_REG_DT          /* 최초등록일시 */
+				,A.LAST_MDFR_ID         /* 최종수정자아이디 */
+				,A.LAST_MDFCN_DT        /* 최종수정일시 */
+
+            FROM AFA500 A                               /* 자립장려금 */
+            LEFT JOIN SDA100 B                          /* 자원기본 */
+            ON B.RESRCE_NO = A.RESRCE_NO                    -- 자원번호
+
+            WHERE 1=1
+            AND A.DEL_YN != 'Y'                             -- 삭제여부
+            AND A.SLFRL_SUBSID_NO = #{SLFRL_SUBSID_NO}      -- 자립장려금번호
+            AND A.RESRCE_NO = #{RESRCE_NO}                  -- 자원번호
+        ]]>
+	</select>
+
+	<insert id="insertSlfriSubSid">
+
+		<selectKey resultType="String" keyProperty="SLFRL_SUBSID_NO"
+			order="BEFORE">
+            <![CDATA[
+                SELECT
+                    ISRY_APP.SA_FN_GET_RENU_NO('SS', #{LAST_MDFR_ID}, '') AS SLFRL_SUBSID_NO
+                FROM DUAL
+            ]]>
+		</selectKey>
+
+        <![CDATA[
+            /* insertSlfriSubSid - Lee SangHoon */
+
+            INSERT INTO AFA500 (    /* 자립장려금 */
+
+                RESRCE_NO           /* 자원번호 */
+                ,SLFRL_SUBSID_NO    /* 자립장려금번호 */
+
+                ,APRV_STTS_SE_CD    /* 승인상태구분코드 */
+                ,GIVE_YM            /* 지급연월 */
+                ,GIVE_AMT           /* 지급금액 */
+                ,APLY_DT            /* 신청일시 */
+                ,APLY_PIC_NO        /* 신청담당자번호 */
+                ,ATFINO             /* 첨부파일번호 */
+                ,FRST_RGTR_ID       /* 최초등록자아이디 */
+                ,LAST_MDFR_ID       /* 최종수정자아이디 */
+
+            )VALUES(
+
+                #{RESRCE_NO}
+                ,#{SLFRL_SUBSID_NO}
+
+                ,#{APRV_STTS_SE_CD}
+                ,#{GIVE_YM}
+                ,#{GIVE_AMT}
+                ,TO_DATE(#{APLY_DT},'YYYYMMDDHH24MISS')
+                ,#{APLY_PIC_NO}
+                ,#{ATFINO}
+                ,#{FRST_RGTR_ID}
+                ,#{LAST_MDFR_ID}
+
+            )
+        ]]>
+	</insert>
+
+	<update id="updateSlfriSubSid">
+        <![CDATA[
+            /* updateSlfriSubSid - Lee SangHoon */
+
+            UPDATE AFA500 SET   /* 자립장려금 */
+
+                APRV_STTS_SE_CD = #{APRV_STTS_SE_CD}    /* 승인상태구분코드 */
+                ,PRGRS_RESULT_CN = #{PRGRS_RESULT_CN}   /* 진행경과내용 */
+                ,ATFINO = #{ATFINO}                     /* 첨부파일번호 */
+        ]]>
+		<if test='APRV_STTS_SE_CD == "2" or APRV_STTS_SE_CD == "3"'>
+            <![CDATA[
+				,APRV_PIC_NO = #{APRV_PIC_NO}           /* 승인담당자번호 */
+				,APRV_DT = SYSDATE                      /* 승인일시 */
+			]]>
+		</if>
+        <![CDATA[
+                ,LAST_MDFR_ID = #{LAST_MDFR_ID}         /* 최종수정자아이디 */
+                ,LAST_MDFCN_DT = SYSDATE                /* 최종수정일시 */
+
+            WHERE 1=1
+            AND SLFRL_SUBSID_NO = #{SLFRL_SUBSID_NO__origin}
+            AND RESRCE_NO = #{RESRCE_NO__origin}
+        ]]>
+	</update>
+
+	<update id="deleteSlfriSubSid">
+        <![CDATA[
+            /* deleteSlfriSubSid - Lee SangHoon */
+
+            UPDATE AFA500 SET   /* 자립장려금 */
+
+                DEL_YN = 'Y'                    /* 삭제여부 */
+                ,LAST_MDFR_ID = #{LAST_MDFR_ID} /* 최종수정자아이디 */
+                ,LAST_MDFCN_DT = SYSDATE        /* 최종수정일시 */
+
+            WHERE 1=1
+            AND SLFRL_SUBSID_NO = #{SLFRL_SUBSID_NO__origin}
+            AND RESRCE_NO = #{RESRCE_NO__origin}
+        ]]>
+	</update>
+
+	<insert id="insertSlfriSubSidHstr">
+        <![CDATA[
+            /* insertSlfriSubSidHstr - Lee SangHoon */
+
+            INSERT INTO AFA501( /* 자립장려금 이력 */
+
+                SLFRL_SUBSID_NO     /* 자립장려금번호 */
+				,RESRCE_NO          /* 자원번호 */
+				,MDFCN_DT           /* 수정일시 */
+
+				,APRV_STTS_SE_CD    /* 승인상태구분코드 */
+				,GIVE_YM            /* 지급연월 */
+				,GIVE_AMT           /* 지급금액 */
+				,APLY_DT            /* 신청일시 */
+				,APLY_PIC_NO        /* 신청담당자번호 */
+				,APRV_DT            /* 승인일시 */
+				,APRV_PIC_NO        /* 승인담당자번호 */
+				,PRGRS_RESULT_CN    /* 진행결과내용 */
+        ]]>
+		<if test="DEL_YN != NULL and DEL_YN != ''">
+            <![CDATA[
+				,DEL_YN             /* 삭제여부 */
+            ]]>
+		</if>
+        <![CDATA[
+				,ATFINO             /* 첨부파일번호 */
+				,FRST_RGTR_ID       /* 최초등록자아이디 */
+        ]]>
+		<if test="FRST_REG_DT != NULL and FRST_REG_DT != ''">
+            <![CDATA[
+				,FRST_REG_DT        /* 최초등록일시 */
+            ]]>
+		</if>
+        <![CDATA[
+				,LAST_MDFR_ID       /* 최종수정자아이디 */
+
+			)VALUES(
+
+                #{SLFRL_SUBSID_NO}
+                ,#{RESRCE_NO}
+                ,SYSDATE
+
+                ,#{APRV_STTS_SE_CD}
+                ,#{GIVE_YM}
+                ,#{GIVE_AMT}
+                ,TO_DATE(#{APLY_DT},'YYYYMMDDHH24MISS')
+                ,#{APLY_PIC_NO}
+                ,TO_DATE(#{APRV_DT},'YYYYMMDDHH24MISS')
+                ,#{APRV_PIC_NO}
+                ,#{PRGRS_RESULT_CN}
+        ]]>
+		<if test="DEL_YN != NULL and DEL_YN != ''">
+            <![CDATA[
+                ,#{DEL_YN}
+            ]]>
+		</if>
+        <![CDATA[
+                ,#{ATFINO}
+                ,#{FRST_RGTR_ID}
+        ]]>
+		<if test="FRST_REG_DT != NULL and FRST_REG_DT != ''">
+            <![CDATA[
+                ,TO_DATE(#{FRST_REG_DT},'YYYYMMDDHH24MISS')
+            ]]>
+		</if>
+        <![CDATA[
+                ,#{LAST_MDFR_ID}
+
+			)
+        ]]>
+	</insert>
+
+	<select id="selectSlfriSubSidCheck" resultType="String"
+		parameterType="HashMap">
+        <![CDATA[
+            /* selectSlfriSubSidCheck - Lee SangHoon */
+
+            SELECT
+
+                APRV_STTS_SE_CD
+
+            FROM AFA500
+
+            WHERE RESRCE_NO = #{RESRCE_NO}
+            AND GIVE_YM = #{GIVE_YM}
+            AND DEL_YN = 'N'
+            AND APRV_STTS_SE_CD != '3'
+        ]]>
+	</select>
+</mapper>

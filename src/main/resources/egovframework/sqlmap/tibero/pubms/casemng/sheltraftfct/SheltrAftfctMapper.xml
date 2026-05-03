@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubms.casemng.sheltraftfct.mapper.SheltrAftfctMapper">
+
+    <insert id="saveCaseInfoData" parameterType="HashMap">
+    <![CDATA[
+         /* saveCaseInfoData - Lee  MS */
+
+       INSERT INTO AEA100 (  /* 쉼터사례등록 */
+              CASE_MNG_NO,                /* 사례관리번호 */
+              CASE_MNG_ODRNO,             /* 사례관리차수 */
+              SHELTR_TRPR_SE_CD,          /* 쉼터대상자구분코드 */
+              CHUP_YMD,                   /* 건강검진일자 */
+              CHUP_HSPTL_NM,              /* 건강검진병원명 */
+
+              CHUP_ENFORC_SE_CD,          /* 건강검진실시구분코드 */
+              LVM_EXPRNC_CNT,             /* 가출경험수 */
+              FRST_LVM_ERA_SCHL_SE_CD,    /* 최초가출시기학교구분코드 */
+              FRST_LVM_ERA_GRADE_SE_CD,   /* 최초가출시기학년구분코드 */
+              LVM_DAYCNT,                 /* 가출일수 */ 
+
+              LVM_DAYCNT_SE_CD,           /* 가출일수구분코드 */
+              AFRU_LVING_PLACE_CN,        /* 가출후생활장소내용 */
+              AFRU_LVING_PLACE_ETC_CN,    /* 가출후생활장소기타내용 */
+              AFRU_GETJOB_CN,             /* 가출후취직내용 */
+              AFRU_GETJOB_ETC_CN,         /* 가출후취직기타내용 */
+
+              ACMPNY_LVM_FRID_SE_CD,      /* 동반가출친구구분코드 */
+              ACMPNY_LVM_FRID_ETC_CN,     /* 동반가출친구기타내용 */
+              ACMPNY_LVM_SASE_FRID_CNT,   /* 동반가출동성친구수 */
+              ACMPNY_LVM_OPSE_FRID_CNT,   /* 동반가출이성친구수 */
+              DLINQ_EXPRNC_CN,            /* 비행경험내용 */
+
+              DLINQ_EXPRNC_ETC_CN,        /* 비행경험기타내용 */
+              DISS_NM,                    /* 질병명 */
+              DISS_ERA_CN,                /* 질병시기내용 */
+              NOW_SITTN_CN,               /* 현재상황내용 */
+              HNCFRT_PLAN_CN,             /* 향후계획내용 */
+
+              HNCFRT_PLAN_ETC_CN,         /* 향후계획기타내용 */
+              FUTU_HPE_CN,                /* 장래희망내용 */
+              HOBBY_SPCABL_CN,            /* 취미특기내용 */
+              BEFR_NM,                    /* 가장친한친구명 */
+              HEPE_NM,                    /* 힘이되는사람명 */
+
+              KEEN_DESIR_CN,              /* 절실욕구내용 */
+              HOUSEK_CRTS_SE_CD,          /* 가정형편구분코드 */
+              LVM_CAS_CN,                 /* 가출원인내용 */
+              KEEN_DESIR_DETAIA_CN,       /* 절실욕구세부내용 */
+             
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+       )
+       SELECT 
+              CASE_MNG_NO,                /* 사례관리번호 */
+              #{NEW_CASE_MNG_ODRNO},      /* 사례관리차수 */
+              SHELTR_TRPR_SE_CD,          /* 쉼터대상자구분코드 */
+              CHUP_YMD,                   /* 건강검진일자 */
+              CHUP_HSPTL_NM,              /* 건강검진병원명 */
+
+              CHUP_ENFORC_SE_CD,          /* 건강검진실시구분코드 */
+              LVM_EXPRNC_CNT,             /* 가출경험수 */
+              FRST_LVM_ERA_SCHL_SE_CD,    /* 최초가출시기학교구분코드 */
+              FRST_LVM_ERA_GRADE_SE_CD,   /* 최초가출시기학년구분코드 */
+              LVM_DAYCNT,                 /* 가출일수 */ 
+
+              LVM_DAYCNT_SE_CD,           /* 가출일수구분코드 */
+              AFRU_LVING_PLACE_CN,        /* 가출후생활장소내용 */
+              AFRU_LVING_PLACE_ETC_CN,    /* 가출후생활장소기타내용 */
+              AFRU_GETJOB_CN,             /* 가출후취직내용 */
+              AFRU_GETJOB_ETC_CN,         /* 가출후취직기타내용 */
+
+              ACMPNY_LVM_FRID_SE_CD,      /* 동반가출친구구분코드 */
+              ACMPNY_LVM_FRID_ETC_CN,     /* 동반가출친구기타내용 */
+              ACMPNY_LVM_SASE_FRID_CNT,   /* 동반가출동성친구수 */
+              ACMPNY_LVM_OPSE_FRID_CNT,   /* 동반가출이성친구수 */
+              DLINQ_EXPRNC_CN,            /* 비행경험내용 */
+
+              DLINQ_EXPRNC_ETC_CN,        /* 비행경험기타내용 */
+              DISS_NM,                    /* 질병명 */
+              DISS_ERA_CN,                /* 질병시기내용 */
+              NOW_SITTN_CN,               /* 현재상황내용 */
+              HNCFRT_PLAN_CN,             /* 향후계획내용 */
+
+              HNCFRT_PLAN_ETC_CN,         /* 향후계획기타내용 */
+              FUTU_HPE_CN,                /* 장래희망내용 */
+              HOBBY_SPCABL_CN,            /* 취미특기내용 */
+              BEFR_NM,                    /* 가장친한친구명 */
+              HEPE_NM,                    /* 힘이되는사람명 */
+
+              KEEN_DESIR_CN,              /* 절실욕구내용 */
+              HOUSEK_CRTS_SE_CD,          /* 가정형편구분코드 */
+              LVM_CAS_CN,                 /* 가출원인내용 */
+              KEEN_DESIR_DETAIA_CN,       /* 절실욕구세부내용 */
+
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+         FROM AEA100
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}   
+        
+    ]]>
+    </insert>
+
+    <insert id="saveAsessRcordData" parameterType="HashMap">
+    <![CDATA[
+         /* saveAsessRcordData - Lee  MS */
+
+       INSERT INTO AEA120 (  /* 쉼터사례등록 */
+              CASE_MNG_NO,          /* 사례관리번호 */
+              CASE_MNG_ODRNO,       /* 사례관리차수 */
+
+              ASESS_RCORD_YMD,      /* 사정기록일자 */
+              EXPERT_OPIN_CN,       /* 전문가소견내용 */
+              INNER_OPIN_CN,        /* 내부소견내용 */
+              DGDGR_SE_CD,          /* 위험도구분코드 */
+              BDY_TROBL_CN,         /* 신체장애내용 */
+
+              LRN_CN,               /* 학습내용 */
+              EMTNL_SPFE_CN,        /* 정서적특징내용 */
+              TWDPSN_REL_CN,       /* 대인관계내용 */
+              CHIL_CNFRNT_PROBM_CN, /* 아동당면문제내용 */
+              CHIL_STGTH_CN,        /* 아동강점내용 */
+
+              FAM_CNFRNT_TASK_CN,   /* 가족당면과제내용 */
+              FAM_STGTH_CN,         /* 가족강점내용 */
+              INST_NO,              /* 기관번호 */
+              PIC_NO,               /* 담당자번호 */
+
+             
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+       SELECT 
+              CASE_MNG_NO,                /* 사례관리번호 */
+              #{NEW_CASE_MNG_ODRNO},      /* 사례관리차수 */
+
+              ASESS_RCORD_YMD,      /* 사정기록일자 */
+              EXPERT_OPIN_CN,       /* 전문가소견내용 */
+              INNER_OPIN_CN,        /* 내부소견내용 */
+              DGDGR_SE_CD,          /* 위험도구분코드 */
+              BDY_TROBL_CN,         /* 신체장애내용 */
+
+              LRN_CN,               /* 학습내용 */
+              EMTNL_SPFE_CN,        /* 정서적특징내용 */
+              TWDPSN_REL_CN,       /* 대인관계내용 */
+              CHIL_CNFRNT_PROBM_CN, /* 아동당면문제내용 */
+              CHIL_STGTH_CN,        /* 아동강점내용 */
+
+              FAM_CNFRNT_TASK_CN,   /* 가족당면과제내용 */
+              FAM_STGTH_CN,         /* 가족강점내용 */
+              INST_NO,              /* 기관번호 */
+              PIC_NO,               /* 담당자번호 */
+
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+         FROM AEA120
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}   
+        
+    ]]>
+    </insert>
+
+
+</mapper>

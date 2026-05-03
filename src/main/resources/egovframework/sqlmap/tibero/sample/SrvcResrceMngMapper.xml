@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.sample.mapper.SrvcResrceMngMapper">
+
+    <select id="selectSrvcResrceMngList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        SELECT  /* 공통팀 유민상 isry.sample.mapper.SrvcResrceMngMapper.selectSrvcResrceMngList 공통팀 유민상 */ 
+		      RESRCE_NO               /*자원명*/
+		    , PVSN_RESRCE_NM          /*제공자원명*/
+		    , RSFR_INST_NO            /*자원제공주체코드*/
+		    , (SELECT INST_NM FROM SAA000 WHERE INST_NO = RSFR_INST_NO) AS RSFR_INST_NM   /*자원제공주체명(TODO)*/   
+		    , SRVC_TYPE_SE_CD         /*서비스유형*/
+		    , SRVC_RESRCE_LCLAS_SE_CD /*서비스 자원 대분류*/
+		    , SRVC_RESRCE_MLSFC_SE_CD /*서비스 자원 중분류*/
+		    , SRVC_RESRCE_SCLAS_SE_CD /*서비스 자원 소분류*/
+		    , SRVC_RESRCE_DTL_SE_CD   /*서비스 자원 상세*/
+		    , PVSN_BGNG_YMD           /*자원제공 시작일자*/
+		    , PVSN_END_YMD            /*자원제공 종료일자*/
+		    , AUTZR_NO                /*승인자성명(임시 승인자번호)*/
+		    , APRV_DT                 /*승인일자*/
+		 FROM SDA100
+		WHERE 1=1
+		]]>
+		<if test="PVSN_RESRCE_NM != null and PVSN_RESRCE_NM != ''">
+            AND PVSN_RESRCE_NM LIKE '%'|| #{PVSN_RESRCE_NM} || '%'
+        </if>
+        <if test="PVSN_RESRCE_NM != null and PVSN_RESRCE_NM != ''">
+            AND PVSN_RESRCE_NM LIKE '%'|| #{PVSN_RESRCE_NM} || '%'
+        </if>
+        <if test="PVSN_RESRCE_NM != null and PVSN_RESRCE_NM != ''">
+            AND PVSN_RESRCE_NM LIKE '%'|| #{PVSN_RESRCE_NM} || '%'
+        </if>
+        <if test="RSFR_INST_NO != null and RSFR_INST_NO != ''">
+            AND RSFR_INST_NO = #{RSFR_INST_NO}
+        </if>
+        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''">
+            AND SRVC_RESRCE_LCLAS_SE_CD = #{SRVC_RESRCE_LCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_MLSFC_SE_CD != null and SRVC_RESRCE_MLSFC_SE_CD != ''">
+            AND SRVC_RESRCE_MLSFC_SE_CD = #{SRVC_RESRCE_MLSFC_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''">
+            AND SRVC_RESRCE_SCLAS_SE_CD = #{SRVC_RESRCE_SCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''">
+            AND SRVC_RESRCE_DTL_SE_CD = #{SRVC_RESRCE_DTL_SE_CD}
+        </if>
+    </select>
+    
+    <select id="selectSrvcResrceDtlMngList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        SELECT  /* 공통팀 유민상 isry.sample.mapper.SrvcResrceMngMapper.selectSrvcResrceDtlMngList 공통팀 유민상 */ 
+              RESRCE_NO               /*자원명*/
+            , PVSN_RESRCE_NM          /*제공자원명*/
+            , RSFR_INST_NO            /*자원제공주체코드*/
+            , (SELECT INST_NM FROM SAA000 WHERE INST_NO = RSFR_INST_NO) AS RSFR_INST_NM   /*자원제공주체명(TODO)*/   
+            , DPSITR_ANYM_YN
+            , DPSITR_NM
+            , DPSITR_TELNO            
+            , SRVC_TYPE_SE_CD         /*서비스유형*/
+            , SRVC_RESRCE_LCLAS_SE_CD /*서비스 자원 대분류*/
+            , SRVC_RESRCE_MLSFC_SE_CD /*서비스 자원 중분류*/
+            , SRVC_RESRCE_SCLAS_SE_CD /*서비스 자원 소분류*/
+            , SRVC_RESRCE_DTL_SE_CD   /*서비스 자원 상세*/
+            , PVSN_BGNG_YMD           /*자원제공 시작일자*/
+            , PVSN_END_YMD            /*자원제공 종료일자*/
+            , RESRCE_SE_CD
+			--, RESRCE_RGN_CTPV_SE_CD
+			, RESRCE_RGN_SGG_CD
+			, GR_TRGT_SRVC_YN
+            --, APRV_YN                 /*승인구분(임시 승인여부)*/
+            , APRV_DT                 /*승인일자*/
+            , APRV_CN
+            , RJCT_CS_CN
+            , AUTZR_NO                /*승인자성명(임시 승인자번호)*/            
+         FROM SDA100
+        WHERE 1=1
+         AND RESRCE_NO = #{RESRCE_NO}
+         ]]>
+    </select>
+    
+    <select id="selectSrvcResrceDtlProgramList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        SELECT  /* 공통팀 유민상 isry.sample.mapper.SrvcResrceMngMapper.selectSrvcResrceDtlProgramList 공통팀 유민상 */ 
+              PROGRM_NO               /*프로그램번호*/
+            , RESRCE_NO               /*자원번호*/
+            , PROGRM_TTL_NM           /*프로그램제목명*/            
+            --, PROGRM_SE_CD            /*프로그램구분코드*/
+            , EDU_PROGRM_SE_CD          /*교육프로그램구분코드*/    
+            , PROGRM_DSCRP_CN         /*프로그램설명내용*/   
+            , PROGRM_DGSTFN_CN        /*프로그램만족도내용*/
+            , PROGRM_BGNG_YMD         /*프로그램시작일자*/
+            , PROGRM_END_YMD          /*프로그램종료일자*/
+            , PROGRM_SUM_HR           /*프로그램합계시간*/
+            , SRVC_RESRCE_LCLAS_SE_CD /*자원제공서비스대분류구분코드*/
+            , SRVC_RESRCE_MLSFC_SE_CD /*자원제공서비스중분류구분코드*/
+            , SRVC_RESRCE_SCLAS_SE_CD /*자원제공서비스소분류구분코드*/
+            , SRVC_RESRCE_DTL_SE_CD   /*자원제공서비스상세구분코드*/            
+            -- , RTRCN_YN                /*취소여부*/
+            ,DEL_YN                     /* 삭제여부 */            
+         FROM SDA300
+        WHERE 1=1
+         AND DEL_YN    = 'N'
+         AND RESRCE_NO = #{RESRCE_NO}
+         ]]>
+    </select>
+    
+    <insert id="insertSrvcResrceMngList" parameterType="HashMap" useGeneratedKeys="true" keyProperty="RESRCE_NO">
+
+        <selectKey resultType="String" keyProperty="RESRCE_NO" order="BEFORE">
+            <![CDATA[            
+              SELECT SDA100_SQ01.NEXTVAL AS RESRCE_NO FROM DUAL              
+            ]]>
+        </selectKey>
+
+        /* 공통팀 유민상 isry.sample.mapper.SrvcResrceMngMapper.insertSrvcResrceMngList 공통팀 유민상 */
+        INSERT INTO SDA100(
+              RESRCE_NO            
+            , PVSN_RESRCE_NM
+            , RSFR_INST_NO
+            , SRVC_TYPE_SE_CD  
+        <if test="DPSITR_ANYM_YN != null and DPSITR_ANYM_YN != ''">
+            , DPSITR_ANYM_YN
+        </if>
+        <if test="DPSITR_NM != null and DPSITR_NM != ''">
+            , DPSITR_NM
+        </if>
+        <if test="DPSITR_TELNO != null and DPSITR_TELNO != ''">
+            , DPSITR_TELNO
+        </if>                           
+        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''">
+            , SRVC_RESRCE_LCLAS_SE_CD
+        </if>
+        <if test="SRVC_RESRCE_MLSFC_SE_CD != null and SRVC_RESRCE_MLSFC_SE_CD != ''">
+            , SRVC_RESRCE_MLSFC_SE_CD
+        </if>
+        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''">
+            , SRVC_RESRCE_SCLAS_SE_CD
+        </if>
+        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''">
+            , SRVC_RESRCE_DTL_SE_CD
+        </if>
+        <if test="PVSN_BGNG_YMD != null and PVSN_BGNG_YMD != ''">
+            , PVSN_BGNG_YMD
+        </if>
+        <if test="PVSN_END_YMD != null and PVSN_END_YMD != ''">
+            , PVSN_END_YMD
+        </if>
+        <if test="RESRCE_SE_CD != null and RESRCE_SE_CD != ''">
+            , RESRCE_SE_CD
+        </if>
+        <if test="RESRCE_RGN_CTPV_SE_CD != null and RESRCE_RGN_CTPV_SE_CD != ''">
+            , RESRCE_RGN_CTPV_SE_CD
+        </if>
+        <if test="RESRCE_RGN_SGG_CD != null and RESRCE_RGN_SGG_CD != ''">
+            , RESRCE_RGN_SGG_CD
+        </if>
+        <if test="GR_TRGT_SRVC_YN != null and GR_TRGT_SRVC_YN != ''">
+            , GR_TRGT_SRVC_YN
+        </if>
+        <if test="APRV_YN != null and APRV_YN != ''">
+            , APRV_YN
+        </if>
+        <if test="APRV_DT != null and APRV_DT != ''">
+            , APRV_DT
+        </if>
+        <if test="APRV_CN != null and APRV_CN != ''">
+            , APRV_CN
+        </if>
+        <if test="RJCT_CS_CN != null and RJCT_CS_CN != ''">
+            , RJCT_CS_CN
+        </if>
+        <if test="HPGE_URL_ADDR != null and HPGE_URL_ADDR != ''">
+            , HPGE_URL_ADDR
+        </if>
+            , FRST_RGTR_ID    
+            , FRST_REG_DT       
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT         
+        )VALUES(
+              #{RESRCE_NO}            
+            , #{PVSN_RESRCE_NM}
+            , #{RSFR_INST_NO}
+            , #{SRVC_TYPE_SE_CD}          
+        <if test="DPSITR_ANYM_YN != null and DPSITR_ANYM_YN != ''">
+            , #{DPSITR_ANYM_YN}
+        </if>
+        <if test="DPSITR_NM != null and DPSITR_NM != ''">
+            , #{DPSITR_NM}
+        </if>
+        <if test="DPSITR_TELNO != null and DPSITR_TELNO != ''">
+            , #{DPSITR_TELNO}
+        </if>               
+        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''">
+            , #{SRVC_RESRCE_LCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_MLSFC_SE_CD != null and SRVC_RESRCE_MLSFC_SE_CD != ''">
+            , #{SRVC_RESRCE_MLSFC_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''">
+            , #{SRVC_RESRCE_SCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''">
+            , #{SRVC_RESRCE_DTL_SE_CD}
+        </if>
+        <if test="PVSN_BGNG_YMD != null and PVSN_BGNG_YMD != ''">
+            , #{PVSN_BGNG_YMD}
+        </if>
+        <if test="PVSN_END_YMD != null and PVSN_END_YMD != ''">
+            , #{PVSN_END_YMD}
+        </if>
+        <if test="RESRCE_SE_CD != null and RESRCE_SE_CD != ''">
+            , #{RESRCE_SE_CD}
+        </if>
+        <if test="RESRCE_RGN_CTPV_SE_CD != null and RESRCE_RGN_CTPV_SE_CD != ''">
+            , #{RESRCE_RGN_CTPV_SE_CD}
+        </if>
+        <if test="RESRCE_RGN_SGG_CD != null and RESRCE_RGN_SGG_CD != ''">
+            , #{RESRCE_RGN_SGG_CD}
+        </if>
+        <if test="GR_TRGT_SRVC_YN != null and GR_TRGT_SRVC_YN != ''">
+            , #{GR_TRGT_SRVC_YN}
+        </if>
+        <if test="APRV_YN != null and APRV_YN != ''">
+            , #{APRV_YN}
+        </if>
+        <if test="APRV_DT != null and APRV_DT != ''">
+            , #{APRV_DT}
+        </if>
+        <if test="APRV_CN != null and APRV_CN != ''">
+            , #{APRV_CN}
+        </if>
+        <if test="RJCT_CS_CN != null and RJCT_CS_CN != ''">
+            , #{RJCT_CS_CN}
+        </if>
+        <if test="HPGE_URL_ADDR != null and HPGE_URL_ADDR != ''">
+            , #{HPGE_URL_ADDR}
+        </if>            
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE           
+        )
+    </insert>
+    
+    <update id="updateSrvcResrceMngList" parameterType="HashMap">
+
+        /* isry.sample.mapper.SrvcResrceMngMapper.updateSrvcResrceMngList 공통팀 유민상 */
+        UPDATE SDA100 SET
+              
+              PVSN_RESRCE_NM = #{PVSN_RESRCE_NM}
+            , RSFR_INST_NO = #{RSFR_INST_NO}       
+        <if test="DPSITR_ANYM_YN != null and DPSITR_ANYM_YN != ''">
+            , DPSITR_ANYM_YN = #{DPSITR_ANYM_YN}
+        </if>
+        <if test="DPSITR_NM != null and DPSITR_NM != ''">
+            , DPSITR_NM = #{DPSITR_NM}
+        </if>
+        <if test="DPSITR_TELNO != null and DPSITR_TELNO != ''">
+            , DPSITR_TELNO = #{DPSITR_TELNO}
+        </if>        
+            , SRVC_TYPE_SE_CD = #{SRVC_TYPE_SE_CD}        
+        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''">
+            , SRVC_RESRCE_LCLAS_SE_CD = #{SRVC_RESRCE_LCLAS_SE_CD}
+        </if>        
+        <if test="SRVC_RESRCE_MLSFC_SE_CD != null and SRVC_RESRCE_MLSFC_SE_CD != ''">
+            , SRVC_RESRCE_MLSFC_SE_CD = #{SRVC_RESRCE_MLSFC_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''">
+            , SRVC_RESRCE_SCLAS_SE_CD = #{SRVC_RESRCE_SCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''">
+            , SRVC_RESRCE_DTL_SE_CD = #{SRVC_RESRCE_DTL_SE_CD}
+        </if>
+        <if test="PVSN_BGNG_YMD != null and PVSN_BGNG_YMD != ''">
+            , PVSN_BGNG_YMD = #{PVSN_BGNG_YMD}
+        </if>
+        <if test="PVSN_END_YMD != null and PVSN_END_YMD != ''">
+            , PVSN_END_YMD = #{PVSN_END_YMD}
+        </if>
+        <if test="RESRCE_SE_CD != null and RESRCE_SE_CD != ''">
+            , RESRCE_SE_CD = #{RESRCE_SE_CD}
+        </if>
+        <if test="RESRCE_RGN_CTPV_SE_CD != null and RESRCE_RGN_CTPV_SE_CD != ''">
+            , RESRCE_RGN_CTPV_SE_CD = #{RESRCE_RGN_CTPV_SE_CD}
+        </if>
+        <if test="RESRCE_RGN_SGG_CD != null and RESRCE_RGN_SGG_CD != ''">
+            , RESRCE_RGN_SGG_CD = #{RESRCE_RGN_SGG_CD}
+        </if>
+        <if test="GR_TRGT_SRVC_YN != null and GR_TRGT_SRVC_YN != ''">
+            , GR_TRGT_SRVC_YN = #{GR_TRGT_SRVC_YN}
+        </if>
+        <if test="APRV_YN != null and APRV_YN != ''">
+            , APRV_YN = #{APRV_YN}
+        </if>
+        <if test="APRV_DT != null and APRV_DT != ''">
+            , APRV_DT = #{APRV_DT}
+        </if>
+        <if test="APRV_CN != null and APRV_CN != ''">
+            , APRV_CN = #{APRV_CN}
+        </if>
+        <if test="RJCT_CS_CN != null and RJCT_CS_CN != ''">
+            , RJCT_CS_CN = #{RJCT_CS_CN}
+        </if>
+        <if test="HPGE_URL_ADDR != null and HPGE_URL_ADDR != ''">
+            , HPGE_URL_ADDR = #{HPGE_URL_ADDR}
+        </if>            
+            , LAST_MDFCN_DT = SYSDATE     
+            , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        WHERE 1=1
+        AND RESRCE_NO = #{RESRCE_NO__origin}
+    </update>
+    
+    <insert id="insertSrvcResrceProgramList" parameterType="HashMap" useGeneratedKeys="true" keyProperty="PROGRM_NO">
+        
+        <selectKey resultType="String" keyProperty="PROGRM_NO" order="BEFORE">
+            <![CDATA[            
+              SELECT SDA300_SQ01.NEXTVAL AS PROGRM_NO FROM DUAL              
+            ]]>
+        </selectKey>
+        
+        /* 공통팀 유민상 isry.sample.mapper.SrvcResrceMngMapper.insertSrvcResrceProgramList 공통팀 유민상 */
+        INSERT INTO SDA300(
+              RESRCE_NO             /*자원번호*/
+            , PROGRM_NO             /*프로그램번호*/          
+        <if test="PROGRM_TTL_NM != null and PROGRM_TTL_NM != ''">
+            , PROGRM_TTL_NM
+        </if>   
+        <if test="PROGRM_SE_CD != null and PROGRM_SE_CD != ''">
+            , PROGRM_SE_CD
+        </if>
+        <if test="PROGRM_DSCRP_CN != null and PROGRM_DSCRP_CN != ''">
+            , PROGRM_DSCRP_CN
+        </if>
+        <if test="PROGRM_DGSTFN_CN != null and PROGRM_DGSTFN_CN != ''">
+            , PROGRM_DGSTFN_CN
+        </if>                           
+        <if test="PROGRM_BGNG_YMD != null and PROGRM_BGNG_YMD != ''">
+            , PROGRM_BGNG_YMD
+        </if>
+        <if test="PROGRM_END_YMD != null and PROGRM_END_YMD != ''">
+            , PROGRM_END_YMD
+        </if>
+        <if test="PROGRM_SUM_HR != null and PROGRM_SUM_HR != ''">
+            , PROGRM_SUM_HR
+        </if>
+        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''">
+            , SRVC_RESRCE_LCLAS_SE_CD
+        </if>
+        <if test="SRVC_RESRCE_MLSFC_SE_CD  != null and SRVC_RESRCE_MLSFC_SE_CD  != ''">
+            , SRVC_RESRCE_MLSFC_SE_CD 
+        </if>
+        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''">
+            , SRVC_RESRCE_SCLAS_SE_CD
+        </if>
+        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''">
+            , SRVC_RESRCE_DTL_SE_CD
+        </if>
+        <if test="RTRCN_YN != null and RTRCN_YN != ''">
+            , RTRCN_YN
+        </if>
+            , FRST_RGTR_ID    
+            , FRST_REG_DT       
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT         
+        )VALUES(
+              #{RESRCE_NO}            
+            , #{PROGRM_NO}
+        <if test="PROGRM_TTL_NM != null and PROGRM_TTL_NM != ''">
+            , #{PROGRM_TTL_NM}
+        </if>   
+        <if test="PROGRM_SE_CD != null and PROGRM_SE_CD != ''">
+            , #{PROGRM_SE_CD}
+        </if>
+        <if test="PROGRM_DSCRP_CN != null and PROGRM_DSCRP_CN != ''">
+            , #{PROGRM_DSCRP_CN}
+        </if>
+        <if test="PROGRM_DGSTFN_CN != null and PROGRM_DGSTFN_CN != ''">
+            , #{PROGRM_DGSTFN_CN}
+        </if>                           
+        <if test="PROGRM_BGNG_YMD != null and PROGRM_BGNG_YMD != ''">
+            , #{PROGRM_BGNG_YMD}
+        </if>
+        <if test="PROGRM_END_YMD != null and PROGRM_END_YMD != ''">
+            , #{PROGRM_END_YMD}
+        </if>
+        <if test="PROGRM_SUM_HR != null and PROGRM_SUM_HR != ''">
+            , #{PROGRM_SUM_HR}
+        </if>
+        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''">
+            , #{SRVC_RESRCE_LCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_MLSFC_SE_CD  != null and SRVC_RESRCE_MLSFC_SE_CD  != ''">
+            , #{SRVC_RESRCE_MLSFC_SE_CD} 
+        </if>
+        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''">
+            , #{SRVC_RESRCE_SCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''">
+            , #{SRVC_RESRCE_DTL_SE_CD}
+        </if>
+        <if test="RTRCN_YN != null and RTRCN_YN != ''">
+            , #{RTRCN_YN}
+        </if>
+            , #{FRST_RGTR_ID}
+            , SYSDATE
+            , #{LAST_MDFR_ID}
+            , SYSDATE           
+        )
+    </insert>
+    
+    <update id="updateSrvcResrceProgramList" parameterType="HashMap">
+
+        /* isry.sample.mapper.SrvcResrceMngMapper.updateSrvcResrceMngList 공통팀 유민상 */
+        UPDATE SDA300 SET
+                                   
+        <if test="PROGRM_TTL_NM != null and PROGRM_TTL_NM != ''">
+             PROGRM_TTL_NM = #{PROGRM_TTL_NM}
+        </if>   
+        <if test="PROGRM_SE_CD != null and PROGRM_SE_CD != ''">
+            , PROGRM_SE_CD = #{PROGRM_SE_CD}
+        </if>
+        <if test="PROGRM_DSCRP_CN != null and PROGRM_DSCRP_CN != ''">
+            , PROGRM_DSCRP_CN = #{PROGRM_DSCRP_CN}
+        </if>
+        <if test="PROGRM_DGSTFN_CN != null and PROGRM_DGSTFN_CN != ''">
+            , PROGRM_DGSTFN_CN = #{PROGRM_DGSTFN_CN}
+        </if>                           
+        <if test="PROGRM_BGNG_YMD != null and PROGRM_BGNG_YMD != ''">
+            , PROGRM_BGNG_YMD = #{PROGRM_BGNG_YMD}
+        </if>
+        <if test="PROGRM_END_YMD != null and PROGRM_END_YMD != ''">
+            , PROGRM_END_YMD = #{PROGRM_END_YMD}
+        </if>
+        <if test="PROGRM_SUM_HR != null and PROGRM_SUM_HR != ''">
+            , PROGRM_SUM_HR = #{PROGRM_SUM_HR}
+        </if>
+        <if test="SRVC_RESRCE_LCLAS_SE_CD != null and SRVC_RESRCE_LCLAS_SE_CD != ''">
+            , SRVC_RESRCE_LCLAS_SE_CD = #{SRVC_RESRCE_LCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_MLSFC_SE_CD  != null and SRVC_RESRCE_MLSFC_SE_CD  != ''">
+            , SRVC_RESRCE_MLSFC_SE_CD = #{SRVC_RESRCE_MLSFC_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_SCLAS_SE_CD != null and SRVC_RESRCE_SCLAS_SE_CD != ''">
+            , SRVC_RESRCE_SCLAS_SE_CD = #{SRVC_RESRCE_SCLAS_SE_CD}
+        </if>
+        <if test="SRVC_RESRCE_DTL_SE_CD != null and SRVC_RESRCE_DTL_SE_CD != ''">
+            , SRVC_RESRCE_DTL_SE_CD = #{SRVC_RESRCE_DTL_SE_CD}
+        </if>
+        <if test="RTRCN_YN != null and RTRCN_YN != ''">
+            , RTRCN_YN = #{RTRCN_YN}
+        </if>      
+            , LAST_MDFCN_DT = SYSDATE     
+            , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        WHERE 1=1
+        AND RESRCE_NO = #{RESRCE_NO__origin}
+        AND PROGRM_NO = #{PROGRM_NO__origin}
+    </update>
+</mapper>

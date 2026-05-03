@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="isry.ytosp.portalmng.menuandprogrm.mapper.BannerMngMapper">
+    <insert id="insertBannerMng" parameterType="HashMap">
+    /**
+    *       insertBannerMng : isry.ytosp.portalmng.menuandprogrm.mapper.insertBannerMng : 배너 등록
+    */
+    INSERT 
+    INTO 
+            PSA130 
+    (
+            INDEX_SN
+        ,   IMAGE_NM
+        ,   IMAGE_CN
+        ,   LC_SE_CD
+        ,   URL_ADDR
+        ,   BGNG_DT
+        ,   END_DT
+        ,   PROGRM_USE_SE_CD
+        ,   ATFINO
+        ,   FRST_RGTR_ID
+        ,   FRST_REG_DT
+        ,   LAST_MDFR_ID
+        ,   LAST_MDFCN_DT
+    )
+    VALUES
+    (
+            PSA130_SQ01.NEXTVAL
+        ,   #{IMAGE_NM}
+        ,   #{IMAGE_CN}
+        ,   #{LC_SE_CD}
+        ,   #{URL_ADDR}
+        ,   #{BGNG_DT}
+        ,   #{END_DT}
+        ,   #{PROGRM_USE_SE_CD}
+        ,   #{ATFINO}
+        ,   #{USER_ID}
+        ,   SYSDATE
+        ,   #{USER_ID}
+        ,   SYSDATE
+    )
+    </insert>
+    
+    <select id="selectBannerMngList" parameterType="HashMap" resultType="HashMap">
+    /**
+    *       selectBannerMngList : isry.ytosp.portalmng.menuandprogrm.mapper.selectBannerMngList : 배너 목록조회
+    */
+        SELECT  INDEX_SN
+              , IMAGE_NM
+              , IMAGE_CN
+              , LC_SE_CD
+              , (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'LC_SE_CD' AND  CMMNS_CD_VALUE = LC_SE_CD) AS LC_SE_CD_NM
+              , URL_ADDR
+              , TO_CHAR(BGNG_DT,'YYYY-MM-DD HH24:MI:SS') AS BGNG_DT
+              , TO_CHAR(END_DT,'YYYY-MM-DD HH24:MI:SS') AS END_DT
+              , PROGRM_USE_SE_CD
+              , (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'PROGRM_USE_SE_CD' AND  CMMNS_CD_VALUE = PROGRM_USE_SE_CD) AS PROGRM_USE_SE_CD_NM
+              , ATFINO
+              , FRST_RGTR_ID
+              , FRST_REG_DT
+              , LAST_MDFR_ID
+              , LAST_MDFCN_DT
+        FROM PSA130
+        WHERE 1=1
+            <![CDATA[
+            AND BGNG_DT >= TO_DATE(#{startDate} || '000000', 'YYYYMMDDHH24MISS')
+            AND END_DT <= TO_DATE(#{endDate} || '235959', 'YYYYMMDDHH24MISS')
+            ]]>
+    </select>
+    
+    <select id="selectBannerMngDetail" parameterType="HashMap" resultType="HashMap">
+    /**
+    *       selectBannerMngDetail : isry.ytosp.portalmng.menuandprogrm.mapper.selectBannerMngDetail : 배너 상세조회
+    */
+        SELECT  INDEX_SN
+              , IMAGE_NM
+              , IMAGE_CN
+              , LC_SE_CD
+              , (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'LC_SE_CD' AND  CMMNS_CD_VALUE = LC_SE_CD) AS LC_SE_CD_NM
+              , URL_ADDR
+              , TO_CHAR(BGNG_DT,'YYYY-MM-DD HH24:MI:SS') AS BGNG_DT
+              , TO_CHAR(END_DT,'YYYY-MM-DD HH24:MI:SS') AS END_DT
+              , PROGRM_USE_SE_CD
+              , (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'PROGRM_USE_SE_CD' AND  CMMNS_CD_VALUE = PROGRM_USE_SE_CD) AS PROGRM_USE_SE_CD_NM
+              , ATFINO
+              , FRST_RGTR_ID
+              , FRST_REG_DT
+              , LAST_MDFR_ID
+              , LAST_MDFCN_DT
+        FROM PSA130
+        WHERE 1=1
+            AND INDEX_SN = #{INDEX_SN}
+    </select>
+    
+    <update id="deleteBannerMng" parameterType="HashMap">
+    /**
+    *       deleteBannerMng : isry.couns.mngr.icbtgmng.mapper.deleteBannerMng : 배너 삭제 상태 update
+    */
+        UPDATE PSA130 SET
+		    PROGRM_USE_SE_CD = 4
+		WHERE 1 = 1
+		    AND INDEX_SN = #{INDEX_SN}
+    </update>
+    
+    <update id="updateBannerMng" parameterType="HashMap">
+    /**
+    *       updateBannerMng : isry.couns.mngr.icbtgmng.mapper.updateBannerMng : 배너 수정
+    */
+        UPDATE PSA130 SET
+		        IMAGE_NM          = #{IMAGE_NM}           /* 이미지명  */
+		    ,   IMAGE_CN          = #{IMAGE_CN}           /* 이미지내용 */
+		    ,   LC_SE_CD          = #{LC_SE_CD}           /* 위치구분코드 */
+		    ,   URL_ADDR          = #{URL_ADDR}           /* URL주소  */
+		    ,   BGNG_DT           = #{BGNG_DT}            /* 시작일시  */
+            ,   END_DT            = #{END_DT}             /* 종료일시  */
+		    ,   PROGRM_USE_SE_CD  = #{PROGRM_USE_SE_CD}   /* 프로그램사용구분코드  */
+		    ,   ATFINO            = #{ATFINO}             /* 첨부파일번호  */
+		    ,   FRST_RGTR_ID      = #{USER_ID}            /* 최초등록자아이디  */
+		    ,   FRST_REG_DT       = SYSDATE               /* 최초등록일시  */
+		    ,   LAST_MDFR_ID      = #{USER_ID}            /* 최종수정자아이디  */
+		    ,   LAST_MDFCN_DT     = SYSDATE               /* 최종수정일시  */
+		WHERE 1 = 1
+		    AND INDEX_SN = #{INDEX_SN}
+    </update>
+    
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.couns.mngr.cnnctchatconstt.mapper.CnnctChatConsttMapper">
+
+	<select id="selectCnnctChatConsttList" parameterType="HashMap" resultType="HashMap">
+	/**
+	*		selectCnnctChatConsttList : isry.couns.mngr.consttChc.ConsttChcMapper : 잇는채팅 상담선택 화면 조회
+	*/
+	
+	SELECT	
+			BB.USER_ID		                    AS	CNSLTNT_ID		/** 상담자 아이디 **/
+		,	C##RG.DEC_B64(DD.FLNM_ENCPT)	    AS	CNSLTNT_NM		/** 상담자 이름 **/
+		,	CC.DEPT_NM		                    AS	DEPT_NM			/** 소속 부서 이름 **/
+		,	CASE 
+				WHEN AA.CONSTT_ID IS NULL 	THEN 'N'
+				ELSE							'Y'
+			END				                    AS	CKB_CONSTT_YN		/** 상담자 선택 여부 **/
+	FROM
+			AYC470		AA		/** 잇는 채팅 상담자 **/
+		,	SAA200		BB		/** 사용자 **/
+		,	SAA300		CC		/** 기관부서 **/
+		,	SCA100		DD		/** 종사자 **/
+	WHERE	1=1
+	<if test="deptCd != null and deptCd != ''">
+		<![CDATA[
+		AND	DD.OGDP_DEPT_CD 			= #{deptCd}
+		]]> 
+	</if>
+		AND	AA.CONSTT_ID(+)	=	BB.USER_ID
+		AND	DD.ENFSN_NO		=	BB.ENFSN_NO(+)         /* 종사자번호 */
+        AND DD.DEL_YN       =   'N'                    /* 종사자 삭제여부 */
+		AND	CC.DEPT_CD		=	DD.OGDP_DEPT_CD
+	</select>
+	
+	<delete id="deleteCnnctChatConstt">
+		DELETE    /* deleteCnnctChatConstt : isry.couns.mngr.consttChc.ConsttChcMapper : 잇는채팅 상담선택 부서 인원 삭제 */
+		FROM    
+		      AYC470      AA      /** 잇는채팅 상담자 **/
+		WHERE 1=1
+		  AND AA.CONSTT_ID        IN      (
+		                                  SELECT
+		                                          CC.USER_ID
+		                                  FROM
+		                                          SCA100      BB
+		                                      ,   SAA200      CC
+		                                  WHERE   1=1
+		                                      AND BB.OGDP_DEPT_CD     =       #{DEPT_CD}
+		                                      AND CC.ENFSN_NO         =       BB.ENFSN_NO
+		                                  )
+	</delete>
+	
+	<insert id="insertCnnctChatConstt">
+		INSERT
+			INTO	AYC470			/** 잇는채팅 상담자 **/
+			(
+					CONSTT_ID		/** 상담자 아이디 **/
+				,	CONSTT_NM_ENCPT		/** 상담자 이름 **/
+				,	REG_YMD				
+			)
+		VALUES
+			<foreach collection="list" item="item" index="index" separator=",">
+			<if test="item.CNSLTNT_ID != null and item.CNSLTNT_ID != ''
+					 and item.CNSLTNT_NM != null and item.CNSLTNT_NM != '' 
+					 and item.CKB_CONSTT_YN !='N'.toString() ">
+			<![CDATA[
+			(
+					#{item.CNSLTNT_ID}
+				,	#{item.CNSLTNT_NM}
+				,	TO_CHAR(SYSDATE,'YYYYMMDD')				
+			)
+			]]>
+			</if>
+			</foreach>
+	</insert>
+</mapper>

@@ -1,0 +1,1185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper">
+
+    <!-- 채팅오픈시간 조회 ResultMap -->
+    <resultMap id="chatOpenTimeMap" type="HashMap">
+       <result property="CHTT_OPEN_DT" column="CHTT_OPEN_DT" javaType="java.sql.Timestamp" />
+       <result property="LATEN_TM" column="LATEN_TM" javaType="java.lang.Integer" />
+    </resultMap>
+    
+    <!-- 채팅종료시간 조회 ResultMap -->
+    <resultMap id="chatCloseTimeMap" type="HashMap">
+       <result property="CHTT_END_DT" column="CHTT_END_DT" javaType="java.sql.Timestamp" />
+    </resultMap>
+    
+    <!-- 상담사 퇴근시간 조회 ResultMap -->
+    <resultMap id="cnsltntLeaveTime" type="HashMap">
+       <result property="LVFFC_PRCS_DT" column="LVFFC_PRCS_DT" javaType="java.sql.Timestamp" />
+    </resultMap>
+    
+    <select id="selectMntrngReprtsList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectMntrngReprtsList - 개발지원팀 이태호  */
+        SELECT A.MNTRNG_NO          AS MNTRNG_NO
+              ,A.WRTR_ID            AS WRTR_ID
+              ,A.CRT_YMD            AS CRT_YMD
+              ,C##RG.DEC_B64(C.FLNM_ENCPT) AS WRTR_NM 
+              ,COUNT(*)    OVER()      AS      TOTAL_COUNT
+          FROM AYC400 A, SAA200 B, SCA100 C
+         WHERE 1 = 1
+           AND A.WRTR_ID = B.USER_ID
+           AND B.ENFSN_NO = C.ENFSN_NO
+           AND A.DEL_YN = 'N'     
+        <if test='wrtrNmEncpt != null and wrtrNmEncpt != ""'>
+        <![CDATA[
+           AND C.FLNM_ENCPT = C##RG.ENC_B64(#{wrtrNmEncpt})  
+           ]]>
+        </if>        
+        <if test="startDt != '' and endDt != ''">
+        <![CDATA[
+           AND A.CRT_YMD BETWEEN #{startDt}
+           AND #{endDt}
+           ]]>
+        </if>    
+        ORDER BY
+               A.CRT_YMD    DESC      
+        OFFSET 
+        #{START_IDX}    ROWS FETCH NEXT
+        #{ROW_COUNT}    ROWS ONLY   /** 페이징 처리 **/          
+    </select>
+    
+    <select id="selectCnsltntWorkSchdlList" parameterType="paramMap" resultType="resultMap">
+        WITH VIEW_CNSLTNT_WORK_SCHDL AS (
+        <include refid="isry.couns.cmmn.mapper.CounsMapper.viewCnsltntWorkSchedule" />
+        )
+        , VIEW_VCATN_APLY_HISTB AS (
+        <include refid="isry.couns.cmmn.mapper.CounsMapper.viewCnsltntVcatnAplyHistb" />
+        )
+        SELECT  /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectCnsltntWorkSchdlList : 상담사 근무일정 및 휴가 조회 */
+		    WL.WORK_YMD                                 /* 근무일자 */
+		    , WL.BGNG_HR                                /* 시작시간 */
+            , WL.END_HR                                 /* 종료시간 */
+            , TO_CHAR(WL.WORK_BGNG_DT, 'YYYY-MM-DD HH24:MI:SS') AS WORK_BGNG_DT /* 근무시작일시 */
+            , TO_CHAR(WL.WORK_END_DT, 'YYYY-MM-DD HH24:MI:SS')  AS WORK_END_DT /* 근무종료일시 */
+            , WL.HR_WORK_TYPE_SE_CD1                    /* 시간근무유형구분코드1 */
+            , WL.HR_WORK_TYPE_SE_CD2                    /* 시간근무유형구분코드2 */
+		    , WL.CNSLTNT_ID                             /* 상담사아이디 */
+		    , WL.TASKWK_TYPE_DEPT_CD AS OGDP_DEPT_CD    /* 소속부서코드 */
+		    , WR.TASKWK_REPRTS_INDEX_SN                 /* 업무보고서색인일련번호 */
+		    , CASE 
+		        WHEN (
+		              SELECT  COUNT(*) 
+		              FROM    VIEW_VCATN_APLY_HISTB VA
+		              WHERE   VA.USER_ID         =        WL.CNSLTNT_ID
+		              AND     WL.WORK_YMD     BETWEEN     VA.VCATN_BGNG_YMD 
+		                                        AND       VA.VCATN_END_YMD
+		             ) > 0 THEN '휴가' 
+		        ELSE ''
+		      END             AS CHTT_OPEN_HR_CN  /* 채팅오픈시간내용 */
+		FROM VIEW_CNSLTNT_WORK_SCHDL WL
+            , AYC300 WR /* 업무보고서 */
+		WHERE WL.WORK_YMD = #{WORK_YMD}
+		AND WL.CNSLTNT_ID = WR.CNSLTNT_ID(+)
+        AND WL.WORK_YMD = WR.WORK_YMD(+)
+		ORDER BY WL.BGNG_HR ASC
+    </select>
+    
+    <select id="selectMntrngReprtsDataList" parameterType="paramMap" resultType="resultMap">
+    /* 
+     * SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectMntrngReprtsDataList : 일간 모니터링 보고서 데이터 및 상담사 근무일정 및 휴가 목록 조회
+     * 2023.05.24 추가 - Jeong.Won.Je
+     */
+		WITH VIEW_VCATN_APLY_HISTB AS (
+		<include refid="isry.couns.cmmn.mapper.CounsMapper.viewCnsltntVcatnAplyHistb" />
+		)
+		SELECT  T1.MNTRNG_DATAA_NO                                                  AS  MNTRNG_DATAA_NO
+		        , T1.TASKWK_RPT_CNSLTNT_ID                                          AS  CNSLTNT_ID
+		        , T1.OGDP_DEPT_CD                                                   AS  OGDP_DEPT_CD
+		        , T3.TASKWK_REPRTS_INDEX_SN                                         AS  TASKWK_REPRTS_INDEX_SN
+		        , T1.WORK_YMD                                                       AS  WORK_YMD
+		        , T1.JOB_BGNG_TM                                                    AS  BGNG_HR
+		        , T1.JOB_END_TM                                                     AS  END_HR
+		        , TO_CHAR(TO_DATE(T1.WORK_YMD || T1.JOB_BGNG_TM, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')   AS  WORK_BGNG_DT
+		        , CASE
+		            WHEN SIGN(ABS(SUBSTR(T1.JOB_END_TM, 0, 2)) - ABS(SUBSTR(T1.JOB_BGNG_TM, 0, 2))) = -1 THEN TO_CHAR(TO_DATE(T1.WORK_YMD || T1.JOB_END_TM, 'YYYY-MM-DD HH24:MI:SS') + 1, 'YYYY-MM-DD HH24:MI:SS')
+		            ELSE TO_CHAR(TO_DATE(T1.WORK_YMD || T1.JOB_END_TM, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')
+		          END                                                               AS  WORK_END_DT
+		        , CASE
+		            WHEN T2.COPA_INDEX_SN IS NOT NULL THEN '휴가'
+		            ELSE ''
+		          END                                                               AS  CHTT_OPEN_HR_CN
+		FROM    AYC410                      T1
+		LEFT OUTER JOIN 
+		        VIEW_VCATN_APLY_HISTB       T2
+		ON      T2.USER_ID          =           T1.TASKWK_RPT_CNSLTNT_ID
+		AND     T1.WORK_YMD         BETWEEN     T2.VCATN_BGNG_YMD
+		                            AND         T2.VCATN_END_YMD
+		LEFT OUTER JOIN
+		        AYC300                      T3
+		ON      T3.WORK_YMD         =       T1.WORK_YMD
+		AND     T3.CNSLTNT_ID       =       T1.TASKWK_RPT_CNSLTNT_ID
+		WHERE   T1.MNTRNG_NO        =       #{MNTRNG_NO}
+    </select>
+    
+    <select id="selectNotExistsByOutrcCnTnLog" parameterType="paramMap" resultType="java.lang.String">
+    <![CDATA[
+        WITH TMP AS (
+		    SELECT
+		        TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS') AS WORK_BGNG_DT
+		    FROM DUAL
+		)
+        /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectNotExistsByOutrcCnTnLog : 접속이력여부 확인 (사이버아웃리치) */
+		SELECT CASE WHEN NOT EXISTS (
+		    SELECT COUNT(1)
+		    FROM SAB930 /* 접속로그 */, TMP
+		    WHERE FRST_RGTR_ID = #{CNSLTNT_ID}     /* 상담사아이디 */
+		    AND TO_CHAR(FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS')
+		        BETWEEN TO_CHAR(TMP.WORK_BGNG_DT - (INTERVAL '120' MINUTE), 'YYYY-MM-DD HH24:MI:SS')
+		            AND TO_CHAR(TMP.WORK_BGNG_DT + (INTERVAL '4' HOUR), 'YYYY-MM-DD HH24:MI:SS') 
+		) THEN '1' ELSE '0' END AS NOT_EXIST_NUM FROM DUAL
+    ]]>
+    </select>
+    
+    <select id="selectChatOpenTime" parameterType="paramMap" resultMap="chatOpenTimeMap">
+    /* 
+     * SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectChatOpenTime : 채팅 오픈시간 조회 
+     * 2023.05.22 수정 - Jeong.Won.Je
+     */
+		WITH TMP AS
+		(
+		 SELECT
+		        TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS')             AS  WORK_BGNG_DT
+		        , TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS') - 1/24    AS  INQ_BGNG_DT
+		        , TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS') + 4/24    AS  INQ_END_DT
+		 FROM
+		        DUAL
+		)
+		SELECT
+		        T.CHTT_OPEN_DT                                                                AS  CHTT_OPEN_DT    /* 채팅오픈일시 */
+		        , NVL(C##RG.SA_FN_DATEDIFF('MI', T.WORK_BGNG_DT, T.CHTT_OPEN_DT), 0)       AS  LATEN_TM        /* 지각시각 (분) */
+                , CASE
+                      WHEN T.CHTT_OPEN_DT IS NULL THEN '결근'
+                      ELSE ''
+                  END                                                                         AS  CHTT_OPEN_HR_CN /* 채팅오픈시간내용 */
+		FROM    (
+		         SELECT A.CNSLTNT_ID            AS  ID
+		                , A.DSCSN_STTS_SE_CD    AS  CD
+		                , TMP.WORK_BGNG_DT      AS  WORK_BGNG_DT
+		                , A.CHG_DT              AS  CHTT_OPEN_DT          /* 채팅오픈일시 */
+		         FROM   AYB202  A
+		                , TMP
+		         WHERE  1=1
+		         AND    A.DSCSN_STTS_SE_CD IN ('10', '15')
+		         AND    A.CNSLTNT_ID = #{CNSLTNT_ID}
+		         AND    A.CHG_DT    BETWEEN     TMP.INQ_BGNG_DT
+		                            AND         TMP.INQ_END_DT
+		         ORDER BY A.CNSLTNT_ID, A.CHG_DT ASC
+		         FETCH FIRST 1 ROWS ONLY
+		        )   T
+    </select>
+    
+    <!-- <select id="selectChatOpenTime" parameterType="paramMap" resultMap="chatOpenTimeMap">
+    <choose>
+        <when test='CNTN_LOG_NOT_EXIST != null and CNTN_LOG_NOT_EXIST == "0"'>
+    <![CDATA[
+        WITH TMP AS (
+		    SELECT
+		        TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS') AS WORK_BGNG_DT
+		    FROM DUAL
+		)
+        SELECT  /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectChatOpenTime : 채팅 오픈시간 조회 */
+	        CHTT_OPEN_DT AS CHTT_OPEN_DT     /* 채팅오픈일시 */
+	        , NVL(C##RG.SA_FN_DATEDIFF('MI', WORK_BGNG_DT, CHTT_OPEN_DT), 0) AS LATEN_TM /* 지각시각 (분) */
+	        , CASE WHEN CHTT_OPEN_DT IS NULL THEN '결근' 
+	            ELSE '' END AS CHTT_OPEN_HR_CN          /* 채팅오픈시간내용 */
+	    FROM (
+	        SELECT
+	            A.FRST_REG_DT AS CHTT_OPEN_DT     /* 채팅오픈일시 */
+	            , TMP.WORK_BGNG_DT
+	        FROM SAB930 A   /* 접속로그 */, TMP
+	        WHERE A.FRST_RGTR_ID = #{CNSLTNT_ID}       /* 상담사아이디 */
+	        AND TO_CHAR(A.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS')
+	            BETWEEN TO_CHAR(TMP.WORK_BGNG_DT - (INTERVAL '120' MINUTE), 'YYYY-MM-DD HH24:MI:SS')
+	                AND TO_CHAR(TMP.WORK_BGNG_DT + (INTERVAL '4' HOUR), 'YYYY-MM-DD HH24:MI:SS') 
+	        ORDER BY A.FRST_REG_DT ASC
+	        FETCH FIRST 1 ROWS ONLY     /* TOP 1 */
+	    ) T
+    ]]> 
+        </when>
+        <otherwise>
+    <![CDATA[
+        WITH TMP AS (
+            SELECT
+                TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS') AS WORK_BGNG_DT
+            FROM DUAL
+        )
+        SELECT    /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectChatOpenTime : 채팅 오픈시간 조회 */
+            BGNG_DT AS CHTT_OPEN_DT     /* 채팅오픈일시 */
+            , NVL(C##RG.SA_FN_DATEDIFF('MI', WORK_BGNG_DT, BGNG_DT), 0) AS LATEN_TM  /* 지각시각 (분) */
+            , CASE WHEN BGNG_DT IS NULL THEN '결근' 
+              ELSE '' END AS CHTT_OPEN_HR_CN          /* 채팅오픈시간내용 */
+        FROM (
+            SELECT
+                A.BGNG_DT           /* 시작일시 */
+                , TMP.WORK_BGNG_DT
+            FROM AYB240 A         /* 심플_로그_룸 */, TMP
+            WHERE A.CNSLTNT_ID = #{CNSLTNT_ID}    /* 상담사아이디 */
+            AND TO_CHAR(A.BGNG_DT, 'YYYY-MM-DD HH24:MI:SS')
+                BETWEEN TO_CHAR(TMP.WORK_BGNG_DT - (INTERVAL '120' MINUTE), 'YYYY-MM-DD HH24:MI:SS')
+                    AND TO_CHAR(TMP.WORK_BGNG_DT + (INTERVAL '4' HOUR), 'YYYY-MM-DD HH24:MI:SS')
+            ORDER BY A.BGNG_DT ASC
+            FETCH FIRST 1 ROWS ONLY   /* TOP 1 */
+        ) T
+    ]]>
+        </otherwise>
+    </choose>
+    </select> -->
+    
+    <select id="selectChatCloseTime" parameterType="paramMap" resultMap="chatCloseTimeMap">
+    /* 
+     * SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectChatCloseTime : 채팅 종료시간 조회
+     * 2023.05.23 수정 - Jeong.Won.Je 
+     */
+		WITH TMP AS (
+		 SELECT TO_DATE(#{WORK_END_DT}, 'YYYY-MM-DD HH24:MI:SS') AS WORK_END_DT
+		 FROM   DUAL
+		)
+		SELECT
+		        A.CHTT_END_DT
+		        , A.CHRO_NO
+		        , A.CNSLTNT_ID
+		        , ABS(C##RG.SA_FN_DATEDIFF('SS', A.CHTT_END_DT, TMP.WORK_END_DT))
+		FROM    AYB200  A
+		        , TMP
+		WHERE   1=1
+		AND     A.CNSLTNT_ID      =           #{CNSLTNT_ID}
+		AND     A.CHTT_END_DT   BETWEEN       TMP.WORK_END_DT - 4/24
+		                          AND         TMP.WORK_END_DT + 1
+		ORDER BY ABS(C##RG.SA_FN_DATEDIFF('SS', A.CHTT_END_DT, TMP.WORK_END_DT)) ASC
+		FETCH FIRST 1 ROWS ONLY
+    </select>
+    
+    <!-- <select id="selectChatCloseTime" parameterType="paramMap" resultMap="chatCloseTimeMap">
+    <![CDATA[
+        WITH TMP AS (
+            SELECT
+                TO_DATE(#{WORK_END_DT}, 'YYYY-MM-DD HH24:MI:SS') AS WORK_END_DT
+            FROM DUAL
+        )
+        SELECT    /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectChatCloseTime : 채팅 종료시간 조회 */
+            END_DT AS CHTT_END_DT     /* 채팅종료일시 */
+        FROM (
+            SELECT
+                A.END_DT        /* 종료일시 */
+            FROM AYB240 A       /* 심플_로그_룸 */, TMP
+            WHERE A.CNSLTNT_ID = #{CNSLTNT_ID}    /* 상담사아이디 */
+            AND TO_CHAR(A.END_DT, 'YYYY-MM-DD HH24:MI:SS')
+                BETWEEN TO_CHAR(TMP.WORK_END_DT - (INTERVAL '4' HOUR), 'YYYY-MM-DD HH24:MI:SS')
+                    AND TO_CHAR(TMP.WORK_END_DT + (INTERVAL '1' DAY), 'YYYY-MM-DD HH24:MI:SS')
+            ORDER BY ABS(C##RG.SA_FN_DATEDIFF('SS', A.END_DT, TMP.WORK_END_DT)) ASC
+            FETCH FIRST 1 ROWS ONLY   /* TOP 1 */
+        ) T
+    ]]>
+    </select> -->
+    
+    <select id="selectChatUnestaTime" parameterType="paramMap" resultType="resultMap">
+    /* 
+     * SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectChatUnestaTime : 채팅 미개설시각 조회 
+     */
+		WITH TMP AS (
+		 SELECT
+		        TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS')         AS  WORK_BGNG_DT
+		        , TO_DATE(#{WORK_END_DT}, 'YYYY-MM-DD HH24:MI:SS')        AS  WORK_END_DT
+		 FROM
+		        DUAL
+		)
+		SELECT
+		        <![CDATA[
+		        CASE
+		            WHEN CHTT_UNESTA_VAL > 0 THEN TO_CHAR(TO_DATE(MOD(CHTT_UNESTA_VAL, 86400), 'SSSSS'), 'HH24:MI')
+		            ELSE ''
+		        END         AS  CHTT_UNESTA_TM
+		        ]]>
+		FROM    (
+		         SELECT
+		                <if test='CONSTT_BREAK_HR == null or CONSTT_BREAK_HR == ""'>
+		                T.WORK_DIFF_TIME - SUM(T.CHTT_DIFF_TIME)                                    AS  CHTT_UNESTA_VAL
+		                </if>
+		                <if test='CONSTT_BREAK_HR != null and CONSTT_BREAK_HR != ""'>
+                        T.WORK_DIFF_TIME - SUM(T.CHTT_DIFF_TIME) - (#{CONSTT_BREAK_HR} * 60)        AS  CHTT_UNESTA_VAL
+                        </if>
+		         FROM   
+		                (
+		                 SELECT
+		                        C##RG.SA_FN_DATEDIFF('SS', TMP.WORK_BGNG_DT, TMP.WORK_END_DT)    AS  WORK_DIFF_TIME
+		                        , CASE
+		                            WHEN C##RG.SA_FN_DATEDIFF('MI', A.CHTT_END_DT, TMP.WORK_END_DT) > 0
+		                              THEN C##RG.SA_FN_DATEDIFF('SS', A.CHTT_BGNG_DT, A.CHTT_END_DT)
+		                            ELSE C##RG.SA_FN_DATEDIFF('SS', A.CHTT_BGNG_DT, TMP.WORK_END_DT)
+		                          END                                                               AS  CHTT_DIFF_TIME
+		                 FROM   
+		                        AYB200  A
+		                        , TMP
+		                 WHERE  1=1
+		                 AND    A.CNSLTNT_ID           =        #{CNSLTNT_ID}
+		                 AND    A.CHTT_BGNG_DT      BETWEEN     TMP.WORK_BGNG_DT - 1/24
+		                                              AND       TMP.WORK_END_DT + 1/24
+		                )   T
+		         GROUP BY T.WORK_DIFF_TIME
+		        )
+    </select>
+    
+    <!-- <select id="selectChatUnestaTime" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+        WITH TMP AS (
+		    SELECT
+		        TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS') AS WORK_BGNG_DT
+		        , TO_DATE(#{WORK_END_DT}, 'YYYY-MM-DD HH24:MI:SS') AS WORK_END_DT
+		    FROM DUAL
+		)
+		SELECT    /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectChatUnestaTime : 채팅 미개설시각 조회 */
+		    CASE WHEN CHTT_UNESTA_VAL > 0 THEN
+		        TO_CHAR(TO_DATE(MOD(CHTT_UNESTA_VAL, 86400), 'SSSSS'), 'HH24:MI')
+		        ELSE ''
+		    END AS CHTT_UNESTA_TM   /* 채팅미개설시각 */
+		FROM (
+		    SELECT
+		        T.WORK_DIFF_TIME - SUM(T.CHTT_DIFF_TIME) AS CHTT_UNESTA_VAL /* 채팅미개설시각_값 (초단위) */
+		    FROM (
+		        SELECT
+		            C##RG.SA_FN_DATEDIFF('SS', TMP.WORK_BGNG_DT, TMP.WORK_END_DT) AS WORK_DIFF_TIME
+		            , C##RG.SA_FN_DATEDIFF('SS', A.BGNG_DT, A.END_DT) AS CHTT_DIFF_TIME
+		        FROM AYB240 A       /* 심플_로그_룸 */, TMP
+		        WHERE A.CNSLTNT_ID = #{CNSLTNT_ID}   /* 상담사아이디 */
+		        AND TO_CHAR(A.BGNG_DT, 'YYYY-MM-DD HH24:MI:SS')
+		            BETWEEN #{CHTT_OPEN_DT} AND #{CHTT_END_DT}
+		    ) T
+		    GROUP BY T.WORK_DIFF_TIME
+		)
+    ]]>
+    </select> -->
+    
+    <select id="selectRestTime" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+    /* 
+     * SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectRestTime : 휴게시간 조회 
+     */
+	    WITH TMP AS (
+	        SELECT
+	                #{CNSLTNT_ID}                                           AS  ID
+	                , TO_DATE(#{WORK_BGNG_DT}, 'YYYY-MM-DD HH24:MI:SS')     AS  WORK_BGNG_DT
+	                , TO_DATE(#{WORK_END_DT}, 'YYYY-MM-DD HH24:MI:SS')      AS  WORK_END_DT
+	        FROM
+	                DUAL
+	    )
+		SELECT  ID                                                                              AS  USER_ID
+		        , SUM(TERM_TIME)                                                                AS  TOTAL_BREAK_TIME
+		FROM    (
+		         SELECT ID
+		                , CD
+		                , TO_CHAR(CHG_DT, 'YYYYMMDDHH24MISS')                                   AS  CURR_CHG_DT
+		                , TO_CHAR(LEAD(CHG_DT) OVER(ORDER BY ID, CHG_DT), 'YYYYMMDDHH24MISS')   AS  NEXT_CHG_DT
+		                , NVL(ROUND((LEAD(CHG_DT) OVER ( ORDER BY ID,CHG_DT ) - CHG_DT) * 24 * 60,0),0)     AS  TERM_TIME
+		         FROM   (
+		                 SELECT  TMP.ID                                   ID,  
+		                         A.DSCSN_STTS_SE_CD                       CD,
+		                         A.CHG_DT                                 CHG_DT
+		                 FROM    AYB202     A
+		                         , TMP
+		                 WHERE   1=1
+		                 AND     A.DSCSN_STTS_SE_CD   IN      ('10','11','14','15')
+		                 AND     A.CNSLTNT_ID         =       TMP.ID
+		                 AND     A.CHG_DT          BETWEEN    TMP.WORK_BGNG_DT - 1/24
+		                                             AND      TMP.WORK_END_DT
+		                 UNION ALL      
+		                 SELECT  TMP.ID                                     ID,  
+		                         '99'                                       CD,
+		                         TMP.WORK_END_DT                            CHG_DT
+		                 FROM    TMP
+		                 ORDER BY ID,CHG_DT
+		                )
+		        )
+		WHERE   CD = '11'
+		AND     TERM_TIME != '0'
+		GROUP BY ID
+		]]>
+    </select>
+    
+    <select id="selectCnsltntLeaveTime" parameterType="paramMap" resultMap="cnsltntLeaveTime">
+    /* 
+     * SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectCnsltntLeaveTime : 상담사 퇴근시간 조회 
+     */
+    <![CDATA[
+        WITH TMP AS (
+            SELECT
+                TO_DATE(#{WORK_END_DT}, 'YYYY-MM-DD HH24:MI:SS') AS WORK_END_DT
+            FROM DUAL
+        )
+		SELECT    
+		    LVFFC_DT AS LVFFC_PRCS_DT   /* 퇴근처리일시 */
+		FROM AYC495 /* 상담원출퇴근관리 */, TMP
+		WHERE CONSTT_ID = #{CNSLTNT_ID}   /* 상담사아이디 */
+		AND TO_CHAR(LVFFC_DT, 'YYYY-MM-DD HH24:MI:SS')
+		    BETWEEN TO_CHAR(TMP.WORK_END_DT - (INTERVAL '4' HOUR), 'YYYY-MM-DD HH24:MI:SS')
+		        AND TO_CHAR(TMP.WORK_END_DT + (INTERVAL '4' HOUR), 'YYYY-MM-DD HH24:MI:SS') 
+		ORDER BY ABS(C##RG.SA_FN_DATEDIFF('SS', LVFFC_DT, TMP.WORK_END_DT)) ASC
+		FETCH FIRST 1 ROWS ONLY     /* TOP 1 */
+    ]]>
+    </select>
+    
+    <insert id="insertMntrngReprts" parameterType="paramMap" keyProperty="MNTRNG_NO" useGeneratedKeys="false">
+    <![CDATA[
+        /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.insertMntrngReprts : 모니터링보고서 등록 */
+        INSERT INTO AYC400 (
+		    MNTRNG_NO               /* 모니터링번호 */
+		    , WRTR_ID               /* 작성자아이디 */
+		    , CRT_YMD               /* 생성일자 */
+		    , ONTJ_CNSLTNT_ID       /* 작업중상담사아이디 */
+		    , JOB_END_CNSLTNT_ID    /* 작업종료상담사아이디 */
+		    , JOB_RPT_CN            /* 작업보고내용 */
+		    , TASKWK_RPT_CNSLTNT_NM_ENCPT   /* 업무보고상담사명암호화 */
+		    , ACTNA_NM              /* 액션명 (AS-IS: 2021년 11기 여자 청소년?)*/
+		    , OGDP_DEPT_CD          /* 소속부서코드 */
+		    , FRST_RGTR_ID          /* 최초등록자아이디 */
+		    , FRST_REG_DT           /* 최초등록일시 */
+		    , LAST_MDFR_ID          /* 최종수정자아이디 */
+		    , LAST_MDFCN_DT         /* 최종수정일시 */
+		) VALUES (
+		    AYC400_SQ01.NEXTVAL     /* 모니터링번호 */
+		    , #{WRTR_ID}            /* 작성자아이디 */
+		    , #{CRT_YMD}            /* 생성일자 */
+		    , #{ONTJ_CNSLTNT_ID}    /* 작업중상담사아이디 */
+		    , #{JOB_END_CNSLTNT_ID} /* 작업종료상담사아이디 */
+		    , #{JOB_RPT_CN}         /* 작업보고내용 */
+		    , #{TASKWK_RPT_CNSLTNT_NM}  /* 업무보고상담사명암호화 */
+		    , #{ACTNA_NM}           /* 액션명 */
+		    , #{OGDP_DEPT_CD}       /* 소속부서코드 */
+		    , #{RGTR_ID}            /* 최초등록자아이디 */
+		    , SYSDATE               /* 최초등록일시 */
+		    , #{RGTR_ID}            /* 최종수정자아이디 */
+		    , SYSDATE               /* 최종등록일시 */
+		)
+    ]]>
+    <selectKey resultType="java.lang.Long" keyProperty="MNTRNG_NO" order="AFTER">
+    <![CDATA[
+        SELECT AYC400_SQ01.CURRVAL AS MNTRNG_NO
+        FROM DUAL 
+    ]]>
+    </selectKey>
+    </insert>
+    
+    <insert id="insertMntrngReprtsData" parameterType="paramMap">
+    <![CDATA[
+        /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.insertMntrngReprtsData : 모니터링보고서 데이터 등록 */
+        INSERT INTO AYC410 (
+		    MNTRNG_NO                   /* 모니터링번호 */
+		    , MNTRNG_DATAA_NO           /* 모니터링데이터번호 */
+		    , WORK_YMD                  /* 근무일자 */
+		    , JOB_BGNG_TM               /* 작업시작시각 */
+		    , JOB_END_TM                /* 작업종료시각 */
+		    , TASKWK_RPT_CNSLTNT_ID     /* 업무보고상담사아이디 */
+		    , TASKWK_REPRTS_INDEX_SN    /* 업무보고서색인일련번호 */
+		    , CHTT_OPEN_HR_CN           /* 채팅오픈시간내용 */
+		    , CHTT_OPEN_DT              /* 채팅오픈일시 */
+		    , CHTT_END_TM               /* 채팅종료시각 */
+		    , CHTT_END_DT               /* 채팅종료일시 */
+		    , LVFFC_PRCS_DT             /* 퇴근처리일시 */
+		    , CHTT_UNESTA_TM            /* 채팅미개설시각 */
+		    , CONSTT_BREAK_HR           /* 상담자휴게시간 */
+		    , OGDP_DEPT_CD              /* 소속부서코드 */
+		    , FRST_RGTR_ID              /* 최초등록자아이디 */
+		    , FRST_REG_DT               /* 최초등록일시 */
+		    , LAST_MDFR_ID              /* 최종수정자아이디 */
+		    , LAST_MDFCN_DT             /* 최종수정일시 */
+		)
+    ]]>
+        VALUES
+        <foreach collection="params" item="model" separator=", ">
+        (
+            #{model.MNTRNG_NO}                /* 모니터링번호 */
+            , AYC410_SQ01.NEXTVAL             /* 모니터링데이터번호 */
+            , #{model.WORK_YMD}               /* 근무일자 */
+            , #{model.BGNG_HR}                /* 작업시작시각 */
+            , #{model.END_HR}                 /* 작업종료시각 */
+            , #{model.CNSLTNT_ID}             /* 업무보고상담사아이디 */
+            , #{model.TASKWK_REPRTS_INDEX_SN} /* 업무보고서색인일련번호 */
+            , #{model.CHTT_OPEN_HR_CN}        /* 채팅오픈시간내용 */
+            , TO_DATE(#{model.CHTT_OPEN_DT}, 'YYYY-MM-DD HH24:MI:SS')   /* 채팅오픈일시 */
+            , #{model.CHTT_END_TM}            /* 채팅종료시각 */
+            , TO_DATE(#{model.CHTT_END_DT}, 'YYYY-MM-DD HH24:MI:SS')    /* 채팅종료일시 */
+            , #{model.LVFFC_PRCS_DT}          /* 퇴근처리일시 */
+            , #{model.CHTT_UNESTA_TM}         /* 채팅미개설시각 */
+            , #{model.CONSTT_BREAK_HR}        /* 상담자휴게시간 */
+            , #{model.OGDP_DEPT_CD}           /* 소속부서코드 */
+            , #{model.RGTR_ID}                /* 최초등록자아이디 */
+            , SYSDATE                         /* 최초등록일시 */
+            , #{model.RGTR_ID}                /* 최종수정자아이디 */
+            , SYSDATE                         /* 최종등록일시 */
+        )
+        </foreach>
+    </insert>
+    
+    <select id="selectCyberDscsnList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectCyberDscsnList - 개발지원팀 이태호  */
+        WITH TMP_BREAKTIME AS (
+		    SELECT  /* 상담사 휴게시간조회 가상테이블 */
+		        CNSLTNT_ID  /* 상담사아이디 */
+		        , REST_HR   /* 휴식시간 (초) */
+		    FROM AYB220 /* 상담사상담중휴게시간 */
+		    WHERE 1=1
+		    AND DEL_YN = 'N'
+		    AND TO_CHAR(BGNG_DT, 'YYYYMMDD') = #{CRT_YMD}
+		)
+		, TMP_OVRTIME_WORK_APLY AS (
+		    SELECT  /* 시간외근무신청내역 조회 가상테이블 */
+		        CHRO_NO         /* 채팅방번호 */
+		        , CNSLTNT_ID    /* 상담사아이디 */
+		    FROM AYB200 /* 채팅이력 */
+		    WHERE 1=1
+		    AND DEL_YN = 'N'
+		    AND OVTIME_WORK_YMD = #{CRT_YMD}    /* 시간외근무일자 */
+		)
+        SELECT
+		    A.MNTRNG_NO                                         /* 모니터링번호 */
+		    , A.MNTRNG_DATAA_NO                                 /* 모니터링데이터번호 */
+		    , A.WORK_YMD                                        /* 근무일자 */
+		    , A.JOB_BGNG_TM                                     /* 작업시작시각 */
+		    , A.JOB_END_TM                                      /* 작업종료시각 */
+		    , A.TASKWK_RPT_CNSLTNT_ID                           /* 업무보고상담사아이디 */
+		    , C##RG.DEC_B64(W.FLNM_ENCPT) AS TASKWK_RPT_CNSLTNT_NM             /* 업무보고상담사명 */
+		    , A.TASKWK_REPRTS_INDEX_SN                          /* 업무보고서색인일련번호 */
+		    , NVL(B.NTABRD_RLS_NOCS, 0) AS NTABRD_RLS_NOCS      /* 게시판공개건수 */
+		    , NVL(B.NTABRD_CLSDR_NOCS, 0) AS NTABRD_CLSDR_NOCS  /* 비밀게시판건수 */
+		    , NVL(B.NTABRD_DAUM_NOCS, 0) AS NTABRD_DAUM_NOCS    /* 다음게시판건수 */
+		    , NVL(B.NTABRD_NAVER_NOCS, 0) AS NTABRD_NAVER_NOCS  /* 게시판네이버건수 */
+		    , NVL(B.JAM_PSTG_NOCS, 0) AS JAM_PSTG_NOCS          /* JAM게시건수 */
+		    , NVL(B.CHTT_NOCS, 0) AS CHTT_NOCS                  /* 채팅건수 */
+		    , NVL(B.NTABRD_NOCS, 0) AS CMNT_NOCS                /* 댓글건수 */
+		    , NVL(B.NTABRD_SLRBT_PRFMNC_NOCS, 0) AS NTABRD_SLRBT_PRFMNC_NOCS /* 게시판솔로봇실적건수 */
+		    , NVL(B.CMNT_SLRBT_PRFMNC_NOCS, 0) AS SLRBT_CMNT_NOCS   /* 솔로봇댓글건수 */
+		    , CASE WHEN E.CHRO_NO IS NOT NULL THEN 'Y' ELSE 'N'
+                END AS OVTIME_WORK_APLY_YN                          /* 시간외근무신청여부 */
+		    , A.CHTT_OPEN_HR_CN                                 /* 채팅오픈시간내용 */
+		    , A.CHTT_END_TM                                     /* 채팅종료시각 */
+		    , NVL(TO_CHAR(A.LVFFC_PRCS_DT, 'YYYY-MM-DD AM HH:MI:SS'), '-') AS LVFFC_DT    /* 퇴근일시 */
+		    , A.CHTT_UNESTA_TM                                  /* 채팅미개설시각 */
+		    , CASE WHEN A.CONSTT_BREAK_HR IS NULL THEN (
+		            SELECT TRUNC(MAX(REST_HR) / 60) FROM TMP_BREAKTIME
+		            WHERE CNSLTNT_ID = B.CNSLTNT_ID
+		        )
+		        ELSE A.CONSTT_BREAK_HR
+		    END AS CONSTT_BREAK_HR                              /* 상담자휴게시간 */
+		    , A.OGDP_DEPT_CD                                    /* 소속부서코드 */
+		    , B.ETC_DTL_CN                                AS  ETC_DTL_CN  /* 기타상세내용 */
+		FROM AYC410 A   /* 일간 모니터링 보고서 데이터 */
+		    , AYC300 B  /* 업무보고서 */
+		    , AYC100 C  /* 근무배정표_일별 */
+		    , (
+		        SELECT    /* 상담사 출퇴근체크 가상테이블 */
+		            CONSTT_ID AS CNSLTNT_ID         /* 상담사아이디 */
+		            , TO_CHAR(LVFFC_DT, 'YYYYMMDD') AS LVFFC_YMD    /* 퇴근일자 */
+		            , LVFFC_DT                      /* 퇴근일시 */
+		            , LVFFC_DT AS LVFFC_CHK_DT      /* 퇴근체크일시 */
+		            , INDEX_SN AS TASKWK_SCHDL_SN   /* 업무일정일련번호 */
+		        FROM AYC495 /* 상담원출퇴근관리 */
+		        WHERE 1=1
+		    ) D
+		    , TMP_OVRTIME_WORK_APLY E
+		    , SAA200 U  /* 사용자 */
+		LEFT JOIN SCA100 W /* 종사자 */ ON U.ENFSN_NO = W.ENFSN_NO   /* 종사자번호 */
+		WHERE 1=1
+		AND A.WORK_YMD = B.WORK_YMD(+)                 /* AYC300: 근무일자 */
+		AND A.TASKWK_REPRTS_INDEX_SN = B.TASKWK_REPRTS_INDEX_SN(+)  /* 업무보고서색인일련번호 */
+		AND A.TASKWK_RPT_CNSLTNT_ID = B.CNSLTNT_ID(+)   /* AYC300: 상담사아이디 */
+		AND B.TASKWK_SCHDL_SN = C.TASKWK_SCHDL_SN(+)    /* AYC100: 업무일정일련번호 */
+		AND C.TASKWK_SCHDL_SN = D.TASKWK_SCHDL_SN(+)    /* AYC420: 업무일정일련번호 */
+		AND C.USER_ID = D.CNSLTNT_ID(+)                 /* AYC420: 상담사아이디 */
+		AND B.CNSLTNT_ID = E.CNSLTNT_ID(+)              /* AYB200: 상담사아이디 */
+		AND U.USER_ID = A.TASKWK_RPT_CNSLTNT_ID         /* 사용자아이디 */
+		AND W.OGDP_DEPT_CD = '324'        /* 소속부서코드: 사이버상담(324) 으로 고정 */
+		AND A.MNTRNG_NO = #{MNTRNG_NO}    /* 모니터링번호 */
+		ORDER BY A.JOB_BGNG_TM, A.MNTRNG_DATAA_NO
+    ]]>
+    </select>
+    
+    <select id="selectOutreachList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectOutreachList - 개발지원팀 이태호  */
+        WITH TMP_BREAKTIME AS (
+            SELECT  /* 상담사 휴게시간조회 가상테이블 */
+                CNSLTNT_ID  /* 상담사아이디 */
+                , REST_HR   /* 휴식시간 (초) */
+            FROM AYB220 /* 상담사상담중휴게시간 */
+            WHERE 1=1
+            AND DEL_YN = 'N'
+            AND TO_CHAR(BGNG_DT, 'YYYYMMDD') = #{CRT_YMD}
+        )
+        , TMP_OVRTIME_WORK_APLY AS (
+            SELECT  /* 시간외근무신청내역 조회 가상테이블 */
+                CHRO_NO         /* 채팅방번호 */
+                , CNSLTNT_ID    /* 상담사아이디 */
+            FROM AYB200 /* 채팅이력 */
+            WHERE 1=1
+            AND DEL_YN = 'N'
+            AND OVTIME_WORK_YMD = #{CRT_YMD}    /* 시간외근무일자 */
+        )
+        SELECT
+		    A.MNTRNG_NO                                         /* 모니터링번호 */
+		    , A.MNTRNG_DATAA_NO                                 /* 모니터링데이터번호 */
+		    , A.WORK_YMD                                        /* 근무일자 */
+		    , A.JOB_BGNG_TM                                     /* 작업시작시각 */
+		    , A.JOB_END_TM                                      /* 작업종료시각 */
+		    , A.TASKWK_RPT_CNSLTNT_ID                           /* 업무보고상담사아이디 */
+		    , C##RG.DEC_B64(W.FLNM_ENCPT) AS TASKWK_RPT_CNSLTNT_NM             /* 업무보고상담사명 */
+		    , A.TASKWK_REPRTS_INDEX_SN                          /* 업무보고서색인일련번호 */
+		    , NVL(B.MSNGR_NOCS, 0) AS OUTRC_MSNGR_NOCS          /* 아웃리치메신저건수 */
+		    , NVL(B.CMNT_DSCSN_NOCS, 0) AS OUTRC_CMNT_DSCSN_NOCS/* 아웃리치댓글상담건수 */
+		    , NVL(B.PR_NOCS, 0) AS OUTRC_PR_NOCS                /* 아웃리치홍보건수 */
+		    , CASE WHEN E.CHRO_NO IS NOT NULL THEN 'Y' ELSE 'N'
+                END AS OVTIME_WORK_APLY_YN                      /* 시간외근무신청여부 */
+		    , A.CHTT_OPEN_HR_CN                                 /* 채팅오픈시간내용 */
+		    , A.CHTT_OPEN_DT                                    /* 채팅오픈일시 */
+		    , A.CHTT_END_TM                                     /* 채팅종료시각 */
+		    , A.CHTT_END_DT                                     /* 채팅종료일시 */
+		    , NVL(TO_CHAR(A.LVFFC_PRCS_DT, 'YYYY-MM-DD AM HH:MI:SS'), '-') AS LVFFC_DT    /* 퇴근일시 */
+		    , A.CHTT_UNESTA_TM                                  /* 채팅미개설시각 */
+		    , CASE WHEN A.CONSTT_BREAK_HR IS NULL THEN (
+                    SELECT TRUNC(MAX(REST_HR) / 60) FROM TMP_BREAKTIME
+                    WHERE CNSLTNT_ID = B.CNSLTNT_ID
+                )
+                ELSE A.CONSTT_BREAK_HR
+            END AS CONSTT_BREAK_HR                              /* 상담자휴게시간 */
+		    , A.CONSTT_BREAK_HR                                 /* 상담자휴게시간 */
+		    , A.OGDP_DEPT_CD                                    /* 소속부서코드 */
+		    , B.ETC_DTL_CN                                AS  ETC_DTL_CN  /* 기타상세내용 */
+		FROM AYC410 A   /* 일간 모니터링 보고서 데이터 */
+		    , AYC300 B  /* 업무보고서 */
+		    , AYC100 C    /* 근무배정표_일별 */
+		    , (
+		        SELECT    /* 상담사 출퇴근체크 가상테이블 */
+                    CONSTT_ID AS CNSLTNT_ID         /* 상담사아이디 */
+                    , TO_CHAR(LVFFC_DT, 'YYYYMMDD') AS LVFFC_YMD    /* 퇴근일자 */
+                    , LVFFC_DT                      /* 퇴근일시 */
+                    , LVFFC_DT AS LVFFC_CHK_DT      /* 퇴근체크일시 */
+                    , INDEX_SN AS TASKWK_SCHDL_SN   /* 업무일정일련번호 */
+                FROM AYC495 /* 상담원출퇴근관리 */
+                WHERE 1=1
+		    ) D
+		    , TMP_OVRTIME_WORK_APLY E
+		    , SAA200 U  /* 사용자 */
+		LEFT JOIN SCA100 W /* 종사자 */ ON U.ENFSN_NO = W.ENFSN_NO   /* 종사자번호 */
+		WHERE 1=1
+		AND A.WORK_YMD = B.WORK_YMD(+)                    /* AYC300: 근무일자 */
+		AND A.TASKWK_REPRTS_INDEX_SN = B.TASKWK_REPRTS_INDEX_SN(+)  /* 업무보고서색인일련번호 */
+		AND A.TASKWK_RPT_CNSLTNT_ID = B.CNSLTNT_ID(+)   /* AYC300: 상담사아이디 */
+		AND B.TASKWK_SCHDL_SN = C.TASKWK_SCHDL_SN(+)    /* AYC100: 업무일정일련번호 */
+		AND C.TASKWK_SCHDL_SN = D.TASKWK_SCHDL_SN(+)    /* AYC420: 업무일정일련번호 */
+		AND C.USER_ID = D.CNSLTNT_ID(+)                 /* AYC420: 상담사아이디 */
+		AND B.CNSLTNT_ID = E.CNSLTNT_ID(+)              /* AYB200: 상담사아이디 */
+		AND U.USER_ID = A.TASKWK_RPT_CNSLTNT_ID         /* 사용자아이디 */
+		AND W.OGDP_DEPT_CD = '325'        /* 소속부서코드: 사이버아웃리치(325) 으로 고정 */
+		AND A.MNTRNG_NO = #{MNTRNG_NO}    /* 모니터링번호 */
+		ORDER BY A.JOB_BGNG_TM, A.MNTRNG_DATAA_NO
+    ]]>
+    </select>
+    
+    <select id="selectMobileList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectMobileList - 개발지원팀 이태호  */
+        SELECT
+		    A.MNTRNG_NO                                         /* 모니터링번호 */
+		    , A.MNTRNG_DATAA_NO                                 /* 모니터링데이터번호 */
+		    , A.WORK_YMD                                        /* 근무일자 */
+		    , A.JOB_BGNG_TM                                     /* 작업시작시각 */
+		    , A.JOB_END_TM                                      /* 작업종료시각 */
+		    , A.TASKWK_RPT_CNSLTNT_ID                           /* 업무보고상담사아이디 */
+		    , C##RG.DEC_B64(W.FLNM_ENCPT) AS TASKWK_RPT_CNSLTNT_NM             /* 업무보고상담사명 */
+		    , A.TASKWK_REPRTS_INDEX_SN                          /* 업무보고서색인일련번호 */
+		    , NVL(B.DSCSN_NOCS, 0) AS DSCSN_NOCS                /* 상담건수 */
+		    , NVL(B.CRISIS_LINK_NOCS, 0) AS CRISIS_LINK_NOCS    /* 위기연계건수 */
+		    , NVL(B.CRISIS_NOCS, 0) AS CRISIS_NOCS              /* 위기건수 */
+		    , NVL(B.LINK_NOCS, 0) AS LINK_NOCS                  /* 연계건수 */
+		    , NVL(B.AFTFCT_MNG_NOCS, 0) AS AFTFCT_MNG_NOCS      /* 사후관리건수 */
+		    , NVL(B.OPEN_CHRO_DSCSN_NOCS, 0) AS OPEN_CHRO_DSCSN_NOCS /* 오픈채팅방상담건수 */
+		    , B.OVTIME_WORK_APLY_HR                             /* 시간이외근무신청시간 */
+		    , CASE WHEN B.OVTIME_WORK_DT IS NOT NULL THEN 'Y' ELSE 'N'
+                END AS OVTIME_WORK_APLY_YN                      /* 시간외근무신청여부 */
+		    , CASE WHEN TO_CHAR(B.CHTT_ATENDB_DT, 'HH24:MI') IS NULL
+		        THEN A.CHTT_OPEN_HR_CN
+		        ELSE TO_CHAR(B.CHTT_ATENDB_DT, 'HH24:MI')
+		        END AS CHTT_OPEN_HR_CN      /* 채팅오픈시간내용 */
+		    , TO_CHAR(C.ATENDB_DT, 'HH24:MI') AS ATENDB_PRPARE_HR   /* 출근준비시간 */
+		    , NVL(TO_CHAR(C.LVFFC_DT, 'YYYY-MM-DD AM HH:MI:SS'), '-') AS LVFFC_DT   /* 퇴근일시 */
+		    , B.BREAK_HR                                        /* 휴게시간 */
+		    , NVL(TRUNC((B.OVTIME_WORK_DT - B.WORK_END_DT) * 24 * 60), 0) AS OVTIME_WORK_TM /* 시간외근무시간 */
+		    , NVL(TRUNC((B.CHTT_ATENDB_DT - B.WORK_BGNG_DT) * 24 * 60), 0) AS LATEN_TM      /* 지각시간 */
+            , NVL(TRUNC((C.ATENDB_DT - B.WORK_BGNG_DT) * 24 * 60), 0) AS DCLZ_LATEN_TM      /* 지각시간 (근태기록) */
+		    , A.OGDP_DEPT_CD                                    /* 소속부서코드 */
+		    , B.ETC_DTL_CN                                AS  ETC_DTL_CN  /* 기타상세내용 */
+		FROM AYC410 A   /* 일간 모니터링 보고서 데이터 */
+		    , AYC300 B  /* 업무보고서 */
+		    , AYC495 C  /* 모바일상담원퇴근관리 */
+		    , SAA200 U  /* 사용자 */
+		LEFT JOIN SCA100 W /* 종사자 */ ON U.ENFSN_NO = W.ENFSN_NO   /* 종사자번호 */
+		WHERE 1=1
+		AND A.WORK_YMD = B.WORK_YMD(+)
+		AND A.TASKWK_REPRTS_INDEX_SN = B.TASKWK_REPRTS_INDEX_SN(+)
+		AND A.TASKWK_RPT_CNSLTNT_ID = B.CNSLTNT_ID(+)
+		AND B.TASKWK_SCHDL_SN = C.INDEX_SN(+)
+		AND U.USER_ID = A.TASKWK_RPT_CNSLTNT_ID
+		AND W.OGDP_DEPT_CD = '326'        /* 소속부서코드: 모바일상담(326) 으로 고정 */
+		AND A.MNTRNG_NO = #{MNTRNG_NO}    /* 모니터링번호 */
+		ORDER BY A.JOB_BGNG_TM, A.MNTRNG_DATAA_NO
+    ]]>
+    </select>
+    
+    <select id="selectMntrngReprtsDetail" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+        SELECT  /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectMntrngReprtsDetail : 모니터링보고서 상세 조회 */
+		    A.MNTRNG_NO                             /* 모니터링번호 */
+		    , A.WRTR_ID                             /* 작성자아이디 */
+		    , C##RG.DEC_B64(W.FLNM_ENCPT) AS WRTR_FLNM             /* 작성자성명 */
+		    , A.CRT_YMD AS WRT_YMD                  /* 작성일자 */
+		    , NVL(A.LATEN_NOCS, 0) AS LATEN_NOCS    /* 지각건수 */
+		    , A.LATEN_CN                            /* 지각내용 */
+		    , NVL(A.ABSENC_NOCS, 0) AS ABSENC_NOCS  /* 결근건수 */
+		    , A.ABSENC_CN                           /* 결근내용 */
+		    , NVL(A.UNLGT_NOCS, 0) AS UNLGT_NOCS    /* 미로그아웃건수 */
+		    , A.UNLGT_CN                            /* 미로그아웃내용 */
+		    , A.DCLZ_MEMO_CN                        /* 근태메모내용 */
+		    , NVL(A.CRISIS_LINK_NOCS, 0) AS CRISIS_LINK_NOCS /* 위기연계건수 */
+		    , A.CRISIS_INTRVN_CN                    /* 위기개입내용 */
+		    , NVL(A.THPTY_PVSN_HISTB_NOCS, 0) AS THPTY_PVSN_HISTB_NOCS         /* 제3자제공내역건수 */
+		    , NVL(A.TASKWK_REPRTS_WRT_NOCS, 0) AS TASKWK_REPRTS_WRT_NOCS       /* 업무보고서작성건수 */
+		    , NVL(A.TASKWK_REPRTS_UNWRIT_NOCS, 0) AS TASKWK_REPRTS_UNWRIT_NOCS /* 업무보고서미작성건수 */
+		    , A.TASKWK_REPRTS_CN                                /* 업무보고서내용 */
+		    , NVL(A.SECRE_CMNT_NOCS, 0) AS SECRE_CMNT_NOCS      /* 비밀댓글건수 */
+		    , NVL(A.NAWR_ALTMNT_NOCS, 0) AS NAWR_ALTMNT_NOCS    /* 네이버글배정건수 */
+		    , NVL(A.NAWR_ALTMNT_RJCT_NOCS, 0) AS NAWR_ALTMNT_RJCT_NOCS  /* 네이버글배정반려건수 */
+		    , NVL(A.OPEN_CHRO_RETE_NOCS, 0) AS OPEN_CHRO_RETE_NOCS      /* 오픈채팅방답글건수 */
+		    , NVL(A.OPEN_CHRO_STOFPR_NOCS, 0) AS OPEN_CHRO_STOFPR_NOCS  /* 오픈채팅방고민글건수 */
+		    , NVL(A.CYBER_DSCSN_EPILG_NOCS, 0) AS CYBER_DSCSN_EPILG_NOCS    /* 사이버상담후기건수 */
+		    , NVL(A.VOC_NOCS, 0) AS VOC_NOCS    /* 고객의소리건수 */
+		    , A.VOC_CN                      /* 고객의소리내용 */
+		    , A.ETC_PRTCLR_MATTER_CN        /* 기타특이사항내용 */
+		    , A.ONTJ_CNSLTNT_ID             /* 작업중상담사아이디 (+ AS-IS 사용유무 파악필요!) */
+		    , A.JOB_END_CNSLTNT_ID          /* 작업종료상담사아이디 (+ AS-IS 사용유무 파악필요!) */
+		    , A.JOB_RPT_CN                  /* 작업보고내용 (+ AS-IS 사용유무 파악필요!) */
+		    , A.TASKWK_RPT_CNSLTNT_NM_ENCPT AS TASKWK_RPT_CNSLTNT_NM    /* 업무보고상담사명암호화 (미사용) */
+		    , A.ACTNA_NM                    /* 액션명 (+ AS-IS 사용유무 파악필요!) */
+		    , A.OGDP_DEPT_CD                /* 소속부서코드 (+ AS-IS 사용유무 파악필요!) */
+		    , A.INST_GROUP_CNRS_YN          /* 기관그룹공유여부 (+ AS-IS 사용유무 파악필요!) */
+		    , A.MDFCN_YMD                   /* 수정일자 */
+		    , A.DEL_YN                      /* 삭제여부 */
+		    , A.FRST_RGTR_ID                /* 최초등록자아이디 */
+		    , TO_CHAR(A.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT /* 최초등록자아이디 */
+		    , A.LAST_MDFR_ID                /* 최종수정자아이디 */
+		    , TO_CHAR(A.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT /* 최종수정일시 */
+		FROM AYC400 A /* 일간 모니터링 보고서 */
+		    , SAA200 U  /* 사용자 */
+		    , SCA100 W  /* 종사자 */
+		WHERE A.MNTRNG_NO = #{MNTRNG_NO}      /* 모니터링번호 */
+		AND A.WRTR_ID = U.USER_ID(+)          /* 사용자아이디 */
+		AND U.ENFSN_NO = W.ENFSN_NO(+)        /* 종사자번호 */
+		AND A.DEL_YN = 'N'                    /* 삭제여부 */
+    ]]>
+    </select>
+    
+    <select id="selectOpenChroNocs" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+	    SELECT /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectOpenChroNocs : 오픈채팅방 답글 및 고민글 등록 건수 조회 (모바일상담) */
+		    NVL(COUNT(RETE_ESNTAL_NO), 0) AS OPEN_CHRO_RETE_NOCS            /* 오픈채팅방답글건수 */
+		    , NVL(COUNT(BBSCTT_ESNTAL_NO), 0) AS OPEN_CHRO_STOFPR_NOCS      /* 오픈채팅방고민글건수 */
+		FROM (
+		    SELECT
+		        C.RETE_ESNTAL_NO            /* 답글고유번호 */
+		        , B.BBSCTT_ESNTAL_NO        /* 게시글고유번호 */
+		    FROM AYC410 A   /* 일간 모니터링 보고서 데이터 */
+		        , AYE100 B  /* 사이버상담게시글 */
+		        , AYE120 C  /* 사이버상담답글 */
+		    WHERE 1=1
+		    AND B.BBSCTT_ESNTAL_NO = C.BBSCTT_ESNTAL_NO(+)          /* 게시글고유번호 */
+		    AND B.BBSCTT_TYPE_SE_CD = C.BBSCTT_TYPE_SE_CD(+)        /* 게시글유형구분코드 */
+		    AND B.BBSCTT_TYPE_SE_CD = '18'  /* 게시글유형구분코드: 18 (오픈채팅 - tbl_openchatting) */
+		    AND A.TASKWK_RPT_CNSLTNT_ID = C.FRST_RGTR_ID            /* 상담사아이디 */
+		    AND TO_CHAR(B.FRST_REG_DT, 'YYYYMMDD') = A.WORK_YMD     /* 근무일자 */
+		    AND A.MNTRNG_NO = #{MNTRNG_NO}                          /* 모니터링번호 */
+		) T
+    ]]>
+    </select>
+    
+    <select id="selectDclzMngSttsList" parameterType="paramMap" resultType="resultMap">
+    /* 
+     * SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectDclzMngSttsList : 근태관리 목록 조회 
+     * 2023.05.24 수정 - Jeong.Won.Je
+     */
+		SELECT  T1.TASKWK_RPT_CNSLTNT_ID                AS  CNSLTNT_ID
+		        , C##RG.DEC_B64(T3.FLNM_ENCPT)       AS  CNSLTNT_FLNM
+		        , T3.OGDP_DEPT_CD                       AS  OGDP_DEPT_CD
+		        , CASE
+		            WHEN T1.CHTT_OPEN_HR_CN LIKE '%지각%' THEN 'Y'
+		            ELSE 'N'
+		          END                                   AS  LATEN_YN
+		        , CASE
+		            WHEN T1.CHTT_OPEN_HR_CN LIKE '%결근%' THEN 'Y'
+		            ELSE 'N'
+		          END                                   AS  ABSENC_YN
+		        , CASE
+		            WHEN T1.CHTT_OPEN_HR_CN NOT LIKE '%휴가%' AND LVFFC_PRCS_DT IS NULL THEN 'Y'
+		            ELSE 'N'
+		          END                                   AS  UNLGT_YN
+		FROM    AYC410      T1  /* 일간 모니터링 보고서 데이터 */
+		        , SAA200    T2  /* 사용자 */
+		        , SCA100    T3  /* 종사자 */
+		WHERE   T1.MNTRNG_NO    =   #{MNTRNG_NO}
+		AND     T2.USER_ID      =   T1.TASKWK_RPT_CNSLTNT_ID
+		AND     T3.ENFSN_NO     =   T2.ENFSN_NO
+    </select>
+    
+    <!-- <select id="selectDclzMngSttsList" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+	    SELECT /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectDclzMngSttsList : 근태관리 목록 조회 */
+		    CASE WHEN C##RG.SA_FN_DATEDIFF('MI', WORK_BGNG_DT, CHTT_ATENDB_DT) > 0 THEN 'Y'
+		        ELSE 'N' END AS LATEN_YN        /* 지각여부 */
+		    , CASE WHEN ATENDB_DT IS NULL AND CHTT_ATENDB_DT IS NULL THEN 'Y'
+		        ELSE 'N' END AS ABSENC_YN       /* 결근여부 */
+		    , CASE WHEN LVFFC_DT IS NULL THEN 'Y' ELSE 'N' END AS UNLGT_YN  /* 미로그아웃여부 */ 
+		    , FLNM_ENCPT AS CNSLTNT_FLNM            /* 상담사성명 */
+		    , TASKWK_TYPE_DEPT_CD AS OGDP_DEPT_CD   /* 소속부서코드 */
+		FROM (
+		    SELECT
+		        TO_DATE(A.WORK_YMD || B.BGNG_HR, 'YYYYMMDD HH24:MI') AS WORK_BGNG_DT    /* 근무시작일시 */
+		        , D.CHTT_ATENDB_DT          /* 채팅출근일시 */
+		        , C.ATENDB_DT               /* 출근일시 */
+		        , C.LVFFC_DT                /* 퇴근일시 */
+		        , W.FLNM_ENCPT              /* 성명암호화 */
+		        , A.TASKWK_TYPE_DEPT_CD     /* 업무유형부서코드 */
+		    FROM AYC100 A   /* 근무배정표_일별 */
+		        , AYC110 B  /* 근무배정표_월별 */
+		        , AYC495 C  /* 상담원출퇴근관리 */
+		        , AYC300 D  /* 업무보고서 */
+		        , SAA200 U  /* 사용자 */
+		LEFT JOIN SCA100 W /* 종사자 */ ON U.ENFSN_NO = W.ENFSN_NO   /* 종사자번호 */
+		    WHERE 1=1
+		    AND A.BIZ_PLAN_MNG_NO = B.BIZ_PLAN_MNG_NO   /* 사업계획관리번호 */
+		    AND A.TASKWK_SCHDL_SN = C.INDEX_SN(+)       /* AYC495: 업무일정일련번호 */
+		    AND C.INDEX_SN = D.TASKWK_SCHDL_SN(+)       /* AYC300: 업무일정일련번호 */
+		    AND U.USER_ID = A.USER_ID(+)                /* SAA200: 사용자아이디 */
+		    AND A.WORK_YMD = (SELECT MAX(WORK_YMD) FROM AYC410 WHERE MNTRNG_NO = #{MNTRNG_NO}) /* 근무일자 */
+		    AND A.WORK_YMD NOT IN (SELECT VCATN_BGNG_YMD
+		                        FROM AYC130     /* 사이버1388휴가 */
+		                        WHERE USER_ID = A.USER_ID
+		                        AND LENGTH(VCATN_BGNG_YMD) <> 0
+		                        AND APRV_STTS_SE_CD = '2'
+		    )
+		) T
+		ORDER BY WORK_BGNG_DT ASC
+    ]]>
+    </select> -->
+    
+    <select id="selectCrisisLinkNocs" parameterType="paramMap" resultType="java.lang.Integer">
+    <![CDATA[
+        SELECT  /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectCrisisLinkNocs : 위기 및 연계 건수 조회 */
+		    NVL(COUNT(*), 0) AS CRISIS_LINK_NOCS  /* 위기 및 연계 건수 */
+		FROM (
+		    SELECT INDEX_SN, CONSTT_ID
+		    FROM AYA120 A   /* 위기상담_개인 */
+		    WHERE BBSCTT_TYPE_SE_CD IN ('01', '02', '05', '06', '07', '24', '31')   /* 사이버상담 */
+		    AND TO_CHAR(A.FRST_REG_DT, 'YYYYMMDD') = #{CRT_YMD}   /* 생성일자 */
+		    AND A.DEL_YN = 'N'      /* 삭제여부 */
+		    AND A.CRISIS_TYPE_SE_CD IS NOT NULL
+		    UNION ALL
+		    SELECT INDEX_SN, CONSTT_ID
+		    FROM AYA120 A   /* 위기상담_개인 */
+		    WHERE BBSCTT_TYPE_SE_CD IN ('91')   /* 모바일상담 */
+		    AND TO_CHAR(FRST_REG_DT, 'YYYYMMDD') = #{CRT_YMD}     /* 생성일자 */
+		    AND A.DEL_YN = 'N'      /* 삭제여부 */
+		    AND A.CRISIS_TYPE_SE_CD IS NOT NULL
+		    UNION ALL
+		    SELECT INDEX_SN, CONSTT_ID
+		    FROM AYA190 A   /* 사후관리 */
+		    WHERE BBSCTT_TYPE_SE_CD IN ('91')   /* 모바일상담 */
+		    AND A.DEL_YN = 'N'      /* 삭제여부 */
+		    AND TO_CHAR(A.FRST_REG_DT, 'YYYYMMDD') = #{CRT_YMD}   /* 생성일자 */
+		) CR
+    ]]>
+    </select>
+    
+    <select id="selectThptyPvsnHistbNocs" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+        SELECT  /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectThptyPvsnHistbNocs : 제3자 제공내역 건수 조회 (모바일상담) */
+		    NVL(SUM(YNGBGS_DSCSN_WLFAR_CNTER_DRCT_RQST_VAL), 0) AS YNGBGS_DSCSN_WLFAR_CNTER_DRCT_RQST_NOCS /* 청소년상담복지센터_직접의뢰건수 */
+		    , NVL(SUM(FAM_DRCT_RQST_VAL), 0) AS FAM_DRCT_RQST_DRCT_RQST_NOCS    /* 가족_직접의뢰건수 */
+		    , NVL(SUM(DT_CACE_SHELTR_DRCT_RQST_VAL), 0) AS DT_CACE_SHELTR_DRCT_RQST_NOCS    /* 일시보호소쉼터_직접의뢰건수 */
+		    , NVL(SUM(EMRG_RESC_DRCT_RQST_VAL), 0) AS EMRG_RESC_DRCT_RQST_NOCS      /* 긴급구조_직접의뢰건수 */
+		    , NVL(SUM(LEADER_DRCT_RQST_VAL), 0) AS LEADER_DRCT_RQST_NOCS        /* 지도자_직접의뢰건수 */
+		    , NVL(SUM(ETC_SPCLTY_INST_DRCT_RQST_VAL), 0) AS ETC_SPCLTY_INST_DRCT_RQST_NOCS  /* 기타전문기관_직접의뢰건수 */
+		FROM (
+		    SELECT
+		        CASE WHEN YNGBGS_DSCSN_WLFAR_CNTER_RQST_MTHD_SE_CD = '1' THEN 1
+		            ELSE 0 END AS YNGBGS_DSCSN_WLFAR_CNTER_DRCT_RQST_VAL    /* 청소년상담복지센터_직접의뢰값 */
+		        , CASE WHEN FAM_RQST_MTHD_SE_CD = '1' THEN 1
+		            ELSE 0 END AS FAM_DRCT_RQST_VAL /* 가족_직접의뢰값 */
+		        , CASE WHEN DT_CACE_SHELTR_RQST_MTHD_SE_CD = '1' THEN 1
+		            ELSE 0 END AS DT_CACE_SHELTR_DRCT_RQST_VAL  /* 일시보호소쉼터_직접의뢰값 */
+		        , CASE WHEN EMRG_RESC_RQST_MTHD_SE_CD = '1' THEN 1
+		            ELSE 0 END AS EMRG_RESC_DRCT_RQST_VAL   /* 긴급구조_직접의뢰값 */
+		        , CASE WHEN LEADER_RQST_MTHD_SE_CD = '1' THEN 1
+		            ELSE 0 END AS LEADER_DRCT_RQST_VAL  /* 지도자_직접의뢰값 */
+		        , CASE WHEN ETC_SPCLTY_INST_RQST_MTHD_SE_CD = '1' THEN 1
+		            ELSE 0 END AS ETC_SPCLTY_INST_DRCT_RQST_VAL /* 기타전문기관_직접의뢰값 */
+		    FROM AYC410 A   /* 일간 모니터링 보고서 데이터 */
+		        , AYA120 B  /* 위기상담_개인 */
+		    WHERE 1=1
+		    AND B.BBSCTT_TYPE_SE_CD = '91'              /* 모바일상담 */
+		    AND B.DSCSN_YMD = A.WORK_YMD                /* 상담일자 */
+		    AND A.TASKWK_RPT_CNSLTNT_ID = B.CONSTT_ID   /* 상담자아이디 */
+		    AND B.DEL_YN = 'N'                /* 삭제여부 */
+		    AND A.MNTRNG_NO = #{MNTRNG_NO}    /* 모니터링번호 */
+		) T
+    ]]>
+    </select>
+    
+    <select id="selectTaskwkReprtsWrtrList" parameterType="paramMap" resultType="resultMap">
+    <![CDATA[
+        SELECT  /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectTaskwkReprtsWrtrList : 업무보고서 작성자 목록 */
+		    B.TASKWK_REPRTS_INDEX_SN                  /* 업무보고서색인일련번호 */
+		    , CASE WHEN B.TASKWK_REPRTS_INDEX_SN IS NOT NULL THEN 'Y'
+		        ELSE 'N' END AS TASKWK_REPRTS_WRT_YN        /* 업무보고서작성여부 */
+		    , C##RG.DEC_B64(W.FLNM_ENCPT) AS CNSLTNT_FLNM          /* 상담사성명 */
+		FROM AYC410 A   /* 일간 모니터링 보고서 데이터 */
+		    , AYC300 B  /* 업무보고서 */
+		    , SAA200 U  /* 사용자 */
+		LEFT JOIN SCA100 W  /* 종사자 */ ON U.ENFSN_NO = W.ENFSN_NO   /* 종사자번호 */
+		WHERE 1=1
+		AND A.WORK_YMD = B.WORK_YMD(+)                  /* AYC300: 근무일자 */
+		AND A.TASKWK_REPRTS_INDEX_SN = B.TASKWK_REPRTS_INDEX_SN(+)  /* 업무보고서색인일련번호 */
+		AND A.TASKWK_RPT_CNSLTNT_ID = B.CNSLTNT_ID(+)   /* AYC300: 상담사아이디 */
+		AND U.USER_ID = A.TASKWK_RPT_CNSLTNT_ID         /* SAA200: 사용자아이디 */
+		AND A.CHTT_OPEN_HR_CN <> '휴가'
+		AND A.MNTRNG_NO = #{MNTRNG_NO}    /* 모니터링번호 */
+		ORDER BY A.TASKWK_REPRTS_INDEX_SN
+    ]]>
+    </select>
+    
+    <select id="selectCyberDscsnEpilgNocs" parameterType="paramMap" resultType="java.lang.Integer">
+    <![CDATA[
+        SELECT  /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectCyberDscsnEpilgNocs : 사이버상담후기 건수 조회 */
+            COUNT(*) CNT
+		FROM AYE120 A   /* 사이버상담답글 */
+		    , AYE100 B  /* 사이버상담게시글 */
+		WHERE 1=1
+		AND A.BBSCTT_ESNTAL_NO = B.BBSCTT_ESNTAL_NO         /* 게시글고유번호 */
+		AND A.BBSCTT_TYPE_SE_CD = B.BBSCTT_TYPE_SE_CD       /* 게시글유형구분코드 */
+		AND A.BBSCTT_TYPE_SE_CD = '12'  /* 게시글유형구분코드: 12 (사이버상담후기 - later) */
+		AND A.DEL_YN = 'N' 
+		AND TO_CHAR(A.FRST_REG_DT, 'YYYYMMDD') = #{CRT_YMD}     /* 근무일자 */ 
+    ]]>
+    </select>
+    
+    <select id="selectVocNocs" parameterType="paramMap" resultType="java.lang.Integer">
+    <![CDATA[
+	    SELECT /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectVocNocs : 고객의 소리 건수 조회 */
+		    COUNT(*) CNT
+		FROM AYE120 A   /* 사이버상담답글 */
+		    , AYE100 B  /* 사이버상담게시글 */
+		WHERE 1=1
+		AND A.BBSCTT_ESNTAL_NO = B.BBSCTT_ESNTAL_NO         /* 게시글고유번호 */
+		AND A.BBSCTT_TYPE_SE_CD = B.BBSCTT_TYPE_SE_CD       /* 게시글유형구분코드 */
+		AND A.BBSCTT_TYPE_SE_CD = '09'  /* 게시글유형구분코드: 09 (고객의소리 - customer) */
+		AND A.DEL_YN = 'N' 
+		AND TO_CHAR(A.FRST_REG_DT, 'YYYYMMDD') = #{CRT_YMD}     /* 근무일자 */ 
+    ]]>
+    </select>
+    
+    <!--
+    SELECT a.INDEX_SN            AS INDEX_SN
+              ,a.BBSCTT_ESNTAL_NO     AS BBSCTT_ESNTAL_NO
+              ,a.BBSCTT_TYPE_SE_CD    AS BBSCTT_TYPE_SE_CD  
+              ,b.MNTRNG_NO            AS MNTRNG_NO 
+        FROM AYA120 a /* 위기상담_개인 */
+            ,AYC410 b /* 일간 모니터링 보고서 데이터 */
+        WHERE 1=1
+          AND a.CONSTT_ID     = b.TASKWK_RPT_CNSLTNT_ID
+          AND TO_DATE(TO_CHAR(a.FRST_REG_DT, 'YYYYMMDDHH24MI'), 'YYYYMMDDHH24MI') BETWEEN TO_DATE(b.WORK_YMD||REPLACE(b.JOB_BGNG_TM,':',''),'YYYYMMDDHH24MI') AND TO_DATE(b.WORK_YMD||REPLACE(b.JOB_END_TM,':',''),'YYYYMMDDHH24MI')
+          AND a.BBSCTT_TYPE_SE_CD IN ('01', '02', '05', '06', '07', '24', '31', '91')
+          AND b.MNTRNG_NO     = #{MNTRNG_NO}  
+          AND a.DEL_YN        = 'N'   
+          AND b.DEL_YN        = 'N'
+     -->
+    <select id="selectCrisisLinkBbsctt" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectCrisisLinkBbsctt - 개발지원팀 이태호  */
+		  
+		SELECT
+		      INDEX_SN            AS INDEX_SN
+		      , BBSCTT_ESNTAL_NO     AS BBSCTT_ESNTAL_NO
+		      , BBSCTT_TYPE_SE_CD    AS BBSCTT_TYPE_SE_CD  
+		FROM  AYA120/* 위기상담_개인 */
+		WHERE 1=1
+		AND   TO_CHAR(FRST_REG_DT, 'YYYYMMDD') = #{CRT_YMD}     /* 근무일자 */
+		AND   BBSCTT_TYPE_SE_CD IN ('01', '02', '05', '06', '07', '24', '31', '91')
+		AND   DEL_YN        = 'N'
+		AND   CRISIS_TYPE_SE_CD IS NOT NULL
+		ORDER BY INDEX_SN ASC     
+    ]]>
+    </select>
+    
+    <select id="selectCrisisLinkTypeNocs" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        WITH TMP AS (
+		    SELECT
+		        A.INDEX_SN                /* 색인일련번호 */
+                , A.CRISIS_TYPE_SE_CD     /* 위기유형구분코드 */
+		    FROM AYA120 A   /* 위기상담_개인 */
+		    WHERE 1=1
+		    AND TO_CHAR(A.FRST_REG_DT, 'YYYYMMDD') = #{CRT_YMD}     /* 근무일자 */
+		    AND A.BBSCTT_TYPE_SE_CD IN ('01', '02', '05', '06', '07', '24', '31', '91')
+		    AND A.DEL_YN = 'N'     /* 삭제여부 */
+	        AND A.CRISIS_TYPE_SE_CD IS NOT NULL
+	   )
+	   SELECT /* isry.couns.mngr.mnngtrReprtsMng.mapper.MntrngReprtsMngMapper.selectCrisisLinkTypeNocs - 개발지원팀 이태호  */
+	       (SELECT COUNT(INDEX_SN) FROM TMP WHERE CRISIS_TYPE_SE_CD = '10') AS GNRL_NOCS       /* 일반건수 */
+	       , (SELECT COUNT(INDEX_SN) FROM TMP WHERE CRISIS_TYPE_SE_CD IN ('04', '05', '06', '07', '08', '09')) AS VIOLNC_NOCS /* 폭력건수 */
+	       , (SELECT COUNT(INDEX_SN) FROM TMP WHERE CRISIS_TYPE_SE_CD = '02') AS SUCDE_NOCS    /* 자살건수 */
+	       , (SELECT COUNT(INDEX_SN) FROM TMP WHERE CRISIS_TYPE_SE_CD = '01') AS PREGNA_NOCS   /* 임신건수 */
+	       , (SELECT COUNT(INDEX_SN) FROM TMP WHERE CRISIS_TYPE_SE_CD = '03') AS LVM_NOCS      /* 가출건수 */
+	       , (SELECT COUNT(INDEX_SN) FROM TMP WHERE CRISIS_TYPE_SE_CD = '99') AS ETC_NOCS      /* 기타건수 */
+	   FROM DUAL
+    ]]>
+    </select>
+    
+    <select id="selectTASKWKREPRTSINDEXSNList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectTASKWKREPRTSINDEXSNList */
+        
+        SELECT a.MNTRNG_NO                  AS MNTRNG_NO
+		      ,b.TASKWK_REPRTS_INDEX_SN     AS TASKWK_REPRTS_INDEX_SN     
+		      ,a.TASKWK_RPT_CNSLTNT_ID      AS TASKWK_RPT_CNSLTNT_ID
+		FROM AYC410 a /* 일간 모니터링 보고서 데이터 */
+		    ,AYC300 b /* 업무보고서 */
+		WHERE 1=1
+		  AND a.WORK_YMD              = b.WORK_YMD
+		  AND a.TASKWK_RPT_CNSLTNT_ID = b.CNSLTNT_ID
+		  AND a.MNTRNG_NO             = #{MNTRNG_NO}         
+    </select>
+    
+    <update id="UpdateTASKWKREPRTSINDEXSN" parameterType="HashMap">
+        
+        /* isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.UpdateTASKWKREPRTSINDEXSN - 개발지원팀 이태호  */
+        UPDATE AYC410 /* 일간 모니터링 보고서 데이터 */
+            SET TASKWK_REPRTS_INDEX_SN      = #{TASKWK_REPRTS_INDEX_SN} 
+              , LAST_MDFR_ID                = #{LAST_MDFR_ID}
+              , LAST_MDFCN_DT               = SYSDATE              
+            WHERE MNTRNG_NO                 = #{MNTRNG_NO}
+              AND TASKWK_RPT_CNSLTNT_ID     = #{TASKWK_RPT_CNSLTNT_ID}
+    </update>
+    
+    <select id="selectWorkAltMntCrtYmdCheckList" parameterType="HashMap" resultType="HashMap">
+        /* isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.selectWorkAltMntCrtYmdCheckList  */
+        SELECT CRT_YMD  AS CRT_YMD
+          FROM AYC400 
+         WHERE DEL_YN = 'N'     
+        <if test="CRT_YMD != '' and CRT_YMD != ''">
+        <![CDATA[
+           AND CRT_YMD = #{CRT_YMD}
+           ]]>
+        </if>           
+    </select>
+    
+    <delete id="deleteMntrngReprts" parameterType="paramMap">
+    <![CDATA[
+        /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.deleteMntrngReprts : 모니터링 보고서 삭제 */
+        DELETE FROM AYC400              /* 일간 모니터링 보고서 */
+        WHERE MNTRNG_NO = #{MNTRNG_NO}  /* 모니터링번호 */
+    ]]>
+    </delete>
+    
+    <delete id="deleteMntrngReprtsData" parameterType="paramMap">
+    <![CDATA[
+        /* SQL-ID : isry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.deleteMntrngReprtsData : 모니터링 보고서 데이터 삭제 */
+        DELETE FROM AYC410              /* 일간 모니터링 보고서 데이터 */
+        WHERE MNTRNG_NO = #{MNTRNG_NO}  /* 모니터링번호 */
+    ]]>
+    </delete>
+    
+    <update id="updateMntrngReprts" parameterType="paramMap">
+	    UPDATE AYC400  /* SQL-ID : sry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.updateMntrngReprts : 모니터링 보고서 수정처리 */
+        <set>
+            LATEN_NOCS = NVL(TO_NUMBER(#{LATEN_NOCS}), 0),              /* 지각건수 */
+            LATEN_CN = #{LATEN_CN},                                     /* 지각내용 */
+            ABSENC_NOCS = NVL(TO_NUMBER(#{ABSENC_NOCS}), 0),            /* 결근건수 */
+            ABSENC_CN = #{ABSENC_CN},                                   /* 결근내용 */
+            UNLGT_NOCS = NVL(TO_NUMBER(#{UNLGT_NOCS}), 0),              /* 미로그아웃건수 */
+            UNLGT_CN = #{UNLGT_CN},                                     /* 미로그아웃내용 */
+        <if test='FORCE_UPD_YN == "N"'>
+            DCLZ_MEMO_CN = #{DCLZ_MEMO_CN},                             /* 근태메모내용 */
+        </if>
+            CRISIS_LINK_NOCS = NVL(TO_NUMBER(#{CRISIS_LINK_NOCS}), 0),  /* 위기연계건수 */
+        <if test='FORCE_UPD_YN == "N"'>
+            CRISIS_INTRVN_CN = #{CRISIS_INTRVN_CN},                     /* 위기개입내용 */
+        </if>
+            THPTY_PVSN_HISTB_NOCS = NVL(TO_NUMBER(#{THPTY_PVSN_HISTB_NOCS}), 0),     /* 제3자제공내역건수 */
+            TASKWK_REPRTS_WRT_NOCS = NVL(TO_NUMBER(#{TASKWK_REPRTS_WRT_NOCS}), 0),   /* 업무보고서작성건수 */
+            TASKWK_REPRTS_UNWRIT_NOCS = NVL(TO_NUMBER(#{TASKWK_REPRTS_UNWRIT_NOCS}), 0),   /* 업무보고서미작성건수 */
+            TASKWK_REPRTS_CN = #{TASKWK_REPRTS_CN},                     /* 업무보고서내용 */
+            SECRE_CMNT_NOCS = NVL(TO_NUMBER(#{SECRE_CMNT_NOCS}), 0),    /* 비밀댓글건수 */
+            NAWR_ALTMNT_NOCS = NVL(TO_NUMBER(#{NAWR_ALTMNT_NOCS}), 0),  /* 네이버글배정건수 */
+            NAWR_ALTMNT_RJCT_NOCS = NVL(TO_NUMBER(#{NAWR_ALTMNT_RJCT_NOCS}), 0),     /* 네이버글배정반려건수 */
+            OPEN_CHRO_RETE_NOCS = NVL(TO_NUMBER(#{OPEN_CHRO_RETE_NOCS}), 0),         /* 오픈채팅방답글건수 */
+            OPEN_CHRO_STOFPR_NOCS = NVL(TO_NUMBER(#{OPEN_CHRO_STOFPR_NOCS}), 0),     /* 오픈채팅방고민글건수 */
+            CYBER_DSCSN_EPILG_NOCS = NVL(TO_NUMBER(#{CYBER_DSCSN_EPILG_NOCS}), 0),   /* 사이버상담후기건수 */
+            VOC_NOCS = NVL(TO_NUMBER(#{VOC_NOCS}), 0),                               /* 고객의소리건수 */
+        <if test='FORCE_UPD_YN == "N"'>
+            VOC_CN = #{VOC_CN},                                         /* 고객의소리내용 */
+        </if>
+        <if test='FORCE_UPD_YN == "N"'>
+            ETC_PRTCLR_MATTER_CN = #{ETC_PRTCLR_MATTER_CN},             /* 기타특이사항내용 */
+        </if>
+           MDFCN_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD'),                   /* 수정일자 */
+           LAST_MDFR_ID = #{LAST_MDFR_ID},                             /* 최종수정자아이디 */
+           LAST_MDFCN_DT = SYSDATE                                     /* 최종수정일시 */
+        </set> 
+		WHERE MNTRNG_NO = #{MNTRNG_NO}      /* 모니터링번호 */
+    </update>
+    
+    <update id="updateMntrngReprtsData" parameterType="HashMap">
+    /* 
+     * SQL-ID : sry.couns.mngr.mntrngReprtsMng.mapper.MntrngReprtsMngMapper.updateMntrngReprtsData : 모니터링 보고서 데이터 수정처리
+     * 2023.05.25 추가 - Jeong.Won.Je
+     */
+	    UPDATE
+	            AYC410
+	    <set>
+	        <if test='TASKWK_REPRTS_INDEX_SN != null and TASKWK_REPRTS_INDEX_SN != ""'>
+	            TASKWK_REPRTS_INDEX_SN  =   #{TASKWK_REPRTS_INDEX_SN},                             /* 업무보고서색인일련번호 */
+	        </if>
+	        <if test='CHTT_OPEN_HR_CN != null and CHTT_OPEN_HR_CN != ""'>
+	            CHTT_OPEN_HR_CN         =   #{CHTT_OPEN_HR_CN},                                    /* 채팅오픈시간내용 */
+	        </if>
+	        <if test='CHTT_OPEN_DT != null'>
+	            CHTT_OPEN_DT            =   TO_DATE(#{CHTT_OPEN_DT}, 'YYYY-MM-DD HH24:MI:SS'),     /* 채팅오픈일시 */
+	        </if>
+	        <if test='CHTT_END_TM != null and CHTT_END_TM != ""'>
+	            CHTT_END_TM             =   #{CHTT_END_TM},                                        /* 채팅종료시각 */
+	        </if>
+	        <if test='CHTT_END_DT != null'>
+	            CHTT_END_DT             =   TO_DATE(#{CHTT_END_DT}, 'YYYY-MM-DD HH24:MI:SS'),      /* 채팅종료일시 */
+	        </if>
+	        <if test='LVFFC_PRCS_DT != null'>
+	            LVFFC_PRCS_DT           =   #{LVFFC_PRCS_DT},                                      /* 퇴근처리일시 */
+	        </if>
+	        <if test='CHTT_UNESTA_TM != null and CHTT_UNESTA_TM != ""'>
+	            CHTT_UNESTA_TM          =   #{CHTT_UNESTA_TM},                                     /* 채팅미개설시각 */
+	        </if>
+	        <if test='CONSTT_BREAK_HR != null and CONSTT_BREAK_HR != ""'>
+	            CONSTT_BREAK_HR         =   #{CONSTT_BREAK_HR},                                    /* 상담자 휴게시간 */
+	        </if>
+	            LAST_MDFR_ID            =   #{RGTR_ID},                                            /* 최종수정자아이디 */
+	            LAST_MDFCN_DT           =   SYSDATE                                                /* 최종수정일시 */
+	    </set>
+	    WHERE   MNTRNG_DATAA_NO         =   #{MNTRNG_DATAA_NO}
+    </update>
+    
+</mapper>

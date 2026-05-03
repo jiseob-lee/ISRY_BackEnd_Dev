@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.itgcms.sysmgmt.membermanage.mapper.MemberManageMapper">
+
+	<select id="selectWorkerCount" parameterType="HashMap" resultType="Integer">
+	<![CDATA[
+		/* selectWorkerCount - Lee JiSeob */
+		
+		SELECT
+			
+			COUNT(*) AS CNT 
+		
+		FROM SCA100 C /* 종사자 */
+		
+		LEFT JOIN SAA200 D /* 사용자 */ ON D.ENFSN_NO = C.ENFSN_NO
+		
+		LEFT JOIN SAA000 E /* 통합기관 */ ON E.INST_NO = C.OGDP_INST_NO
+		
+        LEFT JOIN SAB230 F /* 사용자별 기관 권한 */ ON F.USER_ID = D.USER_ID AND F.MAIST_YN = 'Y'
+        
+	]]>
+		<where>
+			<if test="FLNM_ENCPT != null and FLNM_ENCPT != ''">
+	<![CDATA[
+				AND C##RG.DEC_B64(C.FLNM_ENCPT) LIKE '%' || #{FLNM_ENCPT} || '%'
+	]]>
+			</if>
+			<if test="MBL_TELNO_ENCPT != null and MBL_TELNO_ENCPT != ''">
+	<![CDATA[
+                AND REPLACE(C##RG.DEC_B64(C.MBL_TELNO_ENCPT), '-', '') LIKE '%' || REPLACE(#{MBL_TELNO_ENCPT}, '-', '') || '%'
+	]]>
+			</if>
+			<if test="EML_ADDR_ENCPT != null and EML_ADDR_ENCPT != ''">
+	<![CDATA[
+				AND C##RG.DEC_B64(C.EML_ADDR_ENCPT) LIKE '%' || #{EML_ADDR_ENCPT} || '%'
+	]]>
+			</if>
+			<if test="SXDC_SE_CD != null and SXDC_SE_CD != ''">
+	<![CDATA[
+				AND C.SXDC_SE_CD = #{SXDC_SE_CD}
+	]]>
+			</if>
+			<if test="NCKN_NM != null and NCKN_NM != ''">
+	<![CDATA[
+				AND C.NCKN_NM LIKE '%' || #{NCKN_NM} || '%'
+	]]>
+			</if>
+			<if test="USER_ID != null and USER_ID != ''">
+	<![CDATA[
+				AND D.USER_ID LIKE '%' || #{USER_ID} || '%'
+	]]>
+			</if>
+            <if test="USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ''">
+    <![CDATA[
+                AND D.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+    <![CDATA[
+                AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+            <if test="INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ''">
+    <![CDATA[
+                AND E.INST_TYPE_SE_CD = #{INST_TYPE_SE_CD}
+    ]]>
+            </if>
+            <if test="INST_NM != null and INST_NM != ''">
+    <![CDATA[
+                AND E.INST_NM LIKE '%' || #{INST_NM} || '%'
+    ]]>
+            </if>
+            <if test="GROUP_AUTHRT_SE_CD != null and GROUP_AUTHRT_SE_CD != ''">
+    <![CDATA[
+                AND F.GROUP_AUTHRT_SE_CD = #{GROUP_AUTHRT_SE_CD}
+    ]]>
+            </if>
+            <if test="AUTHRT_SE_CD != null and AUTHRT_SE_CD != ''">
+    <![CDATA[
+                AND F.AUTHRT_SE_CD = #{AUTHRT_SE_CD}
+    ]]>
+            </if>
+            <if test="SYS_MNGR_YN != null and SYS_MNGR_YN != ''">
+    <![CDATA[
+                AND F.SYS_MNGR_YN = #{SYS_MNGR_YN}
+    ]]>
+            </if>			
+		</where>
+
+	</select>
+	
+	
+	
+	<select id="selectWorker" parameterType="HashMap" resultType="HashMap">
+	<![CDATA[
+		/* selectWorker - Lee JiSeob */
+		
+		SELECT 
+		  SEQ, FLNM_ENCPT, MBL_TELNO_ENCPT, EML_ADDR_ENCPT, SXDC_SE_CD, BRTH_YMD, NCKN_NM, ENFSN_NO, USER_ID, USER_ID_USE_SE_CD, DEL_YN,
+		  INST_NM, INST_TYPE_SE_CD, UNT_TASKWK_SE_CD, /* 기관명, 기관유형, 단위업무구분코드 */
+		  GROUP_AUTHRT_SE_CD, AUTHRT_SE_CD, SYS_MNGR_YN
+		FROM
+		(
+		SELECT ROWNUM AS SEQ, FLNM_ENCPT, MBL_TELNO_ENCPT, EML_ADDR_ENCPT, SXDC_SE_CD, BRTH_YMD, NCKN_NM, ENFSN_NO, USER_ID, USER_ID_USE_SE_CD, DEL_YN,
+		INST_NM, INST_TYPE_SE_CD, UNT_TASKWK_SE_CD, /* 기관명, 기관유형, 단위업무구분코드 */
+		GROUP_AUTHRT_SE_CD, AUTHRT_SE_CD, SYS_MNGR_YN
+		FROM
+		(
+		SELECT
+		 	
+			C##RG.DEC_B64(C.FLNM_ENCPT) AS FLNM_ENCPT, 
+			C##RG.DEC_B64(C.MBL_TELNO_ENCPT) AS MBL_TELNO_ENCPT, 
+			C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR_ENCPT, 
+			C.SXDC_SE_CD, 
+			C.BRTH_YMD, 
+			C.NCKN_NM,
+			C.ENFSN_NO,
+			D.USER_ID,
+			D.USER_ID_USE_SE_CD,
+			C.DEL_YN,
+			E.INST_NM,   /* 기관명 */
+			E.INST_TYPE_SE_CD,   /* 기관유형 */
+			E.UNT_TASKWK_SE_CD,   /* 단위업무구분코드 */
+			F.GROUP_AUTHRT_SE_CD,
+			F.AUTHRT_SE_CD,
+			F.SYS_MNGR_YN
+		
+		FROM SCA100 C /* 종사자 */
+		
+		LEFT JOIN SAA200 D /* 사용자 */ ON D.ENFSN_NO = C.ENFSN_NO
+		
+		LEFT JOIN SAA000 E /* 통합기관 */ ON E.INST_NO = C.OGDP_INST_NO
+		
+		LEFT JOIN SAB230 F /* 사용자별 기관 권한 */ ON F.USER_ID = D.USER_ID AND F.MAIST_YN = 'Y'
+		
+	]]>
+		<where>
+			<if test="FLNM_ENCPT != null and FLNM_ENCPT != ''">
+	<![CDATA[
+				AND C.FLNM_ENCPT = C##RG.ENC_B64(#{FLNM_ENCPT})
+	]]>
+			</if>
+			<if test="MBL_TELNO_ENCPT != null and MBL_TELNO_ENCPT != ''">
+	<![CDATA[
+				AND REPLACE(C##RG.DEC_B64(C.MBL_TELNO_ENCPT), '-', '') LIKE '%' || REPLACE(#{MBL_TELNO_ENCPT}, '-', '') || '%'
+	]]>
+			</if>
+			<if test="EML_ADDR_ENCPT != null and EML_ADDR_ENCPT != ''">
+	<![CDATA[
+				AND C##RG.DEC_B64(C.EML_ADDR_ENCPT) LIKE '%' || #{EML_ADDR_ENCPT} || '%'
+	]]>
+			</if>
+			<if test="SXDC_SE_CD != null and SXDC_SE_CD != ''">
+	<![CDATA[
+				AND C.SXDC_SE_CD = #{SXDC_SE_CD}
+	]]>
+			</if>
+			<if test="NCKN_NM != null and NCKN_NM != ''">
+	<![CDATA[
+				AND C.NCKN_NM LIKE '%' || #{NCKN_NM} || '%'
+	]]>
+			</if>
+			<if test="USER_ID != null and USER_ID != ''">
+	<![CDATA[
+				AND D.USER_ID LIKE '%' || #{USER_ID} || '%'
+	]]>
+			</if>
+            <if test="USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ''">
+    <![CDATA[
+                AND D.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+            </if>
+            <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+    <![CDATA[
+                AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    ]]>
+            </if>
+			<if test="INST_TYPE_SE_CD != null and INST_TYPE_SE_CD != ''">
+	<![CDATA[
+	            AND E.INST_TYPE_SE_CD = #{INST_TYPE_SE_CD}
+	]]>
+			</if>
+            <if test="INST_NM != null and INST_NM != ''">
+    <![CDATA[
+                AND E.INST_NM LIKE '%' || #{INST_NM} || '%'
+    ]]>
+            </if>
+            <if test="GROUP_AUTHRT_SE_CD != null and GROUP_AUTHRT_SE_CD != ''">
+    <![CDATA[
+                AND F.GROUP_AUTHRT_SE_CD = #{GROUP_AUTHRT_SE_CD}
+    ]]>
+            </if>
+            <if test="AUTHRT_SE_CD != null and AUTHRT_SE_CD != ''">
+    <![CDATA[
+                AND F.AUTHRT_SE_CD = #{AUTHRT_SE_CD}
+    ]]>
+            </if>
+            <if test="SYS_MNGR_YN != null and SYS_MNGR_YN != ''">
+    <![CDATA[
+                AND F.SYS_MNGR_YN = #{SYS_MNGR_YN}
+    ]]>
+            </if>
+		</where>
+	<![CDATA[
+		
+		ORDER BY 
+			C.FRST_REG_DT DESC
+		) X1
+		) X2
+		WHERE SEQ >= #{START_IDX} AND SEQ <= #{LAST_IDX}
+
+	]]>
+	</select>
+	
+
+
+    <select id="selectYouthGuardianCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectYouthGuardianCount - Lee JiSeob */
+            
+        SELECT 
+            COUNT(*) AS CNT
+
+        FROM 
+            SCA200 C /* 청소년 보호자 */
+            LEFT JOIN SAA200 D /* 사용자 */ ON D.YNGBGS_PRTCR_NO = C.YNGBGS_PRTCR_NO
+
+        /*
+        WHERE
+            C.DEL_YN = 'N'
+            AND (D.JOIN_APRV_YN IS NULL OR JOIN_APRV_YN = 'Y')
+        */
+    ]]>
+    	<where>
+        <if test="YNGBGS_PRTCR_SE_CD != null and YNGBGS_PRTCR_SE_CD != ''">
+    <![CDATA[
+            AND C.YNGBGS_PRTCR_SE_CD = #{YNGBGS_PRTCR_SE_CD}
+    ]]>
+        </if>
+        <if test="FLNM != null and FLNM != ''">
+    <![CDATA[
+            AND C.FLNM_ENCPT = C##RG.ENC_B64(#{FLNM})
+    ]]>
+        </if>
+        <if test="MBL_TELNO != null and MBL_TELNO != ''">
+    <![CDATA[
+            AND C.MBL_TELNO_ENCPT = C##RG.ENC_B64(#{MBL_TELNO})
+    ]]>
+        </if>
+        <if test="EML_ADDR != null and EML_ADDR != ''">
+    <![CDATA[
+            AND C.EML_ADDR_ENCPT = C##RG.ENC_B64(#{EML_ADDR})
+    ]]>
+        </if>
+        <if test="SXDC_SE_CD != null and SXDC_SE_CD != ''">
+    <![CDATA[
+            AND C.SXDC_SE_CD = #{SXDC_SE_CD}
+    ]]>
+        </if>
+        <if test="RGN_CD != null and RGN_CD != ''">
+    <![CDATA[
+            AND C.RGN_CD = #{RGN_CD}
+    ]]>
+        </if>
+        <if test="USER_ID != null and USER_ID != ''">
+    <![CDATA[
+            AND D.USER_ID LIKE '%' || #{USER_ID} || '%'
+    ]]>
+        </if>
+        <if test="USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ''">
+    <![CDATA[
+            AND D.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+        </if>
+        </where>
+
+    </select>
+    
+
+
+    <select id="selectYouthGuardian" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectYouthGuardian - Lee JiSeob */
+            
+        SELECT 
+            C.YNGBGS_PRTCR_NO, 
+            C.INDV_IDNTFC_NO, 
+            C.YNGBGS_PRTCR_SE_CD, 
+            C.FLNM_ENCPT,
+            C##RG.DEC_B64(C.FLNM_ENCPT) AS FLNM,
+            C##RG.DEC_B64(C.FLNM_ENCPT) AS FLNM_MASKING, 
+            C.SXDC_SE_CD, 
+            C.BRTH_YMD, 
+            C.BRTH_YMD AS BRTH_YMD_MASKING,
+            C.WRD_TELNO, 
+            C.MBL_TELNO_ENCPT, 
+            C##RG.DEC_B64(C.MBL_TELNO_ENCPT) AS MBL_TELNO,
+            C##RG.DEC_B64(C.MBL_TELNO_ENCPT) AS MBL_TELNO_MASKING,
+            C.EML_ADDR_ENCPT, 
+            C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR,
+            C##RG.DEC_B64(C.EML_ADDR_ENCPT) AS EML_ADDR_MASKING,
+            C.ZIP, 
+            C.PST_ADDR, 
+            C.DADDR, 
+            C.STTY_AGT_NM_ENCPT,
+            C##RG.DEC_B64(C.STTY_AGT_NM_ENCPT) AS STTY_AGT_NM, 
+            C.STTY_AGT_CTTPC_TELNO, 
+            C.OCCP_NM, 
+            C.RGN_CD, 
+            C.INFO_PVSN_AGRE_YN1, 
+            C.INFO_PVSN_AGRE_YN2, 
+            C.DEL_YN, 
+            C.QLFC_INFO_MNG_NO, 
+            C.PSPT_ENG_FLNM_ENCPT,
+            C##RG.DEC_B64(C.PSPT_ENG_FLNM_ENCPT) AS PSPT_ENG_FLNM, 
+            C.TRPR_BCRN_TYPE_SE_CD, 
+            C.TRPR_BCRN_TYPE_RM_NM, 
+            C.NLTY_NTN_SE_CD, 
+            C.ENTCNY_YMD, 
+            C.BRTH_NTN_SE_CD, 
+            C.GROWTH_NTN_SE_CD, 
+            C.VISA_TYPE_SE_CD, 
+            C.HANAWO_PENU_NO, 
+            C.RELGN_SE_CD, 
+            C.FRST_RGTR_ID, 
+            TO_CHAR(C.FRST_REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS FRST_REG_DT,
+            C.LAST_MDFR_ID, 
+            TO_CHAR(C.LAST_MDFCN_DT, 'YYYY-MM-DD HH24:MI:SS') AS LAST_MDFCN_DT,
+            
+            D.USER_ID,
+            D.USER_ID_USE_SE_CD,
+            D.JOIN_RJCT_CS_CN
+        
+        FROM 
+            SCA200 C /* 청소년 보호자 */
+            LEFT JOIN SAA200 D /* 사용자 */ ON D.YNGBGS_PRTCR_NO = C.YNGBGS_PRTCR_NO
+
+		/*
+        WHERE
+            C.DEL_YN = 'N'
+            AND (D.JOIN_APRV_YN IS NULL OR JOIN_APRV_YN = 'Y')
+        */
+    ]]>
+    	<where>
+        <if test="YNGBGS_PRTCR_SE_CD != null and YNGBGS_PRTCR_SE_CD != ''">
+    <![CDATA[
+            AND C.YNGBGS_PRTCR_SE_CD = #{YNGBGS_PRTCR_SE_CD}
+    ]]>
+        </if>
+        <if test="FLNM != null and FLNM != ''">
+    <![CDATA[
+            AND C.FLNM_ENCPT = C##RG.ENC_B64(#{FLNM})
+    ]]>
+        </if>
+        <if test="MBL_TELNO != null and MBL_TELNO != ''">
+    <![CDATA[
+            AND C.MBL_TELNO_ENCPT = C##RG.ENC_B64(#{MBL_TELNO})
+    ]]>
+        </if>
+        <if test="EML_ADDR != null and EML_ADDR != ''">
+    <![CDATA[
+            AND C.EML_ADDR_ENCPT = C##RG.ENC_B64(#{EML_ADDR})
+    ]]>
+        </if>
+        <if test="SXDC_SE_CD != null and SXDC_SE_CD != ''">
+    <![CDATA[
+            AND C.SXDC_SE_CD = #{SXDC_SE_CD}
+    ]]>
+        </if>
+        <if test="RGN_CD != null and RGN_CD != ''">
+    <![CDATA[
+            AND C.RGN_CD = #{RGN_CD}
+    ]]>
+        </if>
+        <if test="USER_ID != null and USER_ID != ''">
+    <![CDATA[
+            AND D.USER_ID LIKE '%' || #{USER_ID} || '%'
+    ]]>
+        </if>
+        <if test="USER_ID_USE_SE_CD != null and USER_ID_USE_SE_CD != ''">
+    <![CDATA[
+            AND D.USER_ID_USE_SE_CD = #{USER_ID_USE_SE_CD}
+    ]]>
+        </if>
+        </where>
+    <![CDATA[
+    
+        ORDER BY FRST_REG_DT DESC
+        
+        OFFSET #{OFFSET_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    ]]>
+    </select>
+    
+    
+
+    <insert id="saveYouthGuardian" parameterType="HashMap">
+    <![CDATA[
+        /* saveYouthGuardian - Lee JiSeob */
+            
+        MERGE INTO SCA200 /* 청소년 보호자 */
+        USING DUAL
+        ON (YNGBGS_PRTCR_NO = #{YNGBGS_PRTCR_NO})
+        
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            
+				INDV_IDNTFC_NO = #{INDV_IDNTFC_NO}, 
+				YNGBGS_PRTCR_SE_CD = #{YNGBGS_PRTCR_SE_CD}, 
+				FLNM_ENCPT = C##RG.ENC_B64(#{FLNM_ENCPT}), 
+				SXDC_SE_CD = #{SXDC_SE_CD}, 
+				BRTH_YMD = #{BRTH_YMD}, 
+				WRD_TELNO = #{WRD_TELNO}, 
+				MBL_TELNO_ENCPT = C##RG.ENC_B64(#{MBL_TELNO_ENCPT}), 
+				EML_ADDR_ENCPT = C##RG.ENC_B64(#{EML_ADDR_ENCPT}), 
+				ZIP = #{ZIP}, 
+				PST_ADDR = #{PST_ADDR}, 
+				DADDR = #{DADDR}, 
+				STTY_AGT_NM_ENCPT = C##RG.ENC_B64(#{STTY_AGT_NM_ENCPT}), 
+				STTY_AGT_CTTPC_TELNO = #{STTY_AGT_CTTPC_TELNO}, 
+				OCCP_NM = #{OCCP_NM}, 
+				RGN_CD = #{RGN_CD}, 
+				INFO_PVSN_AGRE_YN1 = #{INFO_PVSN_AGRE_YN1}, 
+				INFO_PVSN_AGRE_YN2 = #{INFO_PVSN_AGRE_YN2}, 
+				DEL_YN = #{DEL_YN}, 
+				QLFC_INFO_MNG_NO = #{QLFC_INFO_MNG_NO}, 
+				PSPT_ENG_FLNM_ENCPT = #{PSPT_ENG_FLNM_ENCPT}, 
+				TRPR_BCRN_TYPE_SE_CD = #{TRPR_BCRN_TYPE_SE_CD}, 
+				TRPR_BCRN_TYPE_RM_NM = #{TRPR_BCRN_TYPE_RM_NM}, 
+				NLTY_NTN_SE_CD = #{NLTY_NTN_SE_CD}, 
+				ENTCNY_YMD = #{ENTCNY_YMD}, 
+				BRTH_NTN_SE_CD = #{BRTH_NTN_SE_CD}, 
+				GROWTH_NTN_SE_CD = #{GROWTH_NTN_SE_CD}, 
+				VISA_TYPE_SE_CD = #{VISA_TYPE_SE_CD}, 
+				HANAWO_PENU_NO = #{HANAWO_PENU_NO}, 
+				RELGN_SE_CD = #{RELGN_SE_CD}, 
+				ORGNL_YNGBGS_PRTCR_NO = #{ORGNL_YNGBGS_PRTCR_NO}, 
+				LAST_MDFR_ID = #{USER_ID2}, 
+				LAST_MDFCN_DT = SYSDATE
+
+        WHEN NOT MATCHED THEN
+        
+            INSERT 
+            (
+				YNGBGS_PRTCR_NO, 
+				INDV_IDNTFC_NO, 
+				YNGBGS_PRTCR_SE_CD, 
+				FLNM_ENCPT, 
+				SXDC_SE_CD, 
+				BRTH_YMD, 
+				WRD_TELNO, 
+				MBL_TELNO_ENCPT, 
+				EML_ADDR_ENCPT, 
+				ZIP, 
+				PST_ADDR, 
+				DADDR, 
+				STTY_AGT_NM_ENCPT, 
+				STTY_AGT_CTTPC_TELNO, 
+				OCCP_NM, 
+				RGN_CD, 
+				INFO_PVSN_AGRE_YN1, 
+				INFO_PVSN_AGRE_YN2, 
+				DEL_YN, 
+				QLFC_INFO_MNG_NO, 
+				PSPT_ENG_FLNM_ENCPT, 
+				TRPR_BCRN_TYPE_SE_CD, 
+				TRPR_BCRN_TYPE_RM_NM, 
+				NLTY_NTN_SE_CD, 
+				ENTCNY_YMD, 
+				BRTH_NTN_SE_CD, 
+				GROWTH_NTN_SE_CD, 
+				VISA_TYPE_SE_CD, 
+				HANAWO_PENU_NO, 
+				RELGN_SE_CD, 
+				ORGNL_YNGBGS_PRTCR_NO, 
+				FRST_RGTR_ID, 
+				FRST_REG_DT, 
+				LAST_MDFR_ID, 
+				LAST_MDFCN_DT
+			)
+			VALUES
+			(
+				#{YNGBGS_PRTCR_NO}, 
+				#{INDV_IDNTFC_NO}, 
+				#{YNGBGS_PRTCR_SE_CD}, 
+				C##RG.ENC_B64(#{FLNM_ENCPT}), 
+				#{SXDC_SE_CD}, 
+				#{BRTH_YMD}, 
+				#{WRD_TELNO}, 
+				C##RG.ENC_B64(#{MBL_TELNO_ENCPT}), 
+				C##RG.ENC_B64(#{EML_ADDR_ENCPT}), 
+				#{ZIP}, 
+				#{PST_ADDR}, 
+				#{DADDR}, 
+				C##RG.ENC_B64(#{STTY_AGT_NM_ENCPT}), 
+				#{STTY_AGT_CTTPC_TELNO}, 
+				#{OCCP_NM}, 
+				#{RGN_CD}, 
+				#{INFO_PVSN_AGRE_YN1}, 
+				#{INFO_PVSN_AGRE_YN2}, 
+				'N', 
+				#{QLFC_INFO_MNG_NO}, 
+				#{PSPT_ENG_FLNM_ENCPT}, 
+				#{TRPR_BCRN_TYPE_SE_CD}, 
+				#{TRPR_BCRN_TYPE_RM_NM}, 
+				#{NLTY_NTN_SE_CD}, 
+				#{ENTCNY_YMD}, 
+				#{BRTH_NTN_SE_CD}, 
+				#{GROWTH_NTN_SE_CD}, 
+				#{VISA_TYPE_SE_CD}, 
+				#{HANAWO_PENU_NO}, 
+				#{RELGN_SE_CD}, 
+				#{ORGNL_YNGBGS_PRTCR_NO}, 
+				#{USER_ID2}, 
+				SYSDATE, 
+				#{USER_ID2}, 
+				SYSDATE
+			)
+		
+    ]]>
+    </insert>
+    
+
+    <insert id="saveYouthGuardianHistory" parameterType="HashMap">
+    <![CDATA[
+        /* saveYouthGuardianHistory - Lee JiSeob */
+        
+        INSERT INTO SCA201 /* 청소년 보호자 이력 */
+        (
+            YNGBGS_PRTCR_NO,
+            
+            MDFCN_DT,
+            DATAA_CHG_SE_CD,
+             
+            INDV_IDNTFC_NO, 
+            YNGBGS_PRTCR_SE_CD, 
+            FLNM_ENCPT, 
+            SXDC_SE_CD, 
+            BRTH_YMD, 
+            WRD_TELNO, 
+            MBL_TELNO_ENCPT, 
+            EML_ADDR_ENCPT, 
+            ZIP, 
+            PST_ADDR, 
+            DADDR, 
+            STTY_AGT_NM_ENCPT, 
+            STTY_AGT_CTTPC_TELNO, 
+            OCCP_NM, 
+            RGN_CD, 
+            INFO_PVSN_AGRE_YN1, 
+            INFO_PVSN_AGRE_YN2, 
+            DEL_YN, 
+            QLFC_INFO_MNG_NO, 
+            PSPT_ENG_FLNM_ENCPT, 
+            TRPR_BCRN_TYPE_SE_CD, 
+            TRPR_BCRN_TYPE_RM_NM, 
+            NLTY_NTN_SE_CD, 
+            ENTCNY_YMD, 
+            BRTH_NTN_SE_CD, 
+            GROWTH_NTN_SE_CD, 
+            VISA_TYPE_SE_CD, 
+            HANAWO_PENU_NO, 
+            RELGN_SE_CD, 
+            ORGNL_YNGBGS_PRTCR_NO, 
+            FRST_RGTR_ID, 
+            FRST_REG_DT, 
+            LAST_MDFR_ID, 
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{YNGBGS_PRTCR_NO},
+            
+            SYSDATE,
+            (SELECT CASE WHEN COUNT(*) > 0 THEN 'U' ELSE 'I' END FROM SCA200 /* 청소년 보호자 */ WHERE YNGBGS_PRTCR_NO = #{YNGBGS_PRTCR_NO}), 
+            
+            #{INDV_IDNTFC_NO}, 
+            #{YNGBGS_PRTCR_SE_CD}, 
+            C##RG.ENC_B64(#{FLNM_ENCPT}), 
+            #{SXDC_SE_CD}, 
+            #{BRTH_YMD}, 
+            #{WRD_TELNO}, 
+            C##RG.ENC_B64(#{MBL_TELNO_ENCPT}), 
+            C##RG.ENC_B64(#{EML_ADDR_ENCPT}), 
+            #{ZIP}, 
+            #{PST_ADDR}, 
+            #{DADDR}, 
+            C##RG.ENC_B64(#{STTY_AGT_NM_ENCPT}), 
+            #{STTY_AGT_CTTPC_TELNO}, 
+            #{OCCP_NM}, 
+            #{RGN_CD}, 
+            #{INFO_PVSN_AGRE_YN1}, 
+            #{INFO_PVSN_AGRE_YN2}, 
+            'N', 
+            #{QLFC_INFO_MNG_NO}, 
+            #{PSPT_ENG_FLNM_ENCPT}, 
+            #{TRPR_BCRN_TYPE_SE_CD}, 
+            #{TRPR_BCRN_TYPE_RM_NM}, 
+            #{NLTY_NTN_SE_CD}, 
+            #{ENTCNY_YMD}, 
+            #{BRTH_NTN_SE_CD}, 
+            #{GROWTH_NTN_SE_CD}, 
+            #{VISA_TYPE_SE_CD}, 
+            #{HANAWO_PENU_NO}, 
+            #{RELGN_SE_CD}, 
+            #{ORGNL_YNGBGS_PRTCR_NO}, 
+            #{USER_ID2}, 
+            SYSDATE, 
+            #{USER_ID2}, 
+            SYSDATE
+        )
+        
+    ]]>
+    </insert>
+    
+
+    <insert id="saveGuardian" parameterType="HashMap">
+    <![CDATA[
+        /* saveGuardian - Lee JiSeob */
+    
+		INSERT INTO SCA200 /* 청소년 보호자 */
+		(
+			YNGBGS_PRTCR_NO, 
+			INDV_IDNTFC_NO, 
+			YNGBGS_PRTCR_SE_CD, 
+			FLNM_ENCPT, 
+			SXDC_SE_CD, 
+			BRTH_YMD, 
+			WRD_TELNO, 
+			MBL_TELNO_ENCPT, 
+			EML_ADDR_ENCPT, 
+			ZIP, 
+			PST_ADDR, 
+			DADDR, 
+			STTY_AGT_NM_ENCPT, 
+			STTY_AGT_CTTPC_TELNO, 
+			OCCP_NM, 
+			RGN_CD, 
+			INFO_PVSN_AGRE_YN1, 
+			INFO_PVSN_AGRE_YN2, 
+			DEL_YN, 
+			QLFC_INFO_MNG_NO, 
+			PSPT_ENG_FLNM_ENCPT, 
+			TRPR_BCRN_TYPE_SE_CD, 
+			TRPR_BCRN_TYPE_RM_NM, 
+			NLTY_NTN_SE_CD, 
+			ENTCNY_YMD, 
+			BRTH_NTN_SE_CD, 
+			GROWTH_NTN_SE_CD, 
+			VISA_TYPE_SE_CD, 
+			HANAWO_PENU_NO, 
+			RELGN_SE_CD, 
+			ORGNL_YNGBGS_PRTCR_NO, 
+			FRST_RGTR_ID, 
+			FRST_REG_DT, 
+			LAST_MDFR_ID, 
+			LAST_MDFCN_DT
+		)
+		VALUES
+		(
+			#{YNGBGS_PRTCR_NO}, 
+			#{INDV_IDNTFC_NO}, 
+			'G', 
+			#{FLNM_ENCPT}, 
+			#{SXDC_SE_CD}, 
+			#{BRTH_YMD}, 
+			#{WRD_TELNO}, 
+			#{MBL_TELNO_ENCPT}, 
+			#{EML_ADDR_ENCPT}, 
+			#{ZIP}, 
+			#{PST_ADDR}, 
+			#{DADDR}, 
+			#{STTY_AGT_NM_ENCPT}, 
+			#{STTY_AGT_CTTPC_TELNO}, 
+			#{OCCP_NM}, 
+			#{RGN_CD}, 
+			#{INFO_PVSN_AGRE_YN1}, 
+			#{INFO_PVSN_AGRE_YN2}, 
+			'N', 
+			#{QLFC_INFO_MNG_NO}, 
+			#{PSPT_ENG_FLNM_ENCPT}, 
+			#{TRPR_BCRN_TYPE_SE_CD}, 
+			#{TRPR_BCRN_TYPE_RM_NM}, 
+			#{NLTY_NTN_SE_CD}, 
+			#{ENTCNY_YMD}, 
+			#{BRTH_NTN_SE_CD}, 
+			#{GROWTH_NTN_SE_CD}, 
+			#{VISA_TYPE_SE_CD}, 
+			#{HANAWO_PENU_NO}, 
+			#{RELGN_SE_CD}, 
+			#{ORGNL_YNGBGS_PRTCR_NO}, 
+			#{USER_ID2}, 
+			SYSDATE, 
+			#{USER_ID2}, 
+			SYSDATE
+		)
+    ]]>
+    </insert>
+    
+
+    <select id="selectYngbgsPrtcrNo" parameterType="String" resultType="String">
+    <![CDATA[
+        /* selectYngbgsPrtcrNo - Lee JiSeob */
+
+        SELECT 
+            ISRY_APP.SA_FN_GET_RENU_NO('YP', #{USER_ID}, '') AS YNGBGS_PRTCR_NO
+        
+        FROM 
+            DUAL
+        
+    ]]>
+    </select>
+    
+    <select id="getTargetOgdpWorkerList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* getTargetOgdpWorkerList - Taesoo Song */
+        SELECT C.GROUP_AUTHRT_SE_CD AS GROUP_AUTHRT_SE_CD
+                , (SELECT D.CMMNS_CD_VALUE_NM FROM SAC100 D WHERE D.CMMNS_CD_ID = 'GROUP_AUTHRT_SE_CD' AND D.CMMNS_CD_VALUE = C.GROUP_AUTHRT_SE_CD) AS GROUP_AUTHRT_NM
+                , B.ENFSN_NO AS PIC_NO
+                , A.FLNM_ENCPT AS FLNM_ENCPT
+                , (SELECT PIC_ENFSN_NO FROM SAA000 WHERE INST_NO = #{INST_NO}) AS OGDP_PIC_NO
+                , (SELECT PIC_NM_ENCPT FROM SAA000 WHERE INST_NO = #{INST_NO}) AS OGDP_PIC_NM
+                , B.USER_ID AS USER_ID
+        FROM SCA100 A
+        JOIN SAA200 B ON A.ENFSN_NO = B.ENFSN_NO
+        JOIN SAB230 C ON B.USER_ID = C.USER_ID
+        WHERE C.INST_NO = #{INST_NO} 
+        AND A.DEL_YN = 'N'
+        AND A.RETIRE_YMD IS NULL
+        ORDER BY C.GROUP_AUTHRT_SE_CD ASC
+    ]]>
+    </select>
+    
+    <select id="getInstOgdpWorkerInfo" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+            /* getInstOgdpWorkerInfo - Taesoo Song */
+            SELECT A.ENFSN_NO AS ENFSN_NO
+                   , A.FLNM_ENCPT AS FLNM_ENCPT
+                   , D.GROUP_AUTHRT_SE_CD AS GROUP_AUTHRT_SE_CD
+                   , B.USER_ID AS USER_ID
+	        FROM SCA100 A  
+	        JOIN SAA200 B ON A.ENFSN_NO = B.ENFSN_NO 
+	        JOIN SAA000 C ON A.OGDP_INST_NO = C.INST_NO 
+	        JOIN SAB230 D ON B.USER_ID = D.USER_ID
+	        WHERE A.DEL_YN = 'N'
+	        AND A.RETIRE_YMD IS NULL
+	        AND A.ENFSN_NO = #{OGDP_ENFSN_NO}
+	        AND D.INST_NO = #{INST_NO} 
+        ]]>
+    </select>
+    
+</mapper>

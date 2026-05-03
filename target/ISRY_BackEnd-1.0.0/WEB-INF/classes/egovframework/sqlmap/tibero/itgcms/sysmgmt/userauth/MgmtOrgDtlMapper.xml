@@ -1,0 +1,1707 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.itgcms.sysmgmt.userauth.mapper.MgmtOrgDtlMapper">
+
+    <update id="saveOrgDtl" parameterType="HashMap">
+    <![CDATA[
+        /* saveOrgDtl - Lee JiSeob */
+        
+        MERGE INTO SAA000 /* 통합기관 */
+        USING DUAL
+        ON (INST_NO = #{INST_NO})
+        
+        WHEN MATCHED THEN
+            
+            UPDATE
+            SET
+				
+				INST_TYPE_SE_CD = #{INST_TYPE_SE_CD},
+				RGN_CD = #{RGN_CD},
+				
+				HPGE_URL_ADDR = #{HPGE_URL_ADDR}, 
+				MAIN_ENFC_INST_SE_CD = #{MAIN_ENFC_INST_SE_CD}, 
+				
+				BPLC_ZIP = #{BPLC_ZIP},
+				BPLC_PST_ADDR = #{BPLC_PST_ADDR},
+				BPLC_DADDR = #{BPLC_DADDR},
+				
+				RPRSV_NM_ENCPT = C##RG.ENC_B64(#{RPRSV_NM_ENCPT}),
+				RPRS_TELNO = #{RPRS_TELNO},
+				RPRS_FXNO = #{RPRS_FXNO},
+				
+				APLCN_BGNG_YMD = #{APLCN_BGNG_YMD},
+				APLCN_END_YMD = #{APLCN_END_YMD},
+				
+				PIC_NM_ENCPT = C##RG.ENC_B64(#{PIC_NM_ENCPT}), 
+				PIC_TELNO = #{PIC_TELNO}, 
+				PIC_MBL_TELNO_ENCPT = C##RG.ENC_B64(#{PIC_MBL_TELNO_ENCPT}),
+				PIC_EML_ADDR_ENCPT = C##RG.ENC_B64(#{PIC_EML_ADDR_ENCPT}),
+				PIC_ENFSN_NO = #{PIC_ENFSN_NO},
+				 
+				CNSGN_YMD = #{CNSGN_YMD}, 
+				APLY_YMD = #{APLY_YMD}, 
+				APLCNT_ID = #{APLCNT_ID}, 
+				APRV_YN = #{APRV_YN}, 
+				RJCT_CS_CN = #{RJCT_CS_CN}, 
+				PRCS_YMD = #{PRCS_YMD}, 
+				AUTZR_ID = #{AUTZR_ID}, 
+				ATFINO = #{ATFINO}, 
+				
+				DEL_YN = #{DEL_YN},
+				LAST_MDFR_ID = #{USER_ID},
+				LAST_MDFCN_DT = SYSDATE,
+				
+				CTPV_LINK_PBADMS_RGN_CD = #{CTPV_LINK_PBADMS_RGN_CD},
+				SGG_LINK_PBADMS_RGN_CD = #{SGG_LINK_PBADMS_RGN_CD},
+				EMD_LINK_PBADMS_RGN_CD = #{EMD_LINK_PBADMS_RGN_CD},
+                
+                CNTER_PRECON_WRT_YN = #{CNTER_PRECON_WRT_YN},
+                
+                RSFR_INST_YN = #{RSFR_INST_YN}
+                
+        WHEN NOT MATCHED THEN
+
+            INSERT
+            (
+                INST_NO,
+                INST_NM,
+                UP_INST_NO,
+                UP_APRV_INST_NO,
+                INST_TYPE_SE_CD,
+                RGN_CD,
+
+                UNT_TASKWK_SE_CD,
+                                
+                HPGE_URL_ADDR, 
+                MAIN_ENFC_INST_SE_CD, 
+                
+                BPLC_ZIP,
+                BPLC_PST_ADDR,
+                BPLC_DADDR,
+                RPRSV_NM_ENCPT, 
+                RPRS_TELNO,
+                RPRS_FXNO,
+                APLCN_BGNG_YMD,
+                APLCN_END_YMD,
+                PIC_NM_ENCPT, 
+                PIC_TELNO, 
+                PIC_MBL_TELNO_ENCPT,
+                PIC_EML_ADDR_ENCPT,
+                PIC_ENFSN_NO,
+                 
+                CNSGN_YMD, 
+                APLY_YMD, 
+                APLCNT_ID, 
+                APRV_YN, 
+                RJCT_CS_CN, 
+                PRCS_YMD, 
+                AUTZR_ID, 
+                ATFINO, 
+                DEL_YN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT,
+                
+                CTPV_LINK_PBADMS_RGN_CD,
+				SGG_LINK_PBADMS_RGN_CD,
+				EMD_LINK_PBADMS_RGN_CD,
+				
+                CTPV_CD,
+                SGG_CD,
+                CNTER_PRECON_WRT_YN,
+                
+                RSFR_INST_YN
+            )
+            VALUES
+            (
+                #{INST_NO},
+                #{INST_NM},
+                #{UP_INST_NO},
+                #{UP_APRV_INST_NO},
+                #{INST_TYPE_SE_CD},
+                #{RGN_CD},
+                
+                #{UNT_TASKWK_SE_CD},
+                
+                #{HPGE_URL_ADDR}, 
+                #{MAIN_ENFC_INST_SE_CD}, 
+                
+                #{BPLC_ZIP},
+                #{BPLC_PST_ADDR},
+                #{BPLC_DADDR},
+                C##RG.ENC_B64(#{RPRSV_NM_ENCPT}), 
+                #{RPRS_TELNO}, 
+                #{RPRS_FXNO},
+                #{APLCN_BGNG_YMD},
+                #{APLCN_END_YMD},
+                C##RG.ENC_B64(#{PIC_NM_ENCPT}), 
+                #{PIC_TELNO}, 
+                C##RG.ENC_B64(#{PIC_MBL_TELNO_ENCPT}),
+                C##RG.ENC_B64(#{PIC_EML_ADDR_ENCPT}),
+                #{PIC_ENFSN_NO},
+                
+                #{CNSGN_YMD}, 
+                #{APLY_YMD}, 
+                #{APLCNT_ID}, 
+                #{APRV_YN}, 
+                #{RJCT_CS_CN}, 
+                #{PRCS_YMD}, 
+                #{AUTZR_ID}, 
+                #{ATFINO}, 
+                #{DEL_YN},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE,
+                
+                #{CTPV_LINK_PBADMS_RGN_CD},
+				#{SGG_LINK_PBADMS_RGN_CD},
+				#{EMD_LINK_PBADMS_RGN_CD},
+				
+                #{CTPV_CD},
+                #{SGG_CD},
+                #{CNTER_PRECON_WRT_YN},
+                
+                #{RSFR_INST_YN}
+            )
+        
+    ]]>
+    </update>
+
+
+    <update id="updateOrgSequence" parameterType="HashMap">
+    <![CDATA[
+        /* updateOrgSequence - Lee JiSeob */
+        
+        UPDATE SAA000
+        SET
+            SRTNG_SQNCE = SRTNG_SQNCE + 1
+        
+    ]]>
+    </update>
+
+    <insert id="saveOrgDtlHistory" parameterType="HashMap">
+    <![CDATA[
+        /* saveOrgDtlHistory Park Kyuyoung */
+        
+        INSERT INTO SAA001  /*통합기관이력*/
+        (
+            MDFCN_DT,
+            DATAA_CHG_SE_CD,
+            INST_NO,
+            INST_NM,
+            UP_INST_NO,
+            UP_APRV_INST_NO,
+            INST_TYPE_SE_CD,
+            RGN_CD,
+
+            UNT_TASKWK_SE_CD,
+                            
+            HPGE_URL_ADDR, 
+            MAIN_ENFC_INST_SE_CD, 
+            
+            BPLC_ZIP,
+            BPLC_PST_ADDR,
+            BPLC_DADDR,
+            RPRSV_NM_ENCPT, 
+            RPRS_TELNO,
+            RPRS_FXNO,
+            APLCN_BGNG_YMD,
+            APLCN_END_YMD,
+            PIC_NM_ENCPT, 
+            PIC_TELNO, 
+            PIC_MBL_TELNO_ENCPT,
+            PIC_EML_ADDR_ENCPT,
+            PIC_ENFSN_NO,
+             
+            CNSGN_YMD, 
+            APLY_YMD, 
+            APLCNT_ID, 
+            APRV_YN, 
+            RJCT_CS_CN, 
+            PRCS_YMD, 
+            AUTZR_ID, 
+            ATFINO, 
+            DEL_YN,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT,
+            
+            CTPV_LINK_PBADMS_RGN_CD,
+            SGG_LINK_PBADMS_RGN_CD,
+            EMD_LINK_PBADMS_RGN_CD,
+            
+            CTPV_CD,
+            SGG_CD,
+            CNTER_PRECON_WRT_YN,
+            
+            RSFR_INST_YN
+        )
+        VALUES
+        (
+            SYSDATE,
+            #{DATAA_CHG_SE_CD},
+            #{INST_NO},
+            #{INST_NM},
+            #{UP_INST_NO},
+            #{UP_APRV_INST_NO},
+            #{INST_TYPE_SE_CD},
+            #{RGN_CD},
+            
+            #{UNT_TASKWK_SE_CD},
+            
+            #{HPGE_URL_ADDR}, 
+            #{MAIN_ENFC_INST_SE_CD}, 
+            
+            #{BPLC_ZIP},
+            #{BPLC_PST_ADDR},
+            #{BPLC_DADDR},
+            C##RG.ENC_B64(#{RPRSV_NM_ENCPT}), 
+            #{RPRS_TELNO}, 
+            #{RPRS_FXNO},
+            #{APLCN_BGNG_YMD},
+            #{APLCN_END_YMD},
+            C##RG.ENC_B64(#{PIC_NM_ENCPT}), 
+            #{PIC_TELNO}, 
+            C##RG.ENC_B64(#{PIC_MBL_TELNO_ENCPT}),
+            C##RG.ENC_B64(#{PIC_EML_ADDR_ENCPT}),
+            #{PIC_ENFSN_NO},
+            
+            #{CNSGN_YMD}, 
+            #{APLY_YMD}, 
+            #{APLCNT_ID}, 
+            #{APRV_YN}, 
+            #{RJCT_CS_CN}, 
+            #{PRCS_YMD}, 
+            #{AUTZR_ID}, 
+            #{ATFINO}, 
+            #{DEL_YN},
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE,
+            
+            #{CTPV_LINK_PBADMS_RGN_CD},
+            #{SGG_LINK_PBADMS_RGN_CD},
+            #{EMD_LINK_PBADMS_RGN_CD},
+            
+            #{CTPV_CD},
+            #{SGG_CD},
+            #{CNTER_PRECON_WRT_YN},
+            
+            #{RSFR_INST_YN}
+        )
+             
+    ]]>
+    </insert>
+    
+    <select id="selectInstNoCnt" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectInstNoCnt - Park Kyuyoung */
+        
+        SELECT
+            
+            COUNT(*) AS CNT
+             
+        FROM SAA000     /*통합기관*/
+        WHERE INST_NO = #{INST_NO}
+    ]]>
+    </select>
+
+    
+    <update id="deleteOrganization" parameterType="HashMap">
+        <![CDATA[
+        /* deleteOrganization - Lee Ji Seob */
+        
+        UPDATE SAA000 /* 통합기관 */
+        
+        SET 
+            DEL_YN = 'Y',
+            LAST_MDFR_ID = #{userId},
+            LAST_MDFCN_DT = SYSDATE
+             
+        WHERE 
+            INST_NO = #{instNo}
+        
+    ]]>
+    </update>
+
+    
+    <update id="saveOrgRestArea" parameterType="HashMap">
+    <![CDATA[
+        /* saveOrgRestArea - Lee Ji Seob */
+        
+        MERGE INTO SAA050 C /* 쉼터정보 */
+        USING DUAL
+        ON (C.INST_NO = #{INST_NO})
+        
+        WHEN MATCHED THEN
+ 
+			UPDATE SET 
+			RPRSV_NM_ENCPT = C##RG.ENC_B64(#{RPRSV_NM_ENCPT}), 
+			JIKIMI_MBR_YN = #{JIKIMI_MBR_YN}, 
+			JIKIMI_JOIN_YMD = #{JIKIMI_JOIN_YMD}, 
+			ENTRNC_PSNCPA_CNT = #{ENTRNC_PSNCPA_CNT}, 
+			SXDC_SE_CD = #{SXDC_SE_CD}, 
+			PRTCTN_PRD_SE_CD = #{PRTCTN_PRD_SE_CD}, 
+			BGNG_AGE = #{BGNG_AGE}, 
+			END_AGE = #{END_AGE}, 
+			SUPRT_RCIPT_FOIS_GRP_NM = #{SUPRT_RCIPT_FOIS_GRP_NM}, 
+			SUPRT_RCIPT_FOIS_REG_NO = #{SUPRT_RCIPT_FOIS_REG_NO}, 
+			SUPRT_RCIPT_FOIS_ADDR = #{SUPRT_RCIPT_FOIS_ADDR}, 
+			OFFCS_IMAGE_ATFINO = #{OFFCS_IMAGE_ATFINO}, 
+			WLFAR_FCLTY_CEOFDE_ATFINO = #{WLFAR_FCLTY_CEOFDE_ATFINO}, 
+			INST_OFCL_NM = #{INST_OFCL_NM}, 
+			STYNG_TYPE_SE_CD = #{STYNG_TYPE_SE_CD}, 
+			TAXOFC_CEOFID_NO = #{TAXOFC_CEOFID_NO}, 
+			IAGRTE_YMD = #{IAGRTE_YMD}, 
+			HPGE_URL_ADDR = #{HPGE_URL_ADDR}, 
+			SHELTR_PRTCTN_PRD_DTL_SE_CD = #{SHELTR_PRTCTN_PRD_DTL_SE_CD}, 
+			SUPRT_RCIPT_FOIS_ZIP = #{SUPRT_RCIPT_FOIS_ZIP}, 
+			SUPRT_RCIPT_FOIS_DADDR = #{SUPRT_RCIPT_FOIS_DADDR}, 
+			LAST_MDFR_ID = #{USER_ID}, 
+			LAST_MDFCN_DT = SYSDATE
+			
+
+        WHEN NOT MATCHED THEN
+        
+			INSERT
+			(
+                INST_NO, 
+                RPRSV_NM_ENCPT, 
+                JIKIMI_MBR_YN, 
+                JIKIMI_JOIN_YMD, 
+                ENTRNC_PSNCPA_CNT, 
+                SXDC_SE_CD, 
+                PRTCTN_PRD_SE_CD, 
+                BGNG_AGE, 
+                END_AGE, 
+                SUPRT_RCIPT_FOIS_GRP_NM, 
+                SUPRT_RCIPT_FOIS_REG_NO, 
+                SUPRT_RCIPT_FOIS_ADDR, 
+                OFFCS_IMAGE_ATFINO, 
+                WLFAR_FCLTY_CEOFDE_ATFINO, 
+                INST_OFCL_NM, 
+                STYNG_TYPE_SE_CD, 
+                TAXOFC_CEOFID_NO, 
+                IAGRTE_YMD, 
+                HPGE_URL_ADDR, 
+                SHELTR_PRTCTN_PRD_DTL_SE_CD, 
+                SUPRT_RCIPT_FOIS_ZIP, 
+                SUPRT_RCIPT_FOIS_DADDR, 
+                FRST_RGTR_ID, 
+                FRST_REG_DT, 
+                LAST_MDFR_ID, 
+                LAST_MDFCN_DT
+			)
+			VALUES
+			(
+                #{INST_NO}, 
+                C##RG.ENC_B64(#{RPRSV_NM_ENCPT}), 
+                #{JIKIMI_MBR_YN}, 
+                #{JIKIMI_JOIN_YMD}, 
+                #{ENTRNC_PSNCPA_CNT}, 
+                #{SXDC_SE_CD}, 
+                #{PRTCTN_PRD_SE_CD}, 
+                #{BGNG_AGE}, 
+                #{END_AGE}, 
+                #{SUPRT_RCIPT_FOIS_GRP_NM}, 
+                #{SUPRT_RCIPT_FOIS_REG_NO}, 
+                #{SUPRT_RCIPT_FOIS_ADDR}, 
+                #{OFFCS_IMAGE_ATFINO}, 
+                #{WLFAR_FCLTY_CEOFDE_ATFINO}, 
+                #{INST_OFCL_NM}, 
+                #{STYNG_TYPE_SE_CD}, 
+                #{TAXOFC_CEOFID_NO}, 
+                #{IAGRTE_YMD}, 
+                #{HPGE_URL_ADDR}, 
+                #{SHELTR_PRTCTN_PRD_DTL_SE_CD}, 
+                #{SUPRT_RCIPT_FOIS_ZIP}, 
+                #{SUPRT_RCIPT_FOIS_DADDR}, 
+                #{USER_ID}, 
+                SYSDATE, 
+                #{USER_ID}, 
+                SYSDATE
+			)
+
+    ]]>
+    </update>
+    
+    <update id="saveCnterPreconAddingBassInfo" parameterType="HashMap">
+    <![CDATA[
+        /* saveCnterPreconAddingBassInfo - Lee.Tae.Ho */
+        
+        MERGE INTO AKA500 /* 센터현황 */
+        USING DUAL
+        ON (INST_NO = #{INST_NO})        
+        WHEN MATCHED THEN            
+            UPDATE
+            SET CNTER_PRECON_UNT_TASKWK_SE_CD       = #{CNTER_PRECON_UNT_TASKWK_SE_CD},
+                INST_BRNO                           = #{INST_BRNO},
+                INST_CRNO                           = #{INST_CRNO},     
+                ]]>           
+                <if test="ESOFRE_YN != null and ESOFRE_YN != ''">
+                    ESOFRE_YN   = #{ESOFRE_YN},
+                </if>
+                <if test="OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN != null and OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN != ''">
+                    OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN   = #{OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN},
+                </if>
+                <if test="PRVUSE_WIRE_YN != null and PRVUSE_WIRE_YN != ''">
+                    PRVUSE_WIRE_YN   = #{PRVUSE_WIRE_YN},
+                </if>
+                <if test="PBADMS_WIRE_CNTN_YN != null and PBADMS_WIRE_CNTN_YN != ''">
+                    PBADMS_WIRE_CNTN_YN   = #{PBADMS_WIRE_CNTN_YN},
+                </if>
+                <if test="DSPTCH_NO_IDNTY_YN != null and DSPTCH_NO_IDNTY_YN != ''">
+                    DSPTCH_NO_IDNTY_YN   = #{DSPTCH_NO_IDNTY_YN},
+                </if>
+                <![CDATA[
+                CO13_TELNO                          = #{CO13_TELNO},
+                MCLNC_ENFC_YMD                      = #{MCLNC_ENFC_YMD},
+                LAST_MDFR_ID                        = #{USER_ID},
+                LAST_MDFCN_DT                       = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT
+            (   
+                INST_NO,
+                CNTER_PRECON_UNT_TASKWK_SE_CD,
+                INST_BRNO,
+                INST_CRNO,
+                ESOFRE_YN,
+                OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN,
+                PRVUSE_WIRE_YN,
+                PBADMS_WIRE_CNTN_YN,                            
+                DSPTCH_NO_IDNTY_YN,                 
+                CO13_TELNO,
+                MCLNC_ENFC_YMD,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{INST_NO},
+                #{CNTER_PRECON_UNT_TASKWK_SE_CD},
+                #{INST_BRNO},
+                #{INST_CRNO},
+                NVL(#{ESOFRE_YN},'N'),
+                NVL(#{OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN}, 'N'),
+                NVL(#{PBADMS_WIRE_CNTN_YN}, 'N'),
+                NVL(#{PRVUSE_WIRE_YN}, 'N'),
+                NVL(#{DSPTCH_NO_IDNTY_YN}, 'N'),
+                #{CO13_TELNO},
+                #{MCLNC_ENFC_YMD},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    ]]>
+    </update>
+    
+    <update id="saveCnterPreconInstlCnsgnInfo" parameterType="HashMap">
+    <![CDATA[
+        /* saveCnterPreconInstlCnsgnInfo - Lee.Tae.Ho */
+        
+        MERGE INTO AKA500 /* 센터현황 */
+        USING DUAL
+        ON (INST_NO = #{INST_NO})        
+        WHEN MATCHED THEN            
+            UPDATE
+            SET CNTER_PRECON_UNT_TASKWK_SE_CD       = #{CNTER_PRECON_UNT_TASKWK_SE_CD},
+                ]]>
+                <if test="ESOFRE_YN != null and ESOFRE_YN != ''">
+                    ESOFRE_YN   = #{ESOFRE_YN},
+                </if>
+                <if test="OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN != null and OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN != ''">
+                    OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN   = #{OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN},
+                </if>
+                <if test="PRVUSE_WIRE_YN != null and PRVUSE_WIRE_YN != ''">
+                    PRVUSE_WIRE_YN   = #{PRVUSE_WIRE_YN},
+                </if>
+                <if test="PBADMS_WIRE_CNTN_YN != null and PBADMS_WIRE_CNTN_YN != ''">
+                    PBADMS_WIRE_CNTN_YN   = #{PBADMS_WIRE_CNTN_YN},
+                </if>
+                <if test="DSPTCH_NO_IDNTY_YN != null and DSPTCH_NO_IDNTY_YN != ''">
+                    DSPTCH_NO_IDNTY_YN   = #{DSPTCH_NO_IDNTY_YN},
+                </if>
+                <![CDATA[
+                FCLTY_TYPE_SE_CD                    = #{FCLTY_TYPE_SE_CD},
+                PRTCTN_PSNCPA_CNT                   = #{PRTCTN_PSNCPA_CNT},
+                CASE_MNG_PSNCPA_CNT                 = #{CASE_MNG_PSNCPA_CNT},
+                PRTCTN_YNGBGS_TYPE_SE_CD            = #{PRTCTN_YNGBGS_TYPE_SE_CD},
+                CNTER_TYPE_SE_CD                    = #{CNTER_TYPE_SE_CD},
+                INSTL_OPER_MTHD_SE_CD               = #{INSTL_OPER_MTHD_SE_CD},
+                INSTL_YMD                           = #{INSTL_YMD},
+                INSTL_END_YMD                       = #{INSTL_END_YMD},
+                INSTL_INST_NM                       = #{INSTL_INST_NM},
+                OPER_MTHD_SE_CD                     = #{OPER_MTHD_SE_CD},
+                OPER_INST_TYPE_SE_CD                = #{OPER_INST_TYPE_SE_CD},
+                CNSGN_INST_NM                       = #{CNSGN_INST_NM},
+                CNSGN_BGNG_YMD                      = #{CNSGN_BGNG_YMD},
+                CNSGN_END_YMD                       = #{CNSGN_END_YMD},
+                FRST_DSGN_YMD                       = #{FRST_DSGN_YMD},
+                RECENT_DSGN_YMD                     = #{RECENT_DSGN_YMD},
+                DSGN_END_YMD                        = #{DSGN_END_YMD},
+                DSGN_MTHD_SE_CD                     = #{DSGN_MTHD_SE_CD},
+                LAST_MDFR_ID                        = #{USER_ID},
+                LAST_MDFCN_DT                       = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT
+            (
+                INST_NO,  
+                CNTER_PRECON_UNT_TASKWK_SE_CD,          
+                ESOFRE_YN,
+                OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN,
+                PRVUSE_WIRE_YN,
+                PBADMS_WIRE_CNTN_YN,                            
+                DSPTCH_NO_IDNTY_YN,                 
+                FCLTY_TYPE_SE_CD,
+                PRTCTN_PSNCPA_CNT,
+                CASE_MNG_PSNCPA_CNT,
+                PRTCTN_YNGBGS_TYPE_SE_CD,
+                CNTER_TYPE_SE_CD,
+                INSTL_OPER_MTHD_SE_CD,
+                INSTL_YMD,
+                INSTL_END_YMD,
+                INSTL_INST_NM,
+                OPER_MTHD_SE_CD,
+                OPER_INST_TYPE_SE_CD,
+                CNSGN_INST_NM,
+                CNSGN_BGNG_YMD,
+                CNSGN_END_YMD,
+                FRST_DSGN_YMD,
+                RECENT_DSGN_YMD,
+                DSGN_END_YMD,
+                DSGN_MTHD_SE_CD,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{INST_NO},    
+                #{CNTER_PRECON_UNT_TASKWK_SE_CD},             
+                NVL(#{ESOFRE_YN},'N'),
+                NVL(#{OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN},'N'),
+                NVL(#{PBADMS_WIRE_CNTN_YN},'N'),
+                NVL(#{PRVUSE_WIRE_YN},'N'),
+                NVL(#{DSPTCH_NO_IDNTY_YN},'N'),
+                #{FCLTY_TYPE_SE_CD},
+                #{PRTCTN_PSNCPA_CNT},
+                #{CASE_MNG_PSNCPA_CNT},
+                #{PRTCTN_YNGBGS_TYPE_SE_CD},
+                #{CNTER_TYPE_SE_CD},
+                #{INSTL_OPER_MTHD_SE_CD},
+                #{INSTL_YMD},
+                #{INSTL_END_YMD},
+                #{INSTL_INST_NM},
+                #{OPER_MTHD_SE_CD},
+                #{OPER_INST_TYPE_SE_CD},
+                #{CNSGN_INST_NM},
+                #{CNSGN_BGNG_YMD},
+                #{CNSGN_END_YMD},
+                #{FRST_DSGN_YMD},
+                #{RECENT_DSGN_YMD},
+                #{DSGN_END_YMD},
+                #{DSGN_MTHD_SE_CD},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    ]]>
+    </update>
+    
+    <update id="saveCnterPreconYngbgsDscsnTlphon1388" parameterType="HashMap">
+    <![CDATA[
+        /* saveCnterPreconYngbgsDscsnTlphon1388 - Lee.Tae.Ho */
+        
+        MERGE INTO AKA500 /* 센터현황 */
+        USING DUAL
+        ON (INST_NO = #{INST_NO})        
+        WHEN MATCHED THEN            
+            UPDATE
+            SET CNTER_PRECON_UNT_TASKWK_SE_CD       = #{CNTER_PRECON_UNT_TASKWK_SE_CD},
+                ]]>
+                <if test="ESOFRE_YN != null and ESOFRE_YN != ''">
+                    ESOFRE_YN   = #{ESOFRE_YN},
+                </if>
+                <if test="OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN != null and OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN != ''">
+                    OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN   = #{OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN},
+                </if>
+                <if test="PRVUSE_WIRE_YN != null and PRVUSE_WIRE_YN != ''">
+                    PRVUSE_WIRE_YN   = #{PRVUSE_WIRE_YN},
+                </if>
+                <if test="PBADMS_WIRE_CNTN_YN != null and PBADMS_WIRE_CNTN_YN != ''">
+                    PBADMS_WIRE_CNTN_YN   = #{PBADMS_WIRE_CNTN_YN},
+                </if>
+                <if test="DSPTCH_NO_IDNTY_YN != null and DSPTCH_NO_IDNTY_YN != ''">
+                    DSPTCH_NO_IDNTY_YN   = #{DSPTCH_NO_IDNTY_YN},
+                </if>
+                <![CDATA[
+                PRVUSE_WIRE_NO                      = #{PRVUSE_WIRE_NO},
+                PRVUSE_WIRE_CNT                     = #{PRVUSE_WIRE_CNT},
+                DSCSN_TLPHON_RCORDG_SE_CD           = #{DSCSN_TLPHON_RCORDG_SE_CD},
+                TLPHON_CSC_OPER_SE_CD               = #{TLPHON_CSC_OPER_SE_CD},
+                CMMNS_LINGO_USE_SE_CD               = #{CMMNS_LINGO_USE_SE_CD},
+                ECSHG_STAFF_WORK_SUM_NOPE           = #{ECSHG_STAFF_WORK_SUM_NOPE},
+                LAST_MDFR_ID                        = #{USER_ID},
+                LAST_MDFCN_DT                       = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT
+            (
+                INST_NO,
+                CNTER_PRECON_UNT_TASKWK_SE_CD,                
+                ESOFRE_YN,
+                OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN,
+                PRVUSE_WIRE_YN,
+                PBADMS_WIRE_CNTN_YN,                            
+                DSPTCH_NO_IDNTY_YN, 
+                PRVUSE_WIRE_NO,
+                PRVUSE_WIRE_CNT,
+                DSCSN_TLPHON_RCORDG_SE_CD,
+                TLPHON_CSC_OPER_SE_CD,
+                CMMNS_LINGO_USE_SE_CD,
+                ECSHG_STAFF_WORK_SUM_NOPE,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{INST_NO},   
+                #{CNTER_PRECON_UNT_TASKWK_SE_CD},             
+                NVL(#{ESOFRE_YN},'N'),
+                NVL(#{OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN},'N'),
+                NVL(#{PBADMS_WIRE_CNTN_YN},'N'),
+                NVL(#{PRVUSE_WIRE_YN},'N'),
+                NVL(#{DSPTCH_NO_IDNTY_YN},'N'),
+                #{PRVUSE_WIRE_NO},
+                #{PRVUSE_WIRE_CNT},
+                #{DSCSN_TLPHON_RCORDG_SE_CD},
+                #{TLPHON_CSC_OPER_SE_CD},
+                #{CMMNS_LINGO_USE_SE_CD},
+                #{ECSHG_STAFF_WORK_SUM_NOPE},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    ]]>
+    </update>
+    
+    <insert id="insertCnterPreconOperHour" parameterType="HashMap">
+    <![CDATA[
+        /* insertCnterPreconOperHour - Lee.Tae.Ho */
+        
+        INSERT INTO AKA510 /* 센터현황-운영시간 */
+        (
+            INST_NO,
+            INDEX_SN,
+            DAOFTH_SE_CD,
+            WORK_HR_OPSY_YN,
+            WORK_BGNG_HR,
+            WORK_END_HR,
+            DEL_YN,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA510_SQ01.NEXTVAL,
+            #{DAOFTH_SE_CD},
+            #{WORK_HR_OPSY_YN},
+            #{WORK_BGNG_HR},
+            #{WORK_END_HR},
+            'N',                
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateCnterPreconOperHour" parameterType="HashMap">
+    <![CDATA[
+        /* updateCnterPreconOperHour - Lee.Tae.Ho */
+        
+        UPDATE AKA510 /* 센터현황-운영시간 */
+           SET DAOFTH_SE_CD     = #{DAOFTH_SE_CD},
+               WORK_HR_OPSY_YN  = #{WORK_HR_OPSY_YN},
+               WORK_BGNG_HR     = #{WORK_BGNG_HR},
+               WORK_END_HR      = #{WORK_END_HR},               
+               LAST_MDFR_ID     = #{USER_ID},
+               LAST_MDFCN_DT    = SYSDATE
+         WHERE INST_NO          = #{INST_NO}
+           AND INDEX_SN         = #{INDEX_SN}
+    ]]>
+    </update>
+    
+    <insert id="insertBrofaOper" parameterType="HashMap">
+    <![CDATA[
+        /* insertBrofaOper - Lee.Tae.Ho */
+        
+        INSERT INTO AKA520 /* 센터현황-분소운영 */
+        (
+            INST_NO,
+            INDEX_SN,
+            BROFA_NM,
+            RPRS_ADDR,
+            ZIP,
+            RPRS_TELNO,
+            IAGRTE_YMD,
+            ALL_AR_VALUE,
+            ENFSN_CNT,
+            BROFA_OPER_CS_CN,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA520_SQ01.NEXTVAL,
+            #{BROFA_NM},
+            #{RPRS_ADDR},
+            #{ZIP},
+            #{RPRS_TELNO},
+            #{IAGRTE_YMD},
+            #{ALL_AR_VALUE}, 
+            #{ENFSN_CNT}, 
+            #{BROFA_OPER_CS_CN},    
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateBrofaOper" parameterType="HashMap">
+    <![CDATA[
+        /* updateBrofaOper - Lee.Tae.Ho */
+        
+        UPDATE AKA520 /* 센터현황-분소운영 */
+	        SET
+	            BROFA_NM            = #{BROFA_NM},
+	            RPRS_ADDR           = #{RPRS_ADDR},
+	            ZIP                 = #{ZIP},
+	            RPRS_TELNO          = #{RPRS_TELNO},                    
+	            IAGRTE_YMD          = #{IAGRTE_YMD},    
+	            ALL_AR_VALUE        = #{ALL_AR_VALUE},    
+	            ENFSN_CNT           = #{ENFSN_CNT},    
+	            BROFA_OPER_CS_CN    = #{BROFA_OPER_CS_CN},    
+	            LAST_MDFR_ID        = #{USER_ID},
+	            LAST_MDFCN_DT       = SYSDATE
+        WHERE INST_NO               = #{INST_NO}
+           AND INDEX_SN             = #{INDEX_SN}        
+    ]]>
+    </update>
+    
+    <insert id="saveCnterPreconYngbgsFclty" parameterType="HashMap">
+    <![CDATA[
+        /* saveCnterPreconYngbgsFclty - Lee.Tae.Ho */
+        
+        INSERT INTO AKA560 /* 센터현황-청소년시설 */
+        (
+            INST_NO,
+            INDEX_SN,
+            SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD,
+            ETC_YNGBGS_FCLTY_CN,
+            YNGBGS_FCLTY_BLDG_NM,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA560_SQ01.NEXTVAL,
+            #{SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD},
+            #{ETC_YNGBGS_FCLTY_CN},
+            #{YNGBGS_FCLTY_BLDG_NM},
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="saveCnterPreconFcltyInfo" parameterType="HashMap">
+    <![CDATA[
+        /* saveCnterPreconFcltyInfo - Lee.Tae.Ho */
+        
+        MERGE INTO AKA500 /* 센터현황 */
+        USING DUAL
+        ON (INST_NO = #{INST_NO})        
+        WHEN MATCHED THEN            
+            UPDATE
+            SET CNTER_PRECON_UNT_TASKWK_SE_CD       = #{CNTER_PRECON_UNT_TASKWK_SE_CD},    
+                ]]>           
+                <if test="ESOFRE_YN != null and ESOFRE_YN != ''">
+                    ESOFRE_YN   = #{ESOFRE_YN},
+                </if>
+                <if test="OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN != null and OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN != ''">
+                    OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN   = #{OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN},
+                </if>
+                <if test="PRVUSE_WIRE_YN != null and PRVUSE_WIRE_YN != ''">
+                    PRVUSE_WIRE_YN   = #{PRVUSE_WIRE_YN},
+                </if>
+                <if test="PBADMS_WIRE_CNTN_YN != null and PBADMS_WIRE_CNTN_YN != ''">
+                    PBADMS_WIRE_CNTN_YN   = #{PBADMS_WIRE_CNTN_YN},
+                </if>
+                <if test="DSPTCH_NO_IDNTY_YN != null and DSPTCH_NO_IDNTY_YN != ''">
+                    DSPTCH_NO_IDNTY_YN   = #{DSPTCH_NO_IDNTY_YN},
+                </if>
+                <![CDATA[
+                BLDG_POSESN_SHAPE_LCLAS_SE_CD       = #{BLDG_POSESN_SHAPE_LCLAS_SE_CD},
+                BLDG_POSESN_BHVIOR_SCLAS_SE_CD      = #{BLDG_POSESN_BHVIOR_SCLAS_SE_CD},
+                BLDG_OWNR_NM_ENCPT                  = C##RG.ENC_B64(#{BLDG_OWNR_NM_ENCPT}),
+                FNDS_SRC_NXNDR_AMT                  = #{FNDS_SRC_NXNDR_AMT},
+                FNDS_SRC_GOEX_AMT                   = #{FNDS_SRC_GOEX_AMT},
+                FNDS_SRC_PHW_AMT                    = #{FNDS_SRC_PHW_AMT},
+                INSTL_MVN_SHAPE_SE_CD               = #{INSTL_MVN_SHAPE_SE_CD},
+                INSTL_MVN_SHAPE_ETC_CN              = #{INSTL_MVN_SHAPE_ETC_CN},
+                BLDG_NM                             = #{BLDG_NM},
+                BLDG_MNG_REGSTR_MAPU_SE_CD          = #{BLDG_MNG_REGSTR_MAPU_SE_CD},
+                BLDG_MNG_REGSTR_MAPU_ETC_CN         = #{BLDG_MNG_REGSTR_MAPU_ETC_CN},
+                BLDG_CMCN_YR                        = #{BLDG_CMCN_YR},
+                TOT_USE_CUNT                        = #{TOT_USE_CUNT},
+                TOT_USE_AR_VALUE                    = #{TOT_USE_AR_VALUE},
+                SNGA_USE_CUNT                       = #{SNGA_USE_CUNT},
+                SNGA_USE_AR_VALUE                   = #{SNGA_USE_AR_VALUE},
+                COLLAB_USE_CUNT                     = #{COLLAB_USE_CUNT},
+                COLLAB_USE_AR_VALUE                 = #{COLLAB_USE_AR_VALUE},
+                FCLTY_ETC_CN                        = #{FCLTY_ETC_CN},
+                SNGA_BLDG_YN                        = #{SNGA_BLDG_YN},
+                LAST_MDFR_ID                        = #{USER_ID},
+                LAST_MDFCN_DT                       = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT
+            (
+                INST_NO,
+                CNTER_PRECON_UNT_TASKWK_SE_CD,
+                ESOFRE_YN,
+                OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN,
+                PRVUSE_WIRE_YN,
+                PBADMS_WIRE_CNTN_YN,                            
+                DSPTCH_NO_IDNTY_YN,
+                BLDG_POSESN_SHAPE_LCLAS_SE_CD,
+                BLDG_POSESN_BHVIOR_SCLAS_SE_CD,
+                BLDG_OWNR_NM_ENCPT,
+                FNDS_SRC_NXNDR_AMT,
+                FNDS_SRC_GOEX_AMT,
+                FNDS_SRC_PHW_AMT,
+                INSTL_MVN_SHAPE_SE_CD,
+                INSTL_MVN_SHAPE_ETC_CN,
+                BLDG_NM,
+                BLDG_MNG_REGSTR_MAPU_SE_CD,
+                BLDG_MNG_REGSTR_MAPU_ETC_CN,
+                BLDG_CMCN_YR,
+                TOT_USE_CUNT,
+                TOT_USE_AR_VALUE,
+                SNGA_USE_CUNT,
+                SNGA_USE_AR_VALUE,
+                COLLAB_USE_CUNT,
+                COLLAB_USE_AR_VALUE,
+                FCLTY_ETC_CN,
+                SNGA_BLDG_YN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{CNTER_PRECON_UNT_TASKWK_SE_CD},
+                #{INST_NO},
+                NVL(#{ESOFRE_YN},'N'),
+                NVL(#{OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN},'N'),
+                NVL(#{PBADMS_WIRE_CNTN_YN},'N'),
+                NVL(#{PRVUSE_WIRE_YN},'N'),
+                NVL(#{DSPTCH_NO_IDNTY_YN},'N'),
+                #{BLDG_POSESN_SHAPE_LCLAS_SE_CD},
+                #{BLDG_POSESN_BHVIOR_SCLAS_SE_CD},
+                C##RG.ENC_B64(#{BLDG_OWNR_NM_ENCPT}),
+                #{FNDS_SRC_NXNDR_AMT},
+                #{FNDS_SRC_GOEX_AMT},
+                #{FNDS_SRC_PHW_AMT},
+                #{INSTL_MVN_SHAPE_SE_CD},
+                #{INSTL_MVN_SHAPE_ETC_CN},
+                #{BLDG_NM},
+                #{BLDG_MNG_REGSTR_MAPU_SE_CD},
+                #{BLDG_MNG_REGSTR_MAPU_ETC_CN},
+                #{BLDG_CMCN_YR},
+                #{TOT_USE_CUNT},
+                #{TOT_USE_AR_VALUE},
+                #{SNGA_USE_CUNT},
+                #{SNGA_USE_AR_VALUE},
+                #{COLLAB_USE_CUNT},
+                #{COLLAB_USE_AR_VALUE},
+                #{FCLTY_ETC_CN},
+                #{SNGA_BLDG_YN},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    ]]>
+    </update>
+    
+    <select id="selectYngbgsSheltr" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectYngbgsSheltr - Lee.Tae.Ho */
+        
+        SELECT  T1.INST_BRNO            AS INST_BRNO
+                ,T1.INST_CRNO           AS INST_CRNO
+                ,T1.CO13_TELNO          AS CO13_TELNO
+                ,T1.ESOFRE_YN           AS ESOFRE_YN
+                ,T1.MCLNC_ENFC_YMD      AS MCLNC_ENFC_YMD
+                ,T1.CNTER_PRECON_UNT_TASKWK_SE_CD      AS CNTER_PRECON_UNT_TASKWK_SE_CD
+        FROM AKA500 T1  /* 센터현황 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+        ]]>
+    </select>
+    
+    <select id="selectOperHour" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectOperHour - Lee.Tae.Ho */
+        
+        SELECT  T1.DAOFTH_SE_CD         AS DAOFTH_SE_CD
+                ,T1.WORK_HR_OPSY_YN     AS WORK_HR_OPSY_YN
+                ,T1.WORK_BGNG_HR        AS WORK_BGNG_HR
+                ,T1.WORK_END_HR         AS WORK_END_HR
+                ,T1.INDEX_SN            AS INDEX_SN                
+        FROM AKA510 T1  /* 센터현황-운영시간 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectBrofaOper" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectBrofaOper - Lee.Tae.Ho */
+        
+        SELECT  T1.BROFA_NM             AS BROFA_NM
+                ,T1.RPRS_ADDR           AS RPRS_ADDR
+                ,T1.ZIP                 AS ZIP
+                ,T1.RPRS_TELNO          AS RPRS_TELNO
+                ,T1.IAGRTE_YMD          AS IAGRTE_YMD
+                ,T1.ALL_AR_VALUE        AS ALL_AR_VALUE
+                ,T1.ENFSN_CNT           AS ENFSN_CNT
+                ,T1.BROFA_OPER_CS_CN    AS BROFA_OPER_CS_CN 
+                ,T1.INDEX_SN            AS INDEX_SN                               
+        FROM AKA520 T1  /* 센터현황-분소운영 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectYngbgs1388" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectYngbgs1388 - Lee.Tae.Ho */
+        
+        SELECT  T1.PRVUSE_WIRE_YN                   AS PRVUSE_WIRE_YN
+                ,T1.PRVUSE_WIRE_NO                  AS PRVUSE_WIRE_NO
+                ,T1.PRVUSE_WIRE_CNT                 AS PRVUSE_WIRE_CNT
+                ,T1.PBADMS_WIRE_CNTN_YN             AS PBADMS_WIRE_CNTN_YN
+                ,T1.DSCSN_TLPHON_RCORDG_SE_CD       AS DSCSN_TLPHON_RCORDG_SE_CD
+                ,T1.DSPTCH_NO_IDNTY_YN              AS DSPTCH_NO_IDNTY_YN
+                ,T1.TLPHON_CSC_OPER_SE_CD           AS TLPHON_CSC_OPER_SE_CD
+                ,T1.CMMNS_LINGO_USE_SE_CD           AS CMMNS_LINGO_USE_SE_CD
+                ,T1.ECSHG_STAFF_WORK_SUM_NOPE       AS ECSHG_STAFF_WORK_SUM_NOPE
+                ,T1.CNTER_PRECON_UNT_TASKWK_SE_CD   AS CNTER_PRECON_UNT_TASKWK_SE_CD
+                ,T1.FCLTY_ETC_CN                    AS FCLTY_ETC_CN
+                ,T1.SNGA_BLDG_YN                    AS SNGA_BLDG_YN
+        FROM AKA500 T1  /* 센터현황 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+        ]]>
+    </select>
+    
+    <select id="selectOperHour1388" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectOperHour1388 - Lee.Tae.Ho */
+        
+        SELECT  T1.DAOFTH_SE_CD         AS DAOFTH_SE_CD
+                ,T1.WORK_HR_OPSY_YN     AS WORK_HR_OPSY_YN
+                ,T1.WORK_BGNG_HR        AS WORK_BGNG_HR
+                ,T1.WORK_END_HR         AS WORK_END_HR  
+                ,T1.INDEX_SN            AS INDEX_SN                          
+        FROM AKA530 T1  /* 센터현황-1388전화운영시간 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectTpriRcvr1388" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectTpriRcvr1388 - Lee.Tae.Ho */
+        
+        SELECT  T1.TPRI_RCVR_WORK_TMZON_SE_CD   AS TPRI_RCVR_WORK_TMZON_SE_CD
+                ,T1.TPRI_RCPTN_STAFF_SE_CD      AS TPRI_RCPTN_STAFF_SE_CD
+                ,T1.TPRI_RCPTN_STAFF_ETC_CN     AS TPRI_RCPTN_STAFF_ETC_CN
+                ,T1.INDEX_SN                    AS INDEX_SN                                           
+        FROM AKA540 T1  /* 센터현황-1388전화근무현황 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectEcshgStaff1388" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectEcshgStaff1388 - Lee.Tae.Ho */
+        
+        SELECT  T1.TPRI_RCVR_WORK_TMZON_SE_CD           AS TPRI_RCVR_WORK_TMZON_SE_CD
+                ,T1.ECSHG_STAFF_NOPE                    AS ECSHG_STAFF_NOPE                                 
+        FROM AKA630 T1  /* 센터현황-1388전담요원현황 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectOperHnf1388" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectOperHnf1388 - Lee.Tae.Ho */
+        
+        SELECT  T1.OPER_HNF_LCLAS_SE_CD     AS OPER_HNF_LCLAS_SE_CD
+                ,T1.OPER_HNF_SCLAS_SE_CD    AS OPER_HNF_SCLAS_SE_CD
+                ,T1.OUTSD_HNF_ETC_CN        AS OUTSD_HNF_ETC_CN 
+                ,T1.TRGT_NOPE               AS TRGT_NOPE
+                ,T1.INDEX_SN                AS INDEX_SN                                          
+        FROM AKA550 T1  /* 센터현황-1388운영인력 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN = 'N'
+        ]]>
+    </select>
+    
+    <insert id="insertCnterPrecon1388" parameterType="HashMap">
+    <![CDATA[
+        /* insertCnterPrecon1388 - Lee.Tae.Ho */
+        
+        INSERT INTO AKA530 /* 센터현황-1388전화운영시간 */
+        (
+            INST_NO,
+            INDEX_SN,
+            DAOFTH_SE_CD,
+            WORK_HR_OPSY_YN,
+            WORK_BGNG_HR,
+            WORK_END_HR,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA530_SQ01.NEXTVAL,
+            #{DAOFTH_SE_CD},
+            #{WORK_HR_OPSY_YN},
+            #{WORK_BGNG_HR},
+            #{WORK_END_HR},
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateCnterPrecon1388" parameterType="HashMap">
+    <![CDATA[
+        /* updateCnterPrecon1388 - Lee.Tae.Ho */
+                   
+        UPDATE AKA530 /* 센터현황-1388전화운영시간 */
+        SET
+            DAOFTH_SE_CD        = #{DAOFTH_SE_CD},
+            WORK_HR_OPSY_YN     = #{WORK_HR_OPSY_YN},
+            WORK_BGNG_HR        = #{WORK_BGNG_HR},
+            WORK_END_HR         = #{WORK_END_HR},                    
+            LAST_MDFR_ID        = #{USER_ID},
+            LAST_MDFCN_DT       = SYSDATE
+        WHERE INST_NO           = #{INST_NO}
+          AND INDEX_SN          = #{INDEX_SN}            
+    ]]>
+    </update>
+    
+    <insert id="insertCnterPreconTelephone1388" parameterType="HashMap">
+    <![CDATA[
+        /* insertCnterPreconTelephone1388 - Lee.Tae.Ho */
+        
+        INSERT INTO AKA540 /* 센터현황-1388전화근무현황 */
+        (
+            INST_NO,
+            INDEX_SN,
+            TPRI_RCVR_WORK_TMZON_SE_CD,
+            TPRI_RCPTN_STAFF_SE_CD,
+            TPRI_RCPTN_STAFF_ETC_CN,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA540_SQ01.NEXTVAL,
+            #{TPRI_RCVR_WORK_TMZON_SE_CD},
+            #{TPRI_RCPTN_STAFF_SE_CD},
+            #{TPRI_RCPTN_STAFF_ETC_CN},
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateCnterPreconTelephone1388" parameterType="HashMap">
+    <![CDATA[
+        /* updateCnterPreconTelephone1388 - Lee.Tae.Ho */
+        
+        UPDATE AKA540 /* 센터현황-1388전화근무현황 */
+        SET
+            TPRI_RCVR_WORK_TMZON_SE_CD      = #{TPRI_RCVR_WORK_TMZON_SE_CD},
+            TPRI_RCPTN_STAFF_SE_CD          = #{TPRI_RCPTN_STAFF_SE_CD},
+            TPRI_RCPTN_STAFF_ETC_CN         = #{TPRI_RCPTN_STAFF_ETC_CN},
+            LAST_MDFR_ID                    = #{USER_ID},
+            LAST_MDFCN_DT                   = SYSDATE
+        WHERE INST_NO                       = #{INST_NO}
+          AND INDEX_SN                      = #{INDEX_SN} 
+    ]]>
+    </update>
+    
+    <insert id="insertCnterPreconTelephoneStaff1388" parameterType="HashMap">
+    <![CDATA[
+        /* insertCnterPreconTelephoneStaff1388 - Lee.Tae.Ho */
+        
+        INSERT INTO AKA630 /* 센터현황-1388전담요원현황 */
+        (
+            INST_NO,
+            TPRI_RCVR_WORK_TMZON_SE_CD,
+            ECSHG_STAFF_NOPE,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            #{TPRI_RCVR_WORK_TMZON_SE_CD},
+            #{ECSHG_STAFF_NOPE},                
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateCnterPreconTelephoneStaff1388" parameterType="HashMap">
+    <![CDATA[
+        /* updateCnterPreconTelephoneStaff1388 - Lee.Tae.Ho */
+        
+        UPDATE AKA630 /* 센터현황-1388전담요원현황 */
+        SET
+            ECSHG_STAFF_NOPE                = #{ECSHG_STAFF_NOPE},                
+            LAST_MDFR_ID                    = #{USER_ID},
+            LAST_MDFCN_DT                   = SYSDATE
+        WHERE INST_NO                       = #{INST_NO}
+          AND TPRI_RCVR_WORK_TMZON_SE_CD    = #{TPRI_RCVR_WORK_TMZON_SE_CD}
+    ]]>
+    </update>
+    
+    <insert id="insertCnterPreconOperHnf1388" parameterType="HashMap">
+    <![CDATA[
+        /* insertCnterPreconOperHnf1388 - Lee.Tae.Ho */
+        
+        INSERT INTO AKA550 /* 센터현황-1388운영인력 */
+        (
+            INST_NO,
+            INDEX_SN,
+            OPER_HNF_LCLAS_SE_CD,
+            OPER_HNF_SCLAS_SE_CD,
+            OUTSD_HNF_ETC_CN,
+            TRGT_NOPE,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA550_SQ01.NEXTVAL,
+            #{OPER_HNF_LCLAS_SE_CD},
+            #{OPER_HNF_SCLAS_SE_CD},
+            #{OUTSD_HNF_ETC_CN},
+            #{TRGT_NOPE},
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateCnterPreconOperHnf1388" parameterType="HashMap">
+    <![CDATA[
+        /* updateCnterPreconOperHnf1388 - Lee.Tae.Ho */
+        
+        UPDATE AKA550 /* 센터현황-1388운영인력 */
+           SET OPER_HNF_LCLAS_SE_CD    = #{OPER_HNF_LCLAS_SE_CD},
+               OPER_HNF_SCLAS_SE_CD    = #{OPER_HNF_SCLAS_SE_CD},
+               OUTSD_HNF_ETC_CN        = #{OUTSD_HNF_ETC_CN},
+               TRGT_NOPE               = #{TRGT_NOPE},
+               LAST_MDFR_ID            = #{USER_ID},
+               LAST_MDFCN_DT           = SYSDATE            
+        WHERE INST_NO                  = #{INST_NO}
+          AND INDEX_SN                 = #{INDEX_SN}     
+    ]]>
+    </update>
+    
+    <select id="selectFcltyInfo" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectFcltyInfo - Lee.Tae.Ho */
+        
+        SELECT  T1.BLDG_POSESN_SHAPE_LCLAS_SE_CD        AS BLDG_POSESN_SHAPE_LCLAS_SE_CD
+                ,T1.BLDG_POSESN_BHVIOR_SCLAS_SE_CD      AS BLDG_POSESN_BHVIOR_SCLAS_SE_CD
+                ,T1.FNDS_SRC_NXNDR_AMT                  AS FNDS_SRC_NXNDR_AMT
+                ,T1.FNDS_SRC_GOEX_AMT                   AS FNDS_SRC_GOEX_AMT
+                ,T1.FNDS_SRC_PHW_AMT                    AS FNDS_SRC_PHW_AMT
+                ,C##RG.DEC_B64(T1.BLDG_OWNR_NM_ENCPT) AS BLDG_OWNR_NM_ENCPT
+                ,T1.INSTL_MVN_SHAPE_SE_CD               AS INSTL_MVN_SHAPE_SE_CD
+                ,T1.INSTL_MVN_SHAPE_ETC_CN              AS INSTL_MVN_SHAPE_ETC_CN
+                ,T1.BLDG_NM                             AS BLDG_NM
+                ,T1.BLDG_MNG_REGSTR_MAPU_SE_CD          AS BLDG_MNG_REGSTR_MAPU_SE_CD
+                ,T1.BLDG_MNG_REGSTR_MAPU_ETC_CN         AS BLDG_MNG_REGSTR_MAPU_ETC_CN
+                ,T1.BLDG_CMCN_YR                        AS BLDG_CMCN_YR
+                ,T1.TOT_USE_CUNT                        AS TOT_USE_CUNT
+                ,T1.TOT_USE_AR_VALUE                    AS TOT_USE_AR_VALUE
+                ,T1.SNGA_USE_CUNT                       AS SNGA_USE_CUNT
+                ,T1.SNGA_USE_AR_VALUE                   AS SNGA_USE_AR_VALUE
+                ,T1.COLLAB_USE_CUNT                     AS COLLAB_USE_CUNT
+                ,T1.COLLAB_USE_AR_VALUE                 AS COLLAB_USE_AR_VALUE
+                ,T1.OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN   AS OSCHL_YNGBGS_PRVUSE_SPCE_INSTL_YN
+                ,T1.CNTER_PRECON_UNT_TASKWK_SE_CD       AS CNTER_PRECON_UNT_TASKWK_SE_CD
+                ,T1.FCLTY_ETC_CN                        AS FCLTY_ETC_CN
+                ,T1.SNGA_BLDG_YN                        AS SNGA_BLDG_YN
+        FROM AKA500 T1  /* 센터현황 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+        ]]>
+    </select>
+    
+    <select id="selectUseSpce" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectUseSpce - Lee.Tae.Ho */
+        
+        SELECT  T1.USE_SPCE_INFO_SE_CD      AS USE_SPCE_INFO_SE_CD                
+                ,T1.USE_SPCE_INFO_ETC_CN    AS USE_SPCE_INFO_ETC_CN
+                ,T1.SNGA_USE_YN             AS SNGA_USE_YN
+                ,T1.USE_SPCE_CUNT           AS USE_SPCE_CUNT
+                ,T1.USE_SPCE_AR_VALUE       AS USE_SPCE_AR_VALUE
+                ,T1.BRM_AVRG_ACPTNC_NOPE    AS BRM_AVRG_ACPTNC_NOPE
+                ,T1.INDEX_SN                AS INDEX_SN             
+        FROM AKA570 T1  /* 센터현황-이동형일시쉼터용차량 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN  = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectUseSpceInfo" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectUseSpceInfo - Lee.Tae.Ho */
+        
+        SELECT  T1.CAR_INFO_SE_CD           AS CAR_INFO_SE_CD
+                ,T1.CAR_INFO_ETC_CN         AS CAR_INFO_ETC_CN
+                ,T1.BRDING_NOPE             AS BRDING_NOPE
+                ,T1.CAR_YRIDNW_NO           AS CAR_YRIDNW_NO
+                ,T1.WIK_AVRG_OPRAT_DAYCNT   AS WIK_AVRG_OPRAT_DAYCNT              
+                ,T1.INDEX_SN                AS INDEX_SN             
+        FROM AKA580 T1  /* 센터현황-이동형일시쉼터용차량 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN  = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectOschlYngbgsPrvuseSpace" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectOschlYngbgsPrvuseSpace - Lee.Tae.Ho */
+        
+        SELECT  T1.IAGRTE_YMD                   AS IAGRTE_YMD
+                ,T1.PRVUSE_SPCE_INSTL_LC_SE_CD  AS PRVUSE_SPCE_INSTL_LC_SE_CD
+                ,T1.PRVUSE_SPCE_MU_PURPS_CN     AS PRVUSE_SPCE_MU_PURPS_CN
+                ,T1.PRVUSE_SPCE_SPRT_SE_CD      AS PRVUSE_SPCE_SPRT_SE_CD
+                ,T1.PRVUSE_SPCE_SPRT_ETC_CN     AS PRVUSE_SPCE_SPRT_ETC_CN
+                ,T1.INDEX_SN                    AS INDEX_SN             
+        FROM AKA590 T1  /* 센터현황-학교밖청소년전용공간 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN  = 'N'
+        ]]>
+    </select>
+    
+    <select id="selectYngbgsFclty" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectYngbgsFclty - Lee.Tae.Ho */
+        
+        SELECT  T1.SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD       AS SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD                
+                ,T1.ETC_YNGBGS_FCLTY_CN     AS ETC_YNGBGS_FCLTY_CN
+                ,T1.YNGBGS_FCLTY_BLDG_NM    AS YNGBGS_FCLTY_BLDG_NM                
+                ,T1.INDEX_SN                AS INDEX_SN             
+        FROM AKA560 T1  /* 센터현황-청소년시설 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+          AND T1.DEL_YN  = 'N'
+        ]]>
+    </select>
+    
+    <update id="updateCnterPreconYngbgsFclty" parameterType="HashMap">
+        <![CDATA[
+        /* updateCnterPreconYngbgsFclty - Hee Sung Yoon */
+        
+        UPDATE AKA560 /* 센터현황-청소년시설 */
+           SET SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD    = #{SAMENS_INOFAB_YNGBGS_FCLTY_SE_CD},
+               ETC_YNGBGS_FCLTY_CN    = #{ETC_YNGBGS_FCLTY_CN},
+               YNGBGS_FCLTY_BLDG_NM        = #{YNGBGS_FCLTY_BLDG_NM},
+               LAST_MDFR_ID            = #{USER_ID},
+               LAST_MDFCN_DT           = SYSDATE            
+        WHERE INST_NO                  = #{INST_NO}
+          AND INDEX_SN                 = #{INDEX_SN}     
+        ]]>
+    </update>
+    
+    <update id="deleteCnterPreconYngbgsFclty" parameterType="HashMap">
+        <![CDATA[
+        /* deleteCnterPreconYngbgsFclty - Hee Sung Yoon */
+        
+        UPDATE AKA560 /* 센터현황-청소년시설 */
+           SET DEL_YN                  = 'Y',
+               LAST_MDFR_ID            = #{USER_ID},
+               LAST_MDFCN_DT           = SYSDATE            
+        WHERE INST_NO                  = #{INST_NO}
+          AND INDEX_SN                 = #{INDEX_SN}     
+        ]]>
+    </update>
+    
+    <insert id="insertCnterPreconUseSpce" parameterType="HashMap">
+    <![CDATA[
+        /* "insertCnterPreconUseSpce" - Lee.Tae.Ho */
+        
+        INSERT INTO AKA570 /* 센터현황-사용공간세부 */
+        (
+            INST_NO,
+            INDEX_SN,
+            USE_SPCE_INFO_SE_CD,
+            USE_SPCE_INFO_ETC_CN,
+            SNGA_USE_YN,
+            USE_SPCE_CUNT,
+            USE_SPCE_AR_VALUE,
+            BRM_AVRG_ACPTNC_NOPE,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA570_SQ01.NEXTVAL,
+            #{USE_SPCE_INFO_SE_CD},
+            #{USE_SPCE_INFO_ETC_CN},
+            NVL(#{SNGA_USE_YN, jdbcType=VARCHAR} , 'Y'),
+            #{USE_SPCE_CUNT},
+            #{USE_SPCE_AR_VALUE},
+            #{BRM_AVRG_ACPTNC_NOPE},
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateCnterPreconUseSpce" parameterType="HashMap">
+    <![CDATA[
+        /* "updateCnterPreconUseSpce" - Lee.Tae.Ho */
+        
+        UPDATE AKA570 /* 센터현황-사용공간세부 */
+            SET
+                USE_SPCE_INFO_SE_CD     = #{USE_SPCE_INFO_SE_CD},
+                USE_SPCE_INFO_ETC_CN    = #{USE_SPCE_INFO_ETC_CN},
+                SNGA_USE_YN             = NVL(#{SNGA_USE_YN, jdbcType=VARCHAR} , 'Y'),
+                USE_SPCE_CUNT           = #{USE_SPCE_CUNT},
+                USE_SPCE_AR_VALUE       = #{USE_SPCE_AR_VALUE},
+                BRM_AVRG_ACPTNC_NOPE    = #{BRM_AVRG_ACPTNC_NOPE},                
+                LAST_MDFR_ID            = #{USER_ID},
+                LAST_MDFCN_DT           = SYSDATE
+        WHERE INST_NO                   = #{INST_NO}
+          AND INDEX_SN                  = #{INDEX_SN}                   
+    ]]>
+    </update>
+    
+    <insert id="insertCnterPreconMvmnSheltrCar" parameterType="HashMap">
+    <![CDATA[
+        /* "insertCnterPreconMvmnSheltrCar" - Lee.Tae.Ho */
+        
+        INSERT INTO AKA580 /* 센터현황-이동형일시쉼터용차량 */
+        (
+            INST_NO,
+            INDEX_SN,
+            CAR_INFO_SE_CD,
+            CAR_INFO_ETC_CN,
+            BRDING_NOPE,
+            CAR_YRIDNW_NO,
+            WIK_AVRG_OPRAT_DAYCNT,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA580_SQ01.NEXTVAL,
+            #{CAR_INFO_SE_CD},
+            #{CAR_INFO_ETC_CN},
+            #{BRDING_NOPE},
+            #{CAR_YRIDNW_NO},
+            #{WIK_AVRG_OPRAT_DAYCNT},
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <update id="updateCnterPreconMvmnSheltrCar" parameterType="HashMap">
+    <![CDATA[
+        /* "updateCnterPreconMvmnSheltrCar" - Lee.Tae.Ho */
+        
+        UPDATE AKA580 /* 센터현황-이동형일시쉼터용차량 */
+            SET
+                CAR_INFO_SE_CD          = #{CAR_INFO_SE_CD},
+                CAR_INFO_ETC_CN         = #{CAR_INFO_ETC_CN},
+                BRDING_NOPE             = #{BRDING_NOPE},
+                CAR_YRIDNW_NO           = #{CAR_YRIDNW_NO},
+                WIK_AVRG_OPRAT_DAYCNT   = #{WIK_AVRG_OPRAT_DAYCNT},               
+                LAST_MDFR_ID            = #{USER_ID},
+                LAST_MDFCN_DT           = SYSDATE
+        WHERE INST_NO                   = #{INST_NO}
+          AND INDEX_SN                  = #{INDEX_SN}                   
+    ]]>
+    </update>
+        
+    <insert id="insertCnterPreconOschlYngbgsPrvuseSpace" parameterType="HashMap">
+    <![CDATA[
+        /* "insertCnterPreconOschlYngbgsPrvuseSpace" - Lee.Tae.Ho */
+        
+        INSERT INTO AKA590 /* 센터현황-학교밖청소년전용공간 */
+        (
+            INST_NO,
+            INDEX_SN,
+            IAGRTE_YMD,
+            PRVUSE_SPCE_INSTL_LC_SE_CD,
+            PRVUSE_SPCE_MU_PURPS_CN,
+            PRVUSE_SPCE_SPRT_SE_CD,
+            PRVUSE_SPCE_SPRT_ETC_CN,
+            DEL_YN,                
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_NO},
+            AKA590_SQ01.NEXTVAL,
+            #{IAGRTE_YMD},
+            #{PRVUSE_SPCE_INSTL_LC_SE_CD},
+            #{PRVUSE_SPCE_MU_PURPS_CN},
+            #{PRVUSE_SPCE_SPRT_SE_CD},
+            #{PRVUSE_SPCE_SPRT_ETC_CN},
+            'N',           
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+            )
+    ]]>
+    </insert>
+    
+    <update id="updateCnterPreconOschlYngbgsPrvuseSpace" parameterType="HashMap">
+    <![CDATA[
+        /* "updateCnterPreconOschlYngbgsPrvuseSpace" - Lee.Tae.Ho */
+        
+        UPDATE
+            SET
+                IAGRTE_YMD                  = #{IAGRTE_YMD},                
+                PRVUSE_SPCE_INSTL_LC_SE_CD  = #{PRVUSE_SPCE_INSTL_LC_SE_CD},
+                PRVUSE_SPCE_MU_PURPS_CN     = #{PRVUSE_SPCE_MU_PURPS_CN},
+                PRVUSE_SPCE_SPRT_SE_CD      = #{PRVUSE_SPCE_SPRT_SE_CD},
+                PRVUSE_SPCE_SPRT_ETC_CN     = #{PRVUSE_SPCE_SPRT_ETC_CN},               
+                LAST_MDFR_ID                = #{USER_ID},
+                LAST_MDFCN_DT               = SYSDATE
+        WHERE INST_NO                       = #{INST_NO}
+          AND INDEX_SN                      = #{INDEX_SN}           
+    ]]>
+    </update>
+    
+    <select id="selectInstlCnsgnInfo" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectInstlCnsgnInfo - Lee.Tae.Ho */
+        
+        SELECT  T1.FCLTY_TYPE_SE_CD                 AS FCLTY_TYPE_SE_CD
+                ,T1.PRTCTN_PSNCPA_CNT               AS PRTCTN_PSNCPA_CNT
+                ,T1.CASE_MNG_PSNCPA_CNT             AS CASE_MNG_PSNCPA_CNT
+                ,T1.PRTCTN_YNGBGS_TYPE_SE_CD        AS PRTCTN_YNGBGS_TYPE_SE_CD
+                ,T1.CNTER_TYPE_SE_CD                AS CNTER_TYPE_SE_CD                
+                ,T1.INSTL_OPER_MTHD_SE_CD           AS INSTL_OPER_MTHD_SE_CD
+                ,T1.INSTL_YMD                       AS INSTL_YMD
+                ,T1.INSTL_END_YMD                   AS INSTL_END_YMD
+                ,T1.INSTL_INST_NM                   AS INSTL_INST_NM
+                ,T1.OPER_MTHD_SE_CD                 AS OPER_MTHD_SE_CD
+                ,T1.OPER_INST_TYPE_SE_CD            AS OPER_INST_TYPE_SE_CD
+                ,T1.CNSGN_INST_NM                   AS CNSGN_INST_NM
+                ,T1.CNSGN_BGNG_YMD                  AS CNSGN_BGNG_YMD
+                ,T1.CNSGN_END_YMD                   AS CNSGN_END_YMD
+                ,T1.INSTL_YMD                       AS INSTL_YMD
+                ,T1.INSTL_END_YMD                   AS INSTL_END_YMD
+                ,T1.INSTL_INST_NM                   AS INSTL_INST_NM
+                ,T1.OPER_INST_TYPE_SE_CD            AS OPER_INST_TYPE_SE_CD
+                ,T1.INSTL_INST_NM                   AS INSTL_INST_NM
+                ,T1.FRST_DSGN_YMD                   AS FRST_DSGN_YMD
+                ,T1.RECENT_DSGN_YMD                 AS RECENT_DSGN_YMD
+                ,T1.DSGN_END_YMD                    AS DSGN_END_YMD
+                ,T1.DSGN_MTHD_SE_CD                 AS DSGN_MTHD_SE_CD
+                ,T1.CNTER_PRECON_UNT_TASKWK_SE_CD   AS CNTER_PRECON_UNT_TASKWK_SE_CD
+        FROM AKA500 T1  /* 센터현황 */
+        WHERE 1=1
+          AND T1.INST_NO = #{orgCode}
+        ]]>
+    </select>
+
+    <insert id="insertAprvOrgDtl" parameterType="HashMap">
+    <![CDATA[
+        /* "insertAprvOrgDtl" - Taesoo Song */
+        INSERT INTO SAA010 (
+            INST_NO
+            , APLY_DT
+            , APLCNT_ID
+            , UNT_TASKWK_SE_CD
+            , INST_NM
+            , UP_INST_NO
+            , UP_APRV_INST_NO
+            , CTPV_CD
+            , SGG_CD
+            , RPRSV_NM_ENCPT
+            , OFFCS_SGNNG_NO
+            , ATFINO
+            , APRV_STTS_SE_CD
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT
+        ) VALUES (
+            #{INST_NO}
+            , SYSDATE
+            , #{USER_ID}
+            , #{UNT_TASKWK_SE_CD}
+            , #{INST_NM}
+            , #{UP_INST_NO}
+            , #{UP_APRV_INST_NO}
+            , #{CTPV_CD}
+            , #{SGG_CD}
+            , C##RG.ENC_B64(#{RPRSV_NM_ENCPT})
+            , #{OFFCS_SGNNG_NO}
+            , #{ATFINO}
+            , '1'
+            , #{USER_ID}
+            , SYSDATE
+            , #{USER_ID}
+            , SYSDATE
+        )
+    ]]>
+    </insert>
+    
+    <select id="selectExistingOrgData" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* "selectExistingOrgData" - Taesoo Song */
+        SELECT INST_NM
+               , UNT_TASKWK_SE_CD
+               , UP_INST_NO
+               , UP_APRV_INST_NO
+               , CTPV_CD, SGG_CD
+               , C##RG.DEC_B64(RPRSV_NM_ENCPT) AS RPRSV_NM_ENCPT
+               , OFFCS_SGNNG_NO
+               , ATFINO
+        FROM SAA000
+        WHERE INST_NO = #{INST_NO}
+        ]]>
+    </select>
+    
+    <select id="selectAprvOrgData" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        /* selectAprvOrgData - Taesoo Song */
+        SELECT 
+                NVL(A.INST_NM, B.INST_NM) AS INST_NM
+               , NVL(A.UNT_TASKWK_SE_CD, B.UNT_TASKWK_SE_CD) AS UNT_TASKWK_SE_CD
+               , NVL(A.UP_INST_NO, B.UP_INST_NO) AS UP_INST_NO
+               , NVL(A.UP_APRV_INST_NO, B.UP_APRV_INST_NO) AS UP_APRV_INST_NO
+               , NVL(A.CTPV_CD, B.CTPV_CD) AS CTPV_CD
+               , NVL(A.SGG_CD, B.SGG_CD) AS SGG_CD
+               , NVL(A.RPRSV_NM_ENCPT, B.RPRSV_NM_ENCPT) AS RPRSV_NM_ENCPT
+               , A.OFFCS_SGNNG_NO
+               , A.ATFINO
+               , TO_CHAR(A.APLY_DT, 'YYYYMMDDHH24MISS') AS APLY_DT
+        FROM SAA010 A
+        JOIN SAA000 B ON A.INST_NO = B.INST_NO
+        WHERE A.INST_NO = #{INST_NO}
+        AND A.APRV_STTS_SE_CD = '1'
+        ]]>
+    </select>
+</mapper>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * 본 프로그램 소스는 여성 가족부 및 위기 청소년 통합 지원 시스템 관리팀의 사전 승인 없이 
+ * 임의 복제, 복사, 배포 할 수 없습니다. 위반 시 법적 처벌을 받게 됩니다.  
+ * Copyright (C) 2021 by MOGEF , All right All right reserved. 
+ -->
+
+<mapper namespace="isry.sample.mapper.Sample2Mapper">
+
+    <update id="updateWrdPhone" parameterType="String">
+    <![CDATA[
+        /**/
+        
+        UPDATE SCA100
+        
+        SET 
+            WRD_TELNO = '021112222'
+            
+        WHERE ENFSN_NO = (SELECT ENFSN_NO FROM SAA200 WHERE USER_ID = #{USER_ID})
+        
+    ]]>
+    </update>
+    
+</mapper>

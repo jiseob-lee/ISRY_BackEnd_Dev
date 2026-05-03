@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubms.casemng.sheltrtrmn.mapper.SheltrTrmnMapper">
+
+    <select id="selectReqById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectReqById - Lee MS */
+        
+        SELECT
+            A.PSTRTR_RESDN_LCLAS_SE_CD AS PSTRTR_RESDN_LCLAS_SE_CD,     /* 퇴소후거주대분류구분코드 */
+            A.PSTRTR_RESDN_SCLAS_SE_CD AS PSTRTR_RESDN_SCLAS_SE_CD,     /* 퇴소후거주소분류구분코드 */
+            A.PSTRTR_RESDN_ETC_CN AS PSTRTR_RESDN_ETC_CN,               /* 퇴소후거주기타내용 */
+            A.PSTRTR_SCHULW_SE_CD AS PSTRTR_SCHULW_SE_CD,               /* 퇴소후학업구분코드 */
+            A.PSTRTR_SCHULW_ETC_CN AS PSTRTR_SCHULW_ETC_CN,             /* 퇴소후학업기타내용 */
+            A.PSTRTR_SLFRL_SE_CD AS PSTRTR_SLFRL_SE_CD,                 /* 퇴소후자립구분코드 */
+            A.PSTRTR_SLFRL_DTL_SE_CD AS PSTRTR_SLFRL_DTL_SE_CD,                 /* 퇴소후자립구분코드 */
+            A.PSTRTR_SLFRL_ETC_CN AS PSTRTR_SLFRL_ETC_CN,               /* 퇴소후자립기타내용 */
+            A.EMPYMN_YMD AS EMPYMN_YMD,                                 /* 취업일자 */
+            A.EMPYMN_INST_NM AS EMPYMN_INST_NM,                         /* 취업기관명 */
+            A.OCCP_CL_SE_CD AS OCCP_CL_SE_CD,                           /* 직업분류구분코드 */
+            A.PSTRTR_ZIP AS PSTRTR_ZIP,                                 /* 퇴소후우편번호 */
+            A.PSTRTR_DADDR AS PSTRTR_DADDR,                             /* 퇴소후상세주소 */
+            A.DGSTFN_EXMN_YMD AS DGSTFN_EXMN_YMD,                       /* 만족도조사설문일자 */
+            A.ATFINO AS ATFINO,                                         /* 첨부파일 */
+            A.CASE_MNG_NO AS CASE_MNG_NO,                               /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO                          /* 사례관리차수 */
+        FROM AEA130 A /* 복지시설사례종결 */
+        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+          AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveData" parameterType="HashMap">
+    <![CDATA[
+         /* saveData - Lee  MS */
+         
+        MERGE INTO AEA130 /* 복지시설사례종결 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+         WHEN MATCHED THEN
+       UPDATE SET
+              PSTRTR_RESDN_LCLAS_SE_CD = #{PSTRTR_RESDN_LCLAS_SE_CD},   /* 퇴소후거주대분류구분코드 */
+              PSTRTR_RESDN_SCLAS_SE_CD = #{PSTRTR_RESDN_SCLAS_SE_CD},   /* 퇴소후거주소분류구분코드 */
+              PSTRTR_RESDN_ETC_CN = #{PSTRTR_RESDN_ETC_CN},             /* 퇴소후거주기타내용 */
+              
+              PSTRTR_SCHULW_SE_CD = #{PSTRTR_SCHULW_SE_CD},             /* 퇴소후학업구분코드 */
+              PSTRTR_SCHULW_ETC_CN = #{PSTRTR_SCHULW_ETC_CN},           /* 퇴소후학업기타내용 */
+              PSTRTR_SLFRL_SE_CD = #{PSTRTR_SLFRL_SE_CD},               /* 퇴소후자립구분코드 */
+              PSTRTR_SLFRL_DTL_SE_CD = #{PSTRTR_SLFRL_DTL_SE_CD},               /* 퇴소후자립구분상세코드 */
+              PSTRTR_SLFRL_ETC_CN = #{PSTRTR_SLFRL_ETC_CN},             /* 퇴소후자립기타내용 */
+
+              EMPYMN_YMD = #{EMPYMN_YMD},                     /* 취업일자 */
+              EMPYMN_INST_NM = #{EMPYMN_INST_NM},             /* 취업기관명 */
+              OCCP_CL_SE_CD = #{OCCP_CL_SE_CD},               /* 직업분류구분코드 */
+              PSTRTR_ZIP = #{PSTRTR_ZIP},                     /* 퇴소후우편번호 */
+              PSTRTR_DADDR = #{PSTRTR_DADDR},                 /* 퇴소후주소 */
+              DGSTFN_EXMN_YMD = #{DGSTFN_EXMN_YMD},           /* 만족도조사일자 */
+              ATFINO = #{ATFINO},                             /* 첨부파일 */
+
+              LAST_MDFR_ID = #{USER_ID},                      /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                         /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,           /* 사례관리번호 */
+              CASE_MNG_ODRNO,        /* 사례관리차수 */
+
+              PSTRTR_RESDN_LCLAS_SE_CD,     /* 퇴소후거주대분류구분코드 */
+              PSTRTR_RESDN_SCLAS_SE_CD,     /* 퇴소후거주소분류구분코드 */
+              PSTRTR_RESDN_ETC_CN,           /* 퇴소후거주소분류구분코드 */
+              
+              PSTRTR_SCHULW_SE_CD,          /* 퇴소후학업구분코드 */
+              PSTRTR_SCHULW_ETC_CN,         /* 퇴소후학업기타내용 */
+              PSTRTR_SLFRL_SE_CD,           /* 퇴소후자립구분코드 */
+              PSTRTR_SLFRL_DTL_SE_CD,           /* 퇴소후자립구분상세코드 */
+              PSTRTR_SLFRL_ETC_CN,          /* 퇴소후자립기타내용 */
+
+              EMPYMN_YMD,            /* 취업일자 */
+              EMPYMN_INST_NM,        /* 취업기관명 */
+              OCCP_CL_SE_CD,         /* 직업분류구분코드 */
+              PSTRTR_ZIP,            /* 퇴소후우편번호 */
+              PSTRTR_DADDR,          /* 퇴소후주소 */
+              DGSTFN_EXMN_YMD,       /* 만족도조사일자 */
+              ATFINO,                /* 첨부파일 */
+             
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              
+              #{PSTRTR_RESDN_LCLAS_SE_CD},
+              #{PSTRTR_RESDN_SCLAS_SE_CD},
+              #{PSTRTR_RESDN_ETC_CN},
+              
+              #{PSTRTR_SCHULW_SE_CD},
+              #{PSTRTR_SCHULW_ETC_CN}, 
+              #{PSTRTR_SLFRL_SE_CD},
+              #{PSTRTR_SLFRL_DTL_SE_CD},
+              #{PSTRTR_SLFRL_ETC_CN},
+              
+              #{EMPYMN_YMD},
+              #{EMPYMN_INST_NM},
+              #{OCCP_CL_SE_CD},
+              #{PSTRTR_ZIP}, 
+              #{PSTRTR_DADDR},
+              #{DGSTFN_EXMN_YMD}, 
+              #{ATFINO},
+              
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+        
+    ]]>
+    </update>
+
+    <delete id="deleteData" parameterType="HashMap">
+    <![CDATA[
+         /* deleteData - Lee  MS */
+    
+        DELETE FROM AEA130 /* 복지시설사례종결 */
+        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+          AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    
+    ]]>
+    </delete>
+
+
+    <select id="selectEntrncXtndById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectReqById - Lee MS */
+        
+        SELECT
+            A.ENTRNC_XTND_YMD AS ENTRNC_XTND_YMD,               /* 입소연장일자 */
+            A.ENTRNC_XTND_CS_SE_CD AS ENTRNC_XTND_CS_SE_CD,     /* 입소연장사유구분코드 */
+            A.ENTRNC_XTND_CS_ETC_CN AS ENTRNC_XTND_CS_ETC_CN,   /* 입소연장사유기타내용 */
+            
+            A.PIC_NO AS PIC_NO,                                 /* 담당자번호 */
+            C##RG.DEC_B64(B.FLNM_ENCPT) AS PIC_NM,           /* 성명암호화 */
+            A.INST_NO AS INST_NO,                               /* 기관번호 */
+            C.INST_NM AS INST_NM,                               /* 기관명 */
+                                                     
+            A.CASE_MNG_NO AS CASE_MNG_NO,                       /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO,                 /* 사례관리차수 */
+            A.ENTRNC_XTND_SN AS ENTRNC_XTND_SN                  /* 입소연장일련번호 */
+            
+        FROM AEA131 A, SCA100 B, SAA000 C  /* 입소연장정보, 통합기관*/
+        WHERE A.PIC_NO = B.ENFSN_NO
+          AND A.INST_NO = C.INST_NO
+          AND A.CASE_MNG_NO = #{CASE_MNG_NO}
+          AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveEntrncXtndData" parameterType="HashMap">
+    <![CDATA[
+         /* saveData - Lee  MS */
+         
+        MERGE INTO AEA131 /* 입소연장정보 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+          AND ENTRNC_XTND_SN = #{ENTRNC_XTND_SN})
+         WHEN MATCHED THEN
+       UPDATE SET
+              ENTRNC_XTND_YMD = #{ENTRNC_XTND_YMD},             /* 입소연장일자 */
+              ENTRNC_XTND_CS_SE_CD = #{ENTRNC_XTND_CS_SE_CD},   /* 입소연장사유구분코드 */
+              ENTRNC_XTND_CS_ETC_CN = #{ENTRNC_XTND_CS_ETC_CN}, /* 입소연장사유기타내용 */
+              
+              PIC_NO = #{PIC_NO},                               /* 담당자번호 */
+              INST_NO = #{INST_NO},                             /* 기관번호 */
+
+              LAST_MDFR_ID = #{USER_ID},                      /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                         /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,           /* 사례관리번호 */
+              CASE_MNG_ODRNO,        /* 사례관리차수 */
+              ENTRNC_XTND_SN,        /* 입소연장일련번호 */
+
+              ENTRNC_XTND_YMD,       /* 입소연장일자 */
+              ENTRNC_XTND_CS_SE_CD,  /* 입소연장사유구분코드 */
+              ENTRNC_XTND_CS_ETC_CN, /* 입소연장사유기타내용 */
+              
+              PIC_NO,                /* 담당자번호 */
+              INST_NO,               /* 기관번호 */
+             
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              (SELECT NVL(MAX(ENTRNC_XTND_SN),0)+1 FROM AEA131 WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+                                                                 AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}),
+              #{ENTRNC_XTND_YMD},
+              #{ENTRNC_XTND_CS_SE_CD},
+              #{ENTRNC_XTND_CS_ETC_CN},
+
+              #{PIC_NO}, 
+              #{INST_NO},
+              
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+        
+    ]]>
+    </update>
+
+    <delete id="deleteEntrncXtndData" parameterType="HashMap">
+    <![CDATA[
+         /* deleteData - Lee  MS */
+    
+        DELETE FROM AEA131 A /* 입소연장정보 */
+        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+          AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+          AND A.ENTRNC_XTND_SN = #{ENTRNC_XTND_SN}
+    
+    ]]>
+    </delete>
+
+
+</mapper>

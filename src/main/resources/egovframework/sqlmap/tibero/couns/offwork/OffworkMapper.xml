@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.offwork.mapper.OffworkMapper">
+    
+    <select id="selectLvffcPrcsBassInfo" parameterType="HashMap" resultType="HashMap">
+        
+        /* isry.couns.offwork.OffworkMapper.selectLvffcPrcsBassInfo - 개발지원팀 이태호  */  
+        SELECT C##RG.DEC_B64(y.FLNM_ENCPT)  AS PIC
+		      ,SYSTIMESTAMP  AS LVFFC_DT		      
+		      ,x.USER_ID     AS CONSTT_ID
+		   FROM SAA200 x /* 사용자 */
+		       ,SCA100 y /* 종사자 */
+		  WHERE 1=1    
+		    AND x.ENFSN_NO = y.ENFSN_NO
+		    AND x.USER_ID  = #{CONSTT_ID}
+    </select>
+    
+    <update id="UpdateLvffcPrcs" parameterType="HashMap">
+        
+        /* isry.couns.offwork.OffworkMapper.UpdateLvffcPrcs - 개발지원팀 이태호  */
+        MERGE INTO
+        AYC495 a /* 상담원출퇴근관리 */      
+        USING   DUAL
+            ON
+            (
+                a.CONSTT_ID   = #{CONSTT_ID}  
+            AND a.WORK_YMD   = TO_CHAR(SYSDATE,'YYYYMMDD') 
+            )
+        WHEN MATCHED THEN
+            UPDATE SET        
+                  a.LVFFC_DT        = SYSDATE
+                , a.LVFFC_IP_ADDR   = #{LVFFC_IP_ADDR}              
+                , a.LAST_MDFR_ID    = #{LAST_MDFR_ID}
+                , a.LAST_MDFCN_DT   = SYSDATE
+            WHERE a.CONSTT_ID   = #{CONSTT_ID}  
+              AND a.WORK_YMD   = TO_CHAR(SYSDATE,'YYYYMMDD')     
+        WHEN NOT MATCHED THEN 
+            INSERT
+                (INDEX_SN
+                , CONSTT_ID
+                , WORK_YMD
+                , LVFFC_DT
+                , LVFFC_IP_ADDR                
+                , FRST_RGTR_ID
+                , FRST_REG_DT
+                , LAST_MDFR_ID
+                , LAST_MDFCN_DT)
+            VALUES
+                (AYC495_SQ01.NEXTVAL
+                , #{CONSTT_ID}
+                , TO_CHAR(SYSDATE,'YYYYMMDD')
+                , SYSDATE
+                , #{LVFFC_IP_ADDR}                
+                , #{FRST_RGTR_ID}
+                , SYSDATE
+                , #{LAST_MDFR_ID}
+                , SYSDATE
+                )
+    </update>
+    
+</mapper>

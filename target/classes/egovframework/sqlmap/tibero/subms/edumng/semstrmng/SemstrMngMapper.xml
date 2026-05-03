@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.subms.edumng.semstrmng.mapper.SemstrMngMapper">
+
+	<select id="selectSemstrMngList" parameterType="HashMap"
+		resultType="HashMap">
+		<!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" /> 
+    <![CDATA[
+        /* selectSemstrMngList - Lee SangHoon */
+    
+        
+	        C.BIZ_YR                                   AS BIZ_YR,              /* 사업연도 */
+	        B.SRVC_EXCN_BIZ_NM                         AS SRVC_EXCN_BIZ_NM,    /* 서비스실행사업명 */
+	        (
+	           SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	           WHERE CMMNS_CD_ID LIKE 'SEMSTR_SE_CD'
+		           AND CMMNS_CD_VALUE = A.SEMSTR_SE_CD
+            )                                          AS SEMSTR_NM,           /* 학기명 */
+	        A.BGNG_YMD                                 AS BGNG_YMD,            /* 시작일자 */
+	        A.END_YMD                                  AS END_YMD,             /* 종료일자 */
+	        A.SRTNG_SQNCE                              AS SRTNG_SQNCE,         /* 정렬순서 */
+	        (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	           WHERE CMMNS_CD_ID = 'YES_OR_NO'
+	           AND CMMNS_CD_VALUE = A.USE_YN)          AS USE_YN,              /* 사용여부 */
+	        DEC_B64(SA_FN_GET_NAME(A.FRST_RGTR_ID))    AS RGTR_NM,             /* 등록자 */
+	        A.FRST_REG_DT                              AS REG_DT,              /* 등록일시 */
+	        DEC_B64(SA_FN_GET_NAME(A.LAST_MDFR_ID))    AS MDFR_NM,             /* 수정자 */
+	        A.LAST_MDFCN_DT                            AS MDFCN_DT,            /* 수정일시 */
+	        
+            A.SRVC_EXCN_BIZ_NO                         AS SRVC_EXCN_BIZ_NO,    /* 서비스실행사업번호 */
+            A.SEMSTR_SE_CD                             AS SEMSTR_SE_CD         /* 학기구분코드 */
+        FROM AFA310 A       /* 학기관리 */
+        LEFT JOIN SDA420 B  /* 서비스실행사업 */
+        ON A.SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 C  /* 서비스사업 */
+        ON B.SRVC_BIZ_NO = C.SRVC_BIZ_NO
+        WHERE 1=1
+            AND C.BIZ_YR LIKE #{BIZ_YR} || '%'
+	        AND A.SRVC_EXCN_BIZ_NO LIKE #{SRVC_EXCN_BIZ_NO} || '%'
+            AND A.SEMSTR_SE_CD LIKE #{SEMSTR_SE_CD} || '%'
+        ORDER BY A.SRTNG_SQNCE, A.SRVC_EXCN_BIZ_NO DESC, A.SEMSTR_SE_CD
+    ]]>
+        <!-- 페이지 인덱서 OFFSET 조건 -->
+        <include refid="ComPagingMapper.pageOffset"/>
+	</select>
+
+	<select id="selectSemstrMng" parameterType="HashMap"
+		resultType="HashMap">
+        <![CDATA[
+	        /* selectSemstrMng - Lee SangHoon */
+	        
+	        SELECT
+	        
+	           B.BIZ_YR AS BIZ_YR
+	           , A.SRVC_EXCN_BIZ_NO AS SRVC_EXCN_BIZ_NO
+	           , A.SEMSTR_SE_CD AS SEMSTR_SE_CD
+	           , A.BGNG_YMD AS BGNG_YMD
+	           , A.END_YMD AS END_YMD
+	           , A.SRTNG_SQNCE AS SRTNG_SQNCE
+	           , A.USE_YN AS USE_YN
+	           
+	        FROM AFA310 A      /* 학기관리 */
+	        LEFT JOIN SDA400 B /* 서비스사업 */
+	        ON SRVC_BIZ_NO = (SELECT SRVC_BIZ_NO FROM SDA420    /* 서비스실행사업 */
+	                           WHERE SRVC_EXCN_BIZ_NO = A.SRVC_EXCN_BIZ_NO)
+	        
+	        WHERE 1=1
+	        AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+	        AND A.SEMSTR_SE_CD = #{SEMSTR_SE_CD}
+        ]]>
+	</select>
+
+	<insert id="insertSemstrMng" parameterType="HashMap">
+	<![CDATA[
+	   /* insertSemstrMng - Lee SangHoon */
+	   
+	   INSERT INTO AFA310 (    /* 학기관리 */
+	       SRVC_EXCN_BIZ_NO,   /* 서비스실행사업번호 */
+	       SEMSTR_SE_CD,       /* 학기구분코드 */
+	       BGNG_YMD,           /* 시작일자 */
+	       END_YMD,            /* 종료일자 */
+	       SRTNG_SQNCE,        /* 정렬순서 */
+	       USE_YN,             /* 사용여부 */
+	       FRST_RGTR_ID,       /* 최초등록자아이디 */
+	       LAST_MDFR_ID        /* 최종수정자아이디 */
+	       )
+       VALUES (
+           #{SRVC_EXCN_BIZ_NO},
+           #{SEMSTR_SE_CD},
+           #{BGNG_YMD},
+           #{END_YMD},
+           #{SRTNG_SQNCE},
+           #{USE_YN},
+           #{FRST_RGTR_ID},
+           #{LAST_MDFR_ID})
+	]]>
+	</insert>
+
+	<update id="updateSemstrMng" parameterType="HashMap">
+    <![CDATA[
+        /* updateSemstrMng - Lee SangHoon */
+        
+        UPDATE AFA310 SET
+            SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO},     /* 사업연도 */
+            SEMSTR_SE_CD = #{SEMSTR_SE_CD},             /* 학기구분코드 */
+            BGNG_YMD = #{BGNG_YMD},                     /* 시작일자 */
+            END_YMD = #{END_YMD},                       /* 종료일자 */
+            SRTNG_SQNCE = #{SRTNG_SQNCE},               /* 정렬순서 */
+            USE_YN = #{USE_YN},                         /* 사용여부 */
+            LAST_MDFR_ID = #{LAST_MDFR_ID},             /* 최종수정자아이디 */
+            LAST_MDFCN_DT = SYSDATE                     /* 최종수정일시 */
+        WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO__origin}
+            AND SEMSTR_SE_CD = #{SEMSTR_SE_CD__origin}
+    ]]>
+	</update>
+
+
+</mapper>

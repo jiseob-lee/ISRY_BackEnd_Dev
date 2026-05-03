@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+    <!--  #############################################################################################  -->
+    <!--  ######################       REAL-ISRY SYSTEM CONFIG            #############################  -->
+    <!--  ######################      2022.01.10 Song.Young.Il            #############################  -->
+    <!--  #############################################################################################  -->
+  
+  
+
+<configuration>
+	<logger name="jdbc" level="ERROR" />
+	<logger name="jdbc.sqlonly" level="ERROR" />
+	<logger name="jdbc.sqltiming" level="ERROR" />
+	<logger name="jdbc.resultsettable" level="ERROR" />
+	<logger name="jdbc.audit" level="ERROR" />
+	<logger name="jdbc.resultset" level="ERROR" />
+	<logger name="jdbc.connection" level="ERROR" />
+    <logger name="springfox" level="ERROR" />
+	<logger name="isry" level="ERROR" />
+    <logger name="egovframework.com" level="ERROR" />
+
+ 	
+<typeAliases></typeAliases>
+</configuration>

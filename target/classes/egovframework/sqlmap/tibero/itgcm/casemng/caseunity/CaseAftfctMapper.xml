@@ -1,0 +1,920 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri April 29 17:59:19 KST 2022-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : CaseAftfctMapper.xml
+* @Description : 사후관리 SQL Mapper
+*
+* @author  : Seo.Hae.Seok
+* @since   : 2022. 05. 10.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 05. 10.  Seo.Hae.Seok    최초작성
+* 2022. 05. 30.  Lee.Jun.Yeong   쿼리추가 및 수정
+* </pre>
+-->
+<mapper namespace="isry.itgcm.casemng.caseunity.mapper.CaseAftfctMapper">
+
+    <!-- 사후계획 목록조회 -->
+    <select id="selectCaseAftfctPlanList" parameterType="HashMap" resultType="HashMap">
+        SELECT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.selectCaseAftfctPlanList(사후계획목록조회) */
+                T1.TRPR_INFO_NO                 AS TRPR_INFO_NO             -- 대상자정보번호(TR)
+              , T1.CASE_MNG_NO                  AS CASE_MNG_NO              -- 사례관리번호(CS)
+              , T1.CASE_MNG_ODRNO               AS CASE_MNG_ODRNO           -- 사례관리차수
+              , T2.AFTFCT_PLAN_NO               AS AFTFCT_PLAN_NO           -- 사후계획번호
+              , T2.AFTFCT_CCH_TTL_NM            AS AFTFCT_CCH_TTL_NM        -- 사후지도제목명
+              , T2.AFTFCT_CCH_PLAN_CN           AS AFTFCT_CCH_PLAN_CN       -- 사후지도계획내용
+              , T2.AFTFCT_CCH_PLAN_YMD          AS AFTFCT_CCH_PLAN_YMD      -- 사후지도계획일자
+              , T2.AFTFCT_LINK_RGN_SGG_CD       AS AFTFCT_LINK_RGN_SGG_CD   -- 사후연계지역시군구코드
+              , T2.AFTFCT_LINK_YMD              AS AFTFCT_LINK_YMD          -- 사후연계일자
+              , T2.AFTFCT_LINK_SE_CD            AS AFTFCT_LINK_SE_CD        -- 사후연계구분코드
+              , T1.CASE_PRGRS_STTS_SE_CD        AS CASE_PRGRS_STTS_SE_CD    -- 사례진행상태구분코드
+              , T2.DEL_YN                       AS DEL_YN                   -- 삭제여부
+          FROM SEB100 T1  /* 사례기본 */
+             , SEC200 T2  /* 사후계획 */
+         WHERE 1 = 1
+           AND T1.CASE_MNG_NO            = T2.CASE_MNG_NO(+)
+           AND T1.CASE_MNG_ODRNO         = T2.CASE_MNG_ODRNO(+)
+           AND T2.CASE_MNG_NO            = #{CASE_MNG_NO}
+           AND T2.CASE_MNG_ODRNO         = #{CASE_MNG_ODRNO}
+           AND T2.DEL_YN(+)             != 'Y'
+         ORDER BY T2.AFTFCT_PLAN_NO DESC
+    </select>
+
+    <!-- 사후계획 저장 -->
+    <update id="saveCaseAftfctPlanDetail" parameterType="HashMap">
+        MERGE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.saveCaseAftfctPlanDetail(사후계획저장) */
+              INTO SEC200 T1
+        USING DUAL
+        ON (T1.AFTFCT_PLAN_NO = #{AFTFCT_PLAN_NO}
+        AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+        AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            
+            AFTFCT_CCH_TTL_NM       = #{AFTFCT_CCH_TTL_NM},
+            AFTFCT_CCH_PLAN_CN      = #{AFTFCT_CCH_PLAN_CN},
+            AFTFCT_CCH_PLAN_YMD     = #{AFTFCT_CCH_PLAN_YMD},
+            AFTFCT_LINK_RGN_SGG_CD  = #{AFTFCT_LINK_RGN_SGG_CD},
+            AFTFCT_LINK_YMD         = #{AFTFCT_LINK_YMD},
+            AFTFCT_LINK_SE_CD       = #{AFTFCT_LINK_SE_CD},
+            LAST_MDFR_ID            = #{USER_ID},
+            LAST_MDFCN_DT           = SYSDATE
+            
+        WHEN NOT MATCHED THEN
+            
+            INSERT 
+            (
+                AFTFCT_PLAN_NO,
+                CASE_MNG_NO,
+                CASE_MNG_ODRNO,
+                AFTFCT_CCH_TTL_NM,
+                AFTFCT_CCH_PLAN_CN,
+                AFTFCT_CCH_PLAN_YMD,
+                AFTFCT_LINK_RGN_SGG_CD,
+                AFTFCT_LINK_YMD,
+                AFTFCT_LINK_SE_CD,
+                DEL_YN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{AFTFCT_PLAN_NO},
+                #{CASE_MNG_NO},
+                #{CASE_MNG_ODRNO},
+                #{AFTFCT_CCH_TTL_NM},
+                #{AFTFCT_CCH_PLAN_CN},
+                #{AFTFCT_CCH_PLAN_YMD},
+                #{AFTFCT_LINK_RGN_SGG_CD},
+                #{AFTFCT_LINK_YMD},
+                #{AFTFCT_LINK_SE_CD},
+                'N',
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    </update>
+
+    <!-- 사후계획 이력등록 -->
+    <insert id="insertCaseAftfctPlanHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.insertCaseAftfctPlanHistory(사후계획이력등록) */
+          INTO SEC201 T1 /* 사후계획이력 */
+             ( T1.AFTFCT_PLAN_NO                -- 사후계획번호(AP)
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.CASE_MNG_NO                   -- 사례관리번호(CS)
+             , T1.CASE_MNG_ODRNO                -- 사례관리차수
+             , T1.AFTFCT_CCH_TTL_NM             -- 사후지도제목명
+             , T1.AFTFCT_CCH_PLAN_CN            -- 사후지도계획내용
+             , T1.AFTFCT_CCH_PLAN_YMD           -- 사후지도계획일자
+             , T1.AFTFCT_LINK_RGN_SGG_CD        -- 사후연계지역시군구코드
+             , T1.AFTFCT_LINK_YMD               -- 사후연계일자
+             , T1.AFTFCT_LINK_SE_CD             -- 사후연계구분코드(동반자, 드림마을, 기타(wee클래스,사설등))
+             , T1.DEL_YN                        -- 삭제여부
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        SELECT T2.AFTFCT_PLAN_NO                -- 사후계획번호(AP)
+             , SYSDATE                          -- 수정일시
+             , #{DATAA_CHG_SE_CD}               -- 데이터변경구분코드
+             , T2.CASE_MNG_NO                   -- 사례관리번호(CS)
+             , T2.CASE_MNG_ODRNO                -- 사례관리차수
+             , T2.AFTFCT_CCH_TTL_NM             -- 사후지도제목명
+             , T2.AFTFCT_CCH_PLAN_CN            -- 사후지도계획내용
+             , T2.AFTFCT_CCH_PLAN_YMD           -- 사후지도계획일자
+             , T2.AFTFCT_LINK_RGN_SGG_CD        -- 사후연계지역시군구코드
+             , T2.AFTFCT_LINK_YMD               -- 사후연계일자
+             , T2.AFTFCT_LINK_SE_CD             -- 사후연계구분코드(동반자, 드림마을, 기타(wee클래스,사설등))
+             , NVL(#{DEL_YN}, T2.DEL_YN)        -- 삭제여부
+             , T2.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T2.FRST_REG_DT                   -- 최초등록일시
+             , T2.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T2.LAST_MDFCN_DT                 -- 최종수정일시
+          FROM SEC200 T2 /* 사후계획 */
+         WHERE T2.AFTFCT_PLAN_NO = #{AFTFCT_PLAN_NO} -- 사후계획번호(AP)
+           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}    -- 사례관리번호(CS)
+           AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO} -- 사례관리차수
+    </insert>
+
+    <!-- 사후계획 상세삭제 -->
+    <update id="deleteCaseAftfctPlanDetail" parameterType="HashMap">
+        /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.deleteCaseAftfctPlanDetail(사후계획상세삭제) */
+        UPDATE SEC200 T1  /* 사후계획 */
+           SET T1.DEL_YN = #{DEL_YN}
+         WHERE T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND T1.AFTFCT_PLAN_NO = #{AFTFCT_PLAN_NO}    -- 사후계획번호(AP)
+    </update>
+
+    <!-- 사후관리 목록조회 -->
+    <select id="selectCaseAftfctMngList" parameterType="HashMap" resultType="HashMap">
+        SELECT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.selectCaseAftfctMngList(사후관리목록조회) */
+		       T1.CASE_MNG_NO                         AS CASE_MNG_NO                -- 사례관리번호(CS)
+		     , T1.CASE_MNG_ODRNO                      AS CASE_MNG_ODRNO             -- 사례관리차수
+		     , T2.AFTFCT_MNG_NO                       AS AFTFCT_MNG_NO              -- 사후관리번호(AM)
+		     , T2.AFTFCT_MNG_YMD                      AS AFTFCT_MNG_YMD             -- 사후관리일자
+		     , T2.AFTFCT_MNG_BGNG_HR                  AS AFTFCT_MNG_BGNG_HR         -- 사후관리시작시간
+		     , T2.AFTFCT_MNG_END_HR                   AS AFTFCT_MNG_END_HR          -- 사후관리종료시간
+		     , T2.AFTFCT_SRVC_SE_CD                   AS AFTFCT_SRVC_SE_CD          -- 사후서비스구분코드(모니터링,정서적지지,기타)
+		     , T2.AFTFCT_SRVC_ETC_CN                  AS AFTFCT_SRVC_ETC_CN         -- 사후서비스기타내용
+		     , T2.AFTFCT_MNG_MTHD_SE_CD               AS AFTFCT_MNG_MTHD_SE_CD      -- 사후관리방법구분코드(전화또는문자를통한안전확인,전문기관서비스이용확인,...)
+		     , T2.AFTFCT_MNG_MTHD_ETC_CN              AS AFTFCT_MNG_MTHD_ETC_CN     -- 사후관리방법기타내용
+		     , T2.AFTFCT_MNG_CN                       AS AFTFCT_MNG_CN              -- 사후관리내용
+		     , T2.AFTFCT_ACTN_MATTER_CN               AS AFTFCT_ACTN_MATTER_CN      -- 사후조치사항내용
+		     , T2.SRVC_RESRCE_LCLAS_SE_CD             AS SRVC_RESRCE_LCLAS_SE_CD    -- 자원제공서비스대분류구분코드
+             , T2.SRVC_RESRCE_MLSFC_SE_CD             AS SRVC_RESRCE_MLSFC_SE_CD    -- 자원제공서비스중분류구분코드
+             , T2.SRVC_RESRCE_ETC_CN                  AS SRVC_RESRCE_ETC_CN         -- 자원제공서비스기타내용
+		     , T2.ATFINO                              AS ATFINO                     -- 첨부파일번호
+		     , T3.PIC_NO                              AS PIC_NO                     -- 담당자번호
+		     , C##RG.DEC_B64(T3.PIC_NM_ENCPT)      AS PIC_NM_ENCPT               -- 담당자명암호화
+		     , T3.PIC_INST_NO                         AS PIC_INST_NO                -- 담당자기관번호
+		     , ( SELECT X.INST_NM
+		           FROM SAA000 X
+		          WHERE X.INST_NO = T3.PIC_INST_NO )  AS PIC_INST_NM                -- 담당자기관명
+		     , T3.PCHPRS_YN                           AS PCHPRS_YN                  -- 주담당자여부
+		     , T3.PCHPRS_DSGN_YMD                     AS PCHPRS_DSGN_YMD            -- 주담당자지정일자
+		     , T3.PCHPRS_CNCLTN_YMD                   AS PCHPRS_CNCLTN_YMD          -- 주담당자해지일자
+		     , T3.PIC_DSGN_YMD                        AS PIC_DSGN_YMD               -- 담당자지정일자
+		     , T3.PIC_CNCLTN_PRCS_YMD                 AS PIC_CNCLTN_PRCS_YMD        -- 담당자해지처리일자
+		     , T1.CASE_PRGRS_STTS_SE_CD               AS CASE_PRGRS_STTS_SE_CD      -- 사례진행상태구분코드
+		     , T1.TRPR_INFO_NO                        AS TRPR_INFO_NO               -- 대상자정보번호
+		  FROM SEB100 T1 /* 사례기본 */
+		     , SEC300 T2 /* 사후관리 */
+		     , SEC310 T3 /* 사후관리담당자 */
+		 WHERE T1.CASE_MNG_NO    =  T2.CASE_MNG_NO
+		   AND T1.CASE_MNG_ODRNO =  T2.CASE_MNG_ODRNO
+		   AND T2.CASE_MNG_NO    =  T3.CASE_MNG_NO
+		   AND T2.CASE_MNG_ODRNO =  T3.CASE_MNG_ODRNO
+		   AND T2.AFTFCT_MNG_NO  =  T3.AFTFCT_MNG_NO
+		   AND T2.CASE_MNG_NO    =  #{CASE_MNG_NO}
+		   AND T2.CASE_MNG_ODRNO =  #{CASE_MNG_ODRNO}
+		   AND T2.DEL_YN         != 'Y'
+		   AND T3.DEL_YN         != 'Y'
+		 ORDER BY T2.CASE_MNG_NO
+		        , T2.CASE_MNG_ODRNO
+		        , T2.AFTFCT_MNG_NO DESC
+    </select>
+
+    <!-- 사후관리 저장 -->
+    <update id="saveCaseAftfctMngDetail" parameterType="HashMap">
+        MERGE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.saveCaseAftfctMngDetail(사후관리저장) */
+              INTO SEC300 T1
+        USING DUAL
+        ON (T1.AFTFCT_MNG_NO  = #{AFTFCT_MNG_NO}
+        AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+        AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            
+            AFTFCT_MNG_YMD          = #{AFTFCT_MNG_YMD},
+            AFTFCT_MNG_BGNG_HR      = #{AFTFCT_MNG_BGNG_HR},
+            AFTFCT_MNG_END_HR       = #{AFTFCT_MNG_END_HR},
+            AFTFCT_SRVC_SE_CD       = #{AFTFCT_SRVC_SE_CD},
+            AFTFCT_SRVC_ETC_CN      = #{AFTFCT_SRVC_ETC_CN},
+            AFTFCT_MNG_MTHD_SE_CD   = #{AFTFCT_MNG_MTHD_SE_CD},
+            AFTFCT_MNG_MTHD_ETC_CN  = #{AFTFCT_MNG_MTHD_ETC_CN},
+            AFTFCT_MNG_CN           = #{AFTFCT_MNG_CN},
+            AFTFCT_ACTN_MATTER_CN   = #{AFTFCT_ACTN_MATTER_CN},
+            SRVC_RESRCE_LCLAS_SE_CD = #{SRVC_RESRCE_LCLAS_SE_CD},
+            SRVC_RESRCE_MLSFC_SE_CD = #{SRVC_RESRCE_MLSFC_SE_CD},
+            SRVC_RESRCE_ETC_CN      = #{SRVC_RESRCE_ETC_CN},
+            ATFINO                  = #{ATFINO},
+            LAST_MDFR_ID            = #{USER_ID},
+            LAST_MDFCN_DT           = SYSDATE
+            
+        WHEN NOT MATCHED THEN
+            
+            INSERT 
+            (
+                AFTFCT_MNG_NO,
+                CASE_MNG_NO,
+                CASE_MNG_ODRNO,
+                AFTFCT_MNG_YMD,
+                AFTFCT_MNG_BGNG_HR,
+                AFTFCT_MNG_END_HR,
+                AFTFCT_SRVC_SE_CD,
+                AFTFCT_SRVC_ETC_CN,
+                AFTFCT_MNG_MTHD_SE_CD,
+                AFTFCT_MNG_MTHD_ETC_CN,
+                AFTFCT_MNG_CN,
+                AFTFCT_ACTN_MATTER_CN,
+                SRVC_RESRCE_LCLAS_SE_CD,
+                SRVC_RESRCE_MLSFC_SE_CD,
+                SRVC_RESRCE_ETC_CN,
+                ATFINO,
+                DEL_YN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{AFTFCT_MNG_NO},
+                #{CASE_MNG_NO},
+                #{CASE_MNG_ODRNO},
+                #{AFTFCT_MNG_YMD},
+                #{AFTFCT_MNG_BGNG_HR},
+                #{AFTFCT_MNG_END_HR},
+                #{AFTFCT_SRVC_SE_CD},
+                #{AFTFCT_SRVC_ETC_CN},
+                #{AFTFCT_MNG_MTHD_SE_CD},
+                #{AFTFCT_MNG_MTHD_ETC_CN},
+                #{AFTFCT_MNG_CN},
+                #{AFTFCT_ACTN_MATTER_CN},
+                #{SRVC_RESRCE_LCLAS_SE_CD},
+                #{SRVC_RESRCE_MLSFC_SE_CD},
+                #{SRVC_RESRCE_ETC_CN},
+                #{ATFINO},
+                'N',
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    </update>
+
+    <!-- 사후관리 이력등록 -->
+    <insert id="insertCaseAftfctMngHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.insertCaseAftfctMngHistory(사후관리이력등록) */
+          INTO SEC301 T1  /* 사후관리이력 */
+             ( T1.AFTFCT_MNG_NO                 -- 사후관리번호(AM)
+             , T1.CASE_MNG_NO                   -- 사례관리번호(CS)
+             , T1.CASE_MNG_ODRNO                -- 사례관리차수
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.AFTFCT_MNG_YMD                -- 사후관리일자
+             , T1.AFTFCT_MNG_BGNG_HR            -- 사후관리시작시간
+             , T1.AFTFCT_MNG_END_HR             -- 사후관리종료시간
+             , T1.AFTFCT_SRVC_SE_CD             -- 사후서비스구분코드(모니터링,정서적지지,기타)
+             , T1.AFTFCT_SRVC_ETC_CN            -- 사후서비스기타내용
+             , T1.AFTFCT_MNG_MTHD_SE_CD         -- 사후관리방법구분코드(전화또는문자를통한안전확인,전문기관서비스이용확인,...)
+             , T1.AFTFCT_MNG_MTHD_ETC_CN        -- 사후관리방법기타내용
+             , T1.AFTFCT_MNG_CN                 -- 사후관리내용
+             , T1.AFTFCT_ACTN_MATTER_CN         -- 사후조치사항내용
+             , T1.SRVC_RESRCE_LCLAS_SE_CD       -- 자원제공서비스대분류구분코드
+             , T1.SRVC_RESRCE_MLSFC_SE_CD       -- 자원제공서비스중분류구분코드
+             , T1.SRVC_RESRCE_ETC_CN            -- 자원제공서비스기타내용
+             , T1.ATFINO                        -- 첨부파일번호
+             , T1.DEL_YN                        -- 삭제여부
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        SELECT 
+               T2.AFTFCT_MNG_NO                 -- 사후관리번호(AM)
+             , T2.CASE_MNG_NO                   -- 사례관리번호(CS)
+             , T2.CASE_MNG_ODRNO                -- 사례관리차수
+             , SYSDATE                          -- 수정일시
+             , #{DATAA_CHG_SE_CD}               -- 데이터변경구분코드
+             , T2.AFTFCT_MNG_YMD                -- 사후관리일자
+             , T2.AFTFCT_MNG_BGNG_HR            -- 사후관리시작시간
+             , T2.AFTFCT_MNG_END_HR             -- 사후관리종료시간
+             , T2.AFTFCT_SRVC_SE_CD             -- 사후서비스구분코드(모니터링,정서적지지,기타)
+             , T2.AFTFCT_SRVC_ETC_CN            -- 사후서비스기타내용
+             , T2.AFTFCT_MNG_MTHD_SE_CD         -- 사후관리방법구분코드(전화또는문자를통한안전확인,전문기관서비스이용확인,...)
+             , T2.AFTFCT_MNG_MTHD_ETC_CN        -- 사후관리방법기타내용
+             , T2.AFTFCT_MNG_CN                 -- 사후관리내용
+             , T2.AFTFCT_ACTN_MATTER_CN         -- 사후조치사항내용
+             , T2.SRVC_RESRCE_LCLAS_SE_CD       -- 자원제공서비스대분류구분코드
+             , T2.SRVC_RESRCE_MLSFC_SE_CD       -- 자원제공서비스중분류구분코드
+             , T2.SRVC_RESRCE_ETC_CN            -- 자원제공서비스기타내용
+             , T2.ATFINO                        -- 첨부파일번호
+             , NVL(#{DEL_YN}, T2.DEL_YN)        -- 삭제여부
+             , #{USER_ID}
+             , SYSDATE
+             , #{USER_ID}
+             , SYSDATE
+          FROM SEC300 T2
+         WHERE T2.AFTFCT_MNG_NO  = #{AFTFCT_MNG_NO}
+           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </insert>
+
+    <!-- 사후관리 상세삭제 -->
+    <update id="deleteCaseAftfctMngDetail" parameterType="HashMap">
+        /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.deleteCaseAftfctMngDetail(사후관리상세삭제) */
+        UPDATE SEC300 T1  /* 사후관리 */
+           SET T1.DEL_YN         = 'Y'
+         WHERE T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND T1.AFTFCT_MNG_NO  = #{AFTFCT_MNG_NO}  -- 사후관리번호(AP)
+    </update>
+
+    <!-- 사후종결 목록조회 -->
+    <select id="selectCaseAftfctTrmnList" parameterType="HashMap" resultType="HashMap">
+        SELECT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.selectCaseAftfctTrmnList(사후종결목록조회) */
+                T2.CASE_MNG_NO              AS CASE_MNG_NO           -- 사례관리번호
+              , T2.CASE_MNG_ODRNO           AS CASE_MNG_ODRNO        -- 사례관리차수
+              , T2.AFTFCT_TRMN_NO           AS AFTFCT_TRMN_NO        -- 사후종결번호
+              , T2.AFTFCT_TRMN_SE_CD        AS AFTFCT_TRMN_SE_CD     -- 사후종결구분코드(종결 or 재개입)
+              , T2.AFTFCT_TRMN_CS_SE_CD     AS AFTFCT_TRMN_CS_SE_CD  -- 사후종결사유구분코드
+              , T2.AFTFCT_TRMN_CS_ETC_CN    AS AFTFCT_TRMN_CS_ETC_CN -- 사후종결사유기타내용
+              , T2.AFTFCT_TRMN_APLY_YMD     AS AFTFCT_TRMN_APLY_YMD  -- 사후종결신청일자
+              , T2.AFTFCT_TRMN_SRNG_YMD     AS AFTFCT_TRMN_SRNG_YMD  -- 사후종결심사일자
+              , T2.AFTFCT_TRMN_SRNG_CN      AS AFTFCT_TRMN_SRNG_CN   -- 사후종결심사내용
+              , T2.AFTFCT_TRMN_YMD          AS AFTFCT_TRMN_YMD       -- 사후종결일자
+              , T1.CASE_PRGRS_STTS_SE_CD    AS CASE_PRGRS_STTS_SE_CD -- 사례진행상태구분코드
+              , T1.TRPR_INFO_NO             AS TRPR_INFO_NO          -- 대상자정보번호
+          FROM SEB100 T1  /* 사례기본 */
+             , SEC320 T2  /* 사후종결 */
+         WHERE 1 = 1
+           AND T1.CASE_MNG_NO    = T2.CASE_MNG_NO
+           AND T1.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+         ORDER BY T2.CASE_MNG_NO
+                , T2.CASE_MNG_ODRNO
+                , T2.AFTFCT_TRMN_NO DESC
+    </select>
+
+    <!-- 사후종결 저장 -->
+    <update id="saveCaseAftfctTrmnDetail" parameterType="HashMap">
+        MERGE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.saveCaseAftfctTrmnDetail(사후종결저장) */
+              INTO SEC320 T1
+        USING DUAL
+        ON (T1.AFTFCT_TRMN_NO = #{AFTFCT_TRMN_NO}
+        AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+        AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            
+            AFTFCT_TRMN_SE_CD       = #{AFTFCT_TRMN_SE_CD},
+            AFTFCT_TRMN_CS_SE_CD    = #{AFTFCT_TRMN_CS_SE_CD},
+            AFTFCT_TRMN_CS_ETC_CN   = #{AFTFCT_TRMN_CS_ETC_CN},
+            AFTFCT_TRMN_APLY_YMD    = #{AFTFCT_TRMN_APLY_YMD},
+            AFTFCT_TRMN_SRNG_YMD    = #{AFTFCT_TRMN_SRNG_YMD},
+            AFTFCT_TRMN_SRNG_CN     = #{AFTFCT_TRMN_SRNG_CN},
+            AFTFCT_TRMN_YMD         = #{AFTFCT_TRMN_YMD},
+            LAST_MDFR_ID            = #{USER_ID},
+            LAST_MDFCN_DT           = SYSDATE
+            
+        WHEN NOT MATCHED THEN
+            
+            INSERT 
+            (
+                CASE_MNG_NO,
+                CASE_MNG_ODRNO,
+                AFTFCT_TRMN_NO,
+                AFTFCT_TRMN_SE_CD,
+                AFTFCT_TRMN_CS_SE_CD,
+                AFTFCT_TRMN_CS_ETC_CN,
+                AFTFCT_TRMN_APLY_YMD,
+                AFTFCT_TRMN_SRNG_YMD,
+                AFTFCT_TRMN_SRNG_CN,
+                AFTFCT_TRMN_YMD,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{CASE_MNG_NO},
+                #{CASE_MNG_ODRNO},
+                #{AFTFCT_TRMN_NO},
+                #{AFTFCT_TRMN_SE_CD},
+                #{AFTFCT_TRMN_CS_SE_CD},
+                #{AFTFCT_TRMN_CS_ETC_CN},
+                #{AFTFCT_TRMN_APLY_YMD},
+                #{AFTFCT_TRMN_SRNG_YMD},
+                #{AFTFCT_TRMN_SRNG_CN},
+                #{AFTFCT_TRMN_YMD},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    </update>
+    
+    <!-- 사후종결 이력등록 -->
+    <insert id="insertCaseAftfctTrmnHistory" parameterType="HashMap">
+        INSERT INTO SEC321 T1
+            (
+                T1.CASE_MNG_NO,
+                T1.CASE_MNG_ODRNO,
+                T1.AFTFCT_TRMN_NO,
+                T1.MDFCN_DT,
+                T1.DATAA_CHG_SE_CD,
+                T1.AFTFCT_TRMN_SE_CD,
+                T1.AFTFCT_TRMN_CS_SE_CD,
+                T1.AFTFCT_TRMN_CS_ETC_CN,
+                T1.AFTFCT_TRMN_APLY_YMD,
+                T1.AFTFCT_TRMN_SRNG_YMD,
+                T1.AFTFCT_TRMN_SRNG_CN,
+                T1.AFTFCT_TRMN_YMD,
+                T1.FRST_RGTR_ID,
+                T1.FRST_REG_DT,
+                T1.LAST_MDFR_ID,
+                T1.LAST_MDFCN_DT
+            )
+        SELECT
+                T2.CASE_MNG_NO
+              , T2.CASE_MNG_ODRNO
+              , T2.AFTFCT_TRMN_NO
+              , SYSDATE
+              , #{DATAA_CHG_SE_CD}
+              , T2.AFTFCT_TRMN_SE_CD
+              , T2.AFTFCT_TRMN_CS_SE_CD
+              , T2.AFTFCT_TRMN_CS_ETC_CN
+              , T2.AFTFCT_TRMN_APLY_YMD
+              , T2.AFTFCT_TRMN_SRNG_YMD
+              , T2.AFTFCT_TRMN_SRNG_CN
+              , T2.AFTFCT_TRMN_YMD
+              , #{USER_ID}
+              , SYSDATE
+              , #{USER_ID}
+              , SYSDATE
+          FROM SEC320 T2
+         WHERE T2.AFTFCT_TRMN_NO = #{AFTFCT_TRMN_NO}
+           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </insert>
+
+    <!-- 사후종결 상세삭제 -->
+    <delete id="deleteCaseAftfctTrmnDetail" parameterType="HashMap">
+        DELETE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.deleteCaseAftfctTrmnDetail(사후종결상세삭제) */
+          FROM SEC320 T1  /* 사후종결 */
+         WHERE T1.AFTFCT_TRMN_NO = #{AFTFCT_TRMN_NO} 
+           AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </delete>
+
+    <!-- 재사정 목록조회 -->
+    <select id="selectCaseReasseList" parameterType="HashMap" resultType="HashMap">
+        SELECT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.selectCaseReasseList(재사정목록조회) */
+               T2.REASSE_NO                    AS REASSE_NO                    -- 재사정번호(RA)
+             , T2.CASE_MNG_NO                  AS CASE_MNG_NO                  -- 사례관리번호(CS)
+             , T2.CASE_MNG_ODRNO               AS CASE_MNG_ODRNO               -- 사례관리차수
+             , T2.CASE_MNG_BGNG_YMD            AS CASE_MNG_BGNG_YMD            -- 사례관리시작일자
+             , T2.REASSE_APLY_YMD              AS REASSE_APLY_YMD              -- 재사정신청일자
+             , T2.REASSE_SRNG_YMD              AS REASSE_SRNG_YMD              -- 재사정심사일자
+             , T2.REASSE_YN                    AS REASSE_YN                    -- 재사정여부
+             , T2.REASSE_SRNG_CS_CN            AS REASSE_SRNG_CS_CN            -- 재사정심사사유내용
+             , T2.FRST_RGTR_ID                 AS FRST_RGTR_ID                 -- 최초등록자아이디
+             , T2.FRST_REG_DT                  AS FRST_REG_DT                  -- 최초등록일시
+             , T2.LAST_MDFR_ID                 AS LAST_MDFR_ID                 -- 최종수정자아이디
+             , T2.LAST_MDFCN_DT                AS LAST_MDFCN_DT                -- 최종수정일시
+          FROM SEB100 T1  /* 사례기본 */
+             , SEC110 T2  /* 재사정 */
+         WHERE 1 = 1
+           AND T1.CASE_MNG_NO       = T2.CASE_MNG_NO
+           AND T1.CASE_MNG_ODRNO    = T2.CASE_MNG_ODRNO
+           AND T2.CASE_MNG_NO       = #{CASE_MNG_NO}
+           AND T2.CASE_MNG_ODRNO    = #{CASE_MNG_ODRNO}
+      ORDER BY T2.CASE_MNG_NO, T2.CASE_MNG_ODRNO DESC, T2.REASSE_NO DESC
+    </select>
+
+    <!-- 재사정 저장 -->
+    <update id="saveCaseReasseDetail" parameterType="HashMap">
+        MERGE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.saveCaseReasseDetail(재사정저장) */
+              INTO SEC110 T1
+        USING DUAL
+        ON (T1.REASSE_NO      = #{REASSE_NO}
+        AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+        AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            
+            REASSE_APLY_YMD     = #{REASSE_APLY_YMD},
+            REASSE_SRNG_YMD     = #{REASSE_SRNG_YMD},
+            REASSE_YN           = #{REASSE_YN},
+            CASE_MNG_BGNG_YMD   = #{CASE_MNG_BGNG_YMD},
+            REASSE_SRNG_CS_CN   = #{REASSE_SRNG_CS_CN},
+            LAST_MDFR_ID        = #{USER_ID},
+            LAST_MDFCN_DT       = SYSDATE
+            
+        WHEN NOT MATCHED THEN
+            
+            INSERT 
+            (
+                REASSE_NO,
+                CASE_MNG_NO,
+                CASE_MNG_ODRNO,
+                CASE_MNG_BGNG_YMD,
+                REASSE_APLY_YMD,
+                REASSE_SRNG_YMD,
+                REASSE_SRNG_CS_CN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{REASSE_NO},
+                #{CASE_MNG_NO},
+                #{CASE_MNG_ODRNO},
+                #{CASE_MNG_BGNG_YMD},
+                #{REASSE_APLY_YMD},
+                #{REASSE_SRNG_YMD},
+                #{REASSE_SRNG_CS_CN},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    </update>
+
+    <!-- 재사정 이력등록 -->
+    <insert id="insertCaseReasseHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.insertCaseReasseHistory(재사정이력등록) */
+          INTO SEC111 T1  /* 재사정이력 */
+             ( T1.REASSE_NO                     -- 재사정번호(RA)
+             , T1.CASE_MNG_NO                   -- 사례관리번호(CS)
+             , T1.CASE_MNG_ODRNO                -- 사례관리차수
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.REASSE_APLY_YMD               -- 재사정신청일자
+             , T1.REASSE_SRNG_YMD               -- 재사정심사일자
+             , T1.REASSE_YN                     -- 재사정여부
+             , T1.CASE_MNG_BGNG_YMD             -- 사례관리시작일자
+             , T1.REASSE_SRNG_CS_CN             -- 재사정심사사유내용
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        SELECT
+               T2.REASSE_NO                     -- 재사정번호(RA)
+             , T2.CASE_MNG_NO                   -- 사례관리번호(CS)
+             , T2.CASE_MNG_ODRNO                -- 사례관리차수
+             , SYSDATE                          -- 수정일시
+             , #{DATAA_CHG_SE_CD}               -- 데이터변경구분코드
+             , T2.REASSE_APLY_YMD               -- 재사정신청일자
+             , T2.REASSE_SRNG_YMD               -- 재사정심사일자
+             , T2.REASSE_YN                     -- 재사정여부
+             , T2.CASE_MNG_BGNG_YMD             -- 사례관리시작일자
+             , T2.REASSE_SRNG_CS_CN             -- 재사정심사사유내용
+             , T2.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T2.FRST_REG_DT                   -- 최초등록일시
+             , T2.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T2.LAST_MDFCN_DT                 -- 최종수정일시
+          FROM SEC110 T2
+         WHERE T2.REASSE_NO      = #{REASSE_NO}
+           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </insert>
+
+    <!-- 재사정 상세삭제 -->
+    <delete id="deleteCaseReasseDetail" parameterType="HashMap">
+        DELETE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.deleteCaseReasseDetail(재사정상세삭제) */
+          FROM SEC110 T1  /* 재사정 */
+         WHERE T1.REASSE_NO      = #{REASSE_NO}
+           AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </delete>
+
+    <!-- 사후관리담당자 목록조회 -->
+    <select id="selectCaseAftfctPicList" parameterType="HashMap" resultType="HashMap">
+        SELECT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.selectCaseAftfctPicList(사후관리담당자목록조회) */
+               T1.CASE_MNG_NO                   AS CASE_MNG_NO                  -- 사례관리번호
+             , T1.CASE_MNG_ODRNO                AS CASE_MNG_ODRNO               -- 사례관리차수
+             , T1.PIC_NO                        AS PIC_NO                       -- 담당자번호
+             , T1.PIC_NO                        AS PIC_NO_ORD                   -- 담당자번호(ORD)
+             , C##RG.DEC_B64(T1.PIC_NM_ENCPT)                  AS PIC_NM_ENCPT                 -- 담당자명
+             , T1.PIC_INST_NO                   AS PIC_INST_NO                  -- 담당자기관번호
+             , T2.INST_NM                       AS PIC_INST_NM                  -- 담당자기관명
+             , T1.PCHPRS_YN                     AS PCHPRS_YN                    -- 주담당자여부
+             , T1.PCHPRS_DSGN_YMD               AS PCHPRS_DSGN_YMD              -- 주담당자지정일자
+             , T1.PCHPRS_CNCLTN_YMD             AS PCHPRS_CNCLTN_YMD            -- 주담당자해지일자
+             , T1.PIC_DSGN_YMD                  AS PIC_DSGN_YMD                 -- 담당자지정일자
+             , T1.PIC_CNCLTN_PRCS_YMD           AS PIC_CNCLTN_PRCS_YMD          -- 담당자해지처리일자
+             , T1.DEL_YN                        AS DEL_YN                       -- 삭제여부
+             , T1.FRST_RGTR_ID                  AS FRST_RGTR_ID                 -- 최초등록자아이디
+             , T1.FRST_REG_DT                   AS FRST_REG_DT                  -- 최초등록일시
+             , T1.LAST_MDFR_ID                  AS LAST_MDFR_ID                 -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 AS LAST_MDFCN_DT                -- 최종수정일시
+          FROM SEC310 T1  /* 사후관리담당자 */
+             , SAA000 T2  /* 통합기관 */
+         WHERE 1 = 1
+           AND T1.PIC_INST_NO    = T2.INST_NO
+           AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND T1.DEL_YN        != 'Y'
+      ORDER BY T1.CASE_MNG_NO, T1.CASE_MNG_ODRNO, T1.PIC_NO
+    </select>
+
+    <!-- 사후관리담당자 저장 -->
+    <update id="saveCaseAftfctPicDetail" parameterType="HashMap">
+        MERGE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.saveCaseAftfctPicDetail(사후관리담당자저장) */
+              INTO SEC310 T1
+        USING DUAL
+        ON (T1.PIC_NO         = #{PIC_NO}
+        AND T1.AFTFCT_MNG_NO  = #{AFTFCT_MNG_NO}
+        AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+        AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            
+            PIC_NM_ENCPT        = (C##RG.ENC_B64(#{PIC_NM_ENCPT})),
+            PIC_INST_NO         = #{PIC_INST_NO},
+            PCHPRS_YN           = #{PCHPRS_YN},
+            PCHPRS_DSGN_YMD     = #{PCHPRS_DSGN_YMD},
+            PCHPRS_CNCLTN_YMD   = #{PCHPRS_CNCLTN_YMD},
+            PIC_DSGN_YMD        = #{PIC_DSGN_YMD},
+            PIC_CNCLTN_PRCS_YMD = #{PIC_CNCLTN_PRCS_YMD},
+            LAST_MDFR_ID        = #{USER_ID},
+            LAST_MDFCN_DT       = SYSDATE
+            
+        WHEN NOT MATCHED THEN
+            
+            INSERT 
+            (
+                AFTFCT_MNG_NO,
+                CASE_MNG_NO,
+                CASE_MNG_ODRNO,
+                PIC_NO,
+                PIC_NM_ENCPT,
+                PIC_INST_NO,
+                PCHPRS_YN,
+                PCHPRS_DSGN_YMD,
+                PCHPRS_CNCLTN_YMD,
+                PIC_DSGN_YMD,
+                PIC_CNCLTN_PRCS_YMD,
+                DEL_YN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{AFTFCT_MNG_NO},
+                #{CASE_MNG_NO},
+                #{CASE_MNG_ODRNO},
+                #{PIC_NO},
+                (C##RG.ENC_B64(#{PIC_NM_ENCPT})),
+                #{PIC_INST_NO},
+                #{PCHPRS_YN},
+                #{PCHPRS_DSGN_YMD},
+                #{PCHPRS_CNCLTN_YMD},
+                #{PIC_DSGN_YMD},
+                #{PIC_CNCLTN_PRCS_YMD},
+                'N',
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    </update>
+
+    <!-- 사후관리담당자 이력등록 -->
+    <insert id="insertCaseAftfctPicHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.insertCaseAftfctPicHistory(사후관리담당자이력등록) */
+          INTO SEC311 T1  /* 사후관리담당자이력 */
+             ( T1.AFTFCT_MNG_NO                 -- 사후관리번호
+             , T1.CASE_MNG_NO                   -- 사례관리번호
+             , T1.CASE_MNG_ODRNO                -- 사례관리차수
+             , T1.PIC_NO                        -- 담당자번호
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.PIC_NM_ENCPT                  -- 담당자명
+             , T1.PIC_INST_NO                   -- 담당자기관번호
+             , T1.PCHPRS_YN                     -- 주담당자여부
+             , T1.PCHPRS_DSGN_YMD               -- 주담당자지정일자
+             , T1.PCHPRS_CNCLTN_YMD             -- 주담당자해지일자
+             , T1.PIC_DSGN_YMD                  -- 담당자지정일자
+             , T1.PIC_CNCLTN_PRCS_YMD           -- 담당자해지처리일자
+             , T1.DEL_YN                        -- 삭제여부
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        SELECT
+               T2.AFTFCT_MNG_NO                 -- 사후관리번호
+             , T2.CASE_MNG_NO                   -- 사례관리번호
+             , T2.CASE_MNG_ODRNO                -- 사례관리차수
+             , T2.PIC_NO                        -- 담당자번호
+             , SYSDATE                          -- 수정일시
+             , #{DATAA_CHG_SE_CD}               -- 데이터변경구분코드
+             , T2.PIC_NM_ENCPT                  -- 담당자명
+             , T2.PIC_INST_NO                   -- 담당자기관번호
+             , T2.PCHPRS_YN                     -- 주담당자여부
+             , T2.PCHPRS_DSGN_YMD               -- 주담당자지정일자
+             , T2.PCHPRS_CNCLTN_YMD             -- 주담당자해지일자
+             , T2.PIC_DSGN_YMD                  -- 담당자지정일자
+             , T2.PIC_CNCLTN_PRCS_YMD           -- 담당자해지처리일자
+             , NVL(#{DEL_YN}, T2.DEL_YN)        -- 삭제여부
+             , #{USER_ID}
+             , SYSDATE
+             , #{USER_ID}
+             , SYSDATE
+          FROM SEC310 T2  /* 사후관리담당자 */
+         WHERE T2.AFTFCT_MNG_NO  = #{AFTFCT_MNG_NO}
+           AND T2.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T2.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND T2.PIC_NO         = #{PIC_NO}
+    </insert>
+
+    <!-- 사후관리담당자 상세삭제 -->
+    <update id="deleteCaseAftfctPicDetail" parameterType="HashMap">
+        /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.deleteCaseAftfctPicDetail(사후관리담당자상세삭제) */
+        UPDATE SEC310 T1  /* 사후관리담당자 */
+           SET T1.DEL_YN         = 'Y'
+         WHERE T1.AFTFCT_MNG_NO  = #{AFTFCT_MNG_NO}
+           AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND T1.PIC_NO         = #{PIC_NO}
+    </update>
+
+    <!-- 재사정심사자 목록조회 -->
+    <select id="selectCaseReasseSrngPicList" parameterType="HashMap" resultType="HashMap">
+        SELECT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.selectCaseReasseSrngPicList(재사정심사자목록조회) */
+               T1.CASE_MNG_NO                   AS CASE_MNG_NO                 -- 사례관리번호
+             , T1.CASE_MNG_ODRNO                AS CASE_MNG_ODRNO              -- 사례관리차수
+             , T1.SRNG_PIC_NO                   AS SRNG_PIC_NO                 -- 심사담당자번호
+             , T1.SRNG_PIC_NO                   AS SRNG_PIC_NO_ORD             -- 심사담당자번호(ORD)
+             , C##RG.DEC_B64(T2.FLNM_ENCPT)                    AS SRNG_PIC_NM_ENCPT           -- 심사담당자명
+             , T1.PIC_INST_NO                   AS PIC_INST_NO                 -- 담당자기관번호
+             , T3.INST_NM                       AS PIC_INST_NM                 -- 담당자기관명
+             , T1.AFTFCT_TRMN_SRNG_TKCG_YN      AS AFTFCT_TRMN_SRNG_TKCG_YN    -- 사후종결심사담당여부
+             , T1.REASSE_SRNG_TKCG_YN           AS REASSE_SRNG_TKCG_YN         -- 재사정심사담당여부
+             , T1.FRST_RGTR_ID                  AS FRST_RGTR_ID                -- 최초등록자아이디
+             , T1.FRST_REG_DT                   AS FRST_REG_DT                 -- 최초등록일시
+             , T1.LAST_MDFR_ID                  AS LAST_MDFR_ID                -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 AS LAST_MDFCN_DT               -- 최종수정일시
+          FROM SEC130 T1  /* 재사정심사자 */
+             , SCA100 T2  /* 종사자 */
+             , SAA000 T3  /* 통합기관 */
+         WHERE 1 = 1
+           AND T1.SRNG_PIC_NO    = T2.ENFSN_NO
+           AND T1.PIC_INST_NO    = T3.INST_NO
+           AND T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    <if test="AFTFCT_TRMN_SRNG_TKCG_YN != null and AFTFCT_TRMN_SRNG_TKCG_YN != ''">
+      <![CDATA[
+           AND T1.AFTFCT_TRMN_SRNG_TKCG_YN = #{AFTFCT_TRMN_SRNG_TKCG_YN}
+      ]]>
+    </if>
+    <if test="REASSE_SRNG_TKCG_YN != null and REASSE_SRNG_TKCG_YN != ''">
+      <![CDATA[
+           AND T1.REASSE_SRNG_TKCG_YN = #{REASSE_SRNG_TKCG_YN}
+      ]]>
+    </if>
+      ORDER BY T1.CASE_MNG_NO, T1.CASE_MNG_NO, T1.SRNG_PIC_NO DESC
+    </select>
+
+    <!-- 재사정심사자 저장 -->
+    <update id="saveCaseReasseSrngDetail" parameterType="HashMap">
+        MERGE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.saveCaseReasseSrngDetail(재사정심사자저장) */
+              INTO SEC130 T1
+        USING DUAL
+        ON (T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+        AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+        AND T1.SRNG_PIC_NO    = #{SRNG_PIC_NO})
+
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            
+            PIC_INST_NO               = #{PIC_INST_NO},
+            AFTFCT_TRMN_SRNG_TKCG_YN  = #{AFTFCT_TRMN_SRNG_TKCG_YN},
+            REASSE_SRNG_TKCG_YN       = #{REASSE_SRNG_TKCG_YN},
+            LAST_MDFR_ID              = #{USER_ID},
+            LAST_MDFCN_DT             = SYSDATE
+            
+        WHEN NOT MATCHED THEN
+            
+            INSERT 
+            (
+                CASE_MNG_NO,
+                CASE_MNG_ODRNO,
+                SRNG_PIC_NO,
+                PIC_INST_NO,
+                AFTFCT_TRMN_SRNG_TKCG_YN,
+                REASSE_SRNG_TKCG_YN,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{CASE_MNG_NO},
+                #{CASE_MNG_ODRNO},
+                #{SRNG_PIC_NO},
+                #{PIC_INST_NO},
+                #{AFTFCT_TRMN_SRNG_TKCG_YN},
+                #{REASSE_SRNG_TKCG_YN},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    </update>
+
+    <!-- 재사정심사자 이력등록 -->
+    <insert id="insertCaseReasseSrngHistory" parameterType="HashMap">
+        INSERT /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.insertCaseReasseSrngHistory(재사정심사자이력등록) */
+          INTO SEC131 T1  /* 재사정심사자이력 */
+             ( T1.CASE_MNG_NO                   -- 사례관리번호
+             , T1.CASE_MNG_ODRNO                -- 사례관리차수
+             , T1.SRNG_PIC_NO                   -- 심사담당자번호
+             , T1.MDFCN_DT                      -- 수정일시
+             , T1.DATAA_CHG_SE_CD               -- 데이터변경구분코드
+             , T1.PIC_INST_NO                   -- 담당자기관번호
+             , T1.AFTFCT_TRMN_SRNG_TKCG_YN      -- 사후종결심사담당여부
+             , T1.REASSE_SRNG_TKCG_YN           -- 재사정심사담당여부
+             , T1.FRST_RGTR_ID                  -- 최초등록자아이디
+             , T1.FRST_REG_DT                   -- 최초등록일시
+             , T1.LAST_MDFR_ID                  -- 최종수정자아이디
+             , T1.LAST_MDFCN_DT                 -- 최종수정일시
+             )
+        VALUES
+             ( #{CASE_MNG_NO}                   -- 사례관리번호
+             , #{CASE_MNG_ODRNO}                -- 사례관리차수
+             , #{SRNG_PIC_NO}                   -- 심사담당자번호
+             , SYSDATE                          -- 수정일시
+             , #{DATAA_CHG_SE_CD}               -- 데이터변경구분코드
+             , #{PIC_INST_NO}                   -- 담당자기관번호
+             , #{AFTFCT_TRMN_SRNG_TKCG_YN}      -- 사후종결심사담당여부
+             , #{REASSE_SRNG_TKCG_YN}           -- 재사정심사담당여부
+             , #{USER_ID}                       -- 최초등록자아이디
+             , SYSDATE                          -- 최초등록일시
+             , #{USER_ID}                       -- 최종수정자아이디
+             , SYSDATE                          -- 최종수정일시
+             )
+    </insert>
+
+    <!-- 재사정심사자 삭제 -->
+    <delete id="deleteCaseReasseSrngDetail" parameterType="HashMap">
+        DELETE /* isry.itgcm.casemng.caseunity.CaseAftfctMapper.deleteCaseReasseSrngDetail(재사정심사자삭제) */
+          FROM SEC130 T1  /* 재사정심사자 */
+         WHERE T1.CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND T1.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND T1.SRNG_PIC_NO    = #{SRNG_PIC_NO}
+    </delete>
+    
+    <select id="selectAftfctCnt" parameterType="HashMap" resultType="int">
+        SELECT COUNT(1) AS CNT
+         FROM SEC320
+         WHERE CASE_MNG_NO    = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    </select>
+</mapper>

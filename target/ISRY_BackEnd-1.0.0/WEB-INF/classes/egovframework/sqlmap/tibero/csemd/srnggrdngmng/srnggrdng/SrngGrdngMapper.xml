@@ -1,0 +1,823 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper">
+
+   <select id="selectAplyRcptCd" parameterType="HashMap" resultType="HashMap">
+   /* selectAplyRcptCd (신청접수심사진행상태구분코드) - Lee Hye Sun */
+    SELECT A.CMMNS_CD_VALUE, A.CMMNS_CD_VALUE_NM
+    FROM SAC100 A
+	JOIN SAC110 B
+	ON A.CMMNS_CD_ID = B.CMMNS_CD_ID
+	AND A.CMMNS_CD_VALUE = B.CMMNS_CD_VALUE
+	WHERE A.CMMNS_CD_ID = 'APLY_RCPT_SRNG_PRGRS_STTS_SE_CD'
+	AND A.UP_CMMNS_CD_VALUE = '05'
+	AND B.UNT_TASKWK_SE_CD = 'U07'
+   </select>
+
+   <select id="selectScrennList" parameterType="HashMap" resultType="HashMap">
+   /* selectScrennList (스크리닝면접양식 조회 (디딤)) - Lee Hye Sun */
+    SELECT
+          A.TRPR_INFO_NO                                --대상자접수번호
+        , A.APLY_RCPT_SN                                --신청접수일련번호
+        , A.GHVR_OBSERV_INTRVW_PRTCLR_MATTER_CN         --행동관찰면접특이사항내용
+        , A.RQST_CS_CN                                  --의뢰사유내용
+        , A.MTCLTN_LVING_RELATA_CN                      --입학생활관련내용
+        , A.COGNZC_DEVLPA_SITTN_CN                      --인지발달상황내용
+        , A.BDY_MIND_HEALTH_RELATA_CN                   --신체정신건강관련내용
+        , A.FAM_SITTN_CN                                --가족상황내용
+        , A.INTERV_GENRVW_CN                            --면접관총평내용
+        , A.DEPTHS_ARGMT_MATTER_CN                      --심층논의사항내용
+        , A.YNGBGS_SCORE                                --청소년점수
+        , A.PRTCR_SCORE                                 --보호자점수
+        , DEC_B64(A.INTRVW_SRNG_PIC_NM_ENCPT) AS INTRVW_SRNG_PIC_NM_ENCPT                    --면접심사담당자명암호화
+        , SUBSTR(A.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD, 0, 2)      AS APLY_NOW       --신청접수심사진행상태구분코드(현재)
+        , B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD      AS APLY_RCPT_SRNG_PRGRS_STTS_SE_CD       --신청접수심사진행상태구분코드
+    FROM AFA100 A
+    LEFT JOIN AFA150 B
+    ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+    AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	WHERE A.TRPR_INFO_NO = #{TRPR_INFO_NO}
+    AND A.APLY_RCPT_SN = #{APLY_RCPT_SN}
+    AND B.APLY_RCPT_SRNG_PRGRS_STTS_SE_CD LIKE '05%'
+   </select>
+
+    <select id="selectGrdngList" parameterType="HashMap" resultType="HashMap">
+    /* selectGrdngList (심사항목 조회 (디딤)) - Lee Hye Sun */
+    SELECT
+          A.TRPR_INFO_NO
+        , A.APLY_RCPT_SN
+	    , A.GRDNG_PRVSON_SCORE1                      --채점항목점수1
+	    , A.GRDNG_PRVSON_SCORE2                      --채점항목점수2
+	    , A.GRDNG_PRVSON_SCORE3                      --채점항목점수3
+	    , A.GRDNG_PRVSON_SCORE4                      --채점항목점수4
+	    , A.GRDNG_PRVSON_SCORE5                      --채점항목점수5
+	    , A.GRDNG_PRVSON_SCORE6                      --채점항목점수6
+	    , A.GRDNG_PRVSON_SCORE7                      --채점항목점수7
+	    , A.GRDNG_PRVSON_SCORE8                      --채점항목점수8
+	    , A.GRDNG_PRVSON_SCORE9                      --채점항목점수9
+	    , A.GRDNG_PRVSON_SCORE10                     --채점항목점수10
+	    , A.GRDNG_PRVSON_SCORE11                     --채점항목점수11
+	    , A.GRDNG_PRVSON_SCORE12                     --채점항목점수12
+	    , A.GRDNG_PRVSON_SCORE13                     --채점항목점수13
+	    , A.GRDNG_PRVSON_SCORE14                     --채점항목점수14
+	    , A.GRDNG_PRVSON_SCORE15                     --채점항목점수15
+	    , A.GRDNG_PRVSON_SCORE16                     --채점항목점수16
+	    , A.GRDNG_PRVSON_SCORE17                     --채점항목점수17
+	FROM AFA140 A
+		LEFT JOIN AFA100 B
+		ON A.TRPR_INFO_NO = B.TRPR_INFO_NO
+		AND A.APLY_RCPT_SN = B.APLY_RCPT_SN
+	WHERE A.TRPR_INFO_NO = #{TRPR_INFO_NO}
+	AND A.APLY_RCPT_SN = #{APLY_RCPT_SN}
+    </select>
+
+    <update id="updateSrngGrdngPopScrenn" parameterType="HashMap">
+    /* updateSrngGrdngPopScrenn (면접심사채점표 스크리닝문항 (저장)) - Lee Hye Sun */
+    UPDATE AFA100 SET
+          TRPR_INFO_NO = #{TRPR_INFO_NO}
+        , APLY_RCPT_SN = #{APLY_RCPT_SN}
+        , INTRVW_PTCPTN_SE_CD = #{INTRVW_PTCPTN_SE_CD}
+        , GHVR_OBSERV_INTRVW_PRTCLR_MATTER_CN = #{GHVR_OBSERV_INTRVW_PRTCLR_MATTER_CN}
+        , APLY_RCPT_SRNG_PRGRS_STTS_SE_CD = #{APLY_RCPT_SRNG_PRGRS_STTS_SE_CD}
+        , RQST_CS_CN = #{RQST_CS_CN}
+        , MTCLTN_LVING_RELATA_CN = #{MTCLTN_LVING_RELATA_CN}
+        , COGNZC_DEVLPA_SITTN_CN = #{COGNZC_DEVLPA_SITTN_CN}
+        , BDY_MIND_HEALTH_RELATA_CN = #{BDY_MIND_HEALTH_RELATA_CN}
+        , FAM_SITTN_CN = #{FAM_SITTN_CN}
+        , INTERV_GENRVW_CN = #{INTERV_GENRVW_CN}
+        , DEPTHS_ARGMT_MATTER_CN = #{DEPTHS_ARGMT_MATTER_CN}
+        , YNGBGS_SCORE = #{YNGBGS_SCORE}
+        , PRTCR_SCORE = #{PRTCR_SCORE}
+        , INTRVW_SRNG_GENRVW_CN = #{INTRVW_SRNG_GENRVW_CN}
+        , INTRVW_SRNG_PIC_NM_ENCPT = ENC_B64(#{INTRVW_SRNG_PIC_NM_ENCPT})
+        , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        , LAST_MDFCN_DT = SYSDATE
+    WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+    AND APLY_RCPT_SN = #{APLY_RCPT_SN}
+    </update>
+
+    <insert id="insertSrngGrdngPopGrdng" parameterType="HashMap">
+    /* insertSrngGrdngPopGrdng (면접심사채점표 신청접수심사채점표 저장) - Lee Hye Sun */
+    INSERT INTO AFA140 (
+	      TRPR_INFO_NO
+	    , APLY_RCPT_SN
+	    , GRDNG_PRVSON_SCORE1
+	    , GRDNG_PRVSON_SCORE2
+	    , GRDNG_PRVSON_SCORE3
+	    , GRDNG_PRVSON_SCORE4
+	    , GRDNG_PRVSON_SCORE5
+	    , GRDNG_PRVSON_SCORE6
+	    , GRDNG_PRVSON_SCORE7
+	    , GRDNG_PRVSON_SCORE8
+	    , GRDNG_PRVSON_SCORE9
+	    , GRDNG_PRVSON_SCORE10
+	    , GRDNG_PRVSON_SCORE11
+	    , GRDNG_PRVSON_SCORE12
+	    , GRDNG_PRVSON_SCORE13
+	    , GRDNG_PRVSON_SCORE14
+	    , GRDNG_PRVSON_SCORE15
+	    , GRDNG_PRVSON_SCORE16
+	    , GRDNG_PRVSON_SCORE17
+	    , FRST_RGTR_ID
+	    , FRST_REG_DT
+	    , LAST_MDFR_ID
+	    , LAST_MDFCN_DT
+	) VALUES (
+	      #{TRPR_INFO_NO}
+	    , #{APLY_RCPT_SN}
+	    , #{GRDNG_PRVSON_SCORE1}
+	    , #{GRDNG_PRVSON_SCORE2}
+	    , #{GRDNG_PRVSON_SCORE3}
+	    , #{GRDNG_PRVSON_SCORE4}
+	    , #{GRDNG_PRVSON_SCORE5}
+	    , #{GRDNG_PRVSON_SCORE6}
+	    , #{GRDNG_PRVSON_SCORE7}
+	    , #{GRDNG_PRVSON_SCORE8}
+	    , #{GRDNG_PRVSON_SCORE9}
+	    , #{GRDNG_PRVSON_SCORE10}
+	    , #{GRDNG_PRVSON_SCORE11}
+	    , #{GRDNG_PRVSON_SCORE12}
+	    , #{GRDNG_PRVSON_SCORE13}
+	    , #{GRDNG_PRVSON_SCORE14}
+	    , #{GRDNG_PRVSON_SCORE15}
+	    , #{GRDNG_PRVSON_SCORE16}
+	    , #{GRDNG_PRVSON_SCORE17}
+	    , #{FRST_RGTR_ID}
+	    , SYSDATE
+	    , #{LAST_MDFR_ID}
+	    , SYSDATE
+	    )
+    </insert>
+
+    <update id="updateSrngGrdngPopGrdng" parameterType="HashMap">
+    /* updateSrngGrdngPopGrdng (면접심사채점표 신청접수심사채점표 수정) - Lee Hye Sun */
+    UPDATE AFA140 SET
+	      TRPR_INFO_NO = #{TRPR_INFO_NO}
+	    , APLY_RCPT_SN =  #{APLY_RCPT_SN}
+	    , GRDNG_PRVSON_SCORE1 = #{GRDNG_PRVSON_SCORE1}
+	    , GRDNG_PRVSON_SCORE2 = #{GRDNG_PRVSON_SCORE2}
+	    , GRDNG_PRVSON_SCORE3 = #{GRDNG_PRVSON_SCORE3}
+	    , GRDNG_PRVSON_SCORE4 = #{GRDNG_PRVSON_SCORE4}
+	    , GRDNG_PRVSON_SCORE5 = #{GRDNG_PRVSON_SCORE5}
+	    , GRDNG_PRVSON_SCORE6 = #{GRDNG_PRVSON_SCORE6}
+	    , GRDNG_PRVSON_SCORE7 = #{GRDNG_PRVSON_SCORE7}
+	    , GRDNG_PRVSON_SCORE8 = #{GRDNG_PRVSON_SCORE8}
+	    , GRDNG_PRVSON_SCORE9 = #{GRDNG_PRVSON_SCORE9}
+	    , GRDNG_PRVSON_SCORE10 = #{GRDNG_PRVSON_SCORE10}
+	    , GRDNG_PRVSON_SCORE11 = #{GRDNG_PRVSON_SCORE11}
+	    , GRDNG_PRVSON_SCORE12 = #{GRDNG_PRVSON_SCORE12}
+	    , GRDNG_PRVSON_SCORE13 = #{GRDNG_PRVSON_SCORE13}
+	    , GRDNG_PRVSON_SCORE14 = #{GRDNG_PRVSON_SCORE14}
+	    , GRDNG_PRVSON_SCORE15 = #{GRDNG_PRVSON_SCORE15}
+	    , GRDNG_PRVSON_SCORE16 = #{GRDNG_PRVSON_SCORE16}
+	    , GRDNG_PRVSON_SCORE17 = #{GRDNG_PRVSON_SCORE17}
+	    , FRST_RGTR_ID = (SELECT FRST_RGTR_ID FROM AFA140
+                        WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+                        AND APLY_RCPT_SN = #{APLY_RCPT_SN})
+	    , FRST_REG_DT = (SELECT FRST_REG_DT FROM AFA140
+	                    WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+	                    AND APLY_RCPT_SN = #{APLY_RCPT_SN})
+	    , LAST_MDFR_ID = #{LAST_MDFR_ID}
+	    , LAST_MDFCN_DT = SYSDATE
+	WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+	AND APLY_RCPT_SN =  #{APLY_RCPT_SN}
+    </update>
+
+    <!-- 면접심사채점표 스크리닝 폼 조회 -->
+    <select id="selectScrenn" resultType="HashMap">
+    <![CDATA[
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - selectScrenn[Lee SangHoon] */
+
+    SELECT A.*
+        ,A.INTERN_SUBTOT*0.47 + A.EXTERN_SUBTOT*0.23 + A.SINCERITY_EVL
+                                                                    AS PAPERS_TOTAL_SCORE       -- 서류총점
+        ,A.INTERN_SUBTOT*0.47                                       AS INTERN_SCORE             -- 내재화점수
+        ,A.EXTERN_SUBTOT*0.23                                       AS EXTERN_SCORE             -- 내재화점수
+    FROM
+	    (SELECT
+	        DEC_B64(NVL(C.FLNM_ENCPT, B.TRPR_NM_ENCPT))             AS TRPR_NM                  -- 대상자명
+	        ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	            WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+	            AND CMMNS_CD_VALUE = NVL(C.SXDC_SE_CD, B.SXDC_SE_CD)
+	           )                                                    AS SXDC                     -- 성별
+	        ,E.ACBG_SE_NM                                           AS ACBG                     -- 학력
+	        ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100
+                WHERE CMMNS_CD_ID = 'PBLAST_SE_CD'
+                AND CMMNS_CD_VALUE = B.PBLAST_SE_CD
+               )                                                    AS PBLAST                   -- 공적부조
+	        ,CASE (SELECT COUNT(*) FROM SEA240
+		            WHERE TRPR_INFO_NO = A.TRPR_INFO_NO
+		            OR INDV_IDNTFC_NO = C.INDV_IDNTFC_NO)
+	            WHEN 0 THEN 'X' ELSE 'O' END                            AS SCHULW_DSCNTC_YN         -- 학업중단여부
+	        ,(SELECT
+	                LISTAGG(B.CMMNS_CD_VALUE_NM, CHR(10)||CHR(13)) WITHIN GROUP(ORDER BY B.CMMNS_CD_VALUE)
+	            FROM AFA131 A
+	            LEFT JOIN SAC100 B
+	            ON B.CMMNS_CD_ID = 'COMPNO_TYPE_SCLAS_SE_CD'
+	            AND B.CMMNS_CD_VALUE = A.COMPNO_TYPE_SCLAS_SE_CD
+	            WHERE A.COMPNO_CHC_TYPE_MNG_NO = D.COMPNO_CHC_TYPE_MNG_NO
+	            AND A.COMPNO_TYPE_MLSFC_SE_CD = '0204')                 AS ETC_PROBM                -- 기타문제
+	        ,A.*
+	        ,CASE WHEN A.ANXIET_TROBL >= 90 THEN 90 - A.ANXIET_TROBL
+	            WHEN A.ANXIET_TROBL < 60 THEN A.ANXIET_TROBL - 60
+	            ELSE A.ANXIET_TROBL END
+	            +
+	            CASE WHEN A.PANIC >= 90 THEN 90 - A.PANIC
+	            WHEN A.PANIC < 60 THEN A.PANIC - 60
+	            ELSE A.PANIC END
+	            +
+	            CASE WHEN A.PTSD >= 90 THEN 90 - A.PTSD
+	            WHEN A.PTSD < 60 THEN A.PTSD - 60
+	            ELSE A.PTSD END
+	            +
+	            CASE WHEN A.MAIN_DEPRES >= 90 THEN 90 - A.MAIN_DEPRES
+	            WHEN A.MAIN_DEPRES < 60 THEN A.MAIN_DEPRES - 60
+	            ELSE A.MAIN_DEPRES END
+	            +
+	            CASE WHEN A.RAGE_CTRL >= 90 THEN 90 - A.RAGE_CTRL
+	            WHEN A.RAGE_CTRL < 60 THEN A.RAGE_CTRL - 60
+	            ELSE A.RAGE_CTRL END
+	            +
+	            CASE WHEN A.DMGE_THINK >= 70 THEN 0
+	            ELSE A.DMGE_THINK END
+	            +
+	            CASE WHEN A.SMTIZN >= 90 THEN 90 - A.SMTIZN
+	            WHEN A.SMTIZN < 60 THEN A.SMTIZN - 60
+	            ELSE A.SMTIZN END
+	            +
+	            CASE WHEN A.ADDC_INTERN >= 90 THEN 90 - A.ADDC_INTERN
+	            WHEN A.ADDC_INTERN < 60 THEN A.ADDC_INTERN - 60
+	            ELSE A.ADDC_INTERN END                          AS INTERN_SUBTOT                       -- 내재화 소계
+	        ,CASE WHEN A.OTHERS_ATCK >= 90 THEN 90 - A.OTHERS_ATCK
+	            WHEN A.OTHERS_ATCK < 60 THEN A.OTHERS_ATCK - 60
+	            ELSE A.OTHERS_ATCK END
+	            +
+	            CASE WHEN A.SELF_ATCK >= 90 THEN 90 - A.SELF_ATCK
+	            WHEN A.SELF_ATCK < 60 THEN A.SELF_ATCK - 60
+	            ELSE A.SELF_ATCK END
+	            +
+	            CASE WHEN A.AVOID >= 90 THEN 90 - A.AVOID
+	            WHEN A.AVOID < 60 THEN A.AVOID - 60
+	            ELSE A.AVOID END
+	            +
+	            CASE WHEN A.CMMND_NFLFL >= 90 THEN 90 - A.CMMND_NFLFL
+	            WHEN A.CMMND_NFLFL < 60 THEN A.CMMND_NFLFL - 60
+	            ELSE A.CMMND_NFLFL END
+	            +
+	            CASE WHEN A.ADDC_EXTERN >= 90 THEN 90 - A.ADDC_EXTERN
+	            WHEN A.ADDC_EXTERN < 60 THEN A.ADDC_EXTERN - 60
+	            ELSE A.ADDC_EXTERN END
+	            +
+	            CASE WHEN A.STEAL >= 90 THEN 90 - A.STEAL
+	            WHEN A.STEAL < 60 THEN A.STEAL - 60
+	            ELSE A.STEAL END
+	            +
+	            CASE WHEN A.GENDER_PROBM >= 90 THEN 90 - A.GENDER_PROBM
+	            WHEN A.GENDER_PROBM < 60 THEN A.GENDER_PROBM - 60
+	            ELSE A.GENDER_PROBM END                         AS EXTERN_SUBTOT                       -- 외현화 소계
+	    FROM
+	       (SELECT
+	            CASE(
+	                    SELECT F.SRVY_QESITM_EXMPL_MNG_NO FROM SBB100 A
+	                    LEFT JOIN SBB500 D
+	                    ON D.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                    AND D.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                    LEFT JOIN SBB220 E
+	                    ON E.SRVY_RSPNS_MNG_NO = D.SRVY_RSPNS_MNG_NO
+	                    LEFT JOIN SBB210 F
+	                    ON F.QESITM_MNG_NO = E.QESITM_MNG_NO
+	                    AND F.SRVY_QESITM_EXMPL_SCORE = E.QESITM_SINGL_RSPNS_VALUE
+	                    WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                    AND E.QESITM_MNG_NO = 'QN2022103100013'
+	                ) WHEN 'QE2022103100021'
+	                THEN 'Y'
+	                ELSE 'N' END                                AS PRTCTN_OBSERV_YN                     -- 보호관찰여부
+	            ,CASE(
+	                    SELECT F.SRVY_QESITM_EXMPL_MNG_NO FROM SBB100 A
+	                    LEFT JOIN SBB500 D
+	                    ON D.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                    AND D.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                    LEFT JOIN SBB220 E
+	                    ON E.SRVY_RSPNS_MNG_NO = D.SRVY_RSPNS_MNG_NO
+	                    LEFT JOIN SBB210 F
+	                    ON F.QESITM_MNG_NO = E.QESITM_MNG_NO
+	                    AND F.SRVY_QESITM_EXMPL_SCORE = E.QESITM_SINGL_RSPNS_VALUE
+	                    WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                    AND E.QESITM_MNG_NO = 'QN2022103100015'
+	                ) WHEN 'QE2022103100023'
+	                THEN 'Y'
+	                ELSE 'N' END                               AS TRIAL_PRGRS_YN                        -- 재판진행여부
+	            ,CASE(
+	                    SELECT F.SRVY_QESITM_EXMPL_MNG_NO FROM SBB100 A
+	                    LEFT JOIN SBB500 D
+	                    ON D.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                    AND D.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                    LEFT JOIN SBB220 E
+	                    ON E.SRVY_RSPNS_MNG_NO = D.SRVY_RSPNS_MNG_NO
+	                    LEFT JOIN SBB210 F
+	                    ON F.QESITM_MNG_NO = E.QESITM_MNG_NO
+	                    AND F.SRVY_QESITM_EXMPL_SCORE = E.QESITM_SINGL_RSPNS_VALUE
+	                    WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                    AND E.QESITM_MNG_NO = 'QN2022103100017'
+	                ) WHEN 'QE2022103100025'
+	                THEN 'Y'
+	                ELSE 'N' END                                AS SCHL_VIOLNC_YN                       -- 학교폭력여부
+	            ,CASE(
+	                    SELECT F.SRVY_QESITM_EXMPL_MNG_NO FROM SBB100 A
+	                    LEFT JOIN SBB500 D
+	                    ON D.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                    AND D.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                    LEFT JOIN SBB220 E
+	                    ON E.SRVY_RSPNS_MNG_NO = D.SRVY_RSPNS_MNG_NO
+	                    LEFT JOIN SBB210 F
+	                    ON F.QESITM_MNG_NO = E.QESITM_MNG_NO
+	                    AND F.SRVY_QESITM_EXMPL_SCORE = E.QESITM_SINGL_RSPNS_VALUE
+	                    WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                    AND E.QESITM_MNG_NO = 'QN2022103100019'
+	                ) WHEN 'QE2022103100027'
+	                THEN 'Y'
+	                ELSE 'N' END                                AS POLC_EXMN_YN                         -- 경찰조사여부
+	            ,CASE(
+	                    SELECT F.SRVY_QESITM_EXMPL_MNG_NO FROM SBB100 A
+	                    LEFT JOIN SBB500 D
+	                    ON D.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                    AND D.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                    LEFT JOIN SBB220 E
+	                    ON E.SRVY_RSPNS_MNG_NO = D.SRVY_RSPNS_MNG_NO
+	                    LEFT JOIN SBB210 F
+	                    ON F.QESITM_MNG_NO = E.QESITM_MNG_NO
+	                    AND F.SRVY_QESITM_EXMPL_SCORE = E.QESITM_SINGL_RSPNS_VALUE
+	                    WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                    AND E.QESITM_MNG_NO = 'QN2022103100021'
+	                ) WHEN 'QE2022103100029'
+	                THEN 'Y'
+	                ELSE 'N' END                                AS RLVT_NAPC_YN                         -- 해당없음여부
+	            ,CASE(
+	                    SELECT F.SRVY_QESITM_EXMPL_MNG_NO FROM SBB100 A
+	                    LEFT JOIN SBB500 D
+	                    ON D.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                    AND D.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                    LEFT JOIN SBB220 E
+	                    ON E.SRVY_RSPNS_MNG_NO = D.SRVY_RSPNS_MNG_NO
+	                    LEFT JOIN SBB210 F
+	                    ON F.QESITM_MNG_NO = E.QESITM_MNG_NO
+	                    AND F.SRVY_QESITM_EXMPL_SCORE = E.QESITM_SINGL_RSPNS_VALUE
+	                    WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                    AND E.QESITM_MNG_NO = 'QN2022103100022'
+	                ) WHEN 'QE2022103100031'
+	                THEN 'Y'
+	                ELSE 'N' END                                AS ALLERGY_YN                           -- 알러지여부
+	            ,CASE(
+	                    SELECT F.SRVY_QESITM_EXMPL_MNG_NO FROM SBB100 A
+	                    LEFT JOIN SBB500 D
+	                    ON D.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                    AND D.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                    LEFT JOIN SBB220 E
+	                    ON E.SRVY_RSPNS_MNG_NO = D.SRVY_RSPNS_MNG_NO
+	                    LEFT JOIN SBB210 F
+	                    ON F.QESITM_MNG_NO = E.QESITM_MNG_NO
+	                    AND F.SRVY_QESITM_EXMPL_SCORE = E.QESITM_SINGL_RSPNS_VALUE
+	                    WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                    AND E.QESITM_MNG_NO = 'QN2022103100023'
+	                ) WHEN 'QE2022103100033'
+	                THEN 'Y'
+	                ELSE 'N' END                                AS DRFSTF_TAKNG_YN                      -- 약물복용여부
+	            ,CASE(
+	                    SELECT F.SRVY_QESITM_EXMPL_MNG_NO FROM SBB100 A
+	                    LEFT JOIN SBB500 D
+	                    ON D.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                    AND D.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                    LEFT JOIN SBB220 E
+	                    ON E.SRVY_RSPNS_MNG_NO = D.SRVY_RSPNS_MNG_NO
+	                    LEFT JOIN SBB210 F
+	                    ON F.QESITM_MNG_NO = E.QESITM_MNG_NO
+	                    AND F.SRVY_QESITM_EXMPL_SCORE = E.QESITM_SINGL_RSPNS_VALUE
+	                    WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                    AND E.QESITM_MNG_NO = 'QN2022103100024'
+	                ) WHEN 'QE2022103100036'
+	                THEN 'N'
+	                ELSE 'Y' END                                AS HELP_NEED_YN                         -- 도움필요여부
+	            ,(
+	                SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+	                JOIN SBB130 C
+	                ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+	                AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+	                AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+	                WHERE B.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+	                AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('범불안장애')
+	            )                                               AS ANXIET_TROBL                         -- 범불안장애점수[SG2023013000118]
+	            ,(
+	                SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('공황발작 ')
+	            )                                               AS PANIC                                -- 공황발작점수[SG2023013000119]
+	            ,(
+	                SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('PTSD ')
+	            )                                               AS PTSD                                 -- PTSD점수[SG2023013000120]
+	            ,(
+	                SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('우울조절 ')
+	            )                                               AS MAIN_DEPRES                          -- 주요우울점수[SG2023013000121]
+	            ,(
+	                SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('분노조절 ')
+	            )                                               AS RAGE_CTRL                            -- 분노조절점수[SG2023013000122]
+	            ,(
+	                SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('피해사고 ')
+	            )                                               AS DMGE_THINK                           -- 피해사고점수[SG2023013000123]
+	            ,(
+	                SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('신체화 ')
+	            )                                               AS SMTIZN                               -- 신체화점수[SG2023013000124]
+	            ,(
+	                SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T1.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('중독 ')
+	            )                                               AS ADDC_INTERN                          -- 중독(내재화)점수[SG2023013000125]
+	            ,(
+                    SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T2.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('타인공격')
+	            )                                               AS OTHERS_ATCK                          -- 타인공격점수[SG2023013000144]
+	            ,(
+                    SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T2.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('자기공격')
+	            )                                               AS SELF_ATCK                            -- 자기공격점수[SG2023013000145]
+	            ,(
+                    SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T2.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('회피/퇴행')
+	            )                                               AS AVOID                                -- 회피/퇴행점수[SG2023013000146]
+	            ,(
+                    SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T2.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('규범/지시 불이행')
+	            )                                               AS CMMND_NFLFL                          -- 규범/지시 불이행행점수[SG2023013000147]
+	            ,(
+                    SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T2.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('중독')
+	            )                                               AS ADDC_EXTERN                          -- 중독(외현화)점수[SG2023013000148]
+	            ,(
+                    SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T2.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('기타 문제행동-훔치기')
+	            )                                               AS STEAL                                -- 훔치기점수[SG2023013000149]
+	            ,(
+                    SELECT MAX(B.GRDNG_SCORE) FROM SBB510 B
+                    JOIN SBB130 C
+                    ON C.QUSTNB_MNG_NO = B.QUSTNB_MNG_NO
+                    AND C.QUSTNB_TMPT_MNG_NO = B.QUSTNB_TMPT_MNG_NO
+                    AND C.QUSTNB_GRDNG_RELM_MNG_NO = B.QUSTNB_GRDNG_RELM_MNG_NO
+                    WHERE B.QUSTNB_MNG_NO = T2.QUSTNB_MNG_NO
+                    AND TRIM(C.QUSTNB_GRDNG_RELM_ESNTAL_NM) = TRIM('기타 문제행동-성문제')
+	            )                                               AS GENDER_PROBM                         -- 성문제점수[SG2023013000150]
+	            ,(
+	                SELECT SUM(GRDNG_SCORE) FROM SBB510
+	                WHERE QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	            )*0.3                                           AS SINCERITY_EVL                        -- 정성평가 점수
+	            ,RANK() OVER(PARTITION BY T.SRVC_EXCN_BIZ_NO ORDER BY NVL(T.YNGBGS_SCORE + T.PRTCR_SCORE,0) DESC)
+	                                                            AS SRNG_INTRVW_RANK                     -- 심사면접순위
+	            ,CASE WHEN T.HELP_DMND_CN IS NULL THEN (
+	                SELECT D.QESITM_RSPNS_CN FROM SBB100 A
+	                LEFT JOIN SBB500 C
+	                ON C.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                AND C.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                LEFT JOIN SBB220 D
+	                ON D.SRVY_RSPNS_MNG_NO = C.SRVY_RSPNS_MNG_NO
+	                WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                AND D.QESITM_MNG_NO = 'QN2022103100025'
+	                ) ELSE T.HELP_DMND_CN END                   AS HELP_DMND_CN                         -- 도움요청내용
+	            ,CASE WHEN T.DSCSN_EXPRNC_CN IS NULL THEN (
+	                SELECT D.QESITM_RSPNS_CN FROM SBB100 A
+	                LEFT JOIN SBB500 C
+	                ON C.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                AND C.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                LEFT JOIN SBB220 D
+	                ON D.SRVY_RSPNS_MNG_NO = C.SRVY_RSPNS_MNG_NO
+	                WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                AND D.QESITM_MNG_NO = 'QN2022103100026'
+	                ) ELSE T.DSCSN_EXPRNC_CN END                AS DSCSN_EXPRNC_CN                      -- 상담경험내용
+	            ,CASE WHEN T.ENTSC_MTVTN_NCSSTY_CN IS NULL THEN (
+	                SELECT D.QESITM_RSPNS_CN FROM SBB100 A
+	                LEFT JOIN SBB500 C
+	                ON C.QUSTNB_MNG_NO = A.QUSTNB_MNG_NO
+	                AND C.SRVY_RSPNS_MNG_NO = (SELECT MAX(SRVY_RSPNS_MNG_NO) FROM SBB500 WHERE QUSTNB_MNG_NO = A.QUSTNB_MNG_NO)
+	                LEFT JOIN SBB220 D
+	                ON D.SRVY_RSPNS_MNG_NO = C.SRVY_RSPNS_MNG_NO
+	                WHERE A.QUSTNB_MNG_NO = T3.QUSTNB_MNG_NO
+	                AND D.QESITM_MNG_NO = 'QN2022103100027'
+	                ) ELSE T.ENTSC_MTVTN_NCSSTY_CN END          AS ENTSC_MTVTN_NCSSTY_CN                -- 입교동기필요성내용
+                ,T.INTRVW_SRNG_GENRVW_CN                        AS INTRVW_SRNG_GENRVW_CN                -- 면접심사총평내용
+                ,T.INTERV_GENRVW_CN                                                                     -- 면접관총평
+                ,T.DEPTHS_ARGMT_MATTER_CN                                                               -- 심층논의사항
+
+	            ,T.TRPR_INFO_NO                                                                        -- 대상자정보번호
+	            ,T.APLY_RCPT_SN                                                                        -- 신청접수일련번호
+
+	        FROM AFA100 T                  /* 신청접수 */
+	        LEFT JOIN
+	            (SELECT
+	                A.TRPR_INFO_NO, A.APLY_RCPT_SN, A.QUSTNB_TMPT_MNG_NO, A.QUSTNB_MNG_NO
+	                ,ROW_NUMBER() OVER (PARTITION BY A.QUSTNB_TMPT_MNG_NO, A.TRPR_INFO_NO, A.APLY_RCPT_SN ORDER BY A.REG_YMD DESC, A.MNG_SN DESC) AS RN
+	            FROM SBB600 A           /* 설문지발송이력 - 청소년설문지 */
+	            INNER JOIN SAC100 B     /* 공통코드값 */
+	            ON B.ADDTNG_MNG_VALUE1 = A.QUSTNB_TMPT_MNG_NO
+	            AND B.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	            AND B.CMMNS_CD_VALUE = '004'
+	            WHERE A.SRVY_ERA_SE_CD = '01') T1
+	        ON T1.RN = 1
+	        AND T1.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T1.APLY_RCPT_SN = T.APLY_RCPT_SN
+	        LEFT JOIN
+	            (SELECT
+	                A.TRPR_INFO_NO, A.APLY_RCPT_SN, A.QUSTNB_TMPT_MNG_NO, A.QUSTNB_MNG_NO
+	                ,ROW_NUMBER() OVER (PARTITION BY A.QUSTNB_TMPT_MNG_NO, A.TRPR_INFO_NO, A.APLY_RCPT_SN ORDER BY A.REG_YMD DESC, A.MNG_SN DESC) AS RN
+	            FROM SBB600 A           /* 설문지발송이력 - 보호자설문지 */
+	            INNER JOIN SAC100 B     /* 공통코드값 */
+	            ON B.ADDTNG_MNG_VALUE1 = A.QUSTNB_TMPT_MNG_NO
+	            AND B.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	            AND B.CMMNS_CD_VALUE = '005'
+	            WHERE A.SRVY_ERA_SE_CD = '01') T2
+	        ON T2.RN = 1
+	        AND T2.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T2.APLY_RCPT_SN = T.APLY_RCPT_SN
+	        LEFT JOIN
+	            (SELECT
+	                A.TRPR_INFO_NO, A.APLY_RCPT_SN, A.QUSTNB_TMPT_MNG_NO, A.QUSTNB_MNG_NO
+	                ,ROW_NUMBER() OVER (PARTITION BY A.QUSTNB_TMPT_MNG_NO, A.TRPR_INFO_NO, A.APLY_RCPT_SN ORDER BY A.REG_YMD DESC, A.MNG_SN DESC) AS RN
+	            FROM SBB600 A           /* 설문지발송이력 - 보호자정성평가 */
+	            INNER JOIN SAC100 B     /* 공통코드값 */
+	            ON B.ADDTNG_MNG_VALUE1 = A.QUSTNB_TMPT_MNG_NO
+	            AND B.CMMNS_CD_ID = 'QUSTNB_KND_SE_CD'
+	            AND B.CMMNS_CD_VALUE = '006'
+	            WHERE A.SRVY_ERA_SE_CD = '01') T3
+	        ON T3.RN = 1
+	        AND T3.TRPR_INFO_NO = T.TRPR_INFO_NO
+	        AND T3.APLY_RCPT_SN = T.APLY_RCPT_SN
+	    ) A
+	    LEFT JOIN SEA200 B                      /* 대상자정보 */
+	    ON B.TRPR_INFO_NO = A.TRPR_INFO_NO
+	    LEFT JOIN SCA300 C                      /* 개인정보 */
+	    ON C.INDV_IDNTFC_NO = B.INDV_IDNTFC_NO
+	    LEFT JOIN AFA120 D                      /* 대상자문제상태내역 */
+	    ON D.TRPR_INFO_NO = A.TRPR_INFO_NO
+	    AND D.APLY_RCPT_SN = A.APLY_RCPT_SN
+        LEFT JOIN (
+           SELECT A.*
+           ,    ROW_NUMBER() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY B.ADDTNG_MNG_VALUE1 DESC, A.MNG_SN DESC) AS RN
+           ,    B.CMMNS_CD_VALUE_NM AS ACBG_SE_NM
+           FROM SEA230 A                   /* 학력상태 */
+           LEFT JOIN SAC100 B
+           ON B.CMMNS_CD_ID = 'ACBG_SE_CD'
+           AND B.CMMNS_CD_VALUE = A.ACBG_SE_CD
+           WHERE A.DEL_YN != 'Y'
+           ) E
+        ON E.TRPR_INFO_NO = B.TRPR_INFO_NO
+        AND E.RN = 1
+        ) A
+
+    WHERE 1=1
+    AND A.TRPR_INFO_NO = #{TRPR_INFO_NO}
+    AND A.APLY_RCPT_SN = #{APLY_RCPT_SN}
+    ]]>
+    </select>
+
+    <select id="selectAFA100" parameterType="HashMap" resultType="HashMap">
+    /* selectAFA100 (이력테이블 insert를 위한 데이터 조회) - Lee Hye Sun */
+    SELECT * FROM AFA100
+	WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+	AND APLY_RCPT_SN = #{APLY_RCPT_SN}
+    </select>
+
+    <!-- SBD400 : 면접일정관리 조회 -->
+    <select id="selectIntrvwSchdlList" resultType="HashMap">
+    <![CDATA[
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - selectIntrvwSchdlList[면접일정관리 조회] */
+    /* Lee SangHoon */
+
+    SELECT
+          T2.SRVC_EXCN_BIZ_NM                                                   -- 서비스실행사업명
+        , T1.INTRVW_YMD                                                         -- 면접일자
+        , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+            WHERE CMMNS_CD_ID = 'INTRVW_HR_SE_CD'
+            AND CMMNS_CD_VALUE = T1.INTRVW_HR)          AS INTRVW_HR_VIEW       -- 면접시간[화면용]
+        , T1.MXMM_NOPE                                                          -- 최대인원수
+        , (SELECT COUNT(*) FROM AFA100      /* 신청접수 */
+            WHERE SRVC_EXCN_BIZ_NO = T1.SRVC_EXCN_BIZ_NO
+            AND INTRVW_YMD = T1.INTRVW_YMD
+            AND INTRVW_HR = T1.INTRVW_HR)               AS APLY_NOPE            -- 신청인원수
+
+        , T2.SRVC_EXCN_BIZ_NO                                                   -- 서비스실행사업번호
+        , T1.INTRVW_HR                                                          -- 면접시간
+
+        , '대상'  AS LIST     -- 대상버튼
+        , '수정'  AS REVISE   -- 수정버튼
+        , '삭제'  AS DEL      -- 삭제버튼
+
+	FROM SBD400 T1     /* 면접일정관리 */
+	JOIN SDA420 T2     /* 서비스실행사업 */
+	ON T1.SRVC_EXCN_BIZ_NO = T2.SRVC_EXCN_BIZ_NO
+
+	WHERE T1.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    ]]>
+    </select>
+
+    <!-- SBD400 : 면접일정관리 확인 -->
+    <select id="chkIntrvwSchdlMng" resultType="Integer">
+    <![CDATA[
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - chkIntrvwSchdlMng[면접일정관리 확인] */
+    /* Lee SangHoon */
+
+    SELECT
+        COUNT(*)
+    FROM SBD400     /* 면접일정관리 */
+    WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    AND INTRVW_YMD = #{INTRVW_YMD}
+    AND INTRVW_HR = #{INTRVW_HR}
+    AND (SRVC_EXCN_BIZ_NO != #{SRVC_EXCN_BIZ_NO__origin} OR #{SRVC_EXCN_BIZ_NO__origin} IS NULL
+        OR INTRVW_YMD != #{INTRVW_YMD__origin} OR #{INTRVW_YMD__origin} IS NULL
+        OR INTRVW_HR != #{INTRVW_HR__origin} OR #{INTRVW_HR__origin} IS NULL
+        )
+    ]]>
+    </select>
+
+    <!-- SBD400 : 면접일정관리 등록 -->
+    <insert id="insertIntrvwSchdlMng">
+    <![CDATA[
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - insertIntrvwSchdlMng[면접일정관리 등록] */
+    /* Lee SangHoon */
+
+    INSERT INTO SBD400 (
+          SRVC_EXCN_BIZ_NO
+        , INTRVW_YMD
+        , INTRVW_HR
+        , MXMM_NOPE
+        , FRST_RGTR_ID
+        , FRST_REG_DT
+        , LAST_MDFR_ID
+        , LAST_MDFCN_DT
+    ) VALUES (
+          #{SRVC_EXCN_BIZ_NO}   -- 서비스실행사업번호: SRVC_EXCN_BIZ_NO
+        , #{INTRVW_YMD}         -- 면접일자: INTRVW_YMD
+        , #{INTRVW_HR}          -- 면접시간: INTRVW_HR
+        , #{MXMM_NOPE}          -- 최대인원수: MXMM_NOPE
+        , #{FRST_RGTR_ID}       -- 최초등록자아이디: FRST_RGTR_ID
+        , SYSDATE               -- 최초등록일시: FRST_REG_DT
+        , #{LAST_MDFR_ID}       -- 최종수정자아아디: LAST_MDFR_ID
+        , SYSDATE               -- 최종수정일시: LAST_MDFCN_DT
+    )
+    ]]>
+    </insert>
+
+    <!-- SBD400 : 면접일정관리 수정 -->
+    <update id="updateIntrvwSchdlMng">
+    <![CDATA[
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - updateIntrvwSchdlMng[면접일정관리 수정] */
+    /* Lee SangHoon */
+
+    UPDATE SBD400 SET
+
+          INTRVW_YMD = #{INTRVW_YMD}
+        , INTRVW_HR = #{INTRVW_HR}
+        , MXMM_NOPE = #{MXMM_NOPE}
+        , LAST_MDFR_ID = #{LAST_MDFR_ID}
+        , LAST_MDFCN_DT = SYSDATE
+
+    WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO__origin}
+    AND INTRVW_YMD = #{INTRVW_YMD__origin}
+    AND INTRVW_HR = #{INTRVW_HR__origin}
+    ]]>
+    </update>
+
+    <!-- AFA100 : 면접일정예약자수 확인 -->
+    <select id="chkSavedIntrvwSchdl" resultType="Integer">
+    <![CDATA[
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - chkSavedIntrvwSchdl[면접일정예약자수 확인] */
+    /* Lee SangHoon */
+
+    SELECT
+        COUNT(*)
+    FROM AFA100
+    WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    AND INTRVW_YMD = #{INTRVW_YMD}
+    AND INTRVW_HR = #{INTRVW_HR}
+    ]]>
+    </select>
+
+    <!-- SBD400 : 면접일정관리 삭제 -->
+    <delete id="deleteIntrvwSchdlMng">
+    <![CDATA[
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - deleteIntrvwSchdlMng[면접일정관리 삭제] */
+    /* Lee SangHoon */
+
+    DELETE FROM SBD400
+    WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    AND INTRVW_YMD = #{INTRVW_YMD}
+    AND INTRVW_HR = #{INTRVW_HR}
+    ]]>
+    </delete>
+
+    <!-- AFA100 : 면접참여자 목록조회 -->
+    <select id="selectIntrvwAplcntList" resultType="HashMap">
+    <![CDATA[
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - selectIntrvwAplcntList[면접참여자 목록조회] */
+    /* Lee SangHoon */
+
+    SELECT
+          T2.TRPR_INFO_NO    -- 대상자정보번호
+        , DEC_B64(NVL(T3.FLNM_ENCPT,T2.TRPR_NM_ENCPT))                  AS TRPR_NM              -- 이름
+        , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+            WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+            AND CMMNS_CD_VALUE = NVL(T3.SXDC_SE_CD, T2.SXDC_SE_CD)
+            )                                                           AS SXDC                 -- 성별
+        , NVL(T3.BRTH_YMD,T2.TRPR_BRTH_YMD)                             AS TRPR_BRTH_YMD        -- 대상자생년월일
+
+    FROM AFA100 T1      /* 신청접수 */
+    JOIN SEA200 T2      /* 대상자정보 */
+    ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+    JOIN SCA300 T3      /* 개인정보 */
+    ON T3.INDV_IDNTFC_NO = T2.INDV_IDNTFC_NO
+
+    WHERE 1=1
+    AND T1.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    AND T1.INTRVW_YMD = #{INTRVW_YMD}
+    AND T1.INTRVW_HR = #{INTRVW_HR}
+    ]]>
+    </select>
+
+    <!-- AFA100 : 신청접수 면접예약 수정 -->
+    <update id="updateAplyRcptIntrvwSchdl">
+    /* isry.csemd.srnggrdngmng.srnggrdng.mapper.SrngGrdngMapper - updateAplyRcptIntrvwSchdl[신청접수 면접예약 수정] */
+    /* Lee SangHoon */
+
+    UPDATE AFA100 SET
+        INTRVW_YMD = NULL
+        , INTRVW_HR = NULL
+
+    WHERE 1=1
+    AND SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO__origin}
+    AND INTRVW_YMD = #{INTRVW_YMD__origin}
+    AND INTRVW_HR = #{INTRVW_HR__origin}
+    </update>
+</mapper>

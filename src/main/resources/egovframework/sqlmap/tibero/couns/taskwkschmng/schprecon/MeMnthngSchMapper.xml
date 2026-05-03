@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.taskwkschmng.schprecon.mapper.MeMnthngSchMapper">
+
+    <select id="selectMeMnthngSchList" parameterType="HashMap" resultType="HashMap">
+    /**
+    *       selectMeMnthngSchList : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 LIST 조회
+    */
+		SELECT  T3.WORK_YMD                               AS  WORK_YMD
+		        , T3.CRTR_YM                              AS  CRTR_YM
+		        , T3.USER_ID                              AS  USER_ID
+		        , C##RG.DEC_B64(T6.FLNM_ENCPT)         AS  USER_NM
+		        , T3.TASKWK_TYPE_DEPT_CD                  AS  DEPT_CND
+		        , T3.BGNG_HR                              AS  BGNG_HR
+		        , T3.END_HR                               AS  END_HR
+		        , T3.MBR_NOCS                             AS  BGNG_HR
+		        , (
+		           SELECT CMMNS_CD_VALUE_NM
+		           FROM   SAC100
+		           WHERE  1=1
+		           AND    CMMNS_CD_ID       =   'VCATN_SE_CD'
+		           AND    CMMNS_CD_VALUE    =   T4.VCATN_SE_CD
+		          )                             AS  VCATN_SE_NM
+		FROM    (
+		         SELECT T1.WORK_YMD
+		                , T1.USER_ID
+		                , T1.TASKWK_SCHDL_SN
+		                , T2.TASKWK_TYPE_DEPT_CD
+		                , T2.CRTR_YM
+		                , T2.BGNG_HR
+		                , T2.END_HR
+		                , T2.MBR_NOCS
+		                , (
+		                   SELECT   MAX(COPA_INDEX_SN)  AS  COPA_INDEX_SN
+		                   FROM     AYC130  
+		                   WHERE    USER_ID            =          T1.USER_ID
+		                   AND      DEL_YN             =        'N'
+		                   AND      APLY_SE_CD         =        '01'
+		                   AND      APRV_STTS_SE_CD    =        '2'
+		                   AND      T1.WORK_YMD     BETWEEN     VCATN_BGNG_YMD
+		                                              AND       VCATN_END_YMD
+		                   GROUP BY USER_ID
+		                   )                AS COPA_INDEX_SN
+		         FROM   AYC100      T1      /* 근무배정표_일별 */
+		                , AYC110    T2      /* 근무배정표_월별 */
+		         WHERE  1=1
+		         AND    T2.CRTR_YM              =       #{crtrYm}
+		         AND    T2.TASKWK_TYPE_DEPT_CD  =       #{DEPT_CD}
+		         AND    T1.USER_ID              =       #{loginId}
+		         AND    T1.BIZ_PLAN_MNG_NO      =       T2.BIZ_PLAN_MNG_NO
+		        )           T3
+		        , AYC130    T4
+		        , SAA200    T5
+		        , SCA100    T6
+		WHERE   1=1
+		AND     T3.COPA_INDEX_SN    =       T4.COPA_INDEX_SN(+)
+		AND     T5.USER_ID          =       T3.USER_ID
+		AND     T6.ENFSN_NO         =       T5.ENFSN_NO
+		ORDER BY T3.WORK_YMD, T3.USER_ID
+    </select>
+    
+    <!-- <select id="selectMeMnthngSchList" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		selectMeMnthngSchList : isry.couns.taskwkschmng.schprecon.mapper.MnthngSchdlMapper : 월간일정 LIST 조회
+	*/
+		SELECT
+				DISTINCT BB.CRTR_YM		AS		CRTR_YM
+			,	AA.USER_ID				AS		USER_ID
+			,	DD.FLNM_ENCPT			AS		USER_NM
+			,	AA.WORK_YMD				AS		WORK_YMD
+			<![CDATA[
+			,	CASE
+					WHEN EE.VCATN_BGNG_YMD <=  AA.WORK_YMD AND EE.VCATN_END_YMD  >=  AA.WORK_YMD	THEN	(
+																												SELECT
+																														CMMNS_CD_VALUE_NM
+																												FROM
+																														SAC100		E1
+																												WHERE	1=1
+																													AND	E1.CMMNS_CD_ID = 'VCATN_SE_CD'
+																													AND	E1.CMMNS_CD_VALUE = EE.VCATN_SE_CD
+																												)
+					ELSE	NULL
+				END						AS		VCATN_SE_NM
+			]]>
+			,	BB.MBR_NOCS				AS		MBR_NOCS
+			,	BB.BGNG_HR				AS		BGNG_HR
+			,	BB.END_HR				AS		END_HR
+			,	BB.TASKWK_TYPE_DEPT_CD	AS		DEPT_CD
+			,	AA.TASKWK_SCHDL_SN		AS		TASKWK_SCHDL_SN
+		FROM 
+				AYC100		AA		/** 근무배정표 일별 **/
+			,	AYC110		BB		/** 근무배정표 월별 **/
+			,	SAA200		CC		/**  사용자 **/
+			,	SCA100		DD		/** 종사자 **/
+			,	AYC130		EE		/** 사이버1388휴가 **/
+		WHERE	1=1	
+			AND	AA.BIZ_PLAN_MNG_NO	=	BB.BIZ_PLAN_MNG_NO
+			AND	EE.USER_ID(+)		=	AA.USER_ID
+			AND AA.USER_ID			=	CC.USER_ID
+			AND	CC.ENFSN_NO			=	DD.ENFSN_NO
+			AND	AA.DEL_YN			=	'N'
+		<if test="loginId != null and loginId != ''">
+			<![CDATA[
+			AND AA.USER_ID			=	#{loginId}
+			]]>
+		</if>
+		<if test="crtrYm != null and crtrYm != ''">
+			<![CDATA[
+			AND BB.CRTR_YM			=	#{crtrYm}
+			]]>
+		</if>
+		<if test="crtrYm != null and crtrYm != ''">
+			<![CDATA[
+			AND	EE.VCATN_BGNG_YMD(+)	LIKE #{crtrYm}||'%'
+			]]>
+		</if>		
+		GROUP BY
+				<![CDATA[
+				AA.WORK_YMD,BB.BGNG_HR,BB.END_HR,AA.USER_ID,DD.FLNM_ENCPT,BB.CRTR_YM,BB.MBR_NOCS,BB.TASKWK_TYPE_DEPT_CD,AA.TASKWK_SCHDL_SN,
+				CASE
+					WHEN EE.VCATN_BGNG_YMD <=  AA.WORK_YMD AND EE.VCATN_END_YMD  >=  AA.WORK_YMD	THEN	(
+																												SELECT
+																														CMMNS_CD_VALUE_NM
+																												FROM
+																														SAC100		E1
+																												WHERE	1=1
+																													AND	E1.CMMNS_CD_ID = 'VCATN_SE_CD'
+																													AND	E1.CMMNS_CD_VALUE = EE.VCATN_SE_CD
+																												)
+					ELSE	NULL
+				END
+				]]>
+		ORDER BY
+				AA.WORK_YMD,BB.BGNG_HR
+    
+    </select> -->
+</mapper>

@@ -1,0 +1,1850 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.subms.stats.eryycose.mapper.EryyCoseMapper">
+
+	<select id="selectExcnBizSemstr" resultType="HashMap">
+    <![CDATA[
+	/* isry.subms.stats.eryycose.mapper.EryyCoseMapper - selectExcnBizSemstr[LeeSangHoon] */
+	
+	SELECT
+		SRVC_EXCN_BIZ_NO
+		,SEMSTR_SE_CD
+	FROM AFA310 /* 학기관리 */
+	WHERE USE_YN = 'Y'
+	]]>
+	</select>
+
+	<!-- 기관별추진실적 목록조회 -->
+	<select id="selectInstPrgrsPrfmncList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.subms.stats.eryycose.mapper.EryyCoseMapper - selectInstPrgrsPrfmncList[Lee SangHoon] */
+    SELECT 
+	      BIZ_YR                   /*사업연도*/
+	    , INST_NM                  /*기관명*/
+	    , INST_NO                  /*기관번호*/
+	    , SRVC_EXCN_BIZ_NM         /*서비스실행사업명*/
+	    , SRVC_EXCN_BIZ_NO         /*서비스실행사업번호*/
+	    , RESRCE_NO                /*교육과정번호*/
+	    , PVSN_RESRCE_NM           /*교육과정명*/
+	    , OPER_SHAPE               /*운영형태*/
+	    , PVSN_YMD                 /*교육기간*/
+	    , GOAL_NMPR                /*목표인원*/
+	    , PTCPTN_NOPE              /*전체참여인원*/
+	    , NMPR_CNT                 /*참여인원*/
+	    , ROUND(NVL(NMPR_CNT/DECODE(PTCPTN_NOPE, 0, NULL, PTCPTN_NOPE), 0),3) * 100 AS NMPR_RATE   /*목표달성률*/
+	    , TRMN_CNT                 /*수료인원*/
+	    , ROUND(NVL(TRMN_CNT/DECODE(PTCPTN_NOPE, 0, NULL, PTCPTN_NOPE), 0),3) * 100 AS TRMN_RATE   /*수료율*/
+	    , PIC_NM_ENCPT             /*담당자*/
+	    , PIC_MBL_TELNO_ENCPT      /*담당자연락처*/
+	FROM (
+	    SELECT 
+	          C.BIZ_YR              --사업연도
+	        , D.INST_NM             --기관명
+	        , D.INST_NO             --기관번호
+	        , B.SRVC_EXCN_BIZ_NM    --서비스실행사업명
+	        , B.SRVC_EXCN_BIZ_NO    --서비스실행사업번호
+	        , A.RESRCE_NO           --교육과정번호
+	        , A.PVSN_RESRCE_NM      --교육과정명
+	        , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	            WHERE CMMNS_CD_ID = 'OPER_SHAPE_SE_CD'
+	            AND CMMNS_CD_VALUE = A.OPER_SHAPE_SE_CD)
+	            AS OPER_SHAPE       --운영형태
+	        , TO_CHAR(TO_DATE(A.PVSN_BGNG_YMD), 'YYYY-MM-DD') || ' ~ ' ||
+	          TO_CHAR(TO_DATE(A.PVSN_END_YMD), 'YYYY-MM-DD') AS PVSN_YMD    --교육기간
+	        , (SELECT COUNT(*) FROM SEB510    --서비스제공대상자
+              WHERE RESRCE_NO = A.RESRCE_NO
+              AND DEL_YN != 'Y') AS PTCPTN_NOPE                  --전체참여인원
+	        , NVL(A.UTZTN_PSNCPA_NOPE, 0) AS GOAL_NMPR  --목표인원
+	        , COUNT(CASE WHEN G.CASE_BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD} THEN E.SRVC_PVSN_NO END) AS NMPR_CNT  --참여인원
+	        , COUNT(CASE WHEN F.CASE_TRMN_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD} THEN F.CASE_MNG_NO END) AS TRMN_CNT   --수료인원
+	        , DEC_B64(D.PIC_NM_ENCPT) AS PIC_NM_ENCPT                                                             --담당자
+	        , DEC_B64(D.PIC_MBL_TELNO_ENCPT) AS PIC_MBL_TELNO_ENCPT                                               --담당자연락처
+	    FROM SDA100 A
+	    JOIN SDA420 B 
+	        ON A.SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO
+	    JOIN SDA400 C 
+	        ON B.SRVC_BIZ_NO = C.SRVC_BIZ_NO
+	    JOIN SAA000 D 
+	        ON D.INST_NO = A.RSFR_INST_NO
+	        AND D.DEL_YN != 'Y'
+	    LEFT JOIN SEB510 E
+	        ON A.RESRCE_NO = E.RESRCE_NO
+	    LEFT JOIN (
+	        SELECT BB.CASE_MNG_NO, BB.CASE_MNG_ODRNO, BB.TRMN_CS_SE_CD, AA.CASE_TRMN_YMD, BB.TRMN_SE_CD, BB.YNGBGS_CHNG_LAST_RESULT_CN, AA.PIC_OPNN_CN
+	            ,ROW_NUMBER() OVER(PARTITION BY BB.CASE_MNG_NO, BB.CASE_MNG_ODRNO ORDER BY BB.CASE_TRMN_NO DESC) AS RN
+	        FROM SEC100 AA                                                                          /*사례종결 테이블*/
+	        LEFT JOIN SEC100 BB
+	        ON BB.CASE_MNG_NO = AA.CASE_MNG_NO
+	            AND BB.CASE_MNG_NO = AA.CASE_MNG_NO
+	            AND BB.TRMN_SRNG_RESULT_SE_CD = '01'                                                /*종결심사결과구분코드(신청)*/
+	        WHERE AA.TRMN_SRNG_RESULT_SE_CD = '02'     
+	    ) F
+	        ON E.CASE_MNG_NO = F.CASE_MNG_NO
+	        AND E.CASE_MNG_ODRNO = F.CASE_MNG_ODRNO
+	        AND F.RN=1
+	    JOIN SEB100 G 
+	        ON E.CASE_MNG_NO = G.CASE_MNG_NO
+	        AND E.CASE_MNG_ODRNO = G.CASE_MNG_ODRNO
+	        
+	    WHERE 1=1
+	        AND C.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	    AND D.INST_NO IN 
+	    ]]>
+	    <foreach collection="INST_NOS" item="item" open="(" separator="," close=")"> #{item} </foreach>
+	    <if test='BIZ_YR != null and BIZ_YR != ""'>
+	        AND C.BIZ_YR = #{BIZ_YR}
+	    </if>
+	    <if test='INST_NO != null and INST_NO != ""'>
+	        AND D.INST_NO LIKE '%' || #{INST_NO} || '%'
+	    </if>
+	    <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+	        AND B.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+	    </if>
+	    <if test='BGNG_YMD != null and BGNG_YMD != ""'>
+	       <![CDATA[
+	        AND A.PVSN_BGNG_YMD <= #{END_YMD} AND NVL(A.PVSN_END_YMD, A.PVSN_BGNG_YMD) >= #{BGNG_YMD}
+	        ]]>
+	    </if>
+	    <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+	        AND A.RESRCE_NO = #{RESRCE_NO}
+	    </if>
+	    <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+	        AND A.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+	    </if>
+	    <if test='UTZTN_PSNCPA_NOPE != null and UTZTN_PSNCPA_NOPE != ""'>
+	        AND A.UTZTN_PSNCPA_NOPE = #{UTZTN_PSNCPA_NOPE}
+	    </if>
+	    <if test='FLNM_ENCPT != null and FLNM_ENCPT != ""'>
+	        AND D.PIC_NM_ENCPT LIKE '%' || C##RG.ENC_B64(#{FLNM_ENCPT}) || '%'
+	    </if>
+	    <![CDATA[
+		GROUP BY C.BIZ_YR, B.SRVC_EXCN_BIZ_NM, B.SRVC_EXCN_BIZ_NO, D.INST_NM, D.INST_NO
+		    , A.RESRCE_NO, A.PVSN_RESRCE_NM, A.UTZTN_PSNCPA_NOPE , D.PIC_NM_ENCPT
+		    , D.PIC_MBL_TELNO_ENCPT, A.OPER_SHAPE_SE_CD, A.PVSN_BGNG_YMD, A.PVSN_END_YMD
+	   )
+    ]]>
+	</select>
+
+	<!-- 연령별 현황 목록조회 -->
+	<select id="selectAgePreconList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.subms.stats.eryycose.mapper.EryyCoseMapper - selectAgePreconList[Lee SangHoon] */
+            
+    WITH AGE_SXDC AS (
+        SELECT
+            CASE
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '9'
+			    THEN '만 9세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '10'
+			    THEN '만 10세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '11'
+			    THEN '만 11세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '12'
+			    THEN '만 12세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '13'
+			    THEN '만 13세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '14'
+			    THEN '만 14세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '15'
+			    THEN '만 15세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '16'
+			    THEN '만 16세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '17'
+			    THEN '만 17세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '18'
+			    THEN '만 18세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '19'
+			    THEN '만 19세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '20'
+			    THEN '만 20세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '21'
+			    THEN '만 21세'
+			WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '22'
+			    THEN '만 22세'
+            WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '23'
+                THEN '만 23세'
+            WHEN TRUNC(MONTHS_BETWEEN (T8.SRVC_PVSN_BGNG_YMD,T2.TRPR_BRTH_YMD) /12,0) = '24'
+                THEN '만 24세'
+            ELSE '기타'
+            END                                                             AS AGE                          /* 집계항목 */
+            , NVL(T3.SXDC_SE_CD,T2.SXDC_SE_CD)                              AS SXDC                         /* 성별구분코드 */
+     
+            FROM SEB510 T                                                   /* 서비스제공대상자 */
+            LEFT JOIN SEB100 T1                                             /* 사례기본 */
+            ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+            AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+            LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+            ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+            LEFT JOIN SCA300 T3                                             /* 개인정보 */
+            ON T3.INDV_IDNTFC_NO = T2.INDV_IDNTFC_NO
+            LEFT JOIN SDA100 T4                                             /* 자원기본 */
+            ON T4.RESRCE_NO = T.RESRCE_NO
+            AND T4.USE_YN = 'Y'
+            LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+            ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+            LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+            ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+            LEFT JOIN SEB500 T8                                             /* 서비스제공 */
+            ON T.SRVC_PVSN_NO = T8.SRVC_PVSN_NO
+                AND T8.RESRCE_NO = T4.RESRCE_NO
+ 
+		WHERE 1=1
+		AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+		AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+		AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+		AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+    ]]>
+		<if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO !=''">
+			AND T4.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO} -- 서비스실생사업번호
+		</if>
+		<if test="INST_NO != NULL and INST_NO !=''">
+			AND T4.RSFR_INST_NO = #{INST_NO} -- 기관번호
+		</if>
+		<if test='OPER_SHAPE_SE_CD != NULL and OPER_SHAPE_SE_CD != ""'>
+			AND T4.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD} -- 운영형태구분코드
+		</if>
+		<if test="RESRCE_NO != NULL and RESRCE_NO != ''">
+            AND T4.RESRCE_NO = #{RESRCE_NO}
+        </if>
+    <![CDATA[
+	    AND T1.CASE_BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+	    AND (SELECT UNT_TASKWK_SE_CD FROM SAA000                           /* 통합기관 */
+	         WHERE INST_NO = T4.RSFR_INST_NO) = #{UNT_TASKWK_SE_CD}
+        )
+        
+    SELECT DISTINCT
+
+        B.AGE                                           AS TOT_PRVSON       /* 집계항목 */
+	    ,(SELECT COUNT(*) FROM AGE_SXDC
+			WHERE AGE = B.AGE
+			AND SXDC= 'M'
+            )                                           AS MALE_NOPE        /* 남자 */
+	    ,(SELECT COUNT(*) FROM AGE_SXDC
+            WHERE AGE = B.AGE
+            AND SXDC= 'F'
+            )                                           AS FEMALE_NOPE      /* 여자 */
+        ,SRT    /* 정렬순서 */
+    
+    FROM AGE_SXDC A
+    RIGHT JOIN
+        (SELECT CONCAT('만 ',CONCAT((8 + LEVEL),'세')) AS AGE, LEVEL AS SRT FROM DUAL
+        CONNECT BY LEVEL <= 24 - 9 + 1
+        UNION SELECT '기타' AS AGE, 99 AS SRT FROM DUAL) B
+    ON A.AGE = B.AGE
+    
+    ORDER BY B.SRT ASC
+    ]]>
+	</select>
+
+	<!-- 연계현황 목록조회 -->
+	<select id="selectLinkPreconList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.subms.stats.eryycose.mapper.EryyCoseMapper - selectLinkPreconList [Lee SangHoon] */
+    SELECT
+          T2.CMMNS_CD_VALUE_NM                      AS TOT_PRVSON   -- 집계항목(종결사유구분)
+        , NVL(SUM(T1.SEMSTR1),0)                    AS SEMSTR1      -- 학기 1
+        , NVL(SUM(T1.SEMSTR2),0)                    AS SEMSTR2      -- 학기 2
+        , NVL(SUM(T1.SEMSTR3),0)                    AS SEMSTR3      -- 학기 3
+        , NVL(SUM(T1.SEMSTR4),0)                    AS SEMSTR4      -- 학기 4
+        , NVL(SUM(T1.SEMSTR5),0)                    AS SEMSTR5      -- 학기 5
+        , NVL(SUM(T1.SEMSTR6),0)                    AS SEMSTR6      -- 학기 6
+    FROM
+        (SELECT T1.TRMN_CS_SE_CD
+            , T3.SEMSTR_SE_CD
+            , T.CASE_MNG_NO
+            , T.CASE_MNG_ODRNO
+        FROM SEB530 T
+        LEFT JOIN 
+            (SELECT B.CASE_MNG_NO, B.CASE_MNG_ODRNO, B.TRMN_CS_SE_CD, A.CASE_TRMN_YMD
+                ,ROW_NUMBER() OVER(PARTITION BY B.CASE_MNG_NO, B.CASE_MNG_ODRNO ORDER BY B.CASE_TRMN_NO DESC) AS RN
+            FROM SEC100 A
+            LEFT JOIN SEC100 B
+            ON B.CASE_MNG_NO = A.CASE_MNG_NO
+            AND B.CASE_MNG_NO = A.CASE_MNG_NO
+            AND B.TRMN_SRNG_RESULT_SE_CD = '01'
+            WHERE A.TRMN_SRNG_RESULT_SE_CD = '02'
+            )T1
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        AND T1.RN=1
+        LEFT JOIN SDA100 T2
+        ON T2.RESRCE_NO = T.RESRCE_NO
+        LEFT JOIN AFA310 T3
+        ON T3.SRVC_EXCN_BIZ_NO = T2.SRVC_EXCN_BIZ_NO
+        AND T.PTCPTN_YMD BETWEEN T3.BGNG_YMD AND T3.END_YMD
+        AND T3.USE_YN = 'Y'
+        LEFT JOIN SAA000 T01
+        ON T01.INST_NO = T2.RSFR_INST_NO
+        LEFT JOIN SDA420 T02
+        ON T02.SRVC_EXCN_BIZ_NO = T2.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T03
+        ON T03.SRVC_BIZ_NO = T02.SRVC_BIZ_NO
+        
+        WHERE 1=1
+        AND T2.SRVC_RESRCE_LCLAS_SE_CD <> '01'
+        AND T2.APRV_STTS_SE_CD = '2'
+        AND T01.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        AND T03.BIZ_YR = #{BIZ_YR}
+    ]]>
+		<if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO != ''">
+			AND T02.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+		</if>
+		<if test="INST_NO != NULL and INST_NO != ''">
+			AND T01.INST_NO = #{INST_NO}
+		</if>
+		<if test="OPER_SHAPE_SE_CD != NULL and OPER_SHAPE_SE_CD != ''">
+			AND T2.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+		</if>
+		<if test="RESRCE_NO != NULL and RESRCE_NO != ''">
+            AND T2.RESRCE_NO = #{RESRCE_NO}
+        </if>
+    <![CDATA[
+        AND T1.CASE_TRMN_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        
+        GROUP BY T1.TRMN_CS_SE_CD, T3.SEMSTR_SE_CD, T.CASE_MNG_NO, T.CASE_MNG_ODRNO
+        )
+    PIVOT
+        (COUNT(*) FOR SEMSTR_SE_CD IN
+            ( '01' AS SEMSTR1
+            , '02' AS SEMSTR2
+            , '03' AS SEMSTR3
+            , '04' AS SEMSTR4
+            , '05' AS SEMSTR5
+            , '06' AS SEMSTR6
+            )
+        ) T1
+    RIGHT JOIN
+        (SELECT DISTINCT
+            A.*
+        FROM SAC100 A
+        JOIN SAC110 B
+        ON B.CMMNS_CD_ID = A.CMMNS_CD_ID
+        AND B.CMMNS_CD_VALUE = A.CMMNS_CD_VALUE
+        AND B.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        WHERE A.CMMNS_CD_ID = 'TRMN_CS_SE_CD'
+        ) T2
+    ON T2.CMMNS_CD_VALUE = T1.TRMN_CS_SE_CD
+    GROUP BY T2.CMMNS_CD_VALUE_NM, T2.CMMNS_CD_VALUE, T2.SRTNG_SQNCE
+    ORDER BY T2.SRTNG_SQNCE
+    ]]>
+	</select>
+
+	<!-- 출생국가별 현황 -->
+	<select id="selectBrthNtnPreconList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.subms.stats.eryycose.mapper.EryyCoseMapper - selectBrthNtnPreconList[Lee SangHoon] */
+            
+    SELECT
+    
+        (SELECT CMMNS_CD_VALUE_NM FROM SAC100   /* 공통코드 값 */
+            WHERE CMMNS_CD_ID = 'BRTH_NTN_SE_CD'
+            AND CMMNS_CD_VALUE = BRTH_NTN_SE_CD)                AS TOT_PRVSON   -- 집계항목
+        ,SUM(SEMSTR1)                                           AS SEMSTR1      -- 학기1
+        ,SUM(SEMSTR2)                                           AS SEMSTR2      -- 학기2
+        ,SUM(SEMSTR3)                                           AS SEMSTR3      -- 학기3
+        ,SUM(SEMSTR4)                                           AS SEMSTR4      -- 학기4
+        ,SUM(SEMSTR5)                                           AS SEMSTR5      -- 학기5
+        ,SUM(SEMSTR6)                                           AS SEMSTR6      -- 학기6
+        ,SUM(SEMSTR1+SEMSTR2+SEMSTR3+SEMSTR4+SEMSTR5+SEMSTR6)   AS SUM          -- 합계
+        
+    FROM
+        (SELECT T1.BRTH_NTN_SE_CD
+            ,T2.SEMSTR_SE_CD
+            ,A.CASE_MNG_NO
+            ,A.CASE_MNG_ODRNO
+            ,MAX(A.RESRCE_NO)
+        FROM SEB530 A       /* 자원프로그램제공 */
+        LEFT JOIN SDA100 B  /* 자원기본 */
+        ON B.RESRCE_NO = A.RESRCE_NO
+        LEFT JOIN SEB100 T  /* 사례기본 */
+        ON T.CASE_MNG_NO = A.CASE_MNG_NO
+        AND T.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T1 /* 대상자정보 */
+        ON T1.TRPR_INFO_NO = T.TRPR_INFO_NO
+        AND T1.DEL_YN != 'Y'
+        LEFT JOIN AFA310 T2 /* 학기관리 */
+        ON T2.SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO
+        AND A.PTCPTN_YMD BETWEEN T2.BGNG_YMD AND T2.END_YMD
+        AND T2.USE_YN = 'Y'
+        LEFT JOIN SAA000 T3 /* 통합기관 */
+        ON T3.INST_NO = B.RSFR_INST_NO
+        AND T3.DEL_YN != 'Y'
+        LEFT JOIN SDA420 T4 /* 서비스실행사업 */
+        ON T4.SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T5 /* 서비스사업 */
+        ON T5.SRVC_BIZ_NO = T4.SRVC_BIZ_NO
+        
+        WHERE 1=1
+        AND T1.BRTH_NTN_SE_CD IS NOT NULL
+        AND B.SRVC_RESRCE_LCLAS_SE_CD <> '01'
+        AND B.APRV_STTS_SE_CD = '2'
+        AND T3.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        AND T5.BIZ_YR = #{BIZ_YR}
+        ]]>
+		<if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO != ''">
+			AND B.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+		</if>
+		<if test="INST_NO != NULL and INST_NO != ''">
+			AND B.RSFR_INST_NO = #{INST_NO}
+		</if>
+		<if test="OPER_SHAPE_SE_CD != NULL and OPER_SHAPE_SE_CD != ''">
+			AND B.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+		</if>
+		<if test="RESRCE_NO != NULL and RESRCE_NO != ''">
+            AND B.RESRCE_NO = #{RESRCE_NO}
+        </if>
+        <![CDATA[
+        AND T.CASE_BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+                
+        GROUP BY T1.BRTH_NTN_SE_CD, T2.SEMSTR_SE_CD, A.CASE_MNG_NO, A.CASE_MNG_ODRNO
+        )
+    PIVOT
+        (COUNT(*) FOR SEMSTR_SE_CD IN
+            ('01' AS SEMSTR1
+            ,'02' AS SEMSTR2
+            ,'03' AS SEMSTR3
+            ,'04' AS SEMSTR4
+            ,'05' AS SEMSTR5
+            ,'06' AS SEMSTR6
+            )
+        )
+    GROUP BY BRTH_NTN_SE_CD
+    ORDER BY SUM DESC, BRTH_NTN_SE_CD ASC
+    ]]>
+	</select>
+
+	<!-- 비자유형별현황 목록조회 -->
+	<select id="selectVisaTypePreconList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.subms.stats.eryycose.mapper.EryyCoseMapper - selectVisaTypePreconList [Lee SangHoon] */
+    
+    SELECT
+          T2.CMMNS_CD_VALUE_NM                      AS TOT_PRVSON   -- 집계항목(비자유형구분)
+        , NVL(SUM(T1.SEMSTR1),0)                    AS SEMSTR1      -- 학기 1
+        , NVL(SUM(T1.SEMSTR2),0)                    AS SEMSTR2      -- 학기 2
+        , NVL(SUM(T1.SEMSTR3),0)                    AS SEMSTR3      -- 학기 3
+        , NVL(SUM(T1.SEMSTR4),0)                    AS SEMSTR4      -- 학기 4
+        , NVL(SUM(T1.SEMSTR5),0)                    AS SEMSTR5      -- 학기 5
+        , NVL(SUM(T1.SEMSTR6),0)                    AS SEMSTR6      -- 학기 6
+    FROM
+        (SELECT T2.VISA_TYPE_SE_CD
+            , T4.SEMSTR_SE_CD
+            , T.CASE_MNG_NO
+            , T.CASE_MNG_ODRNO
+        FROM SEB530 T
+        LEFT JOIN SEB100 T1
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T3
+        ON T3.RESRCE_NO = T.RESRCE_NO
+        LEFT JOIN AFA310 T4
+        ON T4.SRVC_EXCN_BIZ_NO = T3.SRVC_EXCN_BIZ_NO
+        AND T.PTCPTN_YMD BETWEEN T4.BGNG_YMD AND T4.END_YMD
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SAA000 T01
+        ON T01.INST_NO = T3.RSFR_INST_NO
+        LEFT JOIN SDA420 T02
+        ON T02.SRVC_EXCN_BIZ_NO = T3.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T03
+        ON T03.SRVC_BIZ_NO = T02.SRVC_BIZ_NO
+
+        WHERE 1=1
+        AND T3.SRVC_RESRCE_LCLAS_SE_CD <> '01'
+        AND T3.APRV_STTS_SE_CD = '2'
+        AND T01.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        AND T03.BIZ_YR = #{BIZ_YR}
+    ]]>
+		<if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO != ''">
+			AND T02.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+		</if>
+		<if test="INST_NO != NULL and INST_NO != ''">
+			AND T01.INST_NO = #{INST_NO}
+		</if>
+		<if test="OPER_SHAPE_SE_CD != NULL and OPER_SHAPE_SE_CD != ''">
+			AND T3.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+		</if>
+		<if test="RESRCE_NO != NULL and RESRCE_NO != ''">
+            AND T3.RESRCE_NO = #{RESRCE_NO}
+        </if>
+    <![CDATA[
+        AND T1.CASE_BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+
+        GROUP BY T2.VISA_TYPE_SE_CD, T4.SEMSTR_SE_CD, T.CASE_MNG_NO, T.CASE_MNG_ODRNO
+        )
+    PIVOT
+        (COUNT(*) FOR SEMSTR_SE_CD IN
+            ( '01' AS SEMSTR1
+            , '02' AS SEMSTR2
+            , '03' AS SEMSTR3
+            , '04' AS SEMSTR4
+            , '05' AS SEMSTR5
+            , '06' AS SEMSTR6
+            )
+        ) T1
+    RIGHT JOIN
+        (SELECT * FROM SAC100
+        WHERE CMMNS_CD_ID = 'VISA_TYPE_SE_CD'
+        AND USE_YN = 'Y'
+        ) T2
+    ON T2.CMMNS_CD_VALUE = T1.VISA_TYPE_SE_CD
+    GROUP BY T2.CMMNS_CD_VALUE_NM, T2.SRTNG_SQNCE
+    ORDER BY T2.SRTNG_SQNCE
+    
+    
+    
+    ]]>
+	</select>
+
+	<!-- 대상자유형별현황 목록조회 -->
+	<select id="selectTrprTypePreconList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.subms.stats.eryycose.mapper.EryyCoseMapper - selectTrprTypePreconList [Lee SangHoon] */
+    
+    SELECT
+          T2.CMMNS_CD_VALUE_NM                      AS TOT_PRVSON   -- 집계항목(대상자배경유형)
+        , NVL(SUM(T1.SEMSTR1),0)                    AS SEMSTR1      -- 학기 1
+        , NVL(SUM(T1.SEMSTR2),0)                    AS SEMSTR2      -- 학기 2
+        , NVL(SUM(T1.SEMSTR3),0)                    AS SEMSTR3      -- 학기 3
+        , NVL(SUM(T1.SEMSTR4),0)                    AS SEMSTR4      -- 학기 4
+        , NVL(SUM(T1.SEMSTR5),0)                    AS SEMSTR5      -- 학기 5
+        , NVL(SUM(T1.SEMSTR6),0)                    AS SEMSTR6      -- 학기 6
+    FROM
+        (SELECT T2.TRPR_BCRN_TYPE_SE_CD
+            , T4.SEMSTR_SE_CD
+            , T.CASE_MNG_NO
+            , T.CASE_MNG_ODRNO
+        FROM SEB530 T
+        LEFT JOIN SEB100 T1
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T3
+        ON T3.RESRCE_NO = T.RESRCE_NO
+        LEFT JOIN AFA310 T4
+        ON T4.SRVC_EXCN_BIZ_NO = T3.SRVC_EXCN_BIZ_NO
+        AND T.PTCPTN_YMD BETWEEN T4.BGNG_YMD AND T4.END_YMD
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SAA000 T01
+        ON T01.INST_NO = T3.RSFR_INST_NO
+        LEFT JOIN SDA420 T02
+        ON T02.SRVC_EXCN_BIZ_NO = T3.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T03
+        ON T03.SRVC_BIZ_NO = T02.SRVC_BIZ_NO
+
+        WHERE 1=1
+        AND T3.SRVC_RESRCE_LCLAS_SE_CD <> '01'
+        AND T3.APRV_STTS_SE_CD = '2'
+        AND T01.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        AND T03.BIZ_YR = #{BIZ_YR}
+    ]]>
+		<if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO != ''">
+			AND T02.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+		</if>
+		<if test="INST_NO != NULL and INST_NO != ''">
+			AND T01.INST_NO = #{INST_NO}
+		</if>
+		<if test="OPER_SHAPE_SE_CD != NULL and OPER_SHAPE_SE_CD != ''">
+			AND T3.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+		</if>
+		<if test="RESRCE_NO != NULL and RESRCE_NO != ''">
+            AND T3.RESRCE_NO = #{RESRCE_NO}
+        </if>
+    <![CDATA[
+        AND T1.CASE_BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+
+        GROUP BY T2.TRPR_BCRN_TYPE_SE_CD, T4.SEMSTR_SE_CD, T.CASE_MNG_NO, T.CASE_MNG_ODRNO
+        )
+    PIVOT
+        (COUNT(*) FOR SEMSTR_SE_CD IN
+            ( '01' AS SEMSTR1
+            , '02' AS SEMSTR2
+            , '03' AS SEMSTR3
+            , '04' AS SEMSTR4
+            , '05' AS SEMSTR5
+            , '06' AS SEMSTR6
+            )
+        ) T1
+    RIGHT JOIN
+        (SELECT * FROM SAC100
+        WHERE CMMNS_CD_ID = 'TRPR_BCRN_TYPE_SE_CD'
+        AND USE_YN = 'Y'
+        ) T2
+    ON T2.CMMNS_CD_VALUE = T1.TRPR_BCRN_TYPE_SE_CD
+    GROUP BY T2.CMMNS_CD_VALUE_NM, T2.SRTNG_SQNCE
+    ORDER BY T2.SRTNG_SQNCE
+    ]]>
+	</select>
+    
+    <!-- 2차통계  출생국가별현황2 -->
+    <select id="selectBrthNtnPreconList2" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectBrthNtnPreconList2 (출생국가별현황2) - Lee Hye Sun */
+    SELECT 
+	    (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'GROWTH_NTN_SE_CD'
+	       AND CMMNS_CD_VALUE = C.GROWTH_NTN_SE_CD) AS GROWTH_NM
+	    , C.GROWTH_NTN_SE_CD
+	    , SUM(T.SEMSTR_1) AS SEMSTR_1
+	    , SUM(T.SEMSTR_2) AS SEMSTR_2
+	    , SUM(T.SEMSTR_1) + SUM(T.SEMSTR_2) AS SEMSTR_SUM
+	    , SUM(T.SEMSTR_TOT) AS SEMSTR_TOT
+	FROM SEB100 A 
+	JOIN SEB510 B 
+	ON A.CASE_MNG_NO = B.CASE_MNG_NO
+	AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+	JOIN SEA200 C /*대상자정보*/
+	ON A.TRPR_INFO_NO = C.TRPR_INFO_NO
+	JOIN SDA100 D 
+	ON B.RESRCE_NO = D.RESRCE_NO
+	JOIN SDA420 E /*서비스실행사업*/
+	ON E.SRVC_EXCN_BIZ_NO = D.SRVC_EXCN_BIZ_NO
+	JOIN SDA400 F /*서비스사업*/
+	ON F.SRVC_BIZ_NO = E.SRVC_BIZ_NO
+	LEFT JOIN SAA000 F2 /*기관*/
+	ON F2.INST_NO = D.RSFR_INST_NO
+	LEFT JOIN AFA330 G /*교육이수일정내역*/
+	ON A.CASE_MNG_NO = G.CASE_MNG_NO
+	AND A.CASE_MNG_ODRNO = G.CASE_MNG_ODRNO
+	LEFT JOIN (
+	    SELECT
+	        CASE_MNG_NO
+	        , CASE_MNG_ODRNO
+	        , RESRCE_NO
+	        , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '01' THEN CASE_MNG_NO END) AS SEMSTR_1
+	        , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '02' THEN CASE_MNG_NO END) AS SEMSTR_2
+	        , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01', '02') THEN CASE_MNG_NO END) AS SEMSTR_TOT
+	    FROM AFA700
+	    GROUP BY CASE_MNG_NO, CASE_MNG_ODRNO, RESRCE_NO
+	) T
+	ON A.CASE_MNG_NO = T.CASE_MNG_NO
+	AND A.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+	AND B.RESRCE_NO = T.RESRCE_NO
+	
+	WHERE 1=1
+	AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	AND B.DEL_YN = 'N'
+	AND D.SRVC_RESRCE_LCLAS_SE_CD NOT IN ('01')
+	AND C.GROWTH_NTN_SE_CD IS NOT NULL
+	AND (T.SEMSTR_1 IS NOT NULL OR T.SEMSTR_2 IS NOT NULL)
+	
+	AND F2.INST_NO IN ]]> <foreach collection="INST_NOS" item="item" open="(" separator="," close=")"> #{item} </foreach>
+	
+	<if test='BIZ_YR != null and BIZ_YR != ""'>
+        AND F.BIZ_YR = #{BIZ_YR}
+	</if>
+	<if test='INST_NO != null and INST_NO != ""'>
+        AND F2.INST_NO = #{INST_NO}
+	</if>
+	<if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+        AND E.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+	</if>
+	<if test='RESRCE_NO != null and RESRCE_NO != ""'>
+        AND D.RESRCE_NO = #{RESRCE_NO}
+	</if>
+	<if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+        AND D.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+	</if>
+	<if test='BGNG_YMD != null and BGNG_YMD != ""' >
+	    <![CDATA[
+	    AND G.BGNG_YMD <= #{END_YMD} AND NVL(G.END_YMD, G.BGNG_YMD) >= #{BGNG_YMD}
+	    ]]>
+	</if>
+	<![CDATA[
+	GROUP BY C.GROWTH_NTN_SE_CD
+    ]]>
+    </select>
+    
+    <!-- 2차통계  성장국가별현황 -->
+    <select id="selectGrowthNtnPreconList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectGrowthNtnPreconList (성장국가별현황) - Lee Hye Sun */
+    SELECT 
+        (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+           WHERE CMMNS_CD_ID = 'BRTH_NTN_SE_CD'
+           AND CMMNS_CD_VALUE = C.BRTH_NTN_SE_CD) AS GROWTH_NM
+        , C.BRTH_NTN_SE_CD
+        , SUM(T.SEMSTR_1) AS SEMSTR_1
+        , SUM(T.SEMSTR_2) AS SEMSTR_2
+        , SUM(T.SEMSTR_1) + SUM(T.SEMSTR_2) AS SEMSTR_SUM
+        , SUM(T.SEMSTR_TOT) AS SEMSTR_TOT
+    FROM SEB100 A 
+    JOIN SEB510 B 
+    ON A.CASE_MNG_NO = B.CASE_MNG_NO
+    AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+    JOIN SEA200 C /*대상자정보*/
+    ON A.TRPR_INFO_NO = C.TRPR_INFO_NO
+    JOIN SDA100 D 
+    ON B.RESRCE_NO = D.RESRCE_NO
+    JOIN SDA420 E /*서비스실행사업*/
+    ON E.SRVC_EXCN_BIZ_NO = D.SRVC_EXCN_BIZ_NO
+    JOIN SDA400 F /*서비스사업*/
+    ON F.SRVC_BIZ_NO = E.SRVC_BIZ_NO
+    LEFT JOIN SAA000 F2 /*기관*/
+    ON F2.INST_NO = D.RSFR_INST_NO
+    LEFT JOIN AFA330 G /*교육이수일정내역*/
+    ON A.CASE_MNG_NO = G.CASE_MNG_NO
+    AND A.CASE_MNG_ODRNO = G.CASE_MNG_ODRNO
+    LEFT JOIN (
+        SELECT
+            CASE_MNG_NO
+            , CASE_MNG_ODRNO
+            , RESRCE_NO
+            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '01' THEN CASE_MNG_NO END) AS SEMSTR_1
+            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '02' THEN CASE_MNG_NO END) AS SEMSTR_2
+            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01', '02') THEN CASE_MNG_NO END) AS SEMSTR_TOT
+        FROM AFA700
+        GROUP BY CASE_MNG_NO, CASE_MNG_ODRNO, RESRCE_NO
+    ) T
+    ON A.CASE_MNG_NO = T.CASE_MNG_NO
+    AND A.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+    AND B.RESRCE_NO = T.RESRCE_NO
+    
+    WHERE 1=1
+    AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    AND B.DEL_YN = 'N'
+    AND D.SRVC_RESRCE_LCLAS_SE_CD NOT IN ('01')
+    AND C.BRTH_NTN_SE_CD IS NOT NULL
+    AND (T.SEMSTR_1 IS NOT NULL OR T.SEMSTR_2 IS NOT NULL)
+    
+    AND F2.INST_NO IN ]]> <foreach collection="INST_NOS" item="item" open="(" separator="," close=")"> #{item} </foreach>
+    
+    <if test='BIZ_YR != null and BIZ_YR != ""'>
+        AND F.BIZ_YR = #{BIZ_YR}
+    </if>
+    <if test='INST_NO != null and INST_NO != ""'>
+        AND F2.INST_NO = #{INST_NO}
+    </if>
+    <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+        AND E.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    </if>
+    <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+        AND D.RESRCE_NO = #{RESRCE_NO}
+    </if>
+    <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+        AND D.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+    </if>
+    <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+        <![CDATA[
+        AND G.BGNG_YMD <= #{END_YMD} AND NVL(G.END_YMD, G.BGNG_YMD) >= #{BGNG_YMD}
+        ]]>
+    </if>
+    <![CDATA[
+    GROUP BY C.BRTH_NTN_SE_CD
+    ]]>
+    </select>
+    
+    <!-- 2차통계  현재국적별현황 -->
+    <select id="selectNowNltyPreconList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectNowNltyPreconList (현재국적별현황) - Lee Hye Sun */
+    SELECT 
+        (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+           WHERE CMMNS_CD_ID = 'NLTY_NTN_SE_CD'
+           AND CMMNS_CD_VALUE = C.NLTY_NTN_SE_CD) AS GROWTH_NM
+        , C.NLTY_NTN_SE_CD
+        , SUM(T.SEMSTR_1) AS SEMSTR_1
+        , SUM(T.SEMSTR_2) AS SEMSTR_2
+        , SUM(T.SEMSTR_1) + SUM(T.SEMSTR_2) AS SEMSTR_SUM
+        , SUM(T.SEMSTR_TOT) AS SEMSTR_TOT
+    FROM SEB100 A 
+    JOIN SEB510 B 
+    ON A.CASE_MNG_NO = B.CASE_MNG_NO
+    AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+    JOIN SEA200 C /*대상자정보*/
+    ON A.TRPR_INFO_NO = C.TRPR_INFO_NO
+    JOIN SDA100 D 
+    ON B.RESRCE_NO = D.RESRCE_NO
+    JOIN SDA420 E /*서비스실행사업*/
+    ON E.SRVC_EXCN_BIZ_NO = D.SRVC_EXCN_BIZ_NO
+    JOIN SDA400 F /*서비스사업*/
+    ON F.SRVC_BIZ_NO = E.SRVC_BIZ_NO
+    LEFT JOIN SAA000 F2 /*기관*/
+    ON F2.INST_NO = D.RSFR_INST_NO
+    LEFT JOIN AFA330 G /*교육이수일정내역*/
+    ON A.CASE_MNG_NO = G.CASE_MNG_NO
+    AND A.CASE_MNG_ODRNO = G.CASE_MNG_ODRNO
+    LEFT JOIN (
+        SELECT
+            CASE_MNG_NO
+            , CASE_MNG_ODRNO
+            , RESRCE_NO
+            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '01' THEN CASE_MNG_NO END) AS SEMSTR_1
+            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '02' THEN CASE_MNG_NO END) AS SEMSTR_2
+            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01', '02') THEN CASE_MNG_NO END) AS SEMSTR_TOT
+        FROM AFA700
+        GROUP BY CASE_MNG_NO, CASE_MNG_ODRNO, RESRCE_NO
+    ) T
+    ON A.CASE_MNG_NO = T.CASE_MNG_NO
+    AND A.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+    AND B.RESRCE_NO = T.RESRCE_NO
+    
+    WHERE 1=1
+    AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    AND B.DEL_YN = 'N'
+    AND D.SRVC_RESRCE_LCLAS_SE_CD NOT IN ('01')
+    AND C.NLTY_NTN_SE_CD IS NOT NULL
+    AND (T.SEMSTR_1 IS NOT NULL OR T.SEMSTR_2 IS NOT NULL)
+    
+    AND F2.INST_NO IN ]]> <foreach collection="INST_NOS" item="item" open="(" separator="," close=")"> #{item} </foreach>
+    
+    <if test='BIZ_YR != null and BIZ_YR != ""'>
+        AND F.BIZ_YR = #{BIZ_YR}
+    </if>
+    <if test='INST_NO != null and INST_NO != ""'>
+        AND F2.INST_NO = #{INST_NO}
+    </if>
+    <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+        AND E.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    </if>
+    <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+        AND D.RESRCE_NO = #{RESRCE_NO}
+    </if>
+    <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+        AND D.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+    </if>
+    <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+        <![CDATA[
+        AND G.BGNG_YMD <= #{END_YMD} AND NVL(G.END_YMD, G.BGNG_YMD) >= #{BGNG_YMD}
+        ]]>
+    </if>
+    <![CDATA[
+    GROUP BY C.NLTY_NTN_SE_CD
+    ]]>
+    </select>
+    
+    <!-- 2차통계  학력별현황 -->
+    <select id="selectAcbgPreconList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectAcbgPreconList (학력별현황) - Lee Hye Sun */
+    WITH X AS (
+	    SELECT
+	        *
+	    FROM (
+	        SELECT
+	            ROW_NUMBER() OVER(PARTITION BY C.TRPR_INFO_NO ORDER BY J.SRTNG_SQNCE DESC, H.SRTNG_SQNCE DESC) ROW_NO
+	            , C.TRPR_INFO_NO
+	            , T.SEMSTR_SE_CD
+	            , K.ACBG_SE_CD
+	            , K.GRDTN_STTS_SE_CD
+	        FROM SEB100 A
+	        JOIN SEB510 B 
+	        ON A.CASE_MNG_NO = B.CASE_MNG_NO
+	        AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO
+	        JOIN SEA200 C /*대상자정보*/
+	        ON A.TRPR_INFO_NO = C.TRPR_INFO_NO
+	        JOIN SDA100 D 
+	        ON B.RESRCE_NO = D.RESRCE_NO
+	        JOIN SDA420 E /*서비스실행사업*/
+	        ON E.SRVC_EXCN_BIZ_NO = D.SRVC_EXCN_BIZ_NO
+	        JOIN SDA400 F /*서비스사업*/
+	        ON F.SRVC_BIZ_NO = E.SRVC_BIZ_NO
+	        LEFT JOIN SAA000 F2 /*기관*/
+	        ON F2.INST_NO = D.RSFR_INST_NO
+	        LEFT JOIN AFA330 G /*교육이수일정내역*/
+	        ON A.CASE_MNG_NO = G.CASE_MNG_NO
+	        AND A.CASE_MNG_ODRNO = G.CASE_MNG_ODRNO
+	        LEFT JOIN AFA700 T
+	        ON A.CASE_MNG_NO = T.CASE_MNG_NO
+	        AND A.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+	        AND B.RESRCE_NO = T.RESRCE_NO
+	        LEFT JOIN SEA230 K                                  /*학력상태*/
+	        ON C.TRPR_INFO_NO = K.TRPR_INFO_NO
+	        LEFT JOIN SAC100 H
+	        ON H.CMMNS_CD_ID = 'GRDTN_STTS_SE_CD'             /* 졸업상태구분코드 */
+	        AND H.CMMNS_CD_VALUE = K.GRDTN_STTS_SE_CD
+	        LEFT JOIN SAC100 J
+	        ON J.CMMNS_CD_ID = 'ACBG_SE_CD'                   /* 최종학력구분코드 */
+	        AND J.CMMNS_CD_VALUE = K.ACBG_SE_CD
+	        
+	        WHERE 1=1
+	        AND B.DEL_YN = 'N'
+	        AND C.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+	        AND D.SRVC_RESRCE_LCLAS_SE_CD NOT IN ('01')
+	
+	        AND F2.INST_NO IN ]]> <foreach collection="INST_NOS" item="item" open="(" separator="," close=")"> #{item} </foreach>
+            <if test='BIZ_YR != null and BIZ_YR != ""'>
+                AND F.BIZ_YR = #{BIZ_YR}
+            </if>
+            <if test='INST_NO != null and INST_NO != ""'>
+                AND F2.INST_NO = #{INST_NO}
+            </if>
+            <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+                AND E.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+            </if>
+            <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+                AND D.RESRCE_NO = #{RESRCE_NO}
+            </if>
+            <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+                AND D.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+            </if>
+            <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+                <![CDATA[
+                AND G.BGNG_YMD <= #{END_YMD} AND NVL(G.END_YMD, G.BGNG_YMD) >= #{BGNG_YMD}
+                ]]>
+            </if>
+        <![CDATA[
+	    )
+	    WHERE ROW_NO = 1
+	    AND SEMSTR_SE_CD IS NOT NULL
+	)
+	SELECT 
+	    *
+	FROM (
+	    SELECT 
+        GROUPING_ID(GBN_CD_A, GBN_NM_A, GBN_CD_B, GBN_NM_B) AS ID
+        , CASE WHEN GROUPING_ID(GBN_CD_A, GBN_NM_A, GBN_CD_B, GBN_NM_B) = 15 THEN '합계' ELSE GBN_NM_A END AS GBN_A
+        , CASE WHEN GROUPING_ID(GBN_CD_A, GBN_NM_A, GBN_CD_B, GBN_NM_B) = 15 THEN '00' ELSE GBN_CD_A END AS GBN_CD_A
+        , CASE WHEN GROUPING_ID(GBN_CD_A, GBN_NM_A, GBN_CD_B, GBN_NM_B) = 3 THEN '소계' ELSE GBN_NM_B END AS GBN_B
+        , CASE WHEN GROUPING_ID(GBN_CD_A, GBN_NM_A, GBN_CD_B, GBN_NM_B) = 3 THEN '00' ELSE GBN_CD_B END AS GBN_CD_B
+        , SUM(SEMSTR_1_NOPE)                        AS SEMSTR_1_NOPE
+        , ROUND(SUM(SEMSTR_1_RATE), 2)              AS SEMSTR_1_RATE
+        , SUM(SEMSTR_2_NOPE)                        AS SEMSTR_2_NOPE  
+        , ROUND(SUM(SEMSTR_2_RATE), 2)              AS SEMSTR_2_RATE  
+        , SUM(SUM_NOPE)                             AS SUM_NOPE       
+        , ROUND(SUM(SUM_RATE), 2)                   AS SUM_RATE       
+        , SUM(ALL_SEMSTR_NOPE)                      AS ALL_SEMSTR_NOPE
+        , ROUND(SUM(ALL_SEMSTR_RATE), 2)            AS ALL_SEMSTR_RATE
+    FROM (
+        SELECT DISTINCT
+              A.GBN_NM AS GBN_NM_A
+            , A.GBN_CD AS GBN_CD_A
+            , B.GBN_NM AS GBN_NM_B
+            , B.GBN_CD AS GBN_CD_B
+            , COUNT(DISTINCT CASE WHEN C.SEMSTR_SE_CD = '01' THEN C.TRPR_INFO_NO END)                                   AS SEMSTR_1_NOPE
+            , RATIO_TO_REPORT(COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '01' THEN TRPR_INFO_NO END)) OVER()*100           AS SEMSTR_1_RATE
+            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '02' THEN TRPR_INFO_NO END)                                       AS SEMSTR_2_NOPE
+            , RATIO_TO_REPORT(COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '02' THEN TRPR_INFO_NO END)) OVER()*100           AS SEMSTR_2_RATE
+            , COUNT(CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)                                        AS SUM_NOPE
+            , RATIO_TO_REPORT(COUNT(CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)) OVER()*100            AS SUM_RATE
+            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)                               AS ALL_SEMSTR_NOPE
+            , RATIO_TO_REPORT(COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)) OVER()*100   AS ALL_SEMSTR_RATE
+	        FROM (
+	            SELECT
+	                CMMNS_CD_VALUE_NM AS GBN_NM
+	                , CMMNS_CD_VALUE AS GBN_CD
+	            FROM SAC100
+	            WHERE CMMNS_CD_ID = 'ACBG_SE_CD'
+	        ) A CROSS JOIN (
+	            SELECT
+	                CMMNS_CD_VALUE_NM AS GBN_NM
+	                , CMMNS_CD_VALUE AS GBN_CD
+	            FROM SAC100
+	            WHERE CMMNS_CD_ID = 'GRDTN_STTS_SE_CD'
+	        ) B
+	        LEFT JOIN X C 
+	        ON A.GBN_CD = C.ACBG_SE_CD
+	        AND B.GBN_CD = C.GRDTN_STTS_SE_CD
+	        
+	        WHERE 1=1
+	        AND ((A.GBN_CD IN ('02', '03' ,'04') AND B.GBN_CD NOT IN ('05', '99'))
+	        OR (A.GBN_CD IN ('05', '06', '07' ) AND B.GBN_CD NOT IN ('99'))
+	        OR (A.GBN_CD IN ('01', '91', '92') AND B.GBN_CD IN ('99')))
+	        
+	        GROUP BY A.GBN_NM, A.GBN_CD, B.GBN_NM, B.GBN_CD
+	    )
+	    GROUP BY ROLLUP((GBN_CD_A, GBN_NM_A), (GBN_CD_B, GBN_NM_B))
+	    ORDER BY GBN_CD_A, GBN_CD_B
+	)
+	WHERE 1=1
+	AND (GBN_A, GBN_B) != ('무학','소계')
+	AND (GBN_A, GBN_B) != ('무응답','소계')
+	AND (GBN_A, GBN_B) != ('미취학','소계')
+	
+	ORDER BY CASE WHEN GBN_CD_A = '00' THEN 1
+	            WHEN GBN_CD_A = '01' THEN 2
+	            WHEN GBN_CD_A = '02' THEN 3
+	            WHEN GBN_CD_A = '03' THEN 4
+	            WHEN GBN_CD_A = '04' THEN 5
+	            WHEN GBN_CD_A = '07' THEN 6
+	            WHEN GBN_CD_A = '05' THEN 7
+	            WHEN GBN_CD_A = '06' THEN 8
+	            END, GBN_CD_B
+    ]]>
+    </select>
+    
+    <!-- 2차통계 연령별현황2 -->
+    <select id="selectAcbgPreconList2" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectAcbgPreconList2 (2차통계 연령별현황2) - Lee Seoung Jae */
+    WITH AGE_SEMSTR AS (
+	    SELECT
+	        T2.TRPR_INFO_NO
+	        , CASE WHEN (T6.BIZ_YR - SUBSTR(T2.TRPR_BRTH_YMD,1,4) > 24) OR (T6.BIZ_YR - SUBSTR(T2.TRPR_BRTH_YMD,1,4) < 9) THEN '기타' 
+	             ELSE TO_CHAR(T6.BIZ_YR - SUBSTR(T2.TRPR_BRTH_YMD,1,4)) || '세'
+	        END                                            AS AGE                          /* 집계항목 */
+	        , T10.SEMSTR_SE_CD                              AS SEMSTR_SE_CD                         /* 성별구분코드 */
+	
+        FROM SEB510 T                                                   /* 서비스제공대상자 */
+        LEFT JOIN SEB100 T1                                             /* 사례기본 */
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T4                                             /* 자원기본 */
+        ON T4.RESRCE_NO = T.RESRCE_NO
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+        ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+        ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+        LEFT JOIN AFA700 T10
+        ON T10.RESRCE_NO = T4.RESRCE_NO
+            AND T10.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T10.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN AFA310 T9
+            ON T10.SEMSTR_SE_CD = T9.SEMSTR_SE_CD
+        LEFT JOIN AFA330 T7
+            ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN SAA000 F2 /*기관*/
+               ON F2.INST_NO = T4.RSFR_INST_NO
+	            
+	    WHERE 1=1
+	    AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+	    AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+	    AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+	    AND F2.INST_NO IN ]]> <foreach collection="INST_NOS" item="item" open="(" separator="," close=")"> #{item} </foreach>
+	    <if test='BIZ_YR != null and BIZ_YR != ""'>
+		    AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        </if>
+	    <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+	        AND T4.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}                         -- 서비스실행사업번호
+        </if>
+        <if test='INST_NO != null and INST_NO != ""'>
+            AND F2.INST_NO = #{INST_NO}
+        </if>
+        <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+            AND T4.RESRCE_NO = #{RESRCE_NO}
+        </if>
+        <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+            AND T4.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+        </if>
+	    <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+            <![CDATA[
+		    AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+            ]]>
+        </if>
+        <![CDATA[
+	    AND (SELECT UNT_TASKWK_SE_CD FROM SAA000                           /* 통합기관 */
+	         WHERE INST_NO = T4.RSFR_INST_NO) = #{UNT_TASKWK_SE_CD}
+	    AND T9.USE_YN = 'Y'
+	    
+	    GROUP BY T6.BIZ_YR, T2.TRPR_INFO_NO, T2.TRPR_BRTH_YMD, T10.SEMSTR_SE_CD
+	)
+	SELECT *
+	FROM
+	(
+	    SELECT CASE WHEN GROUPING_ID(SE,TOT_PRVSON) = 3 THEN '합계' ELSE SE END AS SE
+	        , CASE WHEN GROUPING_ID(SE,TOT_PRVSON) = 1 THEN '소계' ELSE TOT_PRVSON END TOT_PRVSON
+	        , SUM(SEMSTR_1_NOPE   )                     AS SEMSTR_1_NOPE
+	        , ROUND(SUM(SEMSTR_1_RATE   ), 2)                     AS SEMSTR_1_RATE
+	        , SUM(SEMSTR_2_NOPE   )                     AS SEMSTR_2_NOPE  
+	        , ROUND(SUM(SEMSTR_2_RATE   ), 2)                     AS SEMSTR_2_RATE  
+	        , SUM(SUM_NOPE        )                     AS SUM_NOPE       
+	        , ROUND(SUM(SUM_RATE        ), 2)                     AS SUM_RATE       
+	        , SUM(ALL_SEMSTR_NOPE )                     AS ALL_SEMSTR_NOPE
+	        , SUM(ALL_SEMSTR_RATE )                     AS ALL_SEMSTR_RATE
+	        , NVL(RN, 0) AS RN                          
+	        , CASE WHEN SE = '9~12세' THEN 1
+	            WHEN SE = '13~15세' THEN 2
+	            WHEN SE = '16~18세' THEN 3
+	            WHEN SE = '19~21세' THEN 4
+	            WHEN SE = '22~24세' THEN 5 
+	            WHEN SE = '기타' THEN 6 END AS GROUP_SRT
+	    FROM
+	    (
+	        SELECT DISTINCT
+	        
+	            A.SE
+	            , A.AGE                                            AS TOT_PRVSON       /* 집계항목 */
+	            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '01' THEN TRPR_INFO_NO END)                                           AS SEMSTR_1_NOPE        /* 1학기 */
+	            , RATIO_TO_REPORT(COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '01' THEN TRPR_INFO_NO END)) OVER()*100     AS SEMSTR_1_RATE
+	            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '02' THEN TRPR_INFO_NO END)                                           AS SEMSTR_2_NOPE      /* 2학기 */
+	            , RATIO_TO_REPORT(COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD = '02' THEN TRPR_INFO_NO END)) OVER()*100                         AS SEMSTR_2_RATE
+	            , COUNT(CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)                                           AS SUM_NOPE      /* 합계 */
+	            , RATIO_TO_REPORT(COUNT(CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)) OVER()*100                      AS SUM_RATE
+	            , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)           AS ALL_SEMSTR_NOPE
+	            , ROUND(RATIO_TO_REPORT(COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)) OVER(), 2)*100                         AS ALL_SEMSTR_RATE
+	            , ROW_NUMBER() OVER(PARTITION BY SE ORDER BY CASE WHEN SRT IS NULL THEN 0 ELSE SRT END) AS RN
+	        FROM (
+	            SELECT 
+	                CASE WHEN (LEVEL + 8) IN (9,10,11,12) THEN '9~12세' 
+	                    WHEN (LEVEL + 8) IN (13,14,15) THEN '13~15세' 
+	                    WHEN (LEVEL + 8) IN (16,17,18) THEN '16~18세' 
+	                    WHEN (LEVEL + 8) IN (19,20,21) THEN '19~21세' 
+	                    WHEN (LEVEL + 8) IN (22,23,24) THEN '22~24세' 
+	                END                         AS SE
+	                , LEVEL + 8 || '세' AS AGE
+	                , LEVEL AS SRT 
+	            FROM DUAL
+	            CONNECT BY LEVEL <= 24 - 9 + 1
+	            
+	            UNION 
+	            
+	            SELECT '기타' AS SE, '기타' AS AGE, 99 AS SRT 
+	            FROM DUAL
+	            
+	            ORDER BY AGE
+	        ) A
+	        LEFT JOIN AGE_SEMSTR B
+	            ON A.AGE = B.AGE
+	        GROUP BY A.SE, A.AGE, A.SRT
+	    )
+	    GROUP BY ROLLUP(SE,(TOT_PRVSON, RN))
+	    
+	) 
+	WHERE (SE,TOT_PRVSON) != ('기타','소계')
+	ORDER BY CASE WHEN SE = '합계' THEN 1 END, GROUP_SRT, RN
+    ]]>
+    </select>
+    
+     <!-- 2차통계 성별현황 -->
+    <select id="selectSxdcPreconList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectSxdcPreconList (2차통계 성별현황) - Lee Seoung Jae */
+    WITH SXDC_SEMSTR AS (
+	    SELECT
+	        T2.TRPR_INFO_NO
+	        , T2.SXDC_SE_CD             AS SXDC_SE_CD                          /* 집계항목 */
+	        , T10.SEMSTR_SE_CD                              AS SEMSTR_SE_CD                         /* 학기구분코드 */
+        FROM SEB510 T                                                   /* 서비스제공대상자 */
+        LEFT JOIN SEB100 T1                                             /* 사례기본 */
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T4                                             /* 자원기본 */
+        ON T4.RESRCE_NO = T.RESRCE_NO
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+        ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+        ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+        LEFT JOIN AFA700 T10
+        ON T10.RESRCE_NO = T4.RESRCE_NO
+            AND T10.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T10.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN AFA310 T9
+            ON T10.SEMSTR_SE_CD = T9.SEMSTR_SE_CD
+        LEFT JOIN AFA330 T7
+            ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN SAA000 F2                                                /*기관*/
+               ON F2.INST_NO = T4.RSFR_INST_NO
+	    WHERE 1=1
+	    AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+	    AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+	    AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+	    ]]>
+	    <if test='BIZ_YR != null and BIZ_YR != ""'>
+            AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        </if>
+        <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+            AND T4.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}                         -- 서비스실행사업번호
+        </if>
+        <if test='INST_NO != null and INST_NO != ""'>
+            AND F2.INST_NO = #{INST_NO}
+        </if>
+        <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+            AND T4.RESRCE_NO = #{RESRCE_NO}
+        </if>
+        <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+            AND T4.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+        </if>
+        <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+            <![CDATA[
+            AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+            ]]>
+        </if>
+        <![CDATA[
+	    AND (SELECT UNT_TASKWK_SE_CD FROM SAA000                           /* 통합기관 */
+	         WHERE INST_NO = T4.RSFR_INST_NO) = #{UNT_TASKWK_SE_CD}
+	    AND T9.USE_YN = 'Y'
+	    
+	    GROUP BY T6.BIZ_YR, T2.TRPR_INFO_NO, T2.SXDC_SE_CD, T10.SEMSTR_SE_CD
+	)
+	
+	SELECT DISTINCT
+	
+	    CASE WHEN GROUPING_ID(A.SXDC_SE_CD) = 1 THEN '합계' ELSE A.SXDC_SE_NM END AS SE
+	    , COUNT(CASE WHEN SEMSTR_SE_CD = '01' THEN TRPR_INFO_NO END)                                           AS SEMSTR_1_NOPE        /* 1학기 */
+	    , COUNT(CASE WHEN SEMSTR_SE_CD = '02' THEN TRPR_INFO_NO END)                                           AS SEMSTR_2_NOPE      /* 2학기 */
+	    , COUNT(CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)                                           AS SUM_NOPE      /* 합계 */
+	    , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)           AS ALL_EMSTR_NOPE
+	    , A.SRTNG_SQNCE
+	FROM (
+	    SELECT 
+	        CMMNS_CD_VALUE      AS SXDC_SE_CD
+	        , CMMNS_CD_VALUE_NM AS SXDC_SE_NM
+	        , SRTNG_SQNCE
+	    FROM SAC100
+	    WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+	    ORDER BY SRTNG_SQNCE
+	) A
+	LEFT JOIN SXDC_SEMSTR B
+	    ON A.SXDC_SE_CD = B.SXDC_SE_CD
+	GROUP BY GROUPING SETS((A.SXDC_SE_CD, A.SXDC_SE_NM,SRTNG_SQNCE), ())
+	ORDER BY CASE WHEN A.SRTNG_SQNCE IS NULL THEN 1 END, A.SRTNG_SQNCE
+    ]]>
+    </select>
+    
+    <!-- 2차통계 연계현황2 -->
+    <select id="selectLinkPreconList2" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectLinkPreconList2 (2차통계 연계현황2) - Lee Seoung Jae */
+    WITH LINK_PRECON_SEMSTR AS (
+	    SELECT
+	        T2.TRPR_INFO_NO
+	        , T8.LINK_PRECON_SE_CD                          AS LINK_PRECON_SE_CD                    /* 집계항목 */
+        FROM SEB510 T                                                   /* 서비스제공대상자 */
+        LEFT JOIN SEB100 T1                                             /* 사례기본 */
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T4                                             /* 자원기본 */
+        ON T4.RESRCE_NO = T.RESRCE_NO
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+        ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+        ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+        LEFT JOIN AFA700 T10
+        ON T10.RESRCE_NO = T4.RESRCE_NO
+            AND T10.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T10.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN AFA310 T9
+            ON T10.SEMSTR_SE_CD = T9.SEMSTR_SE_CD
+        LEFT JOIN AFA320 T8
+            ON T8.SRVC_PVSN_NO = T.SRVC_PVSN_NO
+            AND T8.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T8.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+            AND T8.RESRCE_NO = T4.RESRCE_NO
+        LEFT JOIN AFA330 T7
+            ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN SAA000 F2                                                /*기관*/
+               ON F2.INST_NO = T4.RSFR_INST_NO 
+	    WHERE 1=1
+	    AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+	    AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+	    AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+        ]]>
+        <if test='BIZ_YR != null and BIZ_YR != ""'>
+            AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        </if>
+        <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+            AND T4.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}                         -- 서비스실행사업번호
+        </if>
+        <if test='INST_NO != null and INST_NO != ""'>
+            AND F2.INST_NO = #{INST_NO}
+        </if>
+        <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+            AND T4.RESRCE_NO = #{RESRCE_NO}
+        </if>
+        <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+            AND T4.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+        </if>
+        <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+            <![CDATA[
+            AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+            ]]>
+        </if>
+        <![CDATA[
+	    AND (SELECT UNT_TASKWK_SE_CD FROM SAA000                           /* 통합기관 */
+	         WHERE INST_NO = T4.RSFR_INST_NO) = #{UNT_TASKWK_SE_CD}
+	    AND T9.USE_YN = 'Y'
+	    GROUP BY T2.TRPR_INFO_NO, LINK_PRECON_SE_CD
+	)
+	SELECT
+        SE
+        , ALL_SEMSTR_NOPE
+        , CASE WHEN SUM(ALL_SEMSTR_NOPE) = 0 THEN 0 ELSE ROUND(ALL_SEMSTR_NOPE/SUM(ALL_SEMSTR_NOPE)*100, 2) END || '%' AS SEMSTR_RATE
+    FROM (
+		SELECT 
+		    A.PRTPNT_LINK_PRECON_SE_NM      AS SE
+		    , COUNT(TRPR_INFO_NO)           AS ALL_SEMSTR_NOPE
+		FROM (
+		    SELECT CMMNS_CD_VALUE   AS PRTPNT_LINK_PRECON_SE_CD
+		        , CMMNS_CD_VALUE_NM AS PRTPNT_LINK_PRECON_SE_NM
+		        , SRTNG_SQNCE
+		    FROM SAC100
+		    WHERE CMMNS_CD_ID = 'PRTPNT_LINK_PRECON_SE_CD'
+		) A
+		LEFT JOIN LINK_PRECON_SEMSTR B
+		    ON A.PRTPNT_LINK_PRECON_SE_CD = B.LINK_PRECON_SE_CD
+		    
+		GROUP BY A.PRTPNT_LINK_PRECON_SE_CD, PRTPNT_LINK_PRECON_SE_NM, A.SRTNG_SQNCE
+		ORDER BY A.SRTNG_SQNCE
+	)
+    GROUP BY SE , ALL_SEMSTR_NOPE
+    ]]>
+    </select>
+    
+    <!-- 2차통계 비자유형현황2 -->
+    <select id="selectVisaTypePreconList2" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectVisaTypePreconList2 (2차통계 비자유형현황2) - Lee Seoung Jae */
+    WITH VISA_TYPE_SEMSTR AS (
+	    SELECT
+	        T2.TRPR_INFO_NO
+	        , T2.VISA_TYPE_SE_CD             AS VISA_TYPE_SE_CD                          /* 집계항목 */
+	        , T10.SEMSTR_SE_CD                              AS SEMSTR_SE_CD                         /* 학기구분코드 */
+        FROM SEB510 T                                                   /* 서비스제공대상자 */
+        LEFT JOIN SEB100 T1                                             /* 사례기본 */
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T4                                             /* 자원기본 */
+        ON T4.RESRCE_NO = T.RESRCE_NO
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+        ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+        ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+        LEFT JOIN AFA700 T10
+        ON T10.RESRCE_NO = T4.RESRCE_NO
+            AND T10.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T10.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN AFA310 T9
+            ON T10.SEMSTR_SE_CD = T9.SEMSTR_SE_CD
+        LEFT JOIN AFA330 T7
+            ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN SAA000 F2                                                /*기관*/
+            ON F2.INST_NO = T4.RSFR_INST_NO 
+	    WHERE 1=1
+	    AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+	    AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+	    AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+	    ]]>
+        <if test='BIZ_YR != null and BIZ_YR != ""'>
+            AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        </if>
+        <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+            AND T4.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}                         -- 서비스실행사업번호
+        </if>
+        <if test='INST_NO != null and INST_NM != ""'>
+            AND F2.INST_NO = #{INST_NO}
+        </if>
+        <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+            AND T4.RESRCE_NO = #{RESRCE_NO}
+        </if>
+        <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+            AND T4.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+        </if>
+        <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+            <![CDATA[
+            AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+            ]]>
+        </if>
+        <![CDATA[
+	    AND (SELECT UNT_TASKWK_SE_CD FROM SAA000                           /* 통합기관 */
+	         WHERE INST_NO = T4.RSFR_INST_NO) = #{UNT_TASKWK_SE_CD}
+	    AND T9.USE_YN = 'Y'
+	    
+	    GROUP BY T6.BIZ_YR, T2.TRPR_INFO_NO, T2.VISA_TYPE_SE_CD, T10.SEMSTR_SE_CD
+	)
+	SELECT DISTINCT
+	    A.VISA_TYPE_SE_NM                                                                                   
+	    , COUNT(CASE WHEN SEMSTR_SE_CD = '01' THEN TRPR_INFO_NO END)                                           AS SEMSTR_1_NOPE        /* 1학기 */
+	    , COUNT(CASE WHEN SEMSTR_SE_CD = '02' THEN TRPR_INFO_NO END)                                           AS SEMSTR_2_NOPE      /* 2학기 */
+	    , COUNT(CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)                                           AS SUM_NOPE      /* 합계 */
+	    , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)           AS ALL_EMSTR_NOPE
+	    , A.SRTNG_SQNCE
+	FROM (
+	    SELECT 
+	        CMMNS_CD_VALUE      AS VISA_TYPE_SE_CD
+	        , CMMNS_CD_VALUE_NM AS VISA_TYPE_SE_NM
+	        , SRTNG_SQNCE
+	    FROM SAC100
+	    WHERE CMMNS_CD_ID = 'VISA_TYPE_SE_CD'
+	    ORDER BY SRTNG_SQNCE
+	) A
+	LEFT JOIN VISA_TYPE_SEMSTR B
+	    ON A.VISA_TYPE_SE_CD = B.VISA_TYPE_SE_CD
+	GROUP BY A.VISA_TYPE_SE_CD, A.VISA_TYPE_SE_NM, A.SRTNG_SQNCE
+	ORDER BY A.SRTNG_SQNCE
+    ]]>
+    </select>
+    
+    <!-- 2차통계 대상자유형별현황2 -->
+    <select id="selectTrprTypePreconList2" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectTrprTypePreconList2 (2차통계 대상자유형별현황2) - Lee Seoung Jae */
+    WITH TRPR_BCRN_TYPE_SEMSTR AS (
+	    SELECT
+	        T2.TRPR_INFO_NO
+	        , T2.TRPR_BCRN_TYPE_SE_CD             AS TRPR_BCRN_TYPE_SE_CD                          /* 집계항목 */
+	        , T10.SEMSTR_SE_CD                              AS SEMSTR_SE_CD                         /* 학기구분코드 */
+	
+        FROM SEB510 T                                                   /* 서비스제공대상자 */
+        LEFT JOIN SEB100 T1                                             /* 사례기본 */
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T4                                             /* 자원기본 */
+        ON T4.RESRCE_NO = T.RESRCE_NO
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+        ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+        ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+        LEFT JOIN AFA700 T10
+        ON T10.RESRCE_NO = T4.RESRCE_NO
+            AND T10.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T10.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN AFA310 T9
+            ON T10.SEMSTR_SE_CD = T9.SEMSTR_SE_CD
+        LEFT JOIN AFA330 T7
+            ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+	    LEFT JOIN SAA000 F2                                                /*기관*/
+            ON F2.INST_NO = T4.RSFR_INST_NO 
+	    WHERE 1=1
+	    AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+	    AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+	    AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+	    ]]>
+        <if test='BIZ_YR != null and BIZ_YR != ""'>
+            AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        </if>
+        <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+            AND T4.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}                         -- 서비스실행사업번호
+        </if>
+        <if test='INST_NO != null and INST_NO != ""'>
+            AND F2.INST_NO = #{INST_NO}
+        </if>
+        <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+            AND T4.RESRCE_NO = #{RESRCE_NO}
+        </if>
+        <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+            AND T4.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+        </if>
+        <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+            <![CDATA[
+            AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+            ]]>
+        </if>
+        <![CDATA[
+	    AND (SELECT UNT_TASKWK_SE_CD FROM SAA000                           /* 통합기관 */
+	         WHERE INST_NO = T4.RSFR_INST_NO) = #{UNT_TASKWK_SE_CD}
+	    AND T9.USE_YN = 'Y'
+	    
+	    GROUP BY T6.BIZ_YR, T2.TRPR_INFO_NO, T2.TRPR_BCRN_TYPE_SE_CD, T10.SEMSTR_SE_CD
+	)
+	
+	SELECT DISTINCT
+	    A.TRPR_BCRN_TYPE_SE_NM                                                                                  
+	    , COUNT(CASE WHEN SEMSTR_SE_CD = '01' THEN TRPR_INFO_NO END)                                           AS SEMSTR_1_NOPE        /* 1학기 */
+	    , COUNT(CASE WHEN SEMSTR_SE_CD = '02' THEN TRPR_INFO_NO END)                                           AS SEMSTR_2_NOPE      /* 2학기 */
+	    , COUNT(CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)                                           AS SUM_NOPE      /* 합계 */
+	    , COUNT(DISTINCT CASE WHEN SEMSTR_SE_CD IN ('01','02') THEN TRPR_INFO_NO END)           AS ALL_EMSTR_NOPE
+	    , A.SRTNG_SQNCE
+	FROM (
+	    SELECT 
+	        CMMNS_CD_VALUE      AS TRPR_BCRN_TYPE_SE_CD
+	        , CMMNS_CD_VALUE_NM AS TRPR_BCRN_TYPE_SE_NM
+	        , SRTNG_SQNCE
+	    FROM SAC100
+	    WHERE CMMNS_CD_ID = 'TRPR_BCRN_TYPE_SE_CD'
+	    ORDER BY SRTNG_SQNCE
+	) A
+	LEFT JOIN TRPR_BCRN_TYPE_SEMSTR B
+	    ON A.TRPR_BCRN_TYPE_SE_CD = B.TRPR_BCRN_TYPE_SE_CD
+	GROUP BY A.TRPR_BCRN_TYPE_SE_CD, A.TRPR_BCRN_TYPE_SE_NM, A.SRTNG_SQNCE
+	ORDER BY A.SRTNG_SQNCE
+    ]]>
+    </select>
+    
+    <!-- 2차통계 심리사회적응검사여부 -->
+    <select id="selectTrlSoctyAdaptInspYnList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+    /* selectTrlSoctyAdaptInspYnList (2차통계 심리사회적응검사여부) - Lee Seoung Jae */
+    WITH TRL_INSP_YN AS (
+	    SELECT
+	        T2.TRPR_INFO_NO
+	        , T8.BEFFAT_TRL_INSP_YN                 AS BEFFAT_TRL_INSP_YN                          /* 사전심리검사여부 */
+	        , T8.AFTFCT_TRL_INSP_YN                 AS AFTFCT_TRL_INSP_YN                           /*사후심리검사여부*/
+        FROM SEB510 T                                                   /* 서비스제공대상자 */
+        LEFT JOIN SEB100 T1                                             /* 사례기본 */
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T4                                             /* 자원기본 */
+        ON T4.RESRCE_NO = T.RESRCE_NO
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+        ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+        ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+        LEFT JOIN AFA320 T8
+            ON T8.SRVC_PVSN_NO = T.SRVC_PVSN_NO
+            AND T8.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T8.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+            AND T8.RESRCE_NO = T4.RESRCE_NO
+        LEFT JOIN AFA330 T7
+            ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        LEFT JOIN SAA000 F2                                                /*기관*/
+            ON F2.INST_NO = T4.RSFR_INST_NO 
+            
+	    WHERE 1=1
+	    AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+	    AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+	    AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+	    ]]>
+        <if test='BIZ_YR != null and BIZ_YR != ""'>
+            AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        </if>
+        <if test='SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ""'>
+            AND T4.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}                         -- 서비스실행사업번호
+        </if>
+        <if test='INST_NO != null and INST_NO != ""'>
+            AND F2.INST_NO = #{INST_NO}
+        </if>
+        <if test='RESRCE_NO != null and RESRCE_NO != ""'>
+            AND T4.RESRCE_NO = #{RESRCE_NO}
+        </if>
+        <if test='OPER_SHAPE_SE_CD != null and OPER_SHAPE_SE_CD != ""'>
+            AND T4.OPER_SHAPE_SE_CD = #{OPER_SHAPE_SE_CD}
+        </if>
+        <if test='BGNG_YMD != null and BGNG_YMD != ""' >
+            <![CDATA[
+            AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+            ]]>
+        </if>
+        <![CDATA[
+	    AND (SELECT UNT_TASKWK_SE_CD FROM SAA000                           /* 통합기관 */
+	         WHERE INST_NO = T4.RSFR_INST_NO) = #{UNT_TASKWK_SE_CD}
+	    
+	    GROUP BY T2.TRPR_INFO_NO, T8.BEFFAT_TRL_INSP_YN, T8.AFTFCT_TRL_INSP_YN
+	)
+	
+	SELECT
+	    NVL(SE,'합계') AS SE
+	    , SUM(BEFFAT_TRL_INSP_YN) AS BEFFAT_TRL_INSP_YN
+	    , SUM(AFTFCT_TRL_INSP_YN) AS AFTFCT_TRL_INSP_YN
+	FROM
+	(
+	    SELECT
+	        '실시' AS SE
+	        , COUNT(DISTINCT CASE WHEN BEFFAT_TRL_INSP_YN = 'Y' THEN TRPR_INFO_NO END)  AS BEFFAT_TRL_INSP_YN
+	        , COUNT(DISTINCT CASE WHEN AFTFCT_TRL_INSP_YN = 'Y' THEN TRPR_INFO_NO END)   AS AFTFCT_TRL_INSP_YN        /* 1학기 */
+	        , 2 AS SRT
+	    FROM TRL_INSP_YN A
+	    
+	    UNION ALL
+	    
+	    SELECT
+	        '미실시' AS SE
+	        , COUNT(DISTINCT CASE WHEN BEFFAT_TRL_INSP_YN = 'N' OR BEFFAT_TRL_INSP_YN IS NULL THEN TRPR_INFO_NO END)    AS BEFFAT_TRL_INSP_YN
+	        , COUNT(DISTINCT CASE WHEN AFTFCT_TRL_INSP_YN = 'N' OR AFTFCT_TRL_INSP_YN IS NULL THEN TRPR_INFO_NO END)    AS AFTFCT_TRL_INSP_YN        /* 1학기 */
+	        , 1 AS SRT
+	    FROM TRL_INSP_YN A
+	)
+	GROUP BY GROUPING SETS((SE,BEFFAT_TRL_INSP_YN, AFTFCT_TRL_INSP_YN,SRT),())
+	ORDER BY SRT DESC
+    ]]>
+    </select>
+    
+    <!-- 한국어 평가(레벨테스트) -->
+    <select id="selectKlangLevelEvl" resultType="HashMap">
+    <![CDATA[
+    /*isry.subms.stats.eryycose.mapper.EryyCoseMapper.selectKlangLevelEvl - 레인보우스쿨 통계 - 한국어평가(레벨테스트) - LEE.SEOUNG.JAE*/
+    WITH LEVELA_TEST_SCORE AS (
+        SELECT
+            T2.TRPR_INFO_NO
+            , CASE WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE,0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0)  BETWEEN 0 AND 10 THEN '0점~10점이하' 
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 11 AND 20 THEN '10점 초과~20점 이하'
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 21 AND 30 THEN '20점 초과~30점 이하'
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 31 AND 40 THEN '30점 초과~40점 이하'
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 41 AND 50 THEN '40점 초과~50점 이하'
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 51 AND 60 THEN '50점 초과~60점 이하'
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 61 AND 70 THEN '60점 초과~70점 이하'
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 71 AND 80 THEN '70점 초과~80점 이하'
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 81 AND 90 THEN '80점 초과~90점 이하'
+                WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 91 AND 100 THEN '90점 초과~100점 이하'
+            END                         AS SCORE
+            
+            FROM SEB510 T                                                   /* 서비스제공대상자 */
+            LEFT JOIN SEB100 T1                                             /* 사례기본 */
+            ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+            AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+            LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+            ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+            LEFT JOIN SDA100 T4                                             /* 자원기본 */
+            ON T4.RESRCE_NO = T.RESRCE_NO
+            AND T4.USE_YN = 'Y'
+            LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+            ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+            LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+            ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+            LEFT JOIN AFA320 T8
+                ON T8.SRVC_PVSN_NO = T.SRVC_PVSN_NO
+                AND T8.CASE_MNG_NO = T1.CASE_MNG_NO
+                AND T8.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+                AND T8.RESRCE_NO = T4.RESRCE_NO
+            LEFT JOIN AFA330 T7
+                ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+                AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+                
+        WHERE 1=1
+        AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+        AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+        AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+        AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        AND T4.SRVC_EXCN_BIZ_NO LIKE #{SRVC_EXCN_BIZ_NO} || '%'               -- 서비스실생사업번호
+        AND T4.RESRCE_NO LIKE #{RESRCE_NO} || '%'
+        AND T4.OPER_SHAPE_SE_CD LIKE #{OPER_SHAPE_SE_CD} || '%'
+        AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        AND T4.RSFR_INST_NO LIKE #{INST_NO} || '%'
+        
+        GROUP BY T2.TRPR_INFO_NO, T8.LEVELA_TEST_REDNG_SCORE, T8.LEVELA_TEST_LSTNA_SCORE
+    )
+    
+    SELECT
+        NVL(SE,'합계') AS SE
+        , COUNT(B.SCORE) AS SCORE
+    FROM
+    (
+        SELECT 
+             CASE WHEN (LEVEL * 10) BETWEEN 0 AND 10 THEN '0점~10점이하' 
+                WHEN (LEVEL * 10) BETWEEN 11 AND 20 THEN '10점 초과~20점 이하'
+                WHEN (LEVEL * 10) BETWEEN 21 AND 30 THEN '20점 초과~30점 이하'
+                WHEN (LEVEL * 10) BETWEEN 31 AND 40 THEN '30점 초과~40점 이하'
+                WHEN (LEVEL * 10) BETWEEN 41 AND 50 THEN '40점 초과~50점 이하'
+                WHEN (LEVEL * 10) BETWEEN 51 AND 60 THEN '50점 초과~60점 이하'
+                WHEN (LEVEL * 10) BETWEEN 61 AND 70 THEN '60점 초과~70점 이하'
+                WHEN (LEVEL * 10) BETWEEN 71 AND 80 THEN '70점 초과~80점 이하'
+                WHEN (LEVEL * 10) BETWEEN 81 AND 90 THEN '80점 초과~90점 이하'
+                WHEN (LEVEL * 10) BETWEEN 91 AND 100 THEN '90점 초과~100점 이하'
+            END                         AS SE
+            , LEVEL AS SRT 
+        FROM DUAL
+        CONNECT BY LEVEL <= 10
+    ) A
+    LEFT JOIN LEVELA_TEST_SCORE B
+        ON B.SCORE = A.SE
+    GROUP BY GROUPING SETS((A.SE, SRT),())
+    ORDER BY CASE WHEN SE = '합계' THEN 1 END, A.SRT
+    ]]>
+    </select>
+
+
+    <!-- 한국어 평가(중간평가) -->
+    <select id="selectKlangMiddleEvl" resultType="HashMap">
+    <![CDATA[
+    /*isry.subms.stats.eryycose.mapper.EryyCoseMapper.selectKlangMiddleEvl - 레인보우스쿨 통계 - 한국어평가(중간평가) - LEE.SEOUNG.JAE*/
+    WITH LEVELA_TEST_SCORE AS (
+    SELECT
+        T2.TRPR_INFO_NO
+        , T8.MIDDLE_EVFO_KND_SE_CD
+        , CASE WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0)  BETWEEN 0 AND 10 THEN '0점~10점이하' 
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 11 AND 20 THEN '10점 초과~20점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 21 AND 30 THEN '20점 초과~30점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 31 AND 40 THEN '30점 초과~40점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 41 AND 50 THEN '40점 초과~50점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 51 AND 60 THEN '50점 초과~60점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 61 AND 70 THEN '60점 초과~70점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 71 AND 80 THEN '70점 초과~80점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 81 AND 90 THEN '80점 초과~90점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 91 AND 100 THEN '90점 초과~100점 이하'
+        END                         AS LEVEL_SCORE
+        , CASE WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0)  BETWEEN 0 AND 10 THEN '0점~10점이하' 
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 11 AND 20 THEN '10점 초과~20점 이하'
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 21 AND 30 THEN '20점 초과~30점 이하'
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 31 AND 40 THEN '30점 초과~40점 이하'
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 41 AND 50 THEN '40점 초과~50점 이하'
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 51 AND 60 THEN '50점 초과~60점 이하'
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 61 AND 70 THEN '60점 초과~70점 이하'
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 71 AND 80 THEN '70점 초과~80점 이하'
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 81 AND 90 THEN '80점 초과~90점 이하'
+            WHEN NVL(T8.MIDDLE_EVL_REDNG_SCORE, 0) + NVL(T8.MIDDLE_EVL_WRITN_SCORE, 0) BETWEEN 91 AND 100 THEN '90점 초과~100점 이하'
+        END                         AS MIDDLE_SCORE
+        
+        FROM SEB510 T                                                   /* 서비스제공대상자 */
+        LEFT JOIN SEB100 T1                                             /* 사례기본 */
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T4                                             /* 자원기본 */
+        ON T4.RESRCE_NO = T.RESRCE_NO
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+        ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+        ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+        LEFT JOIN AFA320 T8
+            ON T8.SRVC_PVSN_NO = T.SRVC_PVSN_NO
+            AND T8.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T8.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+            AND T8.RESRCE_NO = T4.RESRCE_NO
+        LEFT JOIN AFA330 T7
+            ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+                
+        WHERE 1=1
+        AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+        AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+        AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+        AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        AND T4.SRVC_EXCN_BIZ_NO LIKE #{SRVC_EXCN_BIZ_NO} || '%'               -- 서비스실생사업번호
+        AND T4.RESRCE_NO LIKE #{RESRCE_NO} || '%'
+        AND T4.OPER_SHAPE_SE_CD LIKE #{OPER_SHAPE_SE_CD} || '%'
+        AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        AND T4.RSFR_INST_NO LIKE #{INST_NO} || '%'
+        
+    )
+    
+    SELECT
+	    NVL(SE,'합계') AS SE
+	    , COUNT(DISTINCT CASE WHEN B.MIDDLE_EVFO_KND_SE_CD = '01' THEN B.TRPR_INFO_NO END) AS ONE_LV_SCORE
+	    , COUNT(DISTINCT CASE WHEN C.MIDDLE_EVFO_KND_SE_CD = '01' THEN C.TRPR_INFO_NO END) AS ONE_MIDDLE_SCORE
+	    , COUNT(DISTINCT CASE WHEN B.MIDDLE_EVFO_KND_SE_CD = '02' THEN B.TRPR_INFO_NO END) AS TWO_LV_SCORE
+	    , COUNT(DISTINCT CASE WHEN C.MIDDLE_EVFO_KND_SE_CD = '02' THEN C.TRPR_INFO_NO END) AS TWO_MIDDLE_SCORE
+	FROM
+	(
+	    SELECT 
+	         CASE WHEN (LEVEL * 10) BETWEEN 0 AND 10 THEN '0점~10점이하' 
+	            WHEN (LEVEL * 10) BETWEEN 11 AND 20 THEN '10점 초과~20점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 21 AND 30 THEN '20점 초과~30점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 31 AND 40 THEN '30점 초과~40점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 41 AND 50 THEN '40점 초과~50점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 51 AND 60 THEN '50점 초과~60점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 61 AND 70 THEN '60점 초과~70점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 71 AND 80 THEN '70점 초과~80점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 81 AND 90 THEN '80점 초과~90점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 91 AND 100 THEN '90점 초과~100점 이하'
+	        END                         AS SE
+	        , LEVEL AS SRT 
+	    FROM DUAL
+	    CONNECT BY LEVEL <= 10
+	) A
+	LEFT JOIN LEVELA_TEST_SCORE B
+	    ON A.SE = B.MIDDLE_SCORE
+	LEFT JOIN LEVELA_TEST_SCORE C
+	    ON A.SE = C.MIDDLE_SCORE
+	GROUP BY GROUPING SETS((A.SE, SRT),())
+	ORDER BY CASE WHEN SE = '합계' THEN 1 END, A.SRT
+    ]]>
+    </select>
+    
+    
+    <!-- 한국어 평가(성취도 평가) -->
+    <select id="selectKlangSccesdEvl" resultType="HashMap">
+    <![CDATA[
+    /*isry.subms.stats.eryycose.mapper.EryyCoseMapper.selectKlangSccesdEvl - 레인보우스쿨 통계 - 한국어평가(성취도평가) - LEE.SEOUNG.JAE*/
+    WITH LEVELA_TEST_SCORE AS (
+    SELECT
+        T2.TRPR_INFO_NO
+        , T8.SCCESD_EVFO_KND_SE_CD
+        , CASE WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0)  BETWEEN 0 AND 10 THEN '0점~10점이하' 
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 11 AND 20 THEN '10점 초과~20점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 21 AND 30 THEN '20점 초과~30점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 31 AND 40 THEN '30점 초과~40점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 41 AND 50 THEN '40점 초과~50점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 51 AND 60 THEN '50점 초과~60점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 61 AND 70 THEN '60점 초과~70점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 71 AND 80 THEN '70점 초과~80점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 81 AND 90 THEN '80점 초과~90점 이하'
+            WHEN NVL(T8.LEVELA_TEST_REDNG_SCORE, 0) + NVL(T8.LEVELA_TEST_LSTNA_SCORE, 0) BETWEEN 91 AND 100 THEN '90점 초과~100점 이하'
+        END                         AS LEVEL_SCORE
+        , CASE WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0)  BETWEEN 0 AND 10 THEN '0점~10점이하' 
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 11 AND 20 THEN '10점 초과~20점 이하'
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 21 AND 30 THEN '20점 초과~30점 이하'
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 31 AND 40 THEN '30점 초과~40점 이하'
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 41 AND 50 THEN '40점 초과~50점 이하'
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 51 AND 60 THEN '50점 초과~60점 이하'
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 61 AND 70 THEN '60점 초과~70점 이하'
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 71 AND 80 THEN '70점 초과~80점 이하'
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 81 AND 90 THEN '80점 초과~90점 이하'
+            WHEN NVL(T8.SCCESD_EVL_REDNG_SCORE, 0) + NVL(T8.SCCESD_EVL_LSTNA_SCORE, 0) + NVL(T8.SCCESD_EVL_SPKNG_SCORE, 0) + NVL(T8.SCCESD_EVL_WRITN_SCORE, 0) BETWEEN 91 AND 100 THEN '90점 초과~100점 이하'
+        END                         AS SCCESD_SCORE
+        
+        FROM SEB510 T                                                   /* 서비스제공대상자 */
+        LEFT JOIN SEB100 T1                                             /* 사례기본 */
+        ON T1.CASE_MNG_NO = T.CASE_MNG_NO
+        AND T1.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO
+        LEFT JOIN SEA200 T2                                             /* 대상자정보 */
+        ON T2.TRPR_INFO_NO = T1.TRPR_INFO_NO
+        LEFT JOIN SDA100 T4                                             /* 자원기본 */
+        ON T4.RESRCE_NO = T.RESRCE_NO
+        AND T4.USE_YN = 'Y'
+        LEFT JOIN SDA420 T5                                             /* 서비스실행사업 */
+        ON T5.SRVC_EXCN_BIZ_NO = T4.SRVC_EXCN_BIZ_NO
+        LEFT JOIN SDA400 T6                                             /* 서비스사업 */
+        ON T6.SRVC_BIZ_NO = T5.SRVC_BIZ_NO
+        LEFT JOIN AFA320 T8
+            ON T8.SRVC_PVSN_NO = T.SRVC_PVSN_NO
+            AND T8.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T8.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+            AND T8.RESRCE_NO = T4.RESRCE_NO
+        LEFT JOIN AFA330 T7
+            ON T7.CASE_MNG_NO = T1.CASE_MNG_NO
+            AND T7.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+                
+        WHERE 1=1
+        AND T.DEL_YN != 'Y'                                                   -- 서비스제공대상자 삭제여부
+        AND T4.APRV_STTS_SE_CD = '2'                                          -- 승인상태구분코드
+        AND T4.SRVC_RESRCE_LCLAS_SE_CD <> '01'                                -- 서비스자원대분류구분코드
+        AND T6.BIZ_YR = #{BIZ_YR}                                             -- 사업연도
+        AND T4.SRVC_EXCN_BIZ_NO LIKE #{SRVC_EXCN_BIZ_NO} || '%'               -- 서비스실생사업번호
+        AND T4.RESRCE_NO LIKE #{RESRCE_NO} || '%'
+        AND T4.OPER_SHAPE_SE_CD LIKE #{OPER_SHAPE_SE_CD} || '%'
+        AND T7.BGNG_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+        AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+        AND T4.RSFR_INST_NO LIKE #{INST_NO} || '%'
+        
+    )
+    
+    SELECT
+	    NVL(SE,'합계') AS SE
+	    , COUNT(DISTINCT CASE WHEN B.SCCESD_EVFO_KND_SE_CD = '01' THEN B.TRPR_INFO_NO END) AS ONE_LV_SCORE
+	    , COUNT(DISTINCT CASE WHEN C.SCCESD_EVFO_KND_SE_CD = '01' THEN C.TRPR_INFO_NO END) AS ONE_SCCESD_SCORE
+	    , COUNT(DISTINCT CASE WHEN B.SCCESD_EVFO_KND_SE_CD = '02' THEN B.TRPR_INFO_NO END) AS TWO_LV_SCORE
+	    , COUNT(DISTINCT CASE WHEN C.SCCESD_EVFO_KND_SE_CD = '02' THEN C.TRPR_INFO_NO END) AS TWO_SCCESD_SCORE
+	FROM
+	(
+	    SELECT 
+	         CASE WHEN (LEVEL * 10) BETWEEN 0 AND 10 THEN '0점~10점이하' 
+	            WHEN (LEVEL * 10) BETWEEN 11 AND 20 THEN '10점 초과~20점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 21 AND 30 THEN '20점 초과~30점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 31 AND 40 THEN '30점 초과~40점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 41 AND 50 THEN '40점 초과~50점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 51 AND 60 THEN '50점 초과~60점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 61 AND 70 THEN '60점 초과~70점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 71 AND 80 THEN '70점 초과~80점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 81 AND 90 THEN '80점 초과~90점 이하'
+	            WHEN (LEVEL * 10) BETWEEN 91 AND 100 THEN '90점 초과~100점 이하'
+	        END                         AS SE
+	        , LEVEL AS SRT 
+	    FROM DUAL
+	    CONNECT BY LEVEL <= 10
+	) A
+	LEFT JOIN LEVELA_TEST_SCORE B
+	    ON A.SE = B.LEVEL_SCORE
+	LEFT JOIN LEVELA_TEST_SCORE C
+	    ON A.SE = C.SCCESD_SCORE
+	GROUP BY GROUPING SETS((A.SE, SRT),())
+	ORDER BY CASE WHEN SE = '합계' THEN 1 END, A.SRT
+    ]]>
+    </select>
+    
+</mapper>

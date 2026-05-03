@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.stats.dscsnstats.mapper.OutReachStatsMapper">
+
+    <select id="selectMethodOutreachStatesList" parameterType="HashMap" resultType="HashMap">
+    /*
+     * isry.couns.stats.dscsnstats.mapper.OutReachStatsMapper.selectMethodOutreachStates : 응용2팀 지원_정원제
+     */
+		SELECT 
+				MAX(TO_CHAR(FRST_REG_DT,'YYYY')) ||'년 ' || MAX(TO_CHAR(FRST_REG_DT,'MM')) ||'월'   YM,
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '1' AND SNS_SE_CD = '01' THEN 1 ELSE 0 END ) CNT11, /* 메신저상담(페이스북) */
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '1' AND SNS_SE_CD = '02' THEN 1 ELSE 0 END ) CNT12, /* 메신저상담(인스타) */
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '1' AND SNS_SE_CD = '03' THEN 1 ELSE 0 END ) CNT13, /* 메신저상담(트위터) */
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '1'                      THEN 1 ELSE 0 END ) CNT14, /* 메신저상담(합계) */
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '7' AND SNS_SE_CD = '04' THEN 1 ELSE 0 END ) CNT21, /* 댓글상담(유튜브) */
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '6' AND SNS_SE_CD = '04' THEN 1 ELSE 0 END ) CNT31, /* 홍보(유튜브) */
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '6' AND SNS_SE_CD = '05' THEN 1 ELSE 0 END ) CNT32, /* 홍보(카페/블로그) */
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '6' AND SNS_SE_CD = '99' THEN 1 ELSE 0 END ) CNT33, /* 홍보(기타) */
+				SUM(CASE WHEN OUTRC_DSCSN_MTHD_SE_CD = '6'                      THEN 1 ELSE 0 END ) CNT34, /* 홍보(합계) */
+				COUNT(*)                                                                             TCNT  /* 총계 */
+		FROM    AYE100
+		WHERE   1=1
+		AND     BBSCTT_TYPE_SE_CD     =       #{BBSCTT_TYPE_SE_CD}
+		<![CDATA[ 
+		AND     FRST_REG_DT           >=      TO_DATE(#{START_DT} || '000000', 'YYYYMMDDHH24MISS')
+		AND     FRST_REG_DT           <=      TO_DATE(#{END_DT} || '235959', 'YYYYMMDDHH24MISS')
+		]]>
+		AND     OUTRC_DSCSN_MTHD_SE_CD IS NOT NULL
+		AND     SNS_SE_CD IS NOT NULL
+		AND     DEL_YN                =       'N'
+		GROUP BY TO_CHAR(FRST_REG_DT,'YYYYMM')
+		ORDER BY TO_CHAR(FRST_REG_DT,'YYYYMM')
+    </select> 
+    
+    <select id="selectCnsltntPrfmncOutreachStatesList" parameterType="HashMap" resultType="HashMap">
+    /*
+     * isry.couns.stats.dscsnstats.mapper.OutReachStatsMapper.selectCnsltntPrfmncOutreachStatesList : 응용2팀 지원_정원제
+     */
+		SELECT 
+				C##RG.DEC_B64(AA.NM)    AS NM, /* 성명 */
+				AA.CNT11 AS CNT11, /* 메신저상담(페이스북) */
+				AA.CNT12 AS CNT12, /* 메신저상담(인스타) */
+				AA.CNT13 AS CNT13, /* 메신저상담(트위터) */
+				AA.CNT14 AS CNT14, /* 메신저상담(합계) */
+				AA.CNT21 AS CNT21, /* 댓글상담(유튜브) */
+				AA.CNT31 AS CNT31, /* 홍보(유튜브) */
+				AA.CNT32 AS CNT32, /* 홍보(카페/블로그) */
+				AA.CNT33 AS CNT33, /* 홍보(기타) */
+				AA.CNT34 AS CNT34, /* 홍보(합계) */
+				AA.TCNT  AS TCNT , /* 총계 */
+				BB.CNT   AS CNT    /* 할당량 */
+		FROM
+				(
+				 SELECT
+						 A.FRST_RGTR_ID    ID,
+						 MAX(C.FLNM_ENCPT) NM,
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '1' AND A.SNS_SE_CD = '01' THEN 1 ELSE 0 END ) CNT11, /* 메신저상담(페이스북) */
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '1' AND A.SNS_SE_CD = '02' THEN 1 ELSE 0 END ) CNT12, /* 메신저상담(인스타) */
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '1' AND A.SNS_SE_CD = '03' THEN 1 ELSE 0 END ) CNT13, /* 메신저상담(트위터) */
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '1'                        THEN 1 ELSE 0 END ) CNT14, /* 메신저상담(합계) */
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '7' AND A.SNS_SE_CD = '04' THEN 1 ELSE 0 END ) CNT21, /* 댓글상담(유튜브) */
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '6' AND A.SNS_SE_CD = '04' THEN 1 ELSE 0 END ) CNT31, /* 홍보(유튜브) */
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '6' AND A.SNS_SE_CD = '05' THEN 1 ELSE 0 END ) CNT32, /* 홍보(카페/블로그) */
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '6' AND A.SNS_SE_CD = '99' THEN 1 ELSE 0 END ) CNT33, /* 홍보(기타) */
+						 SUM(CASE WHEN A.OUTRC_DSCSN_MTHD_SE_CD = '6'                        THEN 1 ELSE 0 END ) CNT34, /* 홍보(합계) */
+						 COUNT(*)                                                                                TCNT   /* 총계 */
+				 FROM    AYE100     A
+				         , SAA200   B
+				         , SCA100   C
+				 WHERE   1=1
+				 AND     B.USER_ID                  =       A.FRST_RGTR_ID
+				 AND     C.ENFSN_NO                 =       B.ENFSN_NO 
+				 AND     A.BBSCTT_TYPE_SE_CD        =       #{BBSCTT_TYPE_SE_CD}
+				 <![CDATA[ 
+				 AND     A.FRST_REG_DT              >=      TO_DATE(#{START_DT} || '000000', 'YYYYMMDDHH24MISS')
+				 AND     A.FRST_REG_DT              <=      TO_DATE(#{END_DT} || '235959', 'YYYYMMDDHH24MISS')
+				 ]]>
+				 AND     A.OUTRC_DSCSN_MTHD_SE_CD   IS NOT NULL
+				 AND     A.SNS_SE_CD                IS NOT NULL
+				 AND     A.DEL_YN                   =       'N'
+				 GROUP BY A.FRST_RGTR_ID
+				)   AA,
+				(
+				 SELECT 
+				        SUM(NTABRD_ASGN_NOCS) + SUM(CMNT_ASGN_NOCS) CNT --할당량
+				 FROM   AYC170
+				 WHERE  1=1
+				 AND    TASKWK_TYPE_DEPT_CD     =       #{TASKWK_TYPE_DEPT_CD}
+				 <![CDATA[
+				 AND    RLVT_YM                 >=      SUBSTR(#{START_DT}, 0, 6)
+				 AND    RLVT_YM                 <=      SUBSTR(#{END_DT}, 0, 6)
+				 ]]>
+				)   BB
+    </select>
+
+</mapper>

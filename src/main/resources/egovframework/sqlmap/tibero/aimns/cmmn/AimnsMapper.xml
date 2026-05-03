@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.aimns.cmmn.mapper.AimnsMapper">
+	
+	<select id="selectBizYrCombo" resultType="HashMap">
+	   <!-- 사업년도 -->
+		<![CDATA[
+            SELECT DISTINCT BIZ_YR  /* 사업연도 */
+            FROM SDA400 A   /* 서비스사업 */
+	    ]]>   
+	</select>
+	
+	<select id="selectInstCombo" resultType="HashMap">
+	   <!-- 기관  -->
+	   <![CDATA[
+		   SELECT
+		       INST_NM,
+		       INST_NO
+		   FROM SAA000
+		   WHERE UNT_TASKWK_SE_CD = 'U10'
+	   ]]>
+	</select>
+
+    <select id="selectResrceCombo" resultType="HashMap">
+        <!-- 과정 -->    
+        SELECT
+            PVSN_RESRCE_NM  /* 제공자원명 */
+            ,RESRCE_NO      /* 자원번호 */
+            ,RSFR_INST_NO   /* 기관번호 */
+        FROM SDA100 A   /* 자원기본 */
+        
+        WHERE (SELECT UNT_TASKWK_SE_CD FROM SAA000   /* 통합기관 */
+                WHERE INST_NO = A.RSFR_INST_NO) = 'U10'
+    </select>
+
+	<select id="selectProgrmCombo" resultType="HashMap">
+        <!-- 프로그램 -->	 
+        SELECT PROGRM_TTL_NM, PROGRM_NO
+        FROM SDA300 A   /* 자원프로그램 */
+        LEFT JOIN SDA100 B  /* 자원기본 */
+        ON A.RESRCE_NO = B.RESRCE_NO
+        
+        WHERE (SELECT UNT_TASKWK_SE_CD FROM SAA000   /* 통합기관 */
+                WHERE INST_NO = B.RSFR_INST_NO) = 'U10'
+	</select>
+	
+    <!-- 심사대상자 상세조회(발굴대상자등록 상세화면사용) -->
+    <select id="SelectSrngTrprDetail" parameterType="HashMap" resultType="HashMap">
+        SELECT /* isry.aimns.cmmn.mapper.AimnsMapper.SelectSrngTrprDetail (내일이룸 심사대상자상세정보)*/
+               T1.TRPR_INFO_NO                  AS TRPR_INFO_NO                     /* 대상자번호*/
+             , T1.PAPERS_SRNG_PASS_SE_CD        AS PAPERS_SRNG_PASS_SE_CD           /* 서류심사합격구분코드*/
+             , T1.PREPAR_SCHL_PTCPTN_SE_CD      AS PREPAR_SCHL_PTCPTN_SE_CD         /* 예비학교참여구분코드*/
+             , T1.PSNCPA_ELSE_REG_SE_CD         AS PSNCPA_ELSE_REG_SE_CD            /* 정원이외등록구분코드*/
+             , T1.FRST_RGTR_ID                  AS FRST_RGTR_ID                     /* 최초등록자아이디*/
+             , T1.FRST_REG_DT                   AS FRST_REG_DT                      /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                  AS LAST_MDFR_ID                     /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT                 AS LAST_MDFCN_DT                    /* 최종수정일시*/
+          FROM AFA400 T1    /* 심사대상자*/
+         WHERE 1 = 1
+           AND T1.TRPR_INFO_NO          =       #{TRPR_INFO_NO}                     /* 대상자번호*/
+    </select>	
+	
+	<insert id="insertSrngTrpr" parameterType="HashMap">
+	/* insertSrngTrpr (심사대상자 insert) */
+	INSERT INTO AFA400 (
+	      TRPR_INFO_NO
+	    , PAPERS_SRNG_PASS_SE_CD
+	    , PREPAR_SCHL_PTCPTN_SE_CD
+	    , PSNCPA_ELSE_REG_SE_CD
+	    , FRST_RGTR_ID
+	    , FRST_REG_DT
+	    , LAST_MDFR_ID
+	    , LAST_MDFCN_DT
+    ) VALUES (
+	      #{TRPR_INFO_NO}
+	    , #{PAPERS_SRNG_PASS_SE_CD}
+	    , #{PREPAR_SCHL_PTCPTN_SE_CD}
+	    , #{PSNCPA_ELSE_REG_SE_CD}
+	    , #{FRST_RGTR_ID}
+	    , SYSDATE
+	    , #{LAST_MDFR_ID}
+	    , SYSDATE
+	    )
+	</insert>
+	
+	<update id="updateSrngTrpr" parameterType="HashMap">
+	/* updateSrngTrpr (심사대상자 update) */
+	UPDATE AFA400 SET
+	      PAPERS_SRNG_PASS_SE_CD = #{PAPERS_SRNG_PASS_SE_CD}
+	    , PREPAR_SCHL_PTCPTN_SE_CD = #{PREPAR_SCHL_PTCPTN_SE_CD}
+	    , PSNCPA_ELSE_REG_SE_CD = #{PSNCPA_ELSE_REG_SE_CD}
+	    , FRST_RGTR_ID = (SELECT FRST_RGTR_ID FROM AFA400 WHERE TRPR_INFO_NO = #{TRPR_INFO_NO})
+	    , FRST_REG_DT = (SELECT FRST_REG_DT FROM AFA400 WHERE TRPR_INFO_NO = #{TRPR_INFO_NO})
+	    , LAST_MDFR_ID = #{LAST_MDFR_ID}
+	    , LAST_MDFCN_DT = SYSDATE
+	WHERE TRPR_INFO_NO = #{TRPR_INFO_NO}
+	</update>
+</mapper>

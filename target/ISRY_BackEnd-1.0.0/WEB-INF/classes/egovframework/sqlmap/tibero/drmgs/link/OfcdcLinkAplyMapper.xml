@@ -1,0 +1,1088 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.drmgs.link.mapper.OfcdcLinkAplyMapper">
+    <!-- 교육청집단연계-파일업로드 -->
+    <insert id="insertOfcdcGrFileUld" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertOfcdcGrFileUld(교육청집단연계-파일업로드) */
+         
+          INSERT INTO AKA220 /* 교육청집단연계-파일업로드 */
+            (MNG_SN
+			, ENFSN_NO			
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT)
+          VALUES(
+              #{MNG_SN}
+            , #{ENFSN_NO}                       
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- 교육청집단연계-업로드파일상세 -->
+    <insert id="insertOfcdcGrFileUldDtl" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertOfcdcGrFileUldDtl(교육청집단연계-업로드파일상세) */
+         
+          INSERT INTO AKA221     /* 교육청집단연계-업로드파일상세 */
+			(MNG_SN
+			, ENFSN_NO
+			, INDEX_SN
+			, ULD_RQSTDO_STTS_SE_CD
+			, STDNT_WRTCNS_SBMSN_YN
+			, STTY_AGT_WRTCNS_SBMSN_YN
+			, STDNT_FLNM_ENCPT
+			, STDNT_BRTH_YMD
+			, STDNT_SXDC_NM
+			, STDNT_ADDR
+			, STDNT_MBL_TELNO_ENCPT
+			, STDNT_TELNO
+			, STDNT_EML_ADDR_ENCPT
+			, STTY_AGT_CTTPC_TELNO
+			, STTY_AGT_EML_ADDR_ENCPT
+			, LAST_SCHL_GRADE_NM
+			, SCHULW_DSCNTC_YMD
+			, SCHULW_DSCNTC_CS_CN
+			, HNCFRT_HPE_COSE_NM
+			, ERR_INFO_DTL_CN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT)
+			VALUES(
+			  #{MNG_SN}
+			, #{ENFSN_NO}
+			, AKA221_SQ01.NEXTVAL
+			, #{ULD_RQSTDO_STTS_SE_CD}
+			, #{STDNT_WRTCNS_SBMSN_YN}
+			, #{STTY_AGT_WRTCNS_SBMSN_YN}
+			, (SELECT C##RG.ENC_B64(#{STDNT_FLNM_ENCPT}) FROM DUAL)
+			, #{STDNT_BRTH_YMD}
+			, #{STDNT_SXDC_NM}
+			, #{STDNT_ADDR}
+			, (SELECT C##RG.ENC_B64(#{STDNT_MBL_TELNO_ENCPT}) FROM DUAL)
+			, #{STDNT_TELNO}
+			, (SELECT C##RG.ENC_B64(#{STDNT_EML_ADDR_ENCPT}) FROM DUAL)
+			, #{STTY_AGT_CTTPC_TELNO}
+			, (SELECT C##RG.ENC_B64(#{STTY_AGT_EML_ADDR_ENCPT}) FROM DUAL)
+			, #{LAST_SCHL_GRADE_NM}
+			, #{SCHULW_DSCNTC_YMD}
+			, #{SCHULW_DSCNTC_CS_CN}
+			, #{HNCFRT_HPE_COSE_NM}
+			, #{ERR_INFO_DTL_CN}
+			, #{FRST_RGTR_ID} 
+			, SYSDATE
+			, #{LAST_MDFR_ID} 
+			, SYSDATE
+			)
+    </insert>
+    
+    <!-- 관리일련번호(AKA220) 구하기 -->
+    <select id="selectMngSn220" parameterType="String" resultType="HashMap">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectMngSn220(관리일련번호(AKA220) 구하기) */
+               MAX(MNG_SN) AS MNG_SN
+         FROM AKA220 /* 교육청집단연계-파일업로드 */
+        WHERE ENFSN_NO = #{ENFSN_NO}         
+    </select>
+    
+    <!-- 관리일련번호(SEQUENCES) 구하기 -->
+    <select id="selectMngSn" parameterType="String" resultType="HashMap">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectMngSn(관리일련번호(AKA220) 구하기) */
+               AKA220_SQ01.NEXTVAL AS MNG_SN
+         FROM DUAL        
+    </select>
+    
+    <!-- 중복등록확인 -->
+    <select id="selectDupChk" parameterType="HashMap" resultType="String">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectDupChk(중복등록확인) */
+               COUNT(1) AS sDupChk
+         FROM AKA221     /* 교육청집단연계-업로드파일상세 */
+        WHERE 1=1
+          AND ERR_INFO_DTL_CN IS NULL
+          AND STDNT_FLNM_ENCPT      = (SELECT C##RG.ENC_B64(#{STDNT_FLNM_ENCPT}) FROM DUAL)
+          AND STDNT_BRTH_YMD        = #{STDNT_BRTH_YMD}
+          AND STDNT_SXDC_NM         = #{STDNT_SXDC_NM}
+          <if test="STDNT_MBL_TELNO_ENCPT != null and STDNT_MBL_TELNO_ENCPT != ''">
+               <![CDATA[
+                   AND STDNT_MBL_TELNO_ENCPT = (SELECT C##RG.ENC_B64(#{STDNT_MBL_TELNO_ENCPT}) FROM DUAL)
+               ]]>
+          </if>
+          <if test="STDNT_TELNO != null and STDNT_TELNO != ''">
+               <![CDATA[
+                   AND STDNT_TELNO = #{STDNT_TELNO}
+               ]]>
+          </if>             
+    </select>
+    
+    <!-- 학생나이구하기 -->
+    <select id="selectStdntAge" parameterType="String" resultType="String">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectStdntAge(학생나이구하기) */
+               TRUNC(MONTHS_BETWEEN(TRUNC(SYSDATE), TO_DATE(#{STDNT_BRTH_YMD},'YYYYMMDD')) / 12) AS AGE
+         FROM DUAL     /* 교육청집단연계-업로드파일상세 */        
+    </select>
+    
+     <!-- 연계의뢰서 업로드(집단) 조회 -->
+    <select id="selectLinkRqstList" parameterType="HashMap" resultType="HashMap">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectLinkRqstList(연계의뢰서 업로드(집단) 조회) */
+               T1.MNG_SN                      AS MNG_SN
+              ,T1.ENFSN_NO                    AS ENFSN_NO
+              ,T1.TOT_NOCS                    AS TOTAL_NOCS
+		      ,T1.NEW_REG_NOCS                AS NEW_REG_NOCS
+		      ,T1.DPCN_NOCS                   AS DPCN_NOCS
+		      ,T1.ERR_INFO_NOCS               AS ERR_INFO_NOCS
+		      ,T1.SPCLA_MNG_NOCS              AS SPCLA_MNG_NOCS
+		      ,T1.FAIL_NOCS                   AS FAIL_NOCS
+		      ,TO_CHAR(T1.ULD_DT,'YYYYMMDD HH24:MI:SS')  AS ULD_DT
+		      ,C##RG.DEC_B64(T2.FLNM_ENCPT) AS PIC_FLNM
+		      ,T3.INST_NM                     AS OFCDC
+         FROM AKA220 T1/* 교육청집단연계-파일업로드 */
+		     ,SCA100 T2/* 종사자 */
+		     ,SAA000 T3/* 통합기관 */
+		 WHERE 1=1
+	       AND T1.ENFSN_NO        = T2.ENFSN_NO
+		   AND T2.OGDP_INST_NO    = T3.INST_NO  
+           AND T1.ENFSN_NO        = #{ENFSN_NO}
+           AND TO_CHAR(T1.ULD_DT,'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE} 
+           <if test="PIC_FLNM != null and PIC_FLNM != ''">
+               <![CDATA[
+                   AND T2.FLNM_ENCPT = C##RG.ENC_B64(#{PIC_FLNM})
+               ]]>
+           </if>   
+         ORDER BY T1.ULD_DT DESC               
+    </select>
+    
+    <update id="updateLinkRqst" parameterType="HashMap">
+        <![CDATA[
+        /* isry.drmgs.link.OfcdcLinkAplyMapper.updateLinkRqst(교육청집단연계(AKA220) update)  */
+
+        UPDATE AKA220 /* 교육청집단연계-파일업로드 */
+           SET ULD_DT               = SYSDATE
+             , TOT_NOCS             = #{sTot}
+             , NEW_REG_NOCS         = #{sNewReg}
+             , DPCN_NOCS            = #{sDpcn}
+             , ERR_INFO_NOCS        = #{sErrInfo}
+             , SPCLA_MNG_NOCS       = #{sSpcla}
+             , FAIL_NOCS            = #{sFail}
+             , LAST_MDFR_ID         = #{LAST_MDFR_ID}
+             , LAST_MDFCN_DT        = SYSDATE
+         WHERE MNG_SN               = #{MNG_SN}
+           AND ENFSN_NO             = #{sEnfsnNo}
+        ]]>
+    </update><!-- 특별관리리스트 조회 -->
+    <select id="selectOfcdcSpclaMngList" parameterType="HashMap" resultType="HashMap">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectOfcdcSpclaMngList(특별관리리스트 조회) */
+               C##RG.DEC_B64(T1.STDNT_FLNM_ENCPT) AS FLNM                     --학생성명암호화
+              ,T1.STDNT_BRTH_YMD                    AS BRDT                     --학생출생일자      
+              ,T1.SCHULW_DSCNTC_CS_CN               AS STDNT_THNK_DSCNTC_CS     --학업중단사유내용  
+              ,TO_CHAR(T1.FRST_REG_DT,'YYYYMMDD')   AS REG_DAY                  --등록일시  
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'MOE_OFCDC_SE_CD'
+                AND CMMNS_CD_VALUE = T1.ENFSN_NO)   AS ENFSN_NO                 --교육청명
+              ,TO_CHAR(T1.INDEX_SN)                 AS INDEX_SN                 --색인일련번호
+              ,T1.ULD_RQSTDO_STTS_SE_CD             AS ULD_RQSTDO_STTS_SE_CD    --업로드의뢰서상태구분코드
+              ,C##RG.DEC_B64(T1.STDNT_MBL_TELNO_ENCPT)             AS STDNT_MBL_TELNO_ENCPT    --학생휴대전화번호암호화
+              ,T1.STDNT_TELNO                       AS STDNT_TELNO              --학생전화번호
+              ,C##RG.DEC_B64(T1.STDNT_EML_ADDR_ENCPT)              AS STDNT_EML_ADDR_ENCPT     --학생이메일주소암호화
+              ,T1.STTY_AGT_CTTPC_TELNO              AS STTY_AGT_CTTPC_TELNO     --법정대리인연락처전화번호
+              ,C##RG.DEC_B64(T1.STTY_AGT_EML_ADDR_ENCPT)           AS STTY_AGT_EML_ADDR_ENCPT  --법정대리인이메일주소암호화
+              ,T1.HNCFRT_HPE_COSE_NM                AS HNCFRT_HPE_COSE_NM       --향후희망진로명
+         FROM AKA221 T1 /* 교육청집단연계-업로드파일상세 */
+         WHERE 1=1
+           <if test='AUTH == "N"'>
+               AND T1.ENFSN_NO        = #{ENFSN_NO}
+           </if>
+           AND T1.ULD_RQSTDO_STTS_SE_CD = '04'
+           <if test="START_DATE != null and START_DATE != ''">
+               <![CDATA[
+                   AND TO_CHAR(T1.FRST_REG_DT, 'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE}
+               ]]>
+           </if>
+           <if test="STDNT_FLNM != null and STDNT_FLNM != ''">
+               <![CDATA[
+                   AND T1.STDNT_FLNM_ENCPT = C##RG.ENC_B64(#{STDNT_FLNM})
+               ]]>
+           </if>         
+         ORDER BY T1.FRST_REG_DT DESC              
+    </select>
+    
+    <!-- 오류정보리스트 조회 -->
+    <select id="selectOfcdcErrorInfoList" parameterType="HashMap" resultType="HashMap">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectOfcdcErrorInfoList(오류정보리스트 조회) */
+              C##RG.DEC_B64(T1.STDNT_FLNM_ENCPT) AS FLNM                     --학생성명암호화
+              ,T1.STDNT_BRTH_YMD                    AS BRDT                     --학생출생일자      
+              ,T1.SCHULW_DSCNTC_CS_CN               AS STDNT_THNK_DSCNTC_CS     --학업중단사유내용  
+              ,TO_CHAR(T1.FRST_REG_DT,'YYYYMMDD')   AS REG_DAY                  --등록일시  
+              ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'MOE_OFCDC_SE_CD'
+                AND CMMNS_CD_VALUE = T1.ENFSN_NO)   AS ENFSN_NO                 --교육청명
+              ,TO_CHAR(T1.INDEX_SN)                 AS INDEX_SN                 --색인일련번호
+              ,T1.ULD_RQSTDO_STTS_SE_CD             AS ULD_RQSTDO_STTS_SE_CD    --업로드의뢰서상태구분코드
+              ,C##RG.DEC_B64(T1.STDNT_MBL_TELNO_ENCPT)             AS STDNT_MBL_TELNO_ENCPT    --학생휴대전화번호암호화
+              ,T1.STDNT_TELNO                       AS STDNT_TELNO              --학생전화번호
+              ,C##RG.DEC_B64(T1.STDNT_EML_ADDR_ENCPT)              AS STDNT_EML_ADDR_ENCPT     --학생이메일주소암호화
+              ,T1.STTY_AGT_CTTPC_TELNO              AS STTY_AGT_CTTPC_TELNO     --법정대리인연락처전화번호
+              ,C##RG.DEC_B64(T1.STTY_AGT_EML_ADDR_ENCPT)           AS STTY_AGT_EML_ADDR_ENCPT  --법정대리인이메일주소암호화
+              ,T1.HNCFRT_HPE_COSE_NM                AS HNCFRT_HPE_COSE_NM       --향후희망진로명
+              ,T1.ERR_INFO_DTL_CN                   AS ERR_INFO_DTL_CN          --오류정보상세내용
+         FROM AKA221 T1 /* 교육청집단연계-업로드파일상세 */
+         WHERE 1=1
+           <if test='AUTH == "N"'>
+               AND T1.ENFSN_NO        = #{ENFSN_NO}
+           </if>
+           AND T1.ULD_RQSTDO_STTS_SE_CD = '03'
+           <if test="START_DATE != null and START_DATE != ''">
+               <![CDATA[
+                   AND TO_CHAR(T1.FRST_REG_DT, 'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE}
+               ]]>
+           </if>
+           <if test="STDNT_FLNM != null and STDNT_FLNM != ''">
+               <![CDATA[
+                   AND T1.STDNT_FLNM_ENCPT = C##RG.ENC_B64(#{STDNT_FLNM})
+               ]]>
+           </if>         
+         ORDER BY T1.FRST_REG_DT DESC              
+    </select>
+    
+    <!-- SEB400(서비스제공의뢰) insert -->
+    <insert id="insertSrvcPvsnRqst" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertSrvcPvsnRqst(SEB400(서비스제공의뢰) insert) */
+         
+          INSERT INTO SEB400     /* 서비스제공의뢰 */
+            (SRVC_PVSN_RQST_NO
+            , RESRCE_NO
+            , HPE_SRVC_YN
+            , RQST_UNT_TASKWK_SE_CD
+            , RCPT_RQST_COURS_SE_CD
+            , RQST_YMD
+            , CLINT_NO
+            , RQST_INST_NO
+            , RQST_CS_CN
+            , PRNMNT_USE_BGNG_YMD
+            , PRNMNT_USE_BGNG_HR
+            , PRNMNT_USE_END_YMD
+            , PRNMNT_USE_END_HR
+            , RCPT_UNT_TASKWK_SE_CD
+            , CLR_NO
+            , RCPT_INST_NO
+            , RQST_TRPR_INFO_NO
+            , CASE_MNG_NO
+            , CASE_MNG_ODRNO
+            , RQST_APLY_YN
+            , RQST_DTL_CN
+            , LINK_TYPE_SE_CD
+            , ATFINO
+            , TRMN_PRCS_YN
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+            VALUES(
+              #{SRVC_PVSN_RQST_NO}
+            , #{RESRCE_NO}
+            , #{HPE_SRVC_YN}
+            , #{RQST_UNT_TASKWK_SE_CD}
+            , #{RCPT_RQST_COURS_SE_CD}
+            , #{RQST_YMD}
+            , #{CLINT_NO}
+            , #{RQST_INST_NO}
+            , #{RQST_CS_CN}
+            , #{PRNMNT_USE_BGNG_YMD}
+            , #{PRNMNT_USE_BGNG_HR}
+            , #{PRNMNT_USE_END_YMD}
+            , #{PRNMNT_USE_END_HR}
+            , #{RCPT_UNT_TASKWK_SE_CD}
+            , #{CLR_NO}
+            , #{RCPT_INST_NO}
+            , #{RQST_TRPR_INFO_NO}
+            , #{CASE_MNG_NO}
+            , #{CASE_MNG_ODRNO}
+            , #{RQST_APLY_YN}
+            , #{RQST_DTL_CN}
+            , #{LINK_TYPE_SE_CD}
+            , #{ATFINO}
+            , #{TRMN_PRCS_YN}
+            , #{DEL_YN}
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- 기관번호,담당자종사자번호 구하기 -->
+    <select id="selectInstEnfsnNo" parameterType="HashMap" resultType="HashMap">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectInstEnfsnNo(기관번호,담당자종사자번호 구하기) */
+               NVL(T1.INST_NO,'0')       AS INST_NO          --기관번호
+              ,NVL(T1.PIC_ENFSN_NO,'0')  AS PIC_ENFSN_NO     --담당자종사자번호
+              ,T1.SGG_CD                 AS SGG_CD           --시군구코드
+         FROM SAA000 T1 /* 통합기관 */
+         WHERE 1=1
+           AND T1.UNT_TASKWK_SE_CD = 'U03'
+           AND T1.INST_TYPE_SE_CD = '8'
+           AND (T1.INST_NM LIKE '%꿈드림%' OR T1.INST_NM LIKE '%학교밖%')
+           AND T1.SGG_CD = (SELECT X.SGG_CD
+                              FROM SAA020 X/* 시군구코드 */
+                             WHERE 1=1
+                               AND X.CTPV_NM = #{CTPV_NM}                                                      
+                               <if test='CTPV_NM != "세종특별자치시"'>
+                                   <![CDATA[                                   
+                                       AND X.SGG_NM = #{SGG_NM}
+                                   ]]>
+                               </if>         
+                               )          
+        UNION ALL
+        
+        SELECT 
+               NVL(T1.INST_NO,'0')       AS INST_NO          --기관번호
+              ,NVL(T1.PIC_ENFSN_NO,'0')  AS PIC_ENFSN_NO     --담당자종사자번호
+              ,T1.SGG_CD                 AS SGG_CD           --시군구코드
+         FROM SAA000 T1 /* 통합기관 */
+         WHERE 1=1
+           AND T1.UNT_TASKWK_SE_CD = 'U03'
+           AND T1.INST_TYPE_SE_CD = '8'
+           AND (T1.INST_NM LIKE '%꿈드림%' OR T1.INST_NM LIKE '%학교밖%')
+           AND T1.SGG_CD = (SELECT X.SGG_CD
+                              FROM SAA020 X/* 시군구코드 */
+                             WHERE 1=1
+                               AND X.CTPV_NM = #{CTPV_NM}                                                      
+                               <if test='CTPV_NM != "세종특별자치시"'>
+                                   <![CDATA[                                   
+                                       AND X.SGG_NM = #{SGG_NM1}
+                                   ]]>
+                               </if>         
+                               )          
+        UNION ALL
+        
+        SELECT
+                NVL(T1.INST_NO,'0')       AS INST_NO          --기관번호
+              ,NVL(T1.PIC_ENFSN_NO,'0')  AS PIC_ENFSN_NO     --담당자종사자번호
+              ,T1.SGG_CD                 AS SGG_CD           --시군구코드
+         FROM SAA000 T1 /* 통합기관 */
+         WHERE 1=1
+           AND T1.UNT_TASKWK_SE_CD = 'U03'
+           AND (T1.INST_NM LIKE '%꿈드림%' OR T1.INST_NM LIKE '%학교밖%')
+           AND T1.CTPV_CD = #{CTPV_SE_CD}
+           AND INST_TYPE_SE_CD = '5'                                  
+    </select>
+    
+    <!-- SEA200(대상자정보) insert -->
+    <insert id="insertTrprInfo" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertTrprInfo(SEA200(대상자정보) insert) */
+         
+          INSERT INTO SEA200     /* 대상자정보 */
+            (TRPR_INFO_NO
+			, INDV_IDNTFC_NO
+			, UNT_TASKWK_SE_CD
+			, TRPR_NM_ENCPT
+			, TRPR_BRTH_YMD
+			, SXDC_SE_CD
+			, MRG_YN
+			, TRPR_USER_ID
+			, TRPR_TELNO
+			, MBL_TELNO_ENCPT
+			, EML_ADDR_ENCPT
+			, SNS_SE_CD
+			, MSNGR_ID_ENCPT
+			, ZIP
+			, PST_ADDR
+			, DADDR
+			, ACBG_SE_CD
+			, GRDTN_STTS_SE_CD
+			, GRADE_SE_CD
+			, PSPT_ENG_FLNM_ENCPT
+			, TRPR_BCRN_TYPE_SE_CD
+			, TRPR_BCRN_TYPE_RM_NM
+			, NLTY_NTN_SE_CD
+			, ENTCNY_YMD
+			, BRTH_NTN_SE_CD
+			, GROWTH_NTN_SE_CD
+			, VISA_TYPE_SE_CD
+			, HANAWO_PENU_NO
+			, RELGN_SE_CD
+			, QLFC_INFO_MNG_NO
+			, RCPT_PIC_NO
+			, RCPT_INST_NO
+			, CASE_TRPR_TYPE_SE_CD
+			, CASE_MNG_SE_CD
+			, CASE_TRPR_SLCTN_YMD
+			, CASE_TRPR_UNSL_CS_CN
+			, PRTCR_NM_ENCPT
+			, TRPR_REL_SE_CD
+			, LIVTGT_YN
+			, PRTCR_AGRE_YN
+			, PRVC_PVSN_AGRE_YN
+			, SRVC_CTRT_AGRE_YN
+			, TAG_NM
+			, TAG_NO
+			, CASE_TRPR_NOAP_CS_SE_CD
+			, PRTCR_TELNO
+			, PRTCR_MBL_TELNO_ENCPT
+			, PRTCR_EML_ADDR_ENCPT
+			, PRTCR_ZIP
+			, PRTCR_PST_ADDR
+			, PRTCR_DADDR
+			, RESDN_SHAPE_SE_CD
+			, RESIDE_SHAPE_SE_CD
+			, RESIDE_SHAPE_ETC_CN
+			, FAM_CHAR_SE_CD
+			, INDV_IDNTFC_INFO_UNIPT_CS_CN
+			, INDV_IDNTFC_CRTR_YMD
+			, ORGNL_USER_ID
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT)
+            VALUES(
+              #{TRPR_INFO_NO} 
+            , #{INDV_IDNTFC_NO} 
+            , #{UNT_TASKWK_SE_CD} 
+            , NVL(C##RG.ENC_B64(#{TRPR_NM_ENCPT}), '')
+            , #{TRPR_BRTH_YMD} 
+            , #{SXDC_SE_CD} 
+            , #{MRG_YN} 
+            , #{TRPR_USER_ID} 
+            , #{TRPR_TELNO} 
+            , NVL(C##RG.ENC_B64(#{MBL_TELNO_ENCPT}), '')  
+            , #{EML_ADDR_ENCPT}           
+            , #{SNS_SE_CD} 
+            , NVL(C##RG.ENC_B64(#{MSNGR_ID_ENCPT}), '')             
+            , #{ZIP} 
+            , #{PST_ADDR} 
+            , #{DADDR} 
+            , #{ACBG_SE_CD} 
+            , #{GRDTN_STTS_SE_CD} 
+            , #{GRADE_SE_CD} 
+            , NVL(C##RG.ENC_B64(#{PSPT_ENG_FLNM_ENCPT}), '')             
+            , #{TRPR_BCRN_TYPE_SE_CD} 
+            , #{TRPR_BCRN_TYPE_RM_NM} 
+            , #{NLTY_NTN_SE_CD} 
+            , #{ENTCNY_YMD} 
+            , #{BRTH_NTN_SE_CD} 
+            , #{GROWTH_NTN_SE_CD} 
+            , #{VISA_TYPE_SE_CD} 
+            , #{HANAWO_PENU_NO} 
+            , #{RELGN_SE_CD} 
+            , #{QLFC_INFO_MNG_NO} 
+            , #{RCPT_PIC_NO} 
+            , #{RCPT_INST_NO} 
+            , #{CASE_TRPR_TYPE_SE_CD} 
+            , #{CASE_MNG_SE_CD} 
+            , #{CASE_TRPR_SLCTN_YMD} 
+            , #{CASE_TRPR_UNSL_CS_CN} 
+            , NVL(C##RG.ENC_B64(#{PRTCR_NM_ENCPT}), '')             
+            , #{TRPR_REL_SE_CD} 
+            , #{LIVTGT_YN}             
+            , #{PRTCR_AGRE_YN}
+            , #{PRVC_PVSN_AGRE_YN}
+            , #{SRVC_CTRT_AGRE_YN}
+            , #{TAG_NM}
+            , #{TAG_NO}
+            , #{CASE_TRPR_NOAP_CS_SE_CD}
+            , #{PRTCR_TELNO}
+            , NVL(C##RG.ENC_B64(#{PRTCR_MBL_TELNO_ENCPT}), '')
+            , NVL(C##RG.ENC_B64(#{PRTCR_EML_ADDR_ENCPT}), '')             
+            , #{PRTCR_ZIP}
+            , #{PRTCR_PST_ADDR}
+            , #{PRTCR_DADDR}
+            , #{RESDN_SHAPE_SE_CD}
+            , #{RESIDE_SHAPE_SE_CD}
+            , #{RESIDE_SHAPE_ETC_CN}
+            , #{FAM_CHAR_SE_CD}
+            , #{INDV_IDNTFC_INFO_UNIPT_CS_CN}
+            , #{INDV_IDNTFC_CRTR_YMD}
+            , #{ORGNL_USER_ID}            
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- SEA240(학업중단) insert -->
+    <insert id="insertSchulwDscntc" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertSchulwDscntc(SEA240(학업중단) insert) */
+         
+          INSERT INTO SEA240     /* 학업중단 */
+            (TRPR_INFO_NO
+			, INDV_IDNTFC_NO
+			, MNG_SN
+			, SCHULW_DSCNTC_YMD
+			, ACBG_SE_CD
+			, GRADE_SE_CD
+			, DSCNTC_CS_LCLAS_SE_CD
+			, DSCNTC_CS_SCLAS_SE_CD
+			, RM_CN, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT)
+            VALUES(
+              #{TRPR_INFO_NO} 
+            , #{INDV_IDNTFC_NO} 
+            , #{MNG_SN} 
+            , #{SCHULW_DSCNTC_YMD} 
+            , #{ACBG_SE_CD} 
+            , #{GRADE_SE_CD} 
+            , #{DSCNTC_CS_LCLAS_SE_CD} 
+            , #{DSCNTC_CS_SCLAS_SE_CD} 
+            , #{RM_CN} 
+            , #{DEL_YN}             
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- SEA230(학력상태) insert -->
+    <insert id="insertAcbgStts" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertAcbgStts(SEA230(학력상태) insert) */
+         
+          INSERT INTO SEA230     /* 학력상태 */
+            (TRPR_INFO_NO
+			, INDV_IDNTFC_NO
+			, MNG_SN
+			, DGRI_ACQS_ERA_YM
+			, MTCLTN_YMD
+			, GRDTN_YMD
+			, SCHL_NM
+			, DGRI_ACQS_MTHD_SE_CD
+			, ACBG_SE_CD
+			, SGG_CD
+			, MAJOR_NM
+			, GRDTN_STTS_SE_CD
+			, GRADE_SE_CD
+			, STCLS_NO
+			, SCHULW_DSCNTC_YN
+			, RM_CN
+			, DEL_YN
+			, FRST_RGTR_ID
+			, FRST_REG_DT
+			, LAST_MDFR_ID
+			, LAST_MDFCN_DT)
+            VALUES(
+              #{TRPR_INFO_NO}
+            , #{INDV_IDNTFC_NO}
+            , #{MNG_SN}
+            , #{DGRI_ACQS_ERA_YM}
+            , #{MTCLTN_YMD}
+            , #{GRDTN_YMD}
+            , #{SCHL_NM}
+            , #{DGRI_ACQS_MTHD_SE_CD}
+            , #{ACBG_SE_CD}
+            , #{SGG_CD}
+            , #{MAJOR_NM}
+            , #{GRDTN_STTS_SE_CD}
+            , #{GRADE_SE_CD}
+            , #{STCLS_NO}
+            , #{SCHULW_DSCNTC_YN}
+            , #{RM_CN}
+            , #{DEL_YN}              
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- SEA201(대상자정보이력) insert -->
+    <insert id="insertTrprInfoHstr" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertTrprInfoHstr(SEA201(대상자정보이력) insert) */
+         
+          INSERT INTO SEA201     /* 대상자정보이력 */
+            (TRPR_INFO_NO
+            , INDV_IDNTFC_NO
+            , MDFCN_DT
+            , DATAA_CHG_SE_CD
+            , UNT_TASKWK_SE_CD
+            , TRPR_NM_ENCPT
+            , TRPR_BRTH_YMD
+            , SXDC_SE_CD
+            , MRG_YN
+            , TRPR_USER_ID
+            , TRPR_TELNO
+            , MBL_TELNO_ENCPT
+            , EML_ADDR_ENCPT
+            , SNS_SE_CD
+            , MSNGR_ID_ENCPT
+            , ZIP
+            , PST_ADDR
+            , DADDR
+            , ACBG_SE_CD
+            , GRDTN_STTS_SE_CD
+            , GRADE_SE_CD
+            , PSPT_ENG_FLNM_ENCPT
+            , TRPR_BCRN_TYPE_SE_CD
+            , TRPR_BCRN_TYPE_RM_NM
+            , NLTY_NTN_SE_CD
+            , ENTCNY_YMD
+            , BRTH_NTN_SE_CD
+            , GROWTH_NTN_SE_CD
+            , VISA_TYPE_SE_CD
+            , HANAWO_PENU_NO
+            , RELGN_SE_CD
+            , QLFC_INFO_MNG_NO
+            , RCPT_PIC_NO
+            , RCPT_INST_NO
+            , CASE_TRPR_TYPE_SE_CD
+            , CASE_MNG_SE_CD
+            , CASE_TRPR_SLCTN_YMD
+            , CASE_TRPR_UNSL_CS_CN
+            , PRTCR_NM_ENCPT
+            , TRPR_REL_SE_CD
+            , LIVTGT_YN
+            , PRTCR_AGRE_YN
+            , PRVC_PVSN_AGRE_YN
+            , SRVC_CTRT_AGRE_YN
+            , TAG_NM
+            , TAG_NO
+            , CASE_TRPR_NOAP_CS_SE_CD
+            , PRTCR_TELNO
+            , PRTCR_MBL_TELNO_ENCPT
+            , PRTCR_EML_ADDR_ENCPT
+            , PRTCR_ZIP
+            , PRTCR_PST_ADDR
+            , PRTCR_DADDR
+            , RESDN_SHAPE_SE_CD
+            , RESIDE_SHAPE_SE_CD
+            , RESIDE_SHAPE_ETC_CN
+            , FAM_CHAR_SE_CD
+            , INDV_IDNTFC_INFO_UNIPT_CS_CN
+            , INDV_IDNTFC_CRTR_YMD
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+            VALUES(
+              #{TRPR_INFO_NO} 
+            , #{INDV_IDNTFC_NO} 
+            , SYSDATE
+            , #{DATAA_CHG_SE_CD} 
+            , #{UNT_TASKWK_SE_CD} 
+            , NVL(C##RG.ENC_B64(#{TRPR_NM_ENCPT}), '')             
+            , #{TRPR_BRTH_YMD} 
+            , #{SXDC_SE_CD} 
+            , #{MRG_YN} 
+            , #{TRPR_USER_ID} 
+            , #{TRPR_TELNO} 
+            , NVL(C##RG.ENC_B64(#{MBL_TELNO_ENCPT}), '')             
+            , #{EML_ADDR_ENCPT}             
+            , #{SNS_SE_CD} 
+            , NVL(C##RG.ENC_B64(#{MSNGR_ID_ENCPT}), '')            
+            , #{ZIP} 
+            , #{PST_ADDR} 
+            , #{DADDR} 
+            , #{ACBG_SE_CD} 
+            , #{GRDTN_STTS_SE_CD} 
+            , #{GRADE_SE_CD} 
+            , NVL(C##RG.ENC_B64(#{PSPT_ENG_FLNM_ENCPT}), '')             
+            , #{TRPR_BCRN_TYPE_SE_CD} 
+            , #{TRPR_BCRN_TYPE_RM_NM} 
+            , #{NLTY_NTN_SE_CD} 
+            , #{ENTCNY_YMD} 
+            , #{BRTH_NTN_SE_CD} 
+            , #{GROWTH_NTN_SE_CD} 
+            , #{VISA_TYPE_SE_CD} 
+            , #{HANAWO_PENU_NO} 
+            , #{RELGN_SE_CD} 
+            , #{QLFC_INFO_MNG_NO} 
+            , #{RCPT_PIC_NO} 
+            , #{RCPT_INST_NO} 
+            , #{CASE_TRPR_TYPE_SE_CD} 
+            , #{CASE_MNG_SE_CD} 
+            , #{CASE_TRPR_SLCTN_YMD} 
+            , #{CASE_TRPR_UNSL_CS_CN} 
+            , NVL(C##RG.ENC_B64(#{PRTCR_NM_ENCPT}), '')             
+            , #{TRPR_REL_SE_CD} 
+            , #{LIVTGT_YN}             
+            , #{PRTCR_AGRE_YN}
+            , #{PRVC_PVSN_AGRE_YN}
+            , #{SRVC_CTRT_AGRE_YN}
+            , #{TAG_NM}
+            , #{TAG_NO}
+            , #{CASE_TRPR_NOAP_CS_SE_CD}
+            , #{PRTCR_TELNO}
+            , NVL(C##RG.ENC_B64(#{PRTCR_MBL_TELNO_ENCPT}), '')            
+            , #{PRTCR_EML_ADDR_ENCPT}            
+            , #{PRTCR_ZIP}
+            , #{PRTCR_PST_ADDR}
+            , #{PRTCR_DADDR}
+            , #{RESDN_SHAPE_SE_CD}
+            , #{RESIDE_SHAPE_SE_CD}
+            , #{RESIDE_SHAPE_ETC_CN}
+            , #{FAM_CHAR_SE_CD}
+            , #{INDV_IDNTFC_INFO_UNIPT_CS_CN}
+            , #{INDV_IDNTFC_CRTR_YMD}         
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- SEA241(학업중단이력) insert -->
+    <insert id="insertSchulwDscntcHstr" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertSchulwDscntcHstr(SEA241(학업중단이력) insert) */
+         
+          INSERT INTO SEA241     /* 학업중단이력 */
+            (TRPR_INFO_NO
+            , INDV_IDNTFC_NO
+            , MNG_SN
+            , MDFCN_DT
+            , DATAA_CHG_SE_CD
+            , SCHULW_DSCNTC_YMD
+            , ACBG_SE_CD
+            , GRADE_SE_CD
+            , DSCNTC_CS_LCLAS_SE_CD
+            , DSCNTC_CS_SCLAS_SE_CD
+            , RM_CN
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+            VALUES(
+              #{TRPR_INFO_NO} 
+            , #{INDV_IDNTFC_NO} 
+            , #{MNG_SN}
+            , SYSDATE
+            , #{DATAA_CHG_SE_CD} 
+            , #{SCHULW_DSCNTC_YMD} 
+            , #{ACBG_SE_CD} 
+            , #{GRADE_SE_CD} 
+            , #{DSCNTC_CS_LCLAS_SE_CD} 
+            , #{DSCNTC_CS_SCLAS_SE_CD} 
+            , #{RM_CN} 
+            , #{DEL_YN}             
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- SEA231(학력상태이력) insert -->
+    <insert id="insertAcbgSttsHstr" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertAcbgSttsHstr(SEA231(학력상태이력) insert) */
+         
+          INSERT INTO SEA231     /* 학력상태이력 */
+            (TRPR_INFO_NO
+            , MNG_SN
+            , MDFCN_DT
+            , DATAA_CHG_SE_CD
+            , DGRI_ACQS_ERA_YM
+            , MTCLTN_YMD
+            , GRDTN_YMD
+            , SCHL_NM
+            , DGRI_ACQS_MTHD_SE_CD
+            , ACBG_SE_CD
+            , SGG_CD
+            , MAJOR_NM
+            , GRDTN_STTS_SE_CD
+            , GRADE_SE_CD
+            , STCLS_NO
+            , SCHULW_DSCNTC_YN
+            , RM_CN
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+            VALUES(
+              #{TRPR_INFO_NO}
+            , #{MNG_SN}
+            , SYSDATE
+            , #{DATAA_CHG_SE_CD}             
+            , #{DGRI_ACQS_ERA_YM}
+            , #{MTCLTN_YMD}
+            , #{GRDTN_YMD}
+            , #{SCHL_NM}
+            , #{DGRI_ACQS_MTHD_SE_CD}
+            , #{ACBG_SE_CD}
+            , #{SGG_CD}
+            , #{MAJOR_NM}
+            , #{GRDTN_STTS_SE_CD}
+            , #{GRADE_SE_CD}
+            , #{STCLS_NO}
+            , #{SCHULW_DSCNTC_YN}
+            , #{RM_CN}
+            , #{DEL_YN}              
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- SEB401(서비스제공의뢰이력) insert -->
+    <insert id="insertSrvcPvsnRqstHstr" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertSrvcPvsnRqstHstr(SEB401(서비스제공의뢰이력) insert) */
+         
+          INSERT INTO SEB401     /* 서비스제공의뢰이력 */
+            ( MDFCN_DT
+            , SRVC_PVSN_RQST_NO
+            , DATAA_CHG_SE_CD
+            , RESRCE_NO
+            , HPE_SRVC_YN
+            , RQST_UNT_TASKWK_SE_CD
+            , RCPT_RQST_COURS_SE_CD
+            , RQST_YMD
+            , CLINT_NO
+            , RQST_INST_NO
+            , RQST_CS_CN
+            , PRNMNT_USE_BGNG_YMD
+            , PRNMNT_USE_BGNG_HR
+            , PRNMNT_USE_END_YMD
+            , PRNMNT_USE_END_HR
+            , RCPT_UNT_TASKWK_SE_CD
+            , CLR_NO
+            , RCPT_INST_NO
+            , RQST_TRPR_INFO_NO
+            , CASE_MNG_NO
+            , CASE_MNG_ODRNO
+            , RQST_APLY_YN
+            , RQST_DTL_CN
+            , LINK_TYPE_SE_CD
+            , ATFINO
+            , TRMN_PRCS_YN
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+            VALUES(
+              SYSDATE
+            , #{SRVC_PVSN_RQST_NO}
+            , #{DATAA_CHG_SE_CD}
+            , #{RESRCE_NO}
+            , #{HPE_SRVC_YN}
+            , #{RQST_UNT_TASKWK_SE_CD}
+            , #{RCPT_RQST_COURS_SE_CD}
+            , #{RQST_YMD}
+            , #{CLINT_NO}
+            , #{RQST_INST_NO}
+            , #{RQST_CS_CN}
+            , #{PRNMNT_USE_BGNG_YMD}
+            , #{PRNMNT_USE_BGNG_HR}
+            , #{PRNMNT_USE_END_YMD}
+            , #{PRNMNT_USE_END_HR}
+            , #{RCPT_UNT_TASKWK_SE_CD}
+            , #{CLR_NO}
+            , #{RCPT_INST_NO}
+            , #{RQST_TRPR_INFO_NO}
+            , #{CASE_MNG_NO}
+            , #{CASE_MNG_ODRNO}
+            , #{RQST_APLY_YN}
+            , #{RQST_DTL_CN}
+            , #{LINK_TYPE_SE_CD}
+            , #{ATFINO}
+            , #{TRMN_PRCS_YN}
+            , #{DEL_YN} 
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- SEB420(서비스제공접수) insert -->
+    <insert id="insertSrvcPvsnRcpt" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertSrvcPvsnRcpt(SEB420(서비스제공접수) insert) */
+         
+          INSERT INTO SEB420     /* 서비스제공접수 */
+            (SRVC_PVSN_RQST_NO
+            , RCPT_SN
+            , RESRCE_NO
+            , LINK_TYPE_SE_CD
+            , RCPT_UNT_TASKWK_SE_CD
+            , CLR_NO
+            , RCPT_TRPR_INFO_NO
+            , FRST_RQST_NO
+            , RCPT_INST_NO
+            , RCPT_YMD
+            , RCPT_SE_CD
+            , RCPT_DTL_CN
+            , RJCT_CS_SE_CD
+            , RJCT_CS_ETC_CN
+            , RRQST_YN
+            , RRQST_RCPT_UNT_TASKWK_SE_CD
+            , RRQST_CLR_NO
+            , RRQST_RCPT_INST_NO
+            , RRQST_YMD
+            , APRV_USE_BGNG_YMD
+            , APRV_USE_BGNG_HR
+            , APRV_USE_END_YMD
+            , APRV_USE_END_HR
+            , HPE_SRVC_YN
+            , ATFINO
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+            VALUES(
+              #{SRVC_PVSN_RQST_NO}
+            ,(SELECT NVL(MAX(RCPT_SN),0)+1 FROM SEB420 WHERE SRVC_PVSN_RQST_NO = #{SRVC_PVSN_RQST_NO})
+            , #{RESRCE_NO}
+            , #{LINK_TYPE_SE_CD}             
+            , #{RCPT_UNT_TASKWK_SE_CD}
+            , #{CLR_NO}
+            , #{RCPT_TRPR_INFO_NO}
+            , #{FRST_RQST_NO}
+            , #{RCPT_INST_NO}
+            , #{RCPT_YMD}
+            , #{RCPT_SE_CD}
+            , #{RCPT_DTL_CN}
+            , #{RJCT_CS_SE_CD}
+            , #{RJCT_CS_ETC_CN}
+            , #{RRQST_YN}
+            , #{RRQST_RCPT_UNT_TASKWK_SE_CD}
+            , #{RRQST_CLR_NO}
+            , #{RRQST_RCPT_INST_NO} 
+            , #{RRQST_YMD}
+            , #{APRV_USE_BGNG_YMD}
+            , #{APRV_USE_BGNG_HR}
+            , #{APRV_USE_END_YMD}
+            , #{APRV_USE_END_HR}
+            , #{HPE_SRVC_YN}
+            , #{ATFINO}
+            , 'N'
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- SEB421(서비스제공접수이력) insert    -->
+    <insert id="insertSrvcPvsnRcptHstr" parameterType="HashMap">
+         /* isry.drmgs.link.OfcdcLinkAplyMapper.insertSrvcPvsnRcptHstr(SEB421(서비스제공접수이력) insert) */
+         
+          INSERT INTO SEB421     /* 서비스제공접수이력 */
+            ( MDFCN_DT
+            , SRVC_PVSN_RQST_NO
+            , RCPT_SN
+            , RESRCE_NO
+            , DATAA_CHG_SE_CD
+            , LINK_TYPE_SE_CD
+            , RCPT_UNT_TASKWK_SE_CD
+            , CLR_NO
+            , RCPT_TRPR_INFO_NO
+            , FRST_RQST_NO
+            , RCPT_INST_NO
+            , RCPT_YMD
+            , RCPT_SE_CD
+            , RCPT_DTL_CN
+            , RJCT_CS_SE_CD
+            , RJCT_CS_ETC_CN
+            , RRQST_YN
+            , RRQST_RCPT_UNT_TASKWK_SE_CD
+            , RRQST_CLR_NO
+            , RRQST_RCPT_INST_NO
+            , RRQST_YMD
+            , APRV_USE_BGNG_YMD
+            , APRV_USE_BGNG_HR
+            , APRV_USE_END_YMD
+            , APRV_USE_END_HR
+            , HPE_SRVC_YN
+            , ATFINO
+            , DEL_YN
+            , FRST_RGTR_ID
+            , FRST_REG_DT
+            , LAST_MDFR_ID
+            , LAST_MDFCN_DT)
+            VALUES(
+              SYSDATE
+            , #{SRVC_PVSN_RQST_NO}
+            ,(SELECT NVL(MAX(RCPT_SN),0)+1 FROM SEB421 WHERE SRVC_PVSN_RQST_NO = #{SRVC_PVSN_RQST_NO})
+            , #{RESRCE_NO}
+            , #{DATAA_CHG_SE_CD}
+            , #{LINK_TYPE_SE_CD}             
+            , #{RCPT_UNT_TASKWK_SE_CD}
+            , #{CLR_NO}
+            , #{RCPT_TRPR_INFO_NO}
+            , #{FRST_RQST_NO}
+            , #{RCPT_INST_NO}
+            , #{RCPT_YMD}
+            , #{RCPT_SE_CD}
+            , #{RCPT_DTL_CN}
+            , #{RJCT_CS_SE_CD}
+            , #{RJCT_CS_ETC_CN}
+            , #{RRQST_YN}
+            , #{RRQST_RCPT_UNT_TASKWK_SE_CD}
+            , #{RRQST_CLR_NO}
+            , #{RRQST_RCPT_INST_NO} 
+            , #{RRQST_YMD}
+            , #{APRV_USE_BGNG_YMD}
+            , #{APRV_USE_BGNG_HR}
+            , #{APRV_USE_END_YMD}
+            , #{APRV_USE_END_HR}
+            , #{HPE_SRVC_YN}
+            , #{ATFINO}
+            , 'N'
+            , #{FRST_RGTR_ID} 
+            , SYSDATE
+            , #{LAST_MDFR_ID} 
+            , SYSDATE
+            )
+    </insert>
+    
+    <!-- 특별관리리스트 코드 리스트 조회 -->
+    <select id="moeSchulmCodeList" resultType="String">
+		SELECT CMMNS_CD_VALUE_NM 
+		FROM SAC100
+		WHERE CMMNS_CD_ID = 'MOE_SCHULW_DSCNTC_SCLAS_SE_CD'
+		AND UP_CMMNS_CD_VALUE IN ('04','06')    
+    </select>
+    
+    <!-- 연계의뢰서 업로드(집단) 상세 조회 -->
+    <select id="selectLinkRqstDetList" parameterType="HashMap" resultType="HashMap">
+    
+        SELECT /* isry.drmgs.link.OfcdcLinkAplyMapper.selectLinkRqstDetList(연계의뢰서 업로드(집단) 상세 조회) */
+              MNG_SN
+		    , ENFSN_NO
+		    , INDEX_SN
+		    , ULD_RQSTDO_STTS_SE_CD
+		    , STDNT_WRTCNS_SBMSN_YN
+		    , STTY_AGT_WRTCNS_SBMSN_YN
+		    , STDNT_FLNM_ENCPT
+		    , STDNT_BRTH_YMD
+		    , STDNT_SXDC_NM
+		    , STDNT_ADDR
+		    , STDNT_MBL_TELNO_ENCPT
+		    , STDNT_TELNO
+		    , STDNT_EML_ADDR_ENCPT
+		    , STTY_AGT_CTTPC_TELNO
+		    , STTY_AGT_EML_ADDR_ENCPT
+		    , LAST_SCHL_GRADE_NM
+		    , SCHULW_DSCNTC_YMD
+		    , SCHULW_DSCNTC_CS_CN
+		    , HNCFRT_HPE_COSE_NM
+		    , ERR_INFO_DTL_CN
+		    , FRST_RGTR_ID
+		    , FRST_REG_DT
+		    , LAST_MDFR_ID
+		    , LAST_MDFCN_DT
+		FROM AKA221
+		WHERE MNG_SN = #{MNG_SN} 
+		  AND ENFSN_NO = #{ENFSN_NO}       
+    </select>
+    
+    <select id="selectMoeCode" parameterType="Integer" resultType="String">
+        SELECT CMMNS_CD_VALUE AS MOE_CD
+		FROM SAC100
+		WHERE CMMNS_CD_ID = 'MOE_OFCDC_SE_CD'
+		  AND ADDTNG_MNG_VALUE1 = #{INST_NO}
+    </select>
+</mapper>
+

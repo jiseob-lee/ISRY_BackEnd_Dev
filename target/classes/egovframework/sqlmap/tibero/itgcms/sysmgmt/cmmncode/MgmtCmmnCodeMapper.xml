@@ -1,0 +1,1085 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.cmmncode.mapper.MgmtCmmnCodeMapper">
+
+    <select id="selectMaxCodeId" resultType="int">
+    <![CDATA[
+        /* selectMaxCodeId - Lee JiSeob */
+        
+        SELECT SAC000_SQ01.NEXTVAL 
+        FROM DUAL
+        
+    ]]>
+    </select>
+
+    <select id="selectMaxCodeValueId" resultType="int">
+    <![CDATA[
+        /* selectMaxCodeValueId - Lee JiSeob */
+        
+        SELECT SAC100_SQ01.NEXTVAL 
+        FROM DUAL
+         
+    ]]>
+    </select>
+
+    
+    <delete id="deleteCode">
+    <![CDATA[
+        /* deleteCode - Lee JiSeob */
+
+        DELETE FROM SAC000
+        
+    ]]>
+    
+        <if test="list == null or list.size == 0">
+    <![CDATA[ 
+          WHERE CMMNS_CD_ID = '00'
+    ]]>        
+        </if>
+        
+        <foreach collection="list" item="id" index="index" separator="," open="WHERE CMMNS_CD_ID IN (" close=")">
+    <![CDATA[ 
+          #{id}
+    ]]>
+       </foreach>
+       
+    </delete>
+    
+    
+    <delete id="deleteCodeSystem">
+    <![CDATA[
+        /* deleteCodeSystem - Lee JiSeob */
+
+        DELETE FROM SAC200 C
+        WHERE NOT EXISTS (SELECT D.CMMNS_CD_ID FROM SAC000 D WHERE D.CMMNS_CD_ID = C.CMMNS_CD_ID)
+
+    ]]>
+    </delete>
+    
+    <delete id="deleteCodeVal">
+    <![CDATA[
+        /* deleteCodeVal - Lee JiSeob */
+
+        DELETE FROM SAC100 C
+        WHERE NOT EXISTS (SELECT D.CMMNS_CD_ID FROM SAC000 D WHERE D.CMMNS_CD_ID = C.CMMNS_CD_ID)
+
+    ]]>
+    </delete>
+
+
+    <update id="saveCode_backup" parameterType="HashMap">
+    <![CDATA[
+        /* saveCode_backup - Lee JiSeob */
+        
+        MERGE INTO SAC000 C
+        USING DUAL
+        ON (C.CMMNS_CD_ID = #{CMMNS_CD_ID})
+        
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            UP_CMMNS_CD_ID = #{UP_CMMNS_CD_ID},
+            CMMNS_CD_NM = #{CMMNS_CD_NM},
+            CMMNS_CD_LEVELA_NO = #{CMMNS_CD_LEVELA_NO},
+            LAST_MDFR_ID = #{USER_ID},
+            LAST_MDFCN_DT = SYSDATE
+        
+
+        WHEN NOT MATCHED THEN
+        
+            INSERT 
+            (
+                CMMNS_CD_ID,
+                UP_CMMNS_CD_ID,
+                CMMNS_CD_NM,
+                CMMNS_CD_LEVELA_NO,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{CMMNS_CD_ID},
+                #{UP_CMMNS_CD_ID},
+                #{CMMNS_CD_NM},
+                #{CMMNS_CD_LEVELA_NO},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    ]]>
+    </update>
+    
+    
+    <update id="saveCode" parameterType="HashMap">
+    <![CDATA[
+        /* saveCode - Lee JiSeob */
+        
+        MERGE INTO SAC000 C
+        USING DUAL
+        ON (C.CMMNS_CD_ID = #{CMMNS_CD_ID_ORI})
+        
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            
+            UP_CMMNS_CD_ID = #{UP_CMMNS_CD_ID},
+            CMMNS_CD_NM = #{CMMNS_CD_NM},
+            CMMNS_CD_DSCRP_CN = #{CMMNS_CD_DSCRP_CN},
+            ADDTNG_MNG_VALUE_NM1 = #{ADDTNG_MNG_VALUE_NM1},
+            ADDTNG_MNG_VALUE_NM2 = #{ADDTNG_MNG_VALUE_NM2},
+            ADDTNG_MNG_VALUE_NM3 = #{ADDTNG_MNG_VALUE_NM3},
+            ADDTNG_MNG_VALUE_NM4 = #{ADDTNG_MNG_VALUE_NM4},
+            ADDTNG_MNG_VALUE_NM5 = #{ADDTNG_MNG_VALUE_NM5},
+            CMMNS_CD_LEVELA_NO = #{CMMNS_CD_LEVELA_NO},
+            LAST_MDFR_ID = #{USER_ID},
+            LAST_MDFCN_DT = SYSDATE
+
+        WHEN NOT MATCHED THEN
+        
+            INSERT 
+            (
+                CMMNS_CD_ID,
+                UP_CMMNS_CD_ID,
+                CMMNS_CD_NM,
+                CMMNS_CD_DSCRP_CN,
+                ADDTNG_MNG_VALUE_NM1,
+                ADDTNG_MNG_VALUE_NM2,
+                ADDTNG_MNG_VALUE_NM3,
+                ADDTNG_MNG_VALUE_NM4,
+                ADDTNG_MNG_VALUE_NM5,
+                CMMNS_CD_LEVELA_NO,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{CMMNS_CD_ID_ORI},
+                #{UP_CMMNS_CD_ID},
+                #{CMMNS_CD_NM},
+                #{CMMNS_CD_DSCRP_CN},
+                #{ADDTNG_MNG_VALUE_NM1},
+                #{ADDTNG_MNG_VALUE_NM2},
+                #{ADDTNG_MNG_VALUE_NM3},
+                #{ADDTNG_MNG_VALUE_NM4},
+                #{ADDTNG_MNG_VALUE_NM5},
+                #{CMMNS_CD_LEVELA_NO},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    ]]>
+    </update>
+    
+    
+    <select id="selectCode" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCode - Lee JiSeob */
+        
+        SELECT
+            X.CMMNS_CD_ID,
+            X.CMMNS_CD_ID_ORI,
+            X.UP_CMMNS_CD_ID,
+            X.CMMNS_CD_NM,
+            X.CMMNS_CD_DSCRP_CN,
+            X.CMMNS_CD_CN,
+            X.CMMNS_CD_USE_SCRIN_CN,
+            X.ADDTNG_MNG_VALUE_NM1,
+            X.ADDTNG_MNG_VALUE_NM2,
+            X.ADDTNG_MNG_VALUE_NM3,
+            X.ADDTNG_MNG_VALUE_NM4,
+            X.ADDTNG_MNG_VALUE_NM5,
+            X.CMMNS_CD_LEVELA_NO,
+            X.UNT_SYS_SE_CD
+         
+        FROM (
+        SELECT 
+            C.CMMNS_CD_ID,
+            C.CMMNS_CD_ID AS CMMNS_CD_ID_ORI,
+            C.UP_CMMNS_CD_ID,
+            C.CMMNS_CD_NM,
+            C.CMMNS_CD_DSCRP_CN,
+            C.CMMNS_CD_CN,
+            C.CMMNS_CD_USE_SCRIN_CN,
+            C.ADDTNG_MNG_VALUE_NM1,
+            C.ADDTNG_MNG_VALUE_NM2,
+            C.ADDTNG_MNG_VALUE_NM3,
+            C.ADDTNG_MNG_VALUE_NM4,
+            C.ADDTNG_MNG_VALUE_NM5,
+            C.CMMNS_CD_LEVELA_NO,
+            (
+            SELECT ',' || LISTAGG(D.UNT_TASKWK_SE_CD, ',') WITHIN GROUP (ORDER BY D.CMMNS_CD_ID) || ',' FROM SAC200 D WHERE D.CMMNS_CD_ID = C.CMMNS_CD_ID
+            ) AS UNT_SYS_SE_CD
+        
+        FROM SAC000 C
+        
+        START WITH C.UP_CMMNS_CD_ID = '0'
+        CONNECT BY PRIOR C.CMMNS_CD_ID = C.UP_CMMNS_CD_ID
+        ORDER SIBLINGS BY C.FRST_REG_DT, C.CMMNS_CD_ID 
+        ) X
+    ]]>
+        <where>
+            <if test="cmmnsCdId != null and cmmnsCdId != ''">
+    <![CDATA[
+                AND X.CMMNS_CD_ID LIKE '%' || #{cmmnsCdId} || '%'
+    ]]>
+            </if>
+            <if test="cmmnsCdNm != null and cmmnsCdNm != ''">
+    <![CDATA[
+                AND X.CMMNS_CD_NM LIKE '%' || #{cmmnsCdNm} || '%'
+    ]]>
+            </if>
+            <if test="unitSystem != null and unitSystem != ''">
+    <![CDATA[
+                AND X.UNT_SYS_SE_CD LIKE '%,' || #{unitSystem} || ',%'
+    ]]>
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectCode_backup" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCode_backup - Lee JiSeob */
+        
+        SELECT 
+            C.CMMNS_CD_ID,
+            C.CMMNS_CD_ID AS CMMNS_CD_ID_ORI,
+            C.UP_CMMNS_CD_ID,
+            C.CMMNS_CD_NM,
+            C.CMMNS_CD_DSCRP_CN,
+            C.ADDTNG_MNG_VALUE_NM1,
+            C.ADDTNG_MNG_VALUE_NM2,
+            C.ADDTNG_MNG_VALUE_NM3,
+            C.ADDTNG_MNG_VALUE_NM4,
+            C.ADDTNG_MNG_VALUE_NM5,
+            C.CMMNS_CD_LEVELA_NO
+        
+        FROM SAC000 C
+    ]]>
+    
+        <if test="menuId != null">
+    <![CDATA[
+        LEFT JOIN SAC200 D ON C.CMMNS_CD_ID = D.CMMNS_CD_ID
+        
+        WHERE D.UNT_TASKWK_SE_CD = #{menuId}
+    ]]>
+        </if>
+        
+    <![CDATA[
+    
+        START WITH C.UP_CMMNS_CD_ID = 0
+        CONNECT BY PRIOR C.CMMNS_CD_ID = C.UP_CMMNS_CD_ID
+        ORDER SIBLINGS BY C.FRST_REG_DT, C.CMMNS_CD_ID 
+        
+    ]]>
+    </select>
+
+
+    <delete id="deleteCodeValue" parameterType="String">
+    <![CDATA[
+        /* deleteCodeValue - Lee JiSeob */
+
+        DELETE FROM SAC100
+        WHERE CMMNS_CD_ID = #{CMMNS_CD_ID}
+    ]]>
+    </delete>
+
+
+    <insert id="saveCodeValue" parameterType="HashMap">
+    <![CDATA[
+        /* saveCodeValue - Lee JiSeob */
+    
+        INSERT INTO SAC100 
+        (
+         CMMNS_CD_ID,
+         CMMNS_CD_VALUE,
+         CMMNS_CD_VALUE_NM,
+         UP_CMMNS_CD_VALUE,
+         ADDTNG_MNG_VALUE1,
+         ADDTNG_MNG_VALUE2,
+         ADDTNG_MNG_VALUE3,
+         ADDTNG_MNG_VALUE4,
+         ADDTNG_MNG_VALUE5,
+         LACA_ADDTNG_MNG_CN,
+         USE_YN,
+         SRTNG_SQNCE,
+         FRST_RGTR_ID,
+         FRST_REG_DT,
+         LAST_MDFR_ID,
+         LAST_MDFCN_DT
+        )
+        VALUES
+        (
+         #{CMMNS_CD_ID},
+         #{CMMNS_CD_VALUE},
+         #{CMMNS_CD_VALUE_NM},
+         #{UP_CMMNS_CD_VALUE},
+         #{ADDTNG_MNG_VALUE1},
+         #{ADDTNG_MNG_VALUE2},
+         #{ADDTNG_MNG_VALUE3},
+         #{ADDTNG_MNG_VALUE4},
+         #{ADDTNG_MNG_VALUE5},
+         #{LACA_ADDTNG_MNG_CN},
+         #{USE_YN},
+         #{SRTNG_SQNCE},
+         #{USER_ID},
+         SYSDATE,
+         #{USER_ID},
+         SYSDATE
+        )
+    ]]>
+    </insert>
+
+
+    <insert id="saveCodeValue_backup" parameterType="HashMap">
+    <![CDATA[
+        /* saveCodeValue_backup - Lee JiSeob */
+        
+        MERGE INTO SAC100 C
+        USING DUAL
+        ON (C.CODE_VALUE_ID = #{CODE_VALUE_ID})
+        
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            C.CMMNS_CD_ID = #{CMMNS_CD_ID},
+            C.CMMNS_CD_VALUE = #{CMMNS_CD_VALUE},
+            C.CMMNS_CD_VALUE_NM = #{CMMNS_CD_VALUE_NM},
+            C.ADDTNG_MNG_VALUE1 = #{ADDTNG_MNG_VALUE1},
+            C.ADDTNG_MNG_VALUE2 = #{ADDTNG_MNG_VALUE2},
+            C.ADDTNG_MNG_VALUE3 = #{ADDTNG_MNG_VALUE3},
+            C.ADDTNG_MNG_VALUE4 = #{ADDTNG_MNG_VALUE4},
+            C.ADDTNG_MNG_VALUE5 = #{ADDTNG_MNG_VALUE5},
+            C.USE_YN = #{USE_YN},
+            C.SRTNG_SQNCE = #{SRTNG_SQNCE},
+            C.LAST_MDFR_ID = #{USER_ID},
+            C.LAST_MDFCN_DT = SYSDATE
+
+        WHEN NOT MATCHED THEN
+        
+            INSERT 
+            (
+                CODE_VALUE_ID,
+                CMMNS_CD_ID,
+                CMMNS_CD_VALUE,
+                CMMNS_CD_VALUE_NM,
+                ADDTNG_MNG_VALUE1,
+                ADDTNG_MNG_VALUE2,
+                ADDTNG_MNG_VALUE3,
+                ADDTNG_MNG_VALUE4,
+                ADDTNG_MNG_VALUE5,
+                USE_YN,
+                SRTNG_SQNCE,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{CODE_VALUE_ID},
+                #{CMMNS_CD_ID},
+                #{CMMNS_CD_VALUE},
+                #{CMMNS_CD_VALUE_NM},
+                #{ADDTNG_MNG_VALUE1},
+                #{ADDTNG_MNG_VALUE2},
+                #{ADDTNG_MNG_VALUE3},
+                #{ADDTNG_MNG_VALUE4},
+                #{ADDTNG_MNG_VALUE5},
+                #{USE_YN},
+                #{SRTNG_SQNCE},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    ]]>
+    </insert>
+    
+    
+    
+    <select id="selectCodeValue" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectCodeValue - Lee JiSeob */
+        
+        SELECT 
+            
+            C.CMMNS_CD_ID,
+            C.CMMNS_CD_VALUE,
+            C.CMMNS_CD_VALUE_NM,
+            C.UP_CMMNS_CD_VALUE,
+            C.ADDTNG_MNG_VALUE1,
+            C.ADDTNG_MNG_VALUE2,
+            C.ADDTNG_MNG_VALUE3,
+            C.ADDTNG_MNG_VALUE4,
+            C.ADDTNG_MNG_VALUE5,
+            C.LACA_ADDTNG_MNG_CN,
+            C.USE_YN,
+            C.SRTNG_SQNCE,
+            1 AS CMMNS_CD_LEVELA_NO
+        
+        FROM SAC100 C
+        
+        WHERE C.CMMNS_CD_ID = #{CMMNS_CD_ID}
+
+        ORDER BY C.SRTNG_SQNCE
+        
+    ]]>
+    </select>
+
+    <select id="selectUnitSystem" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectUnitSystem - Lee JiSeob */
+        
+        SELECT 
+            
+            C.CMMNS_CD_ID,
+            C.UNT_TASKWK_SE_CD AS UNT_SYS_SE_CD,
+            C.UNT_TASKWK_SE_CD,
+            /* (SELECT D.MENU_NM FROM SAB200 D WHERE D.MENU_NO = C.UNT_TASKWK_SE_CD) AS SYSTEM_NAME */
+            (SELECT D.CMMNS_CD_VALUE_NM FROM SAC100 D /* 공통코드 값 */ WHERE D.CMMNS_CD_ID = 'UNT_SYS_SE_CD' AND D.CMMNS_CD_VALUE = C.UNT_TASKWK_SE_CD) AS SYSTEM_NAME
+            
+        FROM SAC200 C
+        
+        WHERE C.CMMNS_CD_ID = #{CMMNS_CD_ID}
+
+        ORDER BY C.UNT_TASKWK_SE_CD 
+        
+    ]]>
+    </select>
+
+
+    <update id="insertCodeSystem" parameterType="HashMap">
+    <![CDATA[
+        /* insertCodeSystem - Lee JiSeob */
+        
+        MERGE INTO SAC200 C
+        USING DUAL
+        ON (C.CMMNS_CD_ID = #{CMMNS_CD_ID} AND C.UNT_TASKWK_SE_CD = #{UNT_SYS_SE_CD})
+        
+        WHEN MATCHED THEN
+
+            UPDATE SET
+            LAST_MDFR_ID = #{USER_ID},
+            LAST_MDFCN_DT = SYSDATE
+        
+
+        WHEN NOT MATCHED THEN
+        
+            INSERT 
+            (
+                CMMNS_CD_ID,
+                UNT_TASKWK_SE_CD,
+                FRST_RGTR_ID,
+                FRST_REG_DT,
+                LAST_MDFR_ID,
+                LAST_MDFCN_DT
+            )
+            VALUES
+            (
+                #{CMMNS_CD_ID},
+                #{UNT_SYS_SE_CD},
+                #{USER_ID},
+                SYSDATE,
+                #{USER_ID},
+                SYSDATE
+            )
+    ]]>
+    </update>
+
+
+    <delete id="deleteCommonCodeSystem" parameterType="HashMap">
+    <![CDATA[
+        /* deleteCommonCodeSystem - Lee JiSeob */
+        
+        DELETE FROM SAC200
+        WHERE CMMNS_CD_ID = #{CMMNS_CD_ID}
+
+    ]]>
+    </delete>
+
+
+    <insert id="insertCommonCodeSystem" parameterType="HashMap">
+    <![CDATA[
+        /* insertCommonCodeSystem - Lee JiSeob */
+
+        INSERT INTO SAC200
+        (
+            CMMNS_CD_ID,
+            UNT_TASKWK_SE_CD,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{CMMNS_CD_ID},
+            #{UNT_SYS_SE_CD},
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </insert>
+
+    <update id="updateCodeDesc" parameterType="HashMap">
+    <![CDATA[
+        /* updateCodeDesc - Lee JiSeob */
+
+        UPDATE SAC000
+        SET
+    ]]>
+        <if test="codeDesc != null">
+    <![CDATA[
+            CMMNS_CD_DSCRP_CN = #{codeDesc},
+    ]]>
+        </if>
+        <if test="codeContents != null">
+    <![CDATA[
+            CMMNS_CD_CN = #{codeContents},
+    ]]>
+        </if>
+        <if test="codeScreen != null">
+    <![CDATA[
+            CMMNS_CD_USE_SCRIN_CN = #{codeScreen},
+    ]]>
+        </if>
+        <if test="add1Desc != null">
+    <![CDATA[
+            ADDTNG_MNG_VALUE_NM1 = #{add1Desc},
+    ]]>
+        </if>
+        <if test="add2Desc != null">
+    <![CDATA[
+            ADDTNG_MNG_VALUE_NM2 = #{add2Desc},
+    ]]>
+        </if>
+        <if test="add3Desc != null">
+    <![CDATA[
+            ADDTNG_MNG_VALUE_NM3 = #{add3Desc},
+    ]]>
+        </if>
+        <if test="add4Desc != null">
+    <![CDATA[
+            ADDTNG_MNG_VALUE_NM4 = #{add4Desc},
+    ]]>
+        </if>
+        <if test="add5Desc != null">
+    <![CDATA[
+            ADDTNG_MNG_VALUE_NM5 = #{add5Desc},
+    ]]>
+        </if>
+    <![CDATA[
+    
+            LAST_MDFR_ID = #{USER_ID},
+            LAST_MDFCN_DT = SYSDATE
+            
+        WHERE 
+            CMMNS_CD_ID = #{codeId}
+    ]]>
+    </update>
+
+
+    <select id="selectCommonCode" parameterType="String" resultType="HashMap">
+    <![CDATA[
+        /* selectCommonCode - Lee JiSeob */
+
+        SELECT
+            CMMNS_CD_ID,
+            CMMNS_CD_VALUE,
+            CMMNS_CD_VALUE_NM,
+            UP_CMMNS_CD_VALUE,
+            ADDTNG_MNG_VALUE1,
+            ADDTNG_MNG_VALUE2,
+            ADDTNG_MNG_VALUE3,
+            ADDTNG_MNG_VALUE4,
+            ADDTNG_MNG_VALUE5,
+            LACA_ADDTNG_MNG_CN,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+
+        FROM SAC100
+        
+        WHERE 
+            CMMNS_CD_ID = #{codeId}
+            AND USE_YN = 'Y'
+        
+        ORDER BY 
+            SRTNG_SQNCE
+            
+    ]]>
+    </select>
+
+
+    <select id="selectCommonCode2" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCommonCode - Lee JiSeob */
+
+        SELECT
+            CMMNS_CD_ID,
+            CMMNS_CD_VALUE,
+            CMMNS_CD_VALUE_NM,
+            UP_CMMNS_CD_VALUE,
+            ADDTNG_MNG_VALUE1,
+            ADDTNG_MNG_VALUE2,
+            ADDTNG_MNG_VALUE3,
+            ADDTNG_MNG_VALUE4,
+            ADDTNG_MNG_VALUE5,
+            LACA_ADDTNG_MNG_CN,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+
+        FROM SAC100
+        
+        WHERE 
+            CMMNS_CD_ID = #{codeId}
+    ]]>
+        <if test="upCmmnsCdValue != null and upCmmnsCdValue != ''">
+    <![CDATA[
+            AND UP_CMMNS_CD_VALUE = #{upCmmnsCdValue}
+    ]]>
+        </if>
+    <![CDATA[
+            AND USE_YN = 'Y'
+        
+        ORDER BY 
+            SRTNG_SQNCE
+            
+    ]]>
+    </select>
+
+
+    <select id="selectCommonCodeUnit" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCommonCode - Lee JiSeob */
+    
+        SELECT
+            CMMNS_CD_ID,
+            CMMNS_CD_VALUE,
+            CMMNS_CD_VALUE_NM,
+            UP_CMMNS_CD_VALUE,
+            ADDTNG_MNG_VALUE1,
+            ADDTNG_MNG_VALUE2,
+            ADDTNG_MNG_VALUE3,
+            ADDTNG_MNG_VALUE4,
+            ADDTNG_MNG_VALUE5,
+            LACA_ADDTNG_MNG_CN,
+            SRTNG_SQNCE,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+
+        FROM 
+        (
+        
+    ]]>
+    
+        <if test="unitCode != null and unitCode != ''">
+    <![CDATA[
+    
+        SELECT
+            CMMNS_CD_ID,
+            CMMNS_CD_VALUE,
+            CMMNS_CD_VALUE_NM,
+            UP_CMMNS_CD_VALUE,
+            ADDTNG_MNG_VALUE1,
+            ADDTNG_MNG_VALUE2,
+            ADDTNG_MNG_VALUE3,
+            ADDTNG_MNG_VALUE4,
+            ADDTNG_MNG_VALUE5,
+            LACA_ADDTNG_MNG_CN,
+            SRTNG_SQNCE,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+
+        FROM SAC100 C /* 공통코드 값 */
+        
+        WHERE 
+            C.CMMNS_CD_ID = #{codeId}
+
+            AND
+                EXISTS (
+                    SELECT D.UNT_TASKWK_SE_CD FROM SAC110 D /* 공통코드값 사용시스템 */ 
+                    WHERE D.CMMNS_CD_ID = C.CMMNS_CD_ID 
+                    AND D.CMMNS_CD_VALUE = C.CMMNS_CD_VALUE
+                    AND D.UNT_TASKWK_SE_CD = #{unitCode}
+                )
+            
+            AND C.USE_YN = 'Y'
+        
+        UNION
+    ]]>        
+        </if>
+        
+    <![CDATA[
+            
+        SELECT
+            CMMNS_CD_ID,
+            CMMNS_CD_VALUE,
+            CMMNS_CD_VALUE_NM,
+            UP_CMMNS_CD_VALUE,
+            ADDTNG_MNG_VALUE1,
+            ADDTNG_MNG_VALUE2,
+            ADDTNG_MNG_VALUE3,
+            ADDTNG_MNG_VALUE4,
+            ADDTNG_MNG_VALUE5,
+            LACA_ADDTNG_MNG_CN,
+            SRTNG_SQNCE,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+
+        FROM SAC100 C /* 공통코드 값 */
+        
+        WHERE 
+            C.CMMNS_CD_ID = #{codeId}
+
+            AND 
+                NOT EXISTS (
+                    SELECT D.UNT_TASKWK_SE_CD FROM SAC110 D /* 공통코드값 사용시스템 */ 
+                    WHERE D.CMMNS_CD_ID = C.CMMNS_CD_ID 
+                    AND D.CMMNS_CD_VALUE = C.CMMNS_CD_VALUE
+                )
+                
+            AND C.USE_YN = 'Y'
+        
+        ) X
+                
+        ORDER BY 
+            X.SRTNG_SQNCE
+            
+    ]]>
+    </select>
+    
+    <select id="selectCommonCodeAllUnit" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCommonCodeAllUnit - Lee JiSeob */
+    
+        SELECT
+            CMMNS_CD_ID,
+            CMMNS_CD_VALUE,
+            (
+            CASE
+                WHEN C.USE_YN = 'N' then '[삭제]'
+                WHEN (NVL((SELECT COUNT(*) FROM SAC110 D 
+                    WHERE D.CMMNS_CD_ID = C.CMMNS_CD_ID 
+                    AND D.CMMNS_CD_VALUE = C.CMMNS_CD_VALUE),0)) = 0 THEN ''
+                WHEN (NVL((SELECT COUNT(*) FROM SAC110 D 
+                    WHERE D.CMMNS_CD_ID = C.CMMNS_CD_ID 
+                    AND D.CMMNS_CD_VALUE = C.CMMNS_CD_VALUE
+                    AND D.UNT_TASKWK_SE_CD = #{unitCode} ),0)) = 0 THEN '[미지원]'
+                ELSE ''
+            END ) || CMMNS_CD_VALUE_NM AS CMMNS_CD_VALUE_NM,
+            UP_CMMNS_CD_VALUE,
+            ADDTNG_MNG_VALUE1,
+            ADDTNG_MNG_VALUE2,
+            ADDTNG_MNG_VALUE3,
+            ADDTNG_MNG_VALUE4,
+            ADDTNG_MNG_VALUE5,
+            LACA_ADDTNG_MNG_CN,
+            SRTNG_SQNCE,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+
+        FROM SAC100 C /* 공통코드 값 */
+        
+        WHERE 
+            C.CMMNS_CD_ID = #{codeId}
+        order by SRTNG_SQNCE asc
+            
+    ]]>
+    </select>
+
+
+    <select id="selectCommonCodeList" parameterType="Integer" resultType="HashMap">
+    <![CDATA[
+        /* selectCommonCodeList - Lee JiSeob */
+
+        SELECT
+            C.CMMNS_CD_ID,
+            C.UP_CMMNS_CD_ID,
+            C.CMMNS_CD_NM,
+            C.CMMNS_CD_DSCRP_CN,
+            C.ADDTNG_MNG_VALUE_NM1,
+            C.ADDTNG_MNG_VALUE_NM2,
+            C.ADDTNG_MNG_VALUE_NM3,
+            C.ADDTNG_MNG_VALUE_NM4,
+            C.ADDTNG_MNG_VALUE_NM5,
+            C.CMMNS_CD_LEVELA_NO,
+            D.UNT_TASKWK_SE_CD AS UNT_SYS_SE_CD
+            
+        FROM SAC000 C, SAC200 D
+        
+        WHERE
+            C.CMMNS_CD_ID = D.CMMNS_CD_ID 
+            AND D.UNT_TASKWK_SE_CD = #{systemId}
+        
+        ORDER BY 
+            C.CMMNS_CD_ID
+            
+    ]]>
+    </select>
+
+
+    <select id="selectCommonCodeTotalList" parameterType="Integer" resultType="HashMap">
+    <![CDATA[
+        /* selectCommonCodeTotalList - Lee JiSeob */
+
+        SELECT
+            C.CMMNS_CD_ID,
+            C.CMMNS_CD_VALUE,
+            C.CMMNS_CD_VALUE_NM,
+            C.ADDTNG_MNG_VALUE1,
+            C.ADDTNG_MNG_VALUE2,
+            C.ADDTNG_MNG_VALUE3,
+            C.ADDTNG_MNG_VALUE4,
+            C.ADDTNG_MNG_VALUE5,
+            C.LACA_ADDTNG_MNG_CN,
+            D.UNT_TASKWK_SE_CD AS UNT_SYS_SE_CD
+        
+        FROM SAC100 C, SAC200 D
+        
+        WHERE
+            C.CMMNS_CD_ID = D.CMMNS_CD_ID 
+            AND D.UNT_TASKWK_SE_CD = #{systemId}
+            AND C.USE_YN = 'Y'
+        
+        ORDER BY 
+            C.CMMNS_CD_ID, C.SRTNG_SQNCE
+            
+    ]]>
+    </select>
+
+    <select id="selectCodeIdDuplicate" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* selectCodeIdDuplicate - Lee JiSeob */
+
+        SELECT
+            COUNT(*)
+        
+        FROM SAC000 C
+        
+        LEFT JOIN SAC200 D ON C.CMMNS_CD_ID = D.CMMNS_CD_ID
+        
+        WHERE
+            (D.UNT_TASKWK_SE_CD IS NULL OR D.UNT_TASKWK_SE_CD != #{systemId})
+            AND C.CMMNS_CD_ID IN
+    ]]>
+        <foreach collection="codeList" item="item" index="index" separator="," open="(" close=")">
+    <![CDATA[
+            #{item.CMMNS_CD_ID}
+    ]]>
+       </foreach>
+
+    </select>
+
+    <select id="selectOrgUnitSystem" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectOrgUnitSystem - Lee JiSeob */
+        
+        SELECT 
+            
+            C.INST_NO AS INST_CD,
+            C.UNT_TASKWK_SE_CD AS UNT_SYS_SE_CD,
+            D.CMMNS_CD_VALUE_NM AS UNIT_SYSTEM_NAME
+            
+        FROM SAA030 C /* 관리업무 시스템 */ , SAC100 D /* 공통코드 값 */
+        
+        WHERE C.INST_NO = #{INST_CD}
+        AND D.CMMNS_CD_ID = 'UNT_SYS_SE_CD' 
+        AND D.CMMNS_CD_VALUE = C.UNT_TASKWK_SE_CD
+
+        ORDER BY C.UNT_TASKWK_SE_CD 
+        
+    ]]>
+    </select>
+
+
+    <update id="updateCodeId" parameterType="HashMap">
+    <![CDATA[
+        
+        /* updateCodeId - Lee JiSeob */
+        
+        UPDATE SAC000
+        SET CMMNS_CD_ID = #{CMMNS_CD_ID}
+        WHERE CMMNS_CD_ID = #{CMMNS_CD_ID_ORI}
+        
+    ]]>
+    </update>
+
+
+    <update id="updateCodeValueId" parameterType="HashMap">
+    <![CDATA[
+        
+        /* updateCodeValueId - Lee JiSeob */
+        
+        UPDATE SAC100
+        SET CMMNS_CD_ID = #{CMMNS_CD_ID}
+        WHERE CMMNS_CD_ID = #{CMMNS_CD_ID_ORI}
+        
+    ]]>
+    </update>
+
+    <select id="getSysDate" parameterType="HashMap" resultType="String">
+        /* 공통팀 유민상 isry.itgcms.sysmgmt.cmmncode.mapper.MgmtCmmnCodeMapper.getSysDate 공통팀 유민상 */
+        <choose>
+            <when test="STR_FORMAT != null and STR_FORMAT != ''">
+                SELECT TO_CHAR(SYSDATE, #{STR_FORMAT}) AS CURT_DT
+            </when>
+            <otherwise>
+                SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') AS CURT_DT
+            </otherwise>
+        </choose>
+       <![CDATA[
+            FROM DUAL
+       ]]>
+    </select>
+
+
+    <select id="selectCodeValueUnitSystem" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCodeValueUnitSystem - Lee JiSeob */
+
+        SELECT 
+            C.CMMNS_CD_ID, 
+            C.CMMNS_CD_VALUE, 
+            C.UNT_TASKWK_SE_CD,
+            (SELECT D.CMMNS_CD_VALUE_NM FROM SAC100 D /* 공통코드 값 */ WHERE D.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD' 
+            AND D.CMMNS_CD_VALUE = C.UNT_TASKWK_SE_CD) AS UNIT_SYSTEM_NAME, 
+            C.FRST_RGTR_ID, 
+            C.FRST_REG_DT, 
+            C.LAST_MDFR_ID, 
+            C.LAST_MDFCN_DT
+            
+        FROM 
+            SAC110 C /* 공통코드값 사용시스템 */
+        
+        WHERE
+            C.CMMNS_CD_ID = #{CMMNS_CD_ID}
+            AND C.CMMNS_CD_VALUE= #{CMMNS_CD_VALUE}
+    ]]>
+    </select>
+
+
+    <update id="saveCodeValueUnitSystem" parameterType="HashMap">
+    <![CDATA[
+        
+        /* saveCodeValueUnitSystem - Lee JiSeob */
+        
+        INSERT INTO SAC110
+        (
+            CMMNS_CD_ID, 
+            CMMNS_CD_VALUE, 
+            UNT_TASKWK_SE_CD, 
+            FRST_RGTR_ID, 
+            FRST_REG_DT, 
+            LAST_MDFR_ID, 
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{CMMNS_CD_ID}, 
+            #{CMMNS_CD_VALUE}, 
+            #{UNT_TASKWK_SE_CD}, 
+            #{USER_ID}, 
+            SYSDATE, 
+            #{USER_ID}, 
+            SYSDATE
+        )
+        
+    ]]>
+    </update>
+
+
+    <delete id="deleteCodeValueUnitSystem" parameterType="HashMap">
+    <![CDATA[
+        
+        /* deleteCodeValueUnitSystem - Lee JiSeob */
+        
+        DELETE FROM SAC110
+        WHERE 
+            CMMNS_CD_ID = #{CMMNS_CD_ID} 
+            AND CMMNS_CD_VALUE = #{CMMNS_CD_VALUE} 
+        
+    ]]>
+    </delete>
+
+
+    <select id="selectCommonCodeJoinRights" resultType="HashMap">
+    <![CDATA[
+        /* selectCommonCode - Lee JiSeob */
+
+        SELECT
+            CMMNS_CD_ID,
+            CMMNS_CD_VALUE,
+            CMMNS_CD_VALUE_NM,
+            UP_CMMNS_CD_VALUE,
+            ADDTNG_MNG_VALUE1,
+            ADDTNG_MNG_VALUE2,
+            ADDTNG_MNG_VALUE3,
+            ADDTNG_MNG_VALUE4,
+            ADDTNG_MNG_VALUE5,
+            LACA_ADDTNG_MNG_CN,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+
+        FROM SAC100
+        
+        WHERE 
+            CMMNS_CD_ID = 'ENFSN_ROLE_SE_CD'
+
+            AND ADDTNG_MNG_VALUE1 = 'Y'
+
+            AND USE_YN = 'Y'
+        
+        ORDER BY 
+            SRTNG_SQNCE
+            
+    ]]>
+    </select>
+
+    <!-- 1분 전 시간 구하기 -->
+    <select id="getSysDateMinus1Minute" parameterType="HashMap" resultType="String">
+    <![CDATA[
+        /* getSysDateMinus1Minute - Lee JiSeob */
+    ]]>
+        <choose>
+            <when test="STR_FORMAT != null and STR_FORMAT != ''">
+    <![CDATA[
+                SELECT TO_CHAR(SYSDATE - (INTERVAL '10' SECOND), #{STR_FORMAT}) AS CURT_DT
+    ]]>
+            </when>
+            <otherwise>
+    <![CDATA[
+                SELECT TO_CHAR(SYSDATE - (INTERVAL '10' SECOND), 'YYYY-MM-DD HH24:MI:SS') AS CURT_DT
+    ]]>
+            </otherwise>
+        </choose>
+    
+    <![CDATA[
+        FROM DUAL
+    ]]>
+    </select>
+
+</mapper>

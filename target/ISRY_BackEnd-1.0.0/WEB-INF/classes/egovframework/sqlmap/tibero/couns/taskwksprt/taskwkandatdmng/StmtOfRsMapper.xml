@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.taskwksprt.taskwkandatdmng.mapper.StmtOfRsMapper">
+
+    <select id="selectUserInfo" parameterType="HashMap" resultType="HashMap">
+    /**
+    *       selectUserInfo : isry.couns.taskwksprt.taskwkandatdmng.mapper.StmtOfRsMapper : 로그인 정보 조회
+    */
+        SELECT
+                T1.USER_ID                          AS  USER_ID         /* 상담원 아이디 */
+                , C##RG.DEC_B64(T2.FLNM_ENCPT)   AS  FLNM            /* 상담원 이름 */
+                , TO_CHAR(SYSDATE, 'YYYYMMDD')      AS  WRT_YMD         /* 현재 일자 */
+                , (
+                    SELECT
+                            COUNT(*)
+                    FROM    SAB881      T3      /* 첨부파일상세 */
+                    WHERE   1=1
+                    AND     T3.ATFINO               =       T2.ATFINO
+                    AND     T3.FILE_STTS_SE_CD      =       'N'
+                    AND     T3.ATCMFL_CL_NM         =       '서명사진'
+                   )                                AS  ATCMFL_CNT      /* 첨부파일 카운트 */
+                , T2.ATFINO                         AS  ATFINO          /* 첨부파일번호 */
+                , '서명사진'                        AS  ATCMFL_CL_NM    /* 첨부파일분류명 */
+        FROM    SAA200      T1          /* 사용자 테이블 */
+                , SCA100    T2          /* 종사자 테이블 */
+        WHERE   1=1
+        AND     T1.ENFSN_NO     =       T2.ENFSN_NO
+        AND     T1.USER_ID      =       #{loginId}
+    </select>
+
+    <select id="selectStmtOfRsList" parameterType="HashMap" resultType="HashMap">
+    /**
+	*		selectStmtOfRsList : isry.couns.taskwksprt.taskwkandatdmng.mapper.StmtOfRsMapper : 사유서 목록 조회
+	*/
+		SELECT 
+				AA.WRTR_ID			               AS		WRTR_ID				/* 작성자아이디 */
+			,	C##RG.DEC_B64(CC.FLNM_ENCPT)	   AS		WRTR_NM				/* 작성자이름 */
+            ,   AA.WRT_YMD                         AS       WRT_YMD             /* 작성자일자 */
+			,	AA.STOFRE_TTL_NM	               AS		STOFRE_TTL_NM		/* 사유서제목명 */
+			,	AA.STOFRE_SN		               AS		STOFRE_SN			/* 사유일련번호 */
+			,	AA.ATFINO			               AS		ATFINO				/* 첨부파일번호 */
+			,	AA.APRV_STTS_SE_CD	               AS		APRV_STTS_SE_CD     /* 승인상태구분코드 */
+		FROM
+				AYC320		AA		/** 사이버상담사유서 **/
+			,	SAA200		BB
+			,	SCA100		CC
+		WHERE	1=1
+		<if test="loginId != null and loginId != ''">
+			<![CDATA[
+			AND	AA.WRTR_ID	=	#{loginId}
+			]]>
+		</if>
+			AND	AA.DEL_YN	=	'N'
+			AND	AA.WRTR_ID	=	BB.USER_ID
+			AND	BB.ENFSN_NO	=	CC.ENFSN_NO
+		ORDER BY 3 DESC
+    </select>
+    
+    <!-- <select id="selectStmtOfRsList" parameterType="HashMap" resultType="HashMap">
+    /**
+    *       selectStmtOfRsList : isry.couns.taskwksprt.taskwkandatdmng.mapper.StmtOfRsMapper : 사유서 목록 조회
+    */
+        SELECT 
+                AA.WRTR_ID          AS      WRTR_ID             /* 작성자아이디 */
+            ,   CC.FLNM_ENCPT       AS      WRTR_NM             /* 작성자이름 */
+            ,   AA.WRT_YMD          AS      WRT_YMD             /* 작성자일자 */
+            ,   AA.STOFRE_TTL_NM    AS      STOFRE_TTL_NM       /* 사유서제목명 */
+            ,   AA.STOFRE_SN        AS      STOFRE_SN           /* 사유일련번호 */
+            ,   AA.ATFINO           AS      ATFINO              /* 첨부파일번호 */
+            ,   (
+                 SELECT
+                         A1.ATFINO
+                 FROM
+                         SAB821      A1
+                 WHERE   1=1
+                 AND     A1.ATFINO   =   CC.ATFINO
+                 AND     A1.FILE_STTS_SE_CD  =   'N'
+                 AND     A1.ATCMFL_CL_NM     =   '서명사진'
+                 )                   AS      SIGN_ATFION         /* 서명사진 첨부파일 번호 */
+            ,   (
+                SELECT
+                        A1.STRG_COURS_NM || A1.STRG_FILE_NM     AS FULL_FILE_NM /** 저장경로명 + 실제파일명 확장자까지 포함되는듯 함 **/
+                FROM
+                        SAB821      A1
+                WHERE   1=1
+                    AND A1.ATFINO = CC.ATFINO
+                    AND A1.FILE_STTS_SE_CD  =   'N'
+                    AND A1.ATCMFL_CL_NM     =   '서명사진'
+                )                   AS      SIGN_PIC_NM             /* 서명첨부파일 */
+            ,   ''                  AS      SIGN_PIC_YN             /* 서명그림파일유무 자바에서 처리 */
+            ,    (
+                SELECT
+                        COUNT(*)    AS      ATCMFL_CNT
+                FROM
+                        SAB821      A1
+                WHERE   1=1
+                    AND A1.ATFINO = CC.ATFINO
+                    AND A1.FILE_STTS_SE_CD  =   'N'
+                    AND A1.ATCMFL_CL_NM     =   '서명사진'
+                )                   AS      ATCMFL_CNT             /* 첨부파일 카운트 */
+            ,   (
+                SELECT
+                        A1.CMMNS_CD_VALUE_NM    AS  CD_NAME
+                FROM
+                        SAC100  A1
+                WHERE   1=1
+                    AND A1.CMMNS_CD_ID      =   'APRV_STTS_SE_CD'
+                    AND A1.CMMNS_CD_VALUE   =   AA.APRV_STTS_SE_CD
+                )                               AS      CS_STTS_NM          /* 승인상태구분코드명 */
+            ,   AA.APRV_STTS_SE_CD              AS      APRV_STTS_SE_CD     /* 승인상태구분코드 */
+        FROM
+                AYC320      AA      /** 사이버상담사유서 **/
+            ,   SAA200      BB
+            ,   SCA100      CC
+        WHERE   1=1
+        <if test="loginId != null and loginId != ''">
+            <![CDATA[
+            AND AA.WRTR_ID  =   #{loginId}
+            ]]>
+        </if>
+            AND AA.DEL_YN   =   'N'
+            AND AA.WRTR_ID  =   BB.USER_ID
+            AND BB.ENFSN_NO =   CC.ENFSN_NO
+        ORDER BY 3 DESC
+    </select> -->
+    
+    <insert id="insertStmtOfRs" parameterType="HashMap">
+    /**
+	*		insertStmtOfRs : isry.couns.taskwksprt.taskwkandatdmng.mapper.StmtOfRsMapper : 사유서 목록 등록
+	*/
+	    INSERT	INTO
+				AYC320		/** 사이버상담사유서 **/
+				(
+						STOFRE_SN
+					,	WRTR_ID
+					,	WRT_YMD
+					,	STOFRE_TTL_NM
+					,	STOFRE_CN
+					,	REG_YMD
+					,	APRV_STTS_SE_CD
+				<if test='bbscttAtfino != null and bbscttAtfino != ""'>
+					,	ATFINO
+				</if>
+					,	FRST_RGTR_ID
+					,	FRST_REG_DT
+					,	LAST_MDFR_ID
+					,	LAST_MDFCN_DT
+				)		
+		VALUES
+				(
+						AYC320_SQ01.NEXTVAL
+					,	#{loginId}
+					,	REPLACE(#{wrtYmd}, '-', '')
+					,	#{stofreTtlNm}
+					,	#{stofreCn}
+					,	TO_CHAR(SYSDATE,'YYYYMMDD')
+					,	'0'				/** 대기 **/
+				<if test='bbscttAtfino != null and bbscttAtfino != ""'>
+					,	#{bbscttAtfino}
+				</if>
+					,	#{loginId}
+					,	SYSDATE
+					,	#{loginId}
+					,	SYSDATE
+				)
+    </insert>
+    <update id="deleteStmtOfRs" parameterType="HashMap">
+    /**
+	*		deleteStmtOfRs : isry.couns.taskwksprt.taskwkandatdmng.mapper.StmtOfRsMapper : 사유서 목록 삭제
+	*/
+	    UPDATE
+	    		AYC320		AA		/** 사이버상담사유서 **/
+	    SET
+	    		AA.DEL_YN	=	'Y'
+	    	,	AA.LAST_MDFR_ID	=	#{loginId}
+			,	AA.LAST_MDFCN_DT	=	SYSDATE
+	    WHERE	1=1
+	    	AND	AA.STOFRE_SN	=	#{stofreSn}
+    </update>
+
+</mapper>

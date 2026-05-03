@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.drmgs.lcgovbiz.mapper.LcgovBizSprtPreconMapper">
+	
+	<select id="selectLcgovBizSprtPreconList" parameterType="HashMap" resultType="HashMap">
+	   <!-- 페이지 인덱서 헤더 -->
+        <include refid="ComPagingMapper.pageHeader" />
+	   <![CDATA[
+	       /* isry.drmgs.lcgovbiz.mapper.LcgovBizSprtPreconMapper.selectLcgovBizSprtPreconList - 응용2팀 정원제 */
+	        TT10.*
+	       FROM
+		       (SELECT
+			            T1.CASE_MNG_NO                                                      AS      CASE_NO             /* 사례관리번호 */
+			            , T1.CASE_MNG_ODRNO                                                 AS      CASE_ODRNO          /* 사례관리차수 */
+			            , T5.FLNM_ENCPT                                                     AS      CONSTT_NM           /* 상담자이름 */
+			            , CASE
+			                    WHEN T3.INDV_IDNTFC_NO IS NULL THEN T2.TRPR_NM_ENCPT
+			                    ELSE T3.FLNM_ENCPT
+			              END                                                               AS      CLIENA_NM           /* 내담자이름 */
+			            , TO_CHAR(TO_DATE(T2.TRPR_BRTH_YMD), 'YYYY-MM-DD')                  AS      BRTH_YY_MM_DAY      /* 내담자생년월일 */
+			            , CASE
+			                    WHEN T3.INDV_IDNTFC_NO IS NULL THEN T2.SXDC_SE_CD
+			                    ELSE T3.SXDC_SE_CD
+			              END                                                               AS      SXDC                /* 내담자성별 */
+			            , TO_CHAR(TO_DATE(T1.CASE_BGNG_YMD), 'YYYY-MM-DD')                  AS      CASE_BGNG_DD        /* 사례시작일 */
+			            , TO_CHAR(TO_DATE(T1.CASE_TRMN_YMD), 'YYYY-MM-DD')                  AS      CASE_END_DD         /* 사례종료일 */
+			            , T1.FRST_REG_DT                                                    AS      FRST_REG_DT         /* 등록일 */
+			            , T4.PIC_INST_NO                                                    AS      INST_NO             /* 기관번호 */ 
+			            , T6.RGN_CD                                                         AS      RGN_CD              /* 지역코드 */
+			            , T7.CTPV_SE_CD                                                     AS      CTPV_SE_CD          /* 시도구분코드 */
+			            , T1.UNT_TASKWK_SE_CD                                               AS      UNT_TASKWK_SE_CD    /* 단위업무구분코드 */
+			            , T8.CMMNS_CD_VALUE_NM                                              AS      CASE_PRGRS_STTS_SE_NM   /* 사례진행상태 */
+			            , T6.INST_NM                                                        AS      INST_NM             /* 담당기관명 */
+			            , T1.YNGBGS_SE_NO                                        AS      YNGBGS_SE_NO /* 청소년구분번호 */
+			            , T1.CASE_PRGRS_STTS_SE_CD                                          AS      CASE_PRGRS_STTS_SE_CD   /* 사례진행상태구분코드 */
+			            , T2.CASE_TRPR_TYPE_SE_CD                                           AS      CASE_TRPR_TYPE_SE_CD    /* 사례대상자유형구분코드 */
+			            , (SELECT COUNT(*)
+			                FROM   SEB120     T8              /* 서비스 사업 대상자 */
+			                      , SDA400    T9              /* 서비스사업 */
+			                      , SDA420    T18             /* 서비스실행사업 */
+			                WHERE T1.CASE_MNG_NO            =             T8.CASE_MNG_NO
+			                AND     T1.CASE_MNG_ODRNO       =             T8.CASE_MNG_ODRNO
+			                AND     T8.DEL_YN               =             'N'
+			                AND     T8.SRVC_EXCN_BIZ_NO     =             T18.SRVC_EXCN_BIZ_NO
+			                AND     T18.SRVC_BIZ_NO         =             T9.SRVC_BIZ_NO
+			                AND     T18.EXCN_BIZ_CL_SE_CD   =             '05'
+			                )                                                               AS      CASE_CNT          /* 사례수 */
+			            , (
+		                   SELECT    COUNT(*)
+		                   FROM        SEB510              T10
+		                                   , SEB500            T11
+		                                   , (SELECT   *
+		                                       FROM    SDA100
+		                                       WHERE   GR_TRGT_SRVC_YN     =       'N')        T12
+		                                   , SDA420            T13
+		                                   , SDA400            T14
+		                   WHERE       T10.SRVC_PVSN_NO                =                   T11.SRVC_PVSN_NO
+		                   AND         T11.RESRCE_NO                   =                   T12.RESRCE_NO
+		                   AND         T12.SRVC_EXCN_BIZ_NO            =                   T13.SRVC_EXCN_BIZ_NO
+		                   AND         T13.SRVC_BIZ_NO                 =                   T14.SRVC_BIZ_NO
+		                   AND         T13.EXCN_BIZ_CL_SE_CD           =                   '05'
+		                   AND         T10.DEL_YN                      =                   'N'
+		                   AND         T1.CASE_MNG_NO                  =                   T10.CASE_MNG_NO
+		                   AND         T1.CASE_MNG_ODRNO               =                   T10.CASE_MNG_ODRNO
+			               )                                                                AS      INDIV_SESN_CNT    /* 개별 회기수 */
+			            , (
+			               SELECT    COUNT(*)
+                           FROM        SEB510              T10
+                                           , SEB500            T11
+                                           , (SELECT   *
+                                               FROM    SDA100
+                                               WHERE   GR_TRGT_SRVC_YN     =       'Y')        T12
+                                           , SDA420            T13
+                                           , SDA400            T14
+                           WHERE       T10.SRVC_PVSN_NO                =                   T11.SRVC_PVSN_NO
+                           AND         T11.RESRCE_NO                   =                   T12.RESRCE_NO
+                           AND         T12.SRVC_EXCN_BIZ_NO            =                   T13.SRVC_EXCN_BIZ_NO
+                           AND         T13.SRVC_BIZ_NO                 =                   T14.SRVC_BIZ_NO
+                           AND         T13.EXCN_BIZ_CL_SE_CD           =                   '05'
+                           AND         T10.DEL_YN                      =                   'N'
+                           AND         T1.CASE_MNG_NO                  =                   T10.CASE_MNG_NO
+                           AND         T1.CASE_MNG_ODRNO               =                   T10.CASE_MNG_ODRNO
+			               )                                                                AS      GR_DSCSN_CNT      /* 집단 상담수 */
+			   FROM 
+			           SEB100 T1               /* 사례기본 */
+			           , SEA200 T2             /* 대상자정보 */
+			           , SCA300 T3             /* 개인정보 */
+			           , SEB150 T4             /* 사례담당자 */
+			           , SCA100 T5             /* 종사자 */
+			           , SAA000 T6             /* 통합기관 */
+			           , SAA020 T7             /* 시군구코드 */
+			           , SAC100 T8             /* 공통코드 값 */
+			   WHERE 1=1
+			   AND     T1.TRPR_INFO_NO         =       T2.TRPR_INFO_NO
+			   AND     T2.INDV_IDNTFC_NO       =       T3.INDV_IDNTFC_NO(+)
+			   AND     T1.CASE_MNG_NO          =       T4.CASE_MNG_NO
+			   AND     T1.CASE_MNG_ODRNO       =       T4.CASE_MNG_ODRNO
+			   AND     T4.CASE_PIC_NO          =       T5.ENFSN_NO
+			   AND     T4.PIC_INST_NO          =       T6.INST_NO
+			   AND     T6.RGN_CD               =       T7.SGG_CD
+			   AND     T7.CTPV_SE_CD           =       41
+			   AND     T1.UNT_TASKWK_SE_CD     =       'U03'
+			   AND     T1.CASE_PRGRS_STTS_SE_CD=       T8.CMMNS_CD_VALUE(+)
+               AND     'CASE_PRGRS_STTS_SE_CD' =       T8.CMMNS_CD_ID(+)
+			   ) AS TT10
+	       WHERE 1=1
+	   ]]>
+	   <if test="START_DATE != null and START_DATE != ''">
+           <![CDATA[
+             AND TO_CHAR(TT10.FRST_REG_DT, 'YYYYMMDD') BETWEEN #{START_DATE} AND #{END_DATE}
+           ]]>
+           </if>
+	   <if test='CLIENA_NM != null and CLIENA_NM != ""'>
+	       AND TT10.CLIENA_NM     =       #{CLIENA_NM}
+	   </if>
+	   <if test='CONSTT_NM != null and CONSTT_NM != ""'>
+           AND TT10.CONSTT_NM     =       #{CONSTT_NM}
+       </if>
+	   <if test='UNREG_YN1 == "Y"'>
+	       <![CDATA[
+	           AND TT10.CASE_CNT             =       0
+	       ]]>
+	   </if>
+	   <if test='UNREG_YN2 == "Y"'>
+           <![CDATA[
+               AND TT10.INDIV_SESN_CNT       =       0
+           ]]>
+       </if>
+       <if test='UNREG_YN3 == "Y"'>
+           <![CDATA[
+               AND TT10.GR_DSCSN_CNT         =       0
+           ]]>
+       </if>
+       <if test='YNGBGS_STTS_LCLAS_SE_CD != null and YNGBGS_STTS_LCLAS_SE_CD != ""'>
+           AND TT10.YNGBGS_STTS_LCLAS_SE_CD     =       #{YNGBGS_STTS_LCLAS_SE_CD}
+       </if>
+       <if test='INST_NO != null and INST_NO != ""'>
+           AND TT10.INST_NO     =       #{INST_NO}
+       </if>
+       <if test='CASE_PRGRS_STTS_SE_CD != null and CASE_PRGRS_STTS_SE_CD != ""'>
+           AND TT10.CASE_PRGRS_STTS_SE_CD     =       #{CASE_PRGRS_STTS_SE_CD}
+       </if>
+       <if test='CASE_TRPR_TYPE_SE_CD != null and CASE_TRPR_TYPE_SE_CD != ""'>
+           AND TT10.CASE_TRPR_TYPE_SE_CD     =       #{CASE_TRPR_TYPE_SE_CD}
+       </if>
+       <![CDATA[
+           ORDER BY TT10.FRST_REG_DT DESC, TT10.CASE_NO, TT10.CASE_ODRNO DESC
+       ]]>
+       <!-- 페이지 인덱서 OFFSET 조건 -->
+      <include refid="ComPagingMapper.pageOffset"/>
+	</select>
+	
+	<select id="selectClienaInfo" parameterType="HashMap" resultType="HashMap">
+	   <![CDATA[
+	       /* isry.drmgs.lcgovbiz.mapper.LcgovBizSprtPreconMapper.selectClienaInfo - 응용2팀 정원제 */
+	       SELECT 
+		          T1.CASE_MNG_NO                                                  AS          CASE_NO                 /* 사례관리번호 */
+		          , T1.CASE_MNG_ODRNO                                             AS          CASE_ODRNO              /* 사례관리차수 */
+		          , CASE
+		                  WHEN T3.INDV_IDNTFC_NO IS NULL THEN T2.TRPR_NM_ENCPT
+		                  ELSE T3.FLNM_ENCPT
+		            END                                                           AS          CLIENA_NM               /* 내담자 이름 */
+		          , TO_CHAR(TO_DATE(T2.TRPR_BRTH_YMD), 'YYYY-MM-DD')              AS          BRTH_YY_MM_DAY          /* 내담자 생년월일 */
+		          , CASE
+		                  WHEN T3.INDV_IDNTFC_NO IS NULL THEN T2.SXDC_SE_CD
+		                  ELSE T3.SXDC_SE_CD
+		            END                                                           AS          SXDC                    /* 내담자 성별 */
+		          , TO_CHAR(TO_DATE(T1.CASE_BGNG_YMD), 'YYYY-MM-DD')              AS          CASE_BGNG_DD            /* 사례시작일 */
+		          , TO_CHAR(TO_DATE(T1.CASE_TRMN_YMD), 'YYYY-MM-DD')              AS          CASE_END_DD             /* 사례종료일 */
+		          , T5.FLNM_ENCPT                                                 AS          CONSTT_NM               /* 상담자 이름 */
+		          , (SELECT COUNT(*)
+		             FROM     SEB120      T8              /* 서비스 사업 대상자 */
+		                      , SDA400    T9              /* 서비스사업 */
+		                      , SDA420    T18             /* 서비스실행사업 */
+		             WHERE    T1.CASE_MNG_NO              =               T8.CASE_MNG_NO
+		             AND      T1.CASE_MNG_ODRNO           =               T8.CASE_MNG_ODRNO
+		             AND      T8.DEL_YN                   =               'N'
+		             AND      T8.SRVC_EXCN_BIZ_NO         =               T18.SRVC_EXCN_BIZ_NO
+		             AND      T18.SRVC_BIZ_NO             =               T9.SRVC_BIZ_NO
+		             AND      T18.EXCN_BIZ_CL_SE_CD       =               '05'
+		              )                                                           AS          CASE_COUNT              /* 사례수 */
+		   FROM   SEB100 T1               /* 사례기본 */
+		          , SEA200 T2             /* 대상자정보 */
+		          , SCA300 T3             /* 개인정보 */
+		          , SEB150 T4             /* 사례담당자 */
+		          , SCA100 T5             /* 종사자 */
+		   WHERE  1 = 1
+		   AND    T1.TRPR_INFO_NO         =       T2.TRPR_INFO_NO
+		   AND    T2.INDV_IDNTFC_NO       =       T3.INDV_IDNTFC_NO(+)
+		   AND    T1.CASE_MNG_NO          =       T4.CASE_MNG_NO
+		   AND    T1.CASE_MNG_ODRNO       =       T4.CASE_MNG_ODRNO
+		   AND    T4.CASE_PIC_NO          =       T5.ENFSN_NO
+		   AND    T4.PCHPRS_YN            =       'Y'
+		   AND    T1.CASE_MNG_NO          =       #{CASE_NO, jdbcType=VARCHAR}
+		   AND    T1.CASE_MNG_ODRNO       =       #{CASE_ODRNO, jdbcType=VARCHAR}
+	   ]]>
+	</select>
+	
+	<select id="selectIndivSprvtList" parameterType="HashMap" resultType="HashMap">
+	   <![CDATA[
+	       /* isry.drmgs.lcgovbiz.mapper.LcgovBizSprtPreconMapper.selectIndivSprvtList - 응용2팀 정원제 */
+	       SELECT 
+		           T1.SRVC_PVSN_NO                                                                                                                    AS      SRVC_PVSN_NO        /* 서비스 실행 번호 */
+		           , (SELECT FLNM_ENCPT FROM SCA100 WHERE ENFSN_NO = T6.PIC_NO)                                                                       AS      CONSTT_NM           /* 상담사 이름 */
+		           , TO_CHAR(TO_DATE(T2. SRVC_PVSN_BGNG_YMD), 'YYYY-MM-DD') || ' ~ ' || TO_CHAR(TO_DATE(T2.SRVC_PVSN_END_YMD), 'YYYY-MM-DD')          AS      SRVC_PVSN_PRD       /* 서비스제공기간 */
+		           , T3.PVSN_RESRCE_NM                                                                                                                AS      PVSN_RESRCE_NM      /* 지원서비스(제공자원명) */
+		   FROM    SEB510      T1
+	               , SEB500    T2
+	               , SDA100    T3
+	               , SDA420    T4
+	               , SDA400    T5
+	               , (SELECT *
+	                   FROM SDA110
+	                   WHERE PCHPRS_YN     = 'Y') T6
+		   WHERE   T1.CASE_MNG_NO          =          #{CASE_NO, jdbcType=VARCHAR}
+		   AND     T1.CASE_MNG_ODRNO       =          #{CASE_ODRNO, jdbcType=VARCHAR}
+		   AND     T1.SRVC_PVSN_NO         =          T2.SRVC_PVSN_NO
+		   AND     T1.RESRCE_NO            =          T2.RESRCE_NO
+		   AND     T2.RESRCE_NO            =          T3.RESRCE_NO
+		   AND     T3.SRVC_EXCN_BIZ_NO     =          T4.SRVC_EXCN_BIZ_NO
+		   AND     T4.SRVC_BIZ_NO          =          T5.SRVC_BIZ_NO
+		   AND     T3.RESRCE_NO            =          T6.RESRCE_NO(+)
+		   AND     T3.GR_TRGT_SRVC_YN      =          'N'
+		   AND     T4.EXCN_BIZ_CL_SE_CD    =          '05'
+		   AND     T1.DEL_YN               =          'N'
+	   ]]>
+	</select>
+	
+	<select id="selectGrDscsnList" parameterType="HashMap" resultType="HashMap">
+	   <![CDATA[
+	       /* isry.drmgs.lcgovbiz.mapper.LcgovBizSprtPreconMapper.selectGrDscsnList - 응용2팀 정원제 */
+           SELECT 
+                   T1.SRVC_PVSN_NO                                                                                                                    AS      SRVC_PVSN_NO        /* 서비스 실행 번호 */
+                   , (SELECT FLNM_ENCPT FROM SCA100 WHERE ENFSN_NO = T6.PIC_NO)                                                                       AS      CONSTT_NM           /* 상담사 이름 */
+                   , TO_CHAR(TO_DATE(T2. SRVC_PVSN_BGNG_YMD), 'YYYY-MM-DD') || ' ~ ' || TO_CHAR(TO_DATE(T2.SRVC_PVSN_END_YMD), 'YYYY-MM-DD')          AS      SRVC_PVSN_PRD       /* 서비스제공기간 */
+                   , T3.PVSN_RESRCE_NM                                                                                                                AS      PVSN_RESRCE_NM      /* 지원서비스(제공자원명) */
+           FROM    SEB510      T1
+                   , SEB500    T2
+                   , SDA100    T3
+                   , SDA420    T4
+                   , SDA400    T5
+                   , (SELECT *
+                       FROM SDA110
+                       WHERE PCHPRS_YN     = 'Y') T6
+           WHERE   T1.CASE_MNG_NO          =          #{CASE_NO, jdbcType=VARCHAR}
+           AND     T1.CASE_MNG_ODRNO       =          #{CASE_ODRNO, jdbcType=VARCHAR}
+           AND     T1.SRVC_PVSN_NO         =          T2.SRVC_PVSN_NO
+           AND     T1.RESRCE_NO            =          T2.RESRCE_NO
+           AND     T2.RESRCE_NO            =          T3.RESRCE_NO
+           AND     T3.SRVC_EXCN_BIZ_NO     =          T4.SRVC_EXCN_BIZ_NO
+           AND     T4.SRVC_BIZ_NO          =          T5.SRVC_BIZ_NO
+           AND     T3.RESRCE_NO            =          T6.RESRCE_NO(+)
+           AND     T3.GR_TRGT_SRVC_YN      =          'Y'
+           AND     T4.EXCN_BIZ_CL_SE_CD    =          '05'
+           AND     T1.DEL_YN               =          'N'
+	   ]]>
+	</select>
+</mapper>

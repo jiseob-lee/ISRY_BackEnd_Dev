@@ -1,0 +1,620 @@
+
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>:: 보안프로그램 설치 안내</title>
+    
+    <!-- 키보드 보안 스크립트 경로 -->
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/kos-ng.config.js"></script>
+	<script type="text/javascript" src="js/kos-ng.js"></script>  
+  
+    <style type="text/css">
+        body, div, dl, dt, dd, ul, ol, li, form, fieldset, p, button, img, p, h3 {
+            margin: 0;
+            padding: 0
+        }
+
+        body, h1, h2, h3, h4, th, td, input {
+            color: #5a5a5a;
+            font-family: "MalgunGothic","맑은 고딕","NanumGothic","나눔 고딕","돋움", dotum;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        body {
+            background-color: #ffffff;
+            line-height: 18px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        img {
+            vertical-align: middle;
+        }
+
+        .alignMiddle {
+            text-align: center;
+        }
+
+        .font01 {
+            color: #0d5dca;
+        }
+
+        .font02 {
+            color: #d73800;
+        }
+
+        .font03 {
+            color: #fb3500;
+        }
+
+        .font04 {
+            color: #aa5019;
+        }
+
+        .fontStrong {
+            font-weight: bold;
+        }
+
+        .fontSize01 {
+            font-size: 14px;
+        }
+
+        .fontSize02 {
+            font-size: 20px;
+        }
+
+        #header {
+            width: 714px;
+            margin: 40px auto 30px;
+            background-color: #288ae5;
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffffff;
+            padding: 10px 0 10px 16px;
+        }
+
+        #content {
+            width: 768px;
+            margin: 0 auto 50px;
+        }
+
+        .txt_box {
+            width: 636px;
+            border: 1px solid #cecece;
+            margin: 0 auto;
+            background-color: #f4f4f4;
+            padding: 19px;
+        }
+
+        p.txt_box_01 {
+            text-align: center;
+            border-bottom: 1px solid #e1e1e1;
+            padding-bottom: 15px;
+        }
+
+        p.txt_box_02 {
+            text-align: center;
+            color: #838383;
+            margin-top: 20px;
+        }
+
+        h2.info01 {
+            width: 673px;
+            border-bottom: 1px solid #c9c9c9;
+            margin: 20px auto 0;
+            font-weight: bold;
+            font-size: 14px;
+            color: #0b5798;
+            padding: 22px 0 8px 5px;
+        }
+
+        p.info_txt {
+            margin: 8px auto;
+            width: 668px;
+            padding: 0 10px;
+        }
+
+        table.download {
+            width: 678px;
+            margin: 15px auto;
+            border-collapse: collapse;
+            border: 1px solid #c6c6c6;
+        }
+
+        table.download th {
+            border: 1px solid #c6c6c6;
+            background-color: #f4f4f4;
+            font-weight: bold;
+            text-align: center;
+            height: 30px;
+        }
+
+        table.download td {
+            border: 1px solid #c6c6c6;
+            padding: 10px;
+        }
+
+        table.download td a {
+            display: block;
+            width: 75px;
+            padding: 3px 0 1px 0;
+            text-align: center;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: bold;
+            -webkit-border-radius: 4px;
+            -moz-border-radius: 4px;
+            border-radius: 4px;
+            background: #288ae5;
+            border: 1px solid #377ab9;
+            margin: 0 auto;
+        }
+
+        table.download td a:hover {
+            background: #49a2f3;
+        }
+
+        table.download td a:active {
+            background: #1f66ae;
+        }
+
+        .howto_info {
+            width: 676px;            
+			overflow:hidden;
+            margin: 0 auto;
+            border: 1px solid #c3d8ec;
+            background-color: #f4f8fb;
+			padding-bottom:15px;
+        }
+
+        h3.info02 {
+            padding: 15px 0 8px 20px;
+            font-weight: bold;
+            color: #0b5798;
+        }
+
+        p.info02_txt {
+            padding-left: 10px;
+            margin-left: 15px;
+            width: 640px;
+        }
+		
+		p.info03_txt {
+            padding-left: 10px;
+            margin-left: 15px;
+            width: 640px;
+			font-size:14px;
+			font-weight:bold;
+			line-height:26px;
+        }
+		
+		p.info03_txt a:hover {text-decoration:underline;}
+
+        p.btnArea {
+            margin: 15px auto;
+            text-align: center;
+            width: 100px;
+            height: 30px;
+        }
+
+        a.prev {
+            display: block;
+            width: 98px;
+            padding: 5px 0 3px 0;
+            text-align: center;
+            color: #545454;
+            -webkit-border-radius: 2px;
+            -moz-border-radius: 2px;
+            border-radius: 2px;
+            background: #e7e7e7;
+            border: 1px solid #bebebe;
+        }
+
+        a.prev:hover {
+            background: #dddddd;
+        }
+
+        a.prev:active {
+            background: #a9a9a9;
+            color: #ffffff;
+        }
+        /* The Modal (background) */
+		.modal {
+		  display: none; /* Hidden by default */
+		  position: fixed; /* Stay in place */
+		  z-index: 1; /* Sit on top */
+		  padding-top: 100px; /* Location of the box */
+		  left: 0;
+		  top: 0;
+		  width: 100%; /* Full width */
+		  height: 100%; /* Full height */
+		  overflow: auto; /* Enable scroll if needed */
+		  background-color: rgb(0,0,0); /* Fallback color */
+		  background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+		  text-align:center;
+		}
+		
+		/* Modal Content */
+		.modal-content {
+		  margin:0 auto;
+		  text-align:center;
+		  position:fixed;
+		}
+		.modal-content.modal_Edge {
+		  width: 738px;
+		  height:250px;
+		  left:50%;
+		  bottom:85px;
+		  margin-left:-450px;
+		}
+		.modal-content.IE {
+		  width: 898px;
+		  height:250px;
+		  left:50%;
+		  bottom:85px;
+		  margin-left:-500px;
+		}
+		.modal-content.chrome {
+		  width: 760px;
+		  height:480px;
+		  left:0;
+		  bottom:85px;
+		}
+		.modal-content.modal_ff {
+		  width: 392px;
+		  height:714px;
+		  left:20px;
+		  top:20px;
+		  margin-left:0;
+		}
+		
+		/* The Close Button */
+		
+		/*
+		.close {
+		  color:#fff;
+		  opacity:0;
+		}
+		*/
+		.close {
+		  position:absolute;
+		  width:28px;
+		  height:28px;
+		  display:inline-block;
+		  background:url(http://w2.kings.co.kr/k/kr/images/close_01.png) no-repeat;
+		  color:#fff;
+		  font-size:20px;
+		  font-weight:bold;
+		  line-height:21px;
+		}
+		.close.close_Edge {
+		  top:8px;
+		  left:3px;
+		}
+		.close.close_IE {
+		  top:8px;
+		  left:3px;
+		}
+		.close.close_chrome {
+		  top:8px;
+		  left:40px;
+		}
+		.close.close_ff {
+		  top:1px;
+		  left:1px;
+		}
+		
+		.close:hover,
+		.close:focus {
+		  text-decoration: none;
+		  cursor: pointer;
+		}
+    </style>
+</head>
+
+<body>
+   <div id="header">:: 보안프로그램 설치 안내</div>
+   <div id="content">
+    
+   
+        <p style="margin-bottom: 20px; line-height: 30px;" class="alignMiddle fontStrong">
+			<span class="fontSize01">고객님의 안전한 서비스 이용을 위해</span><br>
+            <span class="fontSize02"><span class="font03">보안프로그램을 설치</span>해 주세요.</span>
+        </p>
+        <div class="txt_box">
+           <p class="txt_box_01">
+                고객님의 안전한 금융거래를 위해 <span class="font01">보안프로그램과<br>
+                개인방화벽 프로그램을 의무적으로 설치</span>하시도록 하고 있습니다.<br>
+                보안관련 프로그램 설치가 완료되면 서비스를 정상적으로 이용하실 수 있습니다.
+            </p>
+            <p class="txt_box_02">※ 다양한 브라우저(익스플로러, 크롬, 사파리, 파이어폭스, 오페라)에서 사용하실 수 있습니다.</p> 
+        </div>
+
+        <h2 class="info01">■ 보안프로그램 수동설치 안내</h2>
+        <p class="info_txt">아래의 다운로드 버튼을 클릭하여 수동 설치파일을 PC에 저장한 후 실행중인 모든 웹 브라우저를 종료하고 수동 설치파일을 실행해 주십시오.</p>
+
+        <table class="download">
+            <thead>
+                <tr>
+                    <th>프로그램명</th>
+                    <th>프로그램 기능</th>
+                    <th>설치여부</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="fontStrong">K-Defense</span></td>
+                    <td>키보드 보안 프로그램</td>
+                    <td class="alignMiddle"><a onClick="onNonActiveX()">다운로드</a></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p class="btnArea">
+            <a href="javascript:history.go(-1);" class="prev">&lt; &nbsp;이전 페이지</a>
+        </p>
+        
+        <div class="howto_info">
+            <h3 class="info02">■ 설치방법 안내</h3>
+            <p class="info02_txt">
+                - 고객님 환경에 따라 오류메시지가 발생할 경우에는 다운로드 안내창에서 '저장'을 클릭하여 PC에 다운로드 하신 후<br>
+                &nbsp;&nbsp; 실행하시기 바랍니다.
+            </p>
+            <p class="info02_txt">
+                - 설치 안내창이 나타나지 않고 현재 화면이 장시간 보이거나 오류발생 시 다운로드 버튼을 클릭하여 보안프로그램을<br>
+                &nbsp;&nbsp; 다운로드 하신 후 수동설치 하시고 재접속하여 주시기 바랍니다.
+            </p>
+            <h3 class="info02" style="font-size:16px; margin-top:10px;">■ 키보드보안 설치 및 장애 문의</h3>
+            <p class="info03_txt">
+                - 1대1 온라인 상담창 및 FAQ : <a href="http://www.kings.co.kr/k" target="_blank">http://www.kings.co.kr/k</a> -> 상담창
+            </p>
+            <p class="info03_txt">
+                - 이메일 아이디 : <a href="mailto:k@kings.co.kr">k@kings.co.kr</a>
+            </p>
+			<!--
+            <p class="info03_txt">
+                - TEL : 1544-1014
+            </p> -->
+        </div>
+    </div>
+            <script type="text/javascript">
+		var browser = "unknown";
+        
+        if(navigator.appVersion.indexOf("Edge/") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Edge 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+		 browser = "Edge";
+        }
+        else if(navigator.appVersion.indexOf("Trident/7.0") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Internrt Explorer 11 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+			browser = "IE";
+        }
+        else if(navigator.appVersion.indexOf("Trident/6.0") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Internrt Explorer 10 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+			browser = "IE";
+        }
+        else if(navigator.appVersion.indexOf("Trident/5.0") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Internrt Explorer 9 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+			browser = "IE";
+        }
+        else if(navigator.appVersion.indexOf("Trident/4.0") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Internrt Explorer 8 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+			browser = "IE";
+        }
+        else if(navigator.userAgent.indexOf("MSIE 7.0") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Internrt Explorer 7 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+			browser = "IE";
+        }
+        else if(navigator.userAgent.indexOf("MSIE 6.0") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Internrt Explorer 6 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+			browser = "IE";
+        }
+        else if(navigator.userAgent.indexOf("Firefox") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Firefox 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+			browser = "Firefox";
+        }
+        else if(navigator.userAgent.indexOf("Chrome") > 0 ){
+        	//TODO : 이용불가한 브라우저인 경고창 추가해서 브라우저 버전이 낮음을 알리기 바랍니다.
+        	// window.alert("현재 Chrome 브라우저 이용중입니다.\n다른 브라우저로 이용 바랍니다.");
+			browser = "Chrome";
+        }
+        
+        </script>
+        
+        <!-- The Modal -->
+<div id="EdgeModal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content modal_Edge">
+    <span id="Edgeclose" class="close close_Edge">&times;</span>
+    <p><img id="EdgeImg"></p>
+  </div>
+
+</div>
+
+<div id="IEModal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content IE">
+    <span id="IEclose" class="close close_IE">&times;</span>
+    <p><img id="IEImg"></p>
+  </div>
+
+</div>
+
+<div id="FirefoxModal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content modal_ff">
+    <span id="Firefoxclose" class="close close_ff">&times;</span>
+    <p><img id="FirefoxImg"></p>
+  </div>
+
+</div>
+
+<div id="ChromeModal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content chrome">
+    <span id="Chromeclose" class="close close_chrome">&times;</span>
+    <p><img id="ChromeImg"></p>
+  </div>
+
+</div>
+
+<div id="unknownModal" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+    <span id="unknownclose" class="close close_IE">&times;</span>
+    <p><img id="unknownImg"></p>
+  </div>
+
+</div>
+        
+    
+    <script type="text/javascript">
+
+		//var setupUrl ='file/KOS_Setup.exe';
+		var setupUrl ='setup/KOS_Setup.exe';
+		var imgBase="http://w2.kings.co.kr/k/kr/images/";
+    	function recheck() {
+			KOS.init();
+    	}
+    
+        var installStatus = document.getElementById('KOSInstallStatus');
+        
+        var kosEventHandlers = {
+            READY: function () {
+                installStatus.innerHTML = '설치됨';
+            },
+            NOT_INSTALLED: function () {
+                installStatus.innerHTML = '설치 필요<br><a onClick="onNonActiveX()">다운로드</a>';
+                
+                setTimeout(recheck, 2000);
+            },
+            NEED_UPDATE: function (minVer, runVer) {
+                installStatus.innerHTML = '업데이트 필요 ' + '<br><a onClick="onNonActiveX()">다운로드</a>';
+                
+                setTimeout(recheck, 2000);
+            },
+            ERROR: function (error) {
+                installStatus.innerHTML = '오류 ' + error;
+                
+                setTimeout(recheck, 2000);
+            }
+        }
+
+        KOS.init(kosEventHandlers);
+        
+		// Get the modal
+		var EdgeMd = document.getElementById('EdgeModal');
+		var IEMd = document.getElementById('IEModal');
+		var FirefoxMd = document.getElementById('FirefoxModal');
+		var ChromeMd = document.getElementById('ChromeModal');
+		var unknownMd = document.getElementById('unknownModal');
+
+
+		// Get the button that opens the modal
+		//var btn = document.getElementById("myBtn");
+
+
+		// Get the <span> element that closes the modal
+		var Edgeclose = document.getElementById('Edgeclose');
+		var IEclose = document.getElementById('IEclose');
+		var Firefoxclose = document.getElementById('Firefoxclose');
+		var Chromeclose = document.getElementById('Chromeclose');
+		var unknownclose = document.getElementById('unknownclose');
+
+		function onNonActiveX(){
+			window.location=setupUrl;
+
+			if( browser === "Edge") onModal(imgBase+"download_Edge_kosSetup.gif");
+			else if( browser === "IE") onModal(imgBase+"download_ie_kosSetup.gif");
+			else if( browser === "Firefox") onModal(imgBase+"download_ff_kosSetup.png");
+			else if( browser === "Chrome") onModal(imgBase+"download_chrome_kosSetup.gif");
+			//else onModal("http://w2.kings.co.kr/k/kr/images/down_kos_setup.gif");
+		}
+
+		// When the user clicks the button, open the modal 
+		function onModal(ImgUrl) {
+			if( browser === "Edge"){
+				document.getElementById('EdgeImg').src = ImgUrl;
+				EdgeMd.style.display = "block";
+			}
+			else if( browser === "IE"){
+				document.getElementById('IEImg').src = ImgUrl;
+				IEMd.style.display = "block";
+			}
+			else if( browser === "Firefox"){
+				document.getElementById('FirefoxImg').src = ImgUrl;
+				FirefoxMd.style.display = "block";
+			}
+			else if( browser === "Chrome"){
+				document.getElementById('ChromeImg').src = ImgUrl;
+				ChromeMd.style.display = "block";
+			}
+			else{
+				//hmg 20190408 : unknown 이미지를 따로 사용할 경우 주석 풀기. 
+				//document.getElementById('unknownImg').src = ImgUrl;
+				//unknownMd.style.display = "block";
+			}
+		}
+
+		// When the user clicks on <span> (x), close the modal
+		Edgeclose.onclick = function() {
+			EdgeMd.style.display = "none";
+		}
+		IEclose.onclick = function() {
+			IEMd.style.display = "none";
+		}
+		Firefoxclose.onclick = function() {
+			FirefoxMd.style.display = "none";
+		}
+		Chromeclose.onclick = function() {
+			ChromeMd.style.display = "none";
+		}
+		unknownclose.onclick = function() {
+			unknownMd.style.display = "none";
+		}
+
+		// When the user clicks anywhere outside of the modal, close it
+		window.onclick = function(event) {
+		  if(event.target == EdgeMd){
+			EdgeMd.style.display = "none";
+		  }
+		  else if(event.target == IEMd){
+		    IEMd.style.display = "none";
+		  }
+		  else if(event.target == FirefoxMd){
+		    FirefoxMd.style.display = "none";
+		  }
+		  else if(event.target == ChromeMd){
+		    ChromeMd.style.display = "none";
+		  }
+		  else if(event.target == unknownMd){
+			unknownMd.style.display = "none";
+		  }
+		}
+		
+        
+    </script>
+
+</body>
+
+</html>

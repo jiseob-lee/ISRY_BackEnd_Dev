@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.constt.chttmng.mapper.InqCntnListMapper">
+    
+    <select id="getTotalCount" parameterType="HashMap" resultType="int">
+    SELECT  /* isry.couns.constt.chttmng.mapper.InqCntnListMapper.getTotalCount : 비정상종료 내담자 게시글 수 */
+            COUNT(*)
+	FROM 
+	        AYB120  AA
+        ,   AYB200  BB
+	WHERE 1=1
+        AND (
+            AA.DEL_YN                   !=       'Y'
+        OR  AA.DEL_YN                   IS NULL
+            )
+        AND BB.CHRO_NO          =       AA.CHRO_ID
+        <if test='SEARCH_KEY != null and SEARCH_KEY != "" and SEARCH_KEY == "CNSLTNT_ID"'>
+        AND BB.CNSLTNT_ID       LIKE    '%' || #{SEARCH_DATA} || '%'        /* 상담원 조회             */
+        </if>
+        <if test='SEARCH_KEY != null and SEARCH_KEY != "" and SEARCH_KEY == "CLIENA_ID"'>
+        AND BB.CLIENA_ID        LIKE    '%' || #{SEARCH_DATA} || '%'        /* 내담자 조회             */
+        </if>
+        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+        <![CDATA[
+        AND BB.CHTT_BGNG_DT     >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+        AND BB.CHTT_END_DT      <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+        ]]>
+        </if>
+    </select>
+    
+    <select id="selectInqCntnList" parameterType="HashMap" resultType="HashMap">
+	SELECT  /* isry.couns.constt.chttmng.mapper.InqCntnListMapper.selectInqCntnList : 비정상종료 내담자 게시글목록 */
+            AA.CHRO_ID                                                              /* 채팅방번호 */
+        ,   BB.CNSLTNT_ID                                                           /* 상담사아이디 */
+	    ,   TO_CHAR(BB.CHTT_BGNG_DT, 'YYYY-MM-DD HH:mm:ss') AS CHTT_BGNG_DT         /* 채팅시작시간 */
+	    ,   TO_CHAR(BB.CHTT_END_DT , 'YYYY-MM-DD HH:mm:ss') AS CHTT_END_DT          /* 채팅종료시간 */
+	    ,   BB.CLIENA_ID                                                            /* 내담자아이디 */
+        ,   TO_CHAR(CC.BGNG_DT , 'YYYY-MM-DD HH:mm:ss') AS CNTN_REG_DT              /* 내담자 방입장시간 */
+	    ,   BB.CNTN_IP_ADDR                                                         /* 아이피 */
+        ,   COUNT(*) OVER() AS TOTAL_COUNT
+	FROM
+	        AYB120 AA
+        ,   AYB200 BB
+        ,   AYB230 CC
+	WHERE   1=1
+	    AND (
+            AA.DEL_YN           !=      'Y'
+        OR  AA.DEL_YN           IS NULL
+            )
+        AND BB.CHRO_NO          =       AA.CHRO_ID
+        AND CC.CHRO_NO          =       AA.CHRO_ID
+        <if test='SEARCH_KEY != null and SEARCH_KEY != "" and SEARCH_KEY == "CNSLTNT_ID"'>
+        AND BB.CNSLTNT_ID       LIKE    '%' || #{SEARCH_DATA} || '%'        /* 상담원 조회             */
+        </if>
+        <if test='SEARCH_KEY != null and SEARCH_KEY != "" and SEARCH_KEY == "CLIENA_ID"'>
+        AND BB.CLIENA_ID        LIKE    '%' || #{SEARCH_DATA} || '%'        /* 내담자 조회             */
+        </if>
+        <if test="START_DATE != null and START_DATE != '' and END_DATE != null and END_DATE != ''">
+        <![CDATA[
+        AND BB.CHTT_BGNG_DT     >=      TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS')
+        AND BB.CHTT_END_DT      <       TO_DATE(#{END_DATE} || '000000', 'YYYYMMDDHH24MISS')+1
+        ]]>
+        </if>
+    ORDER BY 
+            AA.CHRO_ID  DESC
+    OFFSET #{START_IDX} ROWS FETCH NEXT #{ROW_COUNT} ROWS ONLY
+    </select>
+	
+	<select id="selectInqCntnDetailPopup" parameterType="HashMap" resultType="HashMap">
+	SELECT  /* isry.couns.constt.chttmng.mapper.inqChacttListMapper.selectInqCntnDetailPopup : 비정상종료 게시판 상세 */
+            AA.CHRO_ID
+        ,   BB.CHTT_MEMO_CN                                                         /* 채팅메모내용 */
+        ,   TO_CHAR(BB.CHTT_BGNG_DT, 'YYYY-MM-DD HH:mm:ss') AS CHTT_BGNG_DT         /* 채팅시작일시 */
+	FROM 
+            AYB120  AA
+        ,   AYB200  BB
+	WHERE   1=1
+	    AND AA.CHRO_ID     =       #{CHRO_NO}
+	    AND BB.CHRO_NO     =       AA.CHRO_ID
+	</select>
+    
+</mapper>

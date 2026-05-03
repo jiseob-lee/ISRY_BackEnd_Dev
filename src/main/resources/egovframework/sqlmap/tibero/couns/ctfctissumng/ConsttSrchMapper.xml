@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.couns.mngr.ctfctissumng.mapper.ConsttSrchMapper">
+	
+	<select id="selectConsttCount" parameterType="paramMap" resultType="java.lang.Integer">
+	<![CDATA[
+        SELECT  /* SQL-ID : isry.couns.mngr.ctfctissumng.mapper.ConsttSrchMapper.selectConsttCount : 상담사 총원 조회 */ 
+            COUNT(*) AS CNT
+		FROM SAA200 A   /* 사용자 */
+		    , SCA100 B  /* 종사자 */
+		WHERE 1=1
+		AND A.ENFSN_NO = B.ENFSN_NO(+)                /* 종사자번호 */
+		AND B.OGDP_DEPT_CD = #{deptCd}                /* 소속부서코드: 사이버상담(324), 사이버아웃리치(325), 모바일상담(326) */
+		AND B.DEL_YN = 'N'              /* 종사자 삭제여부 */
+	]]>
+    <if test='userId != null and userId != ""'>
+    <![CDATA[ 
+        AND A.USER_ID LIKE '%'||#{userId}||'%'              /* 검색할 사용자아이디 */ 
+    ]]> 
+    </if>
+    <if test='flnmEncpt != null and flnmEncpt != ""'>
+    <![CDATA[
+        AND B.FLNM_ENCPT = C##RG.ENC_B64(#{flnmEncpt})                    /* 검색할 이름 (성명암호화 값) */
+    ]]>
+    </if>
+	</select>
+    
+    <select id="selectConsttList" parameterType="paramMap" resultType="resultMap">
+        SELECT /* SQL-ID : isry.couns.mngr.ctfctissumng.mapper.ConsttSrchMapper.selectConsttList : 상담사 목록 조회 */
+            A.USER_ID                       /* 사용자아이디 */
+		    , B.ENFSN_NO                    /* 종사자번호 */
+		    , C##RG.DEC_B64(B.EML_ADDR_ENCPT) AS EML_ADDR  /* 이메일주소암호화 */
+		    , C##RG.DEC_B64(B.FLNM_ENCPT) AS FLNM          /* 성명암호화 */
+		    , NVL(B.BRTH_YMD, '19000101') AS BRTH_YMD /* 출생일자 */
+		    , NVL(B.JNCMP_YMD, '19000101') AS JNCMP_YMD    /* 입사일자 */
+		    , C##RG.DEC_B64(B.MBL_TELNO_ENCPT) AS MBL_TELNO        /* 휴대전화번호암호화 */
+		    , B.ERP_EMPLA_NO                /* ERP사원번호 */
+		    , B.OGDP_INST_NO                /* 소속기관번호 */
+        FROM SAA200 A     /* 사용자 */
+            , SCA100 B    /* 종사자 */
+        WHERE 1=1
+        AND A.ENFSN_NO = B.ENFSN_NO(+)                /* 종사자번호 */
+        AND B.OGDP_DEPT_CD = #{deptCd}                /* 소속부서코드: 사이버상담(324), 사이버아웃리치(325), 모바일상담(326) */
+        AND B.DEL_YN = 'N'                /* 종사자 삭제여부 */
+        <if test='MENU_ROUTE == "schedule"'>
+        AND NOT EXISTS (
+		                SELECT 1
+		                FROM   AYC100   T1
+		                       , AYC110 T2
+		                WHERE  1=1
+		                AND    T1.WORK_YMD = #{WORK_YMD}
+		                AND    T1.TASKWK_TYPE_DEPT_CD = #{deptCd}
+		                AND    T1.DEL_YN = 'N'
+		                AND    T2.BIZ_PLAN_MNG_NO   =   T1.BIZ_PLAN_MNG_NO
+		                AND    T1.DEL_YN = 'N'
+		                AND    T1.USER_ID = A.USER_ID
+                       )
+        </if>
+	<if test='userId != null and userId != ""'>
+	<![CDATA[ 
+		AND A.USER_ID LIKE '%'||#{userId}||'%'              /* 검색할 사용자아이디 */ 
+	]]> 
+	</if>
+	<if test='flnmEncpt != null and flnmEncpt != ""'>
+	<![CDATA[
+        AND B.FLNM_ENCPT = C##RG.ENC_B64(#{flnmEncpt})                    /* 검색할 이름 (성명암호화 값) */
+	]]>
+    </if>
+        ORDER BY A.USER_ID, B.ENFSN_NO ASC
+    </select>
+        
+</mapper>

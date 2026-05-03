@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.sample.mapper.CmnFileMapper">
+	<!-- 설명 : 업로드된 파일의 상태를 커밋상태로 변경한다. 파라미터 : 주사용처 : 변경이력 : -->
+	<update id="commitCmnFile" parameterType="HashMap">
+    <![CDATA[
+    UPDATE CMN_TMP_ATTC_FILE
+       SET FILE_STAT_RCD = 'CMN101.SAVE'
+    WHERE ATTC_FILE_NO = #{ATTC_FILE_NO}
+   ]]>
+	</update>
+
+	<insert id="insertCmnFile" parameterType="HashMap">
+	<![CDATA[
+	INSERT INTO CMN_TMP_ATTC_FILE (
+		ATTC_FILE_NO
+		, ATTC_SEQ
+		, PGM_ID
+		, MENU_NM
+		, USER_ID
+		, FILE_NM
+		, SAVE_FILE_NM		
+		, FILE_PATH
+		, FILE_EXT
+		, FILE_SIZE
+		, FILE_STAT_RCD
+		)
+	VALUES
+	   (
+		#{ATTC_FILE_NO}
+		, (SELECT NVL(MAX(ATTC_SEQ),0)+1 FROM CMN_TMP_ATTC_FILE T WHERE ATTC_FILE_NO = #{ATTC_FILE_NO})
+		, #{PGM_ID}
+		
+    ]]>
+            <if test="PGM_ID != null and PGM_ID != ''">
+    <![CDATA[
+            , (SELECT MAX(C.MENU_NM) FROM MENU C WHERE C.CALL_PAGE = #{PGM_ID})
+    ]]>
+            </if>
+            <if test="PGM_ID == null or PGM_ID == ''">
+    <![CDATA[
+            , ''
+    ]]>
+            </if>
+    <![CDATA[
+		, #{USER_ID}
+		, #{FILE_NM}
+		, #{SAVE_FILE_NM}		
+		, #{FILE_PATH}
+		, #{FILE_EXT}
+		, #{FILE_SIZE}
+		, #{FILE_STAT_RCD}		
+	   )
+	]]>
+	</insert>
+	<!-- 설명 : 첨부파일 목록 조회 파라미터 : 주사용처 : 파일 업로드 팝업/파일 목록UDC 변경이력 : -->
+	<select id="selectCmnFileList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+		SELECT ATTC_FILE_NO
+			 , ATTC_SEQ
+		     , PGM_ID
+		     , USER_ID
+		     , FILE_NM
+		     , SAVE_FILE_NM		     
+		     , FILE_PATH
+		     , FILE_EXT
+		     , FILE_SIZE
+		     , FILE_STAT_RCD
+		     		     
+		  FROM CMN_TMP_ATTC_FILE
+		WHERE ATTC_FILE_NO = #{ATTC_FILE_NO}
+	]]>
+		<if test="ATTC_SEQ != null and ATTC_SEQ !=''">
+			AND ATTC_SEQ = #{ATTC_SEQ}
+		</if>		
+		ORDER BY ATTC_SEQ
+	</select>
+
+	<delete id="deleteCmnAttcFile" parameterType="HashMap">
+		<![CDATA[
+           DELETE 
+           FROM CMN_TMP_ATTC_FILE
+           WHERE ATTC_FILE_NO = #{ATTC_FILE_NO__origin}
+           AND ATTC_SEQ = #{ATTC_SEQ__origin}
+        ]]>
+	</delete>
+
+
+	<select id="selectSysDate" resultType="String">
+	    <![CDATA[
+				SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') AS CURR_DT 
+  			    FROM DUAL
+	 	]]>
+	</select>
+
+	<select id="selectTimeStamp" resultType="String">
+      <![CDATA[
+				SELECT DATE_FORMAT(SYSDATE , 'YYYYMMDDHH24MISS') AS CURR_DT  
+			  FROM DUAL
+	 	]]>
+	</select>
+
+	<select id="selectDaysBefore" resultType="String">
+		<choose>
+			<when test="strDay != null and strDay != ''">
+				SELECT SYSDATE -#{strDay} AS MON_BEF
+			</when>
+			<otherwise>
+				SELECT SYSDATE -30 AS MON_BEF
+			</otherwise>
+		</choose>
+		FROM DUAL
+	</select>
+	
+    <select id="selectAttcFileNo" resultType="Integer">
+    <![CDATA[
+    
+        SELECT SEQ_ATTC_FILE_NO.NEXTVAL
+        FROM DUAL
+        
+    ]]>
+    </select>
+    
+</mapper>

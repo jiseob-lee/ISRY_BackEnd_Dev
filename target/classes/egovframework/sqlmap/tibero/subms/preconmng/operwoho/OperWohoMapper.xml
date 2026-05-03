@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.subms.preconmng.operwoho.mapper.OperWohoMapper">
+	<select id="selectOperWohoList" resultType="HashMap">
+	<![CDATA[
+    /*isry.subms.preconmng.operwoho.mapper.OperWohoMapper - selectOperWohoList [응용3팀] Lee SangHoon*/
+
+    WITH TMP000 AS (
+        SELECT
+            A.RESRCE_NO         -- 자원번호
+        ,   C.BIZ_YR            -- 사업연도
+        ,   D.INST_NM           -- 기관명
+        ,   B.SRVC_EXCN_BIZ_NM  -- 서비스실행사업명
+        ,   A.PVSN_RESRCE_NM    -- 제공자원명
+        ,   A.PVSN_BGNG_YMD     -- 제공시작일자
+        ,   A.PVSN_END_YMD      -- 제공종료일자
+        FROM SDA100 A  /* 자원기본 */
+        JOIN SDA420 B  /* 서비스실행사업 */
+            ON  B.SRVC_EXCN_BIZ_NO = A.SRVC_EXCN_BIZ_NO
+        JOIN SDA400 C  /* 서비스사업 */
+            ON  C.SRVC_BIZ_NO = B.SRVC_BIZ_NO
+        JOIN SAA000 D  /* 통합기관 */
+            ON D.INST_NO = A.RSFR_INST_NO
+        WHERE   1 = 1
+            AND A.APRV_STTS_SE_CD              = '2'
+            AND C.BIZ_YR                       = #{BIZ_YR}
+            AND A.SRVC_RESRCE_LCLAS_SE_CD     != '01'
+            AND D.UNT_TASKWK_SE_CD             = #{UNT_TASKWK_SE_CD}
+    ]]>
+    <if test="INST_NO != NULL and INST_NO != ''">
+            AND A.RSFR_INST_NO                 = #{INST_NO}
+    </if>
+    <if test="SRVC_EXCN_BIZ_NO != NULL and SRVC_EXCN_BIZ_NO != ''">
+            AND A.SRVC_EXCN_BIZ_NO             = #{SRVC_EXCN_BIZ_NO}
+    </if>
+    <if test="RESRCE_NO != NULL and RESRCE_NO != ''">
+            AND A.RESRCE_NO                    = #{RESRCE_NO}
+    </if>
+    <![CDATA[
+        )
+
+    SELECT
+	    T1.RESRCE_NO                                   AS RESRCE_NO            -- 자원번호
+	,   T1.GOAL_OPER_SE                                AS GOAL_OPER_SE         -- 목표시수운영시수구분
+	,   T1.SEMSTR_SE_CD                                AS SEMSTR_SE_CD         -- 학기구분코드
+	,   NVL(T1.EDU_PROGRM_SE_CD,'00')                  AS EDU_PROGRM_SE_CD     -- 교육프로그램구분코드
+	,   T1.BIZ_YR                                      AS BIZ_YR               -- 사업연도
+	,   T1.INST_NM                                     AS INST_NM              -- 기관명
+	,   T1.SRVC_EXCN_BIZ_NM                            AS SRVC_EXCN_BIZ_NM     -- 서비스실행사업명
+	,   T1.PVSN_RESRCE_NM                              AS PVSN_RESRCE_NM       -- 제공자원명
+	,   T1.PVSN_BGNG_YMD                               AS PVSN_BGNG_YMD        -- 제공시작일자
+	,   T1.PVSN_END_YMD                                AS PVSN_END_YMD         -- 제공종료일자
+	,   T1.SEMSTR_SE_CD_NM                             AS SEMSTR_SE_CD_NM      -- 학기구분코드명
+	,   NVL(T1.EDU_PROGRM_SE_CD_NM,'합계')             AS EDU_PROGRM_SE_CD_NM  -- 교육프로그램구분코드명
+	,   SUM(T1.OPER_HR_CNT)                            AS OPER_HR_CNT          -- 평균운영시수
+	,   SUM(T1.GOAL_HR_CNT)                            AS GOAL_HR_CNT          -- 평균목표시수
+	,   SUM(T1.MIN_HR_CNT)                             AS MIN_HR_CNT           -- 최소시수
+	,   DEC_B64(T2.FLNM_ENCPT)                         AS PIC_FLNM             -- 담당자성명
+	,   NVL(T2.WRD_TELNO, DEC_B64(T2.MBL_TELNO_ENCPT)) AS PIC_TELNO            -- 담당자연락처
+    FROM (
+        SELECT
+            T.RESRCE_NO                                                                     AS RESRCE_NO            -- 자원번호
+        ,   NVL(T.GOAL_OPER_SE,'1')                                                         AS GOAL_OPER_SE         -- 목표시수운영시수구분
+        ,   NVL(T.SEMSTR_SE_CD,'00')                                                        AS SEMSTR_SE_CD         -- 학기구분코드
+        ,   T.EDU_PROGRM_SE_CD                                                              AS EDU_PROGRM_SE_CD     -- 교육프로그램구분코드
+        ,   T.BIZ_YR                                                                        AS BIZ_YR               -- 사업연도
+        ,   T.INST_NM                                                                       AS INST_NM              -- 기관명
+        ,   T.SRVC_EXCN_BIZ_NM                                                              AS SRVC_EXCN_BIZ_NM     -- 서비스실행사업명
+        ,   T.PVSN_RESRCE_NM                                                                AS PVSN_RESRCE_NM       -- 제공자원명
+        ,   T.PVSN_BGNG_YMD                                                                 AS PVSN_BGNG_YMD        -- 제공시작일자
+        ,   T.PVSN_END_YMD                                                                  AS PVSN_END_YMD         -- 제공종료일자
+        ,   NVL(T.SEMSTR_SE_CD_NM,'전체학기 운영시수')                                      AS SEMSTR_SE_CD_NM      -- 학기구분코드명
+        ,   T.EDU_PROGRM_SE_CD_NM                                                           AS EDU_PROGRM_SE_CD_NM  -- 교육프로그램구분코드명
+        ,   CASE T.SEMSTR_SE_CD WHEN '00'
+            THEN MAX(T.OPER_HR_CNT)
+            ELSE SUM(CASE WHEN T.SEMSTR_SE_CD != '00' THEN T.OPER_HR_CNT ELSE 0 END) END    AS OPER_HR_CNT          -- 평균운영시수
+        ,   T.GOAL_HR_CNT                                                                   AS GOAL_HR_CNT          -- 평균목표시수
+        ,   CASE T.SEMSTR_SE_CD WHEN '00'
+            THEN MAX(T.MIN_HR_CNT)
+            ELSE SUM(CASE WHEN T.SEMSTR_SE_CD != '00' THEN T.MIN_HR_CNT ELSE 0 END) END     AS MIN_HR_CNT           -- 최소시수
+        ,   T.EDU_SQNCE                                                                     AS EDU_SQNCE            -- 교육프로그램코드정렬순서
+        ,   NVL(T.SEMSTR_SQNCE,0)                                                           AS SEMSTR_SQNCE         -- 학기코드정렬순서
+        FROM (
+            SELECT
+                A.RESRCE_NO                                         AS RESRCE_NO            -- 자원번호
+            ,   CASE C.SEMSTR_SE_CD
+                WHEN '00' THEN '0' ELSE '1' END                     AS GOAL_OPER_SE         -- 목표시수운영시수구분
+            ,   C.SEMSTR_SE_CD                                      AS SEMSTR_SE_CD         -- 학기구분코드
+            ,   B.EDU_PROGRM_SE_CD                                  AS EDU_PROGRM_SE_CD     -- 교육프로그램구분코드
+            ,   A.BIZ_YR                                            AS BIZ_YR               -- 사업연도
+            ,   A.INST_NM                                           AS INST_NM              -- 기관명
+            ,   A.SRVC_EXCN_BIZ_NM                                  AS SRVC_EXCN_BIZ_NM     -- 서비스실행사업명
+            ,   A.PVSN_RESRCE_NM                                    AS PVSN_RESRCE_NM       -- 제공자원명
+            ,   A.PVSN_BGNG_YMD                                     AS PVSN_BGNG_YMD        -- 제공시작일자
+            ,   A.PVSN_END_YMD                                      AS PVSN_END_YMD         -- 제공종료일자
+            ,   CASE C.SEMSTR_SE_CD
+                WHEN '00'
+                THEN C.SEMSTR_SE_CD_NM || ' 목표시수'
+                ELSE C.SEMSTR_SE_CD_NM || ' 운영시수' END           AS SEMSTR_SE_CD_NM      -- 학기구분코드명
+            ,   B.EDU_PROGRM_SE_CD_NM                               AS EDU_PROGRM_SE_CD_NM  -- 교육프로그램구분코드명
+            ,   NVL(ROUND(AVG(D.OPER_HR_CNT),2),0)                  AS OPER_HR_CNT          -- 평균운영시수
+            ,   (SELECT NVL(ROUND(AVG(OPER_HR_CNT),2),0) FROM AFA600
+                WHERE   RESRCE_NO           = A.RESRCE_NO
+                    AND SEMSTR_SE_CD        = '00'
+                    AND RPT_MM              = '00'
+                    AND EDU_PROGRM_SE_CD    = B.EDU_PROGRM_SE_CD)   AS GOAL_HR_CNT          -- 평균목표시수
+            ,   NVL(MIN(D.OPER_HR_CNT),0)                           AS MIN_HR_CNT           -- 최소시수
+            ,   B.EDU_SQNCE                                         AS EDU_SQNCE            -- 교육프로그램코드정렬순서
+            ,   C.SEMSTR_SQNCE                                      AS SEMSTR_SQNCE         -- 학기코드정렬순서
+            FROM TMP000 A
+            CROSS JOIN (
+                SELECT
+                    B1.CMMNS_CD_VALUE_NM    AS EDU_PROGRM_SE_CD_NM
+                ,   B1.CMMNS_CD_VALUE       AS EDU_PROGRM_SE_CD
+                ,   B1.SRTNG_SQNCE          AS EDU_SQNCE
+                FROM SAC100 B1  /* 공통코드값(교육프로그램구분코드) */
+                LEFT JOIN SAC110 B2 /* 공통코드값 사용시스템 */
+                    ON  B1.CMMNS_CD_ID     = B2.CMMNS_CD_ID
+                    AND B1.CMMNS_CD_VALUE  = B2.CMMNS_CD_VALUE
+                WHERE   B1.CMMNS_CD_ID     = 'EDU_PROGRM_SE_CD'
+                    AND B1.USE_YN          = 'Y'
+                    AND (B2.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD} OR B2.UNT_TASKWK_SE_CD IS NULL)
+    ]]>
+    <if test="EDU_PROGRM_SE_CD != NULL and EDU_PROGRM_SE_CD != ''">
+                    AND B1.CMMNS_CD_VALUE  = #{EDU_PROGRM_SE_CD}
+    </if>
+    <![CDATA[
+                ) B
+            CROSS JOIN (
+                SELECT
+                    C1.CMMNS_CD_VALUE_NM    AS SEMSTR_SE_CD_NM
+                ,   C1.CMMNS_CD_VALUE       AS SEMSTR_SE_CD
+                ,   C1.SRTNG_SQNCE          AS SEMSTR_SQNCE
+                FROM SAC100 C1  /* 공통코드값(학기구분코드) */
+                LEFT JOIN SAC110 C2 /* 공통코드값 사용시스템 */
+                    ON  C1.CMMNS_CD_ID     = C2.CMMNS_CD_ID
+                    AND C1.CMMNS_CD_VALUE  = C2.CMMNS_CD_VALUE
+                WHERE   C1.CMMNS_CD_ID     = 'SEMSTR_SE_CD'
+                    AND C1.USE_YN          = 'Y'
+                    AND C1.CMMNS_CD_VALUE  IN ('01','02')
+                    AND (C2.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD} OR C2.UNT_TASKWK_SE_CD IS NULL)
+                UNION ALL
+                SELECT
+                    '전체학기'
+                ,   '00'
+                ,   0
+                FROM DUAL
+                ) C
+            LEFT JOIN AFA600 D  /* 운영시수 */
+                ON  D.RESRCE_NO        = A.RESRCE_NO
+                AND D.SEMSTR_SE_CD     = C.SEMSTR_SE_CD
+                AND D.EDU_PROGRM_SE_CD = B.EDU_PROGRM_SE_CD
+            GROUP BY C.SEMSTR_SE_CD, B.EDU_PROGRM_SE_CD, C.SEMSTR_SE_CD_NM, B.EDU_PROGRM_SE_CD_NM, B.EDU_SQNCE, C.SEMSTR_SQNCE, A.RESRCE_NO, A.BIZ_YR, A.INST_NM, A.SRVC_EXCN_BIZ_NM, A.PVSN_RESRCE_NM, A.PVSN_BGNG_YMD, A.PVSN_END_YMD
+            ) T
+        GROUP BY
+            ROLLUP((
+                T.SEMSTR_SE_CD
+            ,   T.SEMSTR_SE_CD_NM
+            ,   T.SEMSTR_SQNCE
+            ,   T.GOAL_OPER_SE
+            ))
+        ,   T.RESRCE_NO
+        ,   T.EDU_PROGRM_SE_CD
+        ,   T.BIZ_YR
+        ,   T.INST_NM
+        ,   T.SRVC_EXCN_BIZ_NM
+        ,   T.PVSN_RESRCE_NM
+        ,   T.PVSN_BGNG_YMD
+        ,   T.PVSN_END_YMD
+        ,   T.GOAL_HR_CNT
+        ,   T.EDU_PROGRM_SE_CD_NM
+        ,   T.EDU_SQNCE
+        ) T1
+    LEFT JOIN SCA100 T2 /* 종사자 */
+        ON  T2.ENFSN_NO = ( SELECT MAX(PIC_NO) FROM AFA600  /* 운영시수 */
+                            WHERE   RESRCE_NO = T1.RESRCE_NO
+                                AND LAST_MDFCN_DT = NVL((   SELECT MAX(LAST_MDFCN_DT) FROM AFA600   /* 운영시수 */
+                                                            WHERE   RESRCE_NO       = T1.RESRCE_NO
+                                                                AND SEMSTR_SE_CD   != '00'
+                                                        ),( SELECT MAX(LAST_MDFCN_DT) FROM AFA600   /* 운영시수 */
+                                                            WHERE   RESRCE_NO       = T1.RESRCE_NO
+                                                                AND SEMSTR_SE_CD    = '00'          )))
+    GROUP BY
+        ROLLUP((
+            T1.EDU_PROGRM_SE_CD
+        ,   T1.EDU_PROGRM_SE_CD_NM
+        ,   T1.EDU_SQNCE
+            ))
+    ,   T1.RESRCE_NO
+    ,   T1.GOAL_OPER_SE
+    ,   T1.SEMSTR_SE_CD
+    ,   T1.BIZ_YR
+    ,   T1.INST_NM
+    ,   T1.SRVC_EXCN_BIZ_NM
+    ,   T1.PVSN_RESRCE_NM
+    ,   T1.PVSN_BGNG_YMD
+    ,   T1.PVSN_END_YMD
+    ,   T1.SEMSTR_SE_CD_NM
+    ,   T1.SEMSTR_SQNCE
+    ,   T2.FLNM_ENCPT
+    ,   NVL(T2.WRD_TELNO, DEC_B64(T2.MBL_TELNO_ENCPT))
+
+    ORDER BY PVSN_RESRCE_NM, GOAL_OPER_SE, SEMSTR_SQNCE, NVL(EDU_SQNCE,0)
+	]]>
+	</select>
+
+	<select id="selectOperWohoMng" resultType="HashMap">
+	<![CDATA[
+	/*isry.subms.preconmng.operwoho.mapper.OperWohoMapper - selectOperWohoMng [응용3팀] Lee SangHoon*/
+
+	SELECT
+        A.RESRCE_NO                                         AS RESRCE_NO           -- 자원번호
+    ,   A.CLRO_SE_CD                                        AS CLRO_SE_CD          -- 수업반구분코드
+    ,   A.SEMSTR_SE_CD                                      AS SEMSTR_SE_CD        -- 학기구분코드
+    ,   A.RPT_MM                                            AS RPT_MM              -- 보고월
+    ,   A.EDU_PROGRM_SE_CD                                  AS EDU_PROGRM_SE_CD    -- 교육프로그램구분코드
+    ,   (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+        WHERE   CMMNS_CD_ID     = 'EDU_PROGRM_SE_CD'
+            AND CMMNS_CD_VALUE  = A.EDU_PROGRM_SE_CD)       AS EDU_PROGRM_SE_CD_NM -- 교육프로그램구분코드명
+    ,   (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+        WHERE   CMMNS_CD_ID     = 'CLRO_SE_CD'
+            AND CMMNS_CD_VALUE  = A.CLRO_SE_CD)             AS CLRO_SE_CD_NM       -- 수업반구분코드명
+    ,   A.OPER_HR_CNT                                       AS OPER_HR_CNT         -- 운영시수
+    ,   (SELECT NVL(SUM(OPER_HR_CNT),0) FROM AFA600
+        WHERE   RESRCE_NO           = A.RESRCE_NO
+            AND CLRO_SE_CD          = A.CLRO_SE_CD
+            AND SEMSTR_SE_CD       <= A.SEMSTR_SE_CD
+            AND RPT_MM             <= A.RPT_MM
+            AND EDU_PROGRM_SE_CD    = A.EDU_PROGRM_SE_CD
+            AND SEMSTR_SE_CD       != '00'
+            AND RPT_MM             != '00')                 AS ACCMLT_OPER_WOHO    -- 누적운영시수
+    ,   NVL((
+        SELECT OPER_HR_CNT FROM AFA600
+        WHERE   RESRCE_NO           = A.RESRCE_NO
+            AND CLRO_SE_CD          = A.CLRO_SE_CD
+            AND SEMSTR_SE_CD        = '00'
+            AND RPT_MM              = '00'
+            AND EDU_PROGRM_SE_CD    = A.EDU_PROGRM_SE_CD
+        ),0)                                                AS YR_GOAL_WOHO        -- 연간목표시수
+    ,   DEC_B64(B.FLNM_ENCPT)                               AS PIC_FLNM            -- 담당자성명
+    ,   NVL(B.WRD_TELNO, DEC_B64(B.MBL_TELNO_ENCPT))        AS PIC_TELNO           -- 담당자연락처
+
+    /* 수정시 사용할 PK의 origin값 */
+    ,   A.RESRCE_NO                                         AS RESRCE_NO_OLD
+    ,   A.CLRO_SE_CD                                        AS CLRO_SE_CD_OLD
+    ,   A.SEMSTR_SE_CD                                      AS SEMSTR_SE_CD_OLD
+    ,   A.RPT_MM                                            AS RPT_MM_OLD
+    ,   A.EDU_PROGRM_SE_CD                                  AS EDU_PROGRM_SE_CD_OLD
+    FROM AFA600 A  /* 운영시수 */
+    LEFT JOIN SCA100 B /* 종사자 */
+        ON  B.ENFSN_NO = A.PIC_NO
+    WHERE   A.RESRCE_NO     =  #{RESRCE_NO}
+	]]>
+	<if test='GOAL_OPER_SE == "0"'>
+    AND SEMSTR_SE_CD    = '00'
+    AND RPT_MM          = '00'
+	</if>
+	<if test='GOAL_OPER_SE == "1"'>
+    AND A.SEMSTR_SE_CD  IN ('01','02')
+    AND A.RPT_MM        IN ('01','02','03','04','05','06','07','08','09','10','11','12')
+	</if>
+	<![CDATA[
+	ORDER BY A.SEMSTR_SE_CD, A.RPT_MM, A.EDU_PROGRM_SE_CD, A.CLRO_SE_CD
+	]]>
+	</select>
+
+	<select id="chkOperWohoMng" resultType="HashMap">
+	<![CDATA[
+    /*isry.subms.preconmng.operwoho.mapper.OperWohoMapper - chkOperWohoMng [응용3팀] Lee SangHoon*/
+
+	SELECT
+	   (SELECT PVSN_RESRCE_NM FROM SDA100 WHERE RESRCE_NO = A.RESRCE_NO)                                                       AS PVSN_RESRCE_NM       -- 제공자원명
+	,  (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'CLRO_SE_CD' AND CMMNS_CD_VALUE = A.CLRO_SE_CD)               AS CLRO_SE_CD_NM        -- 수업반구분명
+	,  (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'SEMSTR_SE_CD' AND CMMNS_CD_VALUE = A.SEMSTR_SE_CD)           AS SEMSTR_SE_CD_NM      -- 학기구분명
+	,  RPT_MM                                                                                                                  AS RPT_MM               -- 보고월
+	,  (SELECT CMMNS_CD_VALUE_NM FROM SAC100 WHERE CMMNS_CD_ID = 'EDU_PROGRM_SE_CD' AND CMMNS_CD_VALUE = A.EDU_PROGRM_SE_CD)   AS EDU_PROGRM_SE_CD_NM  -- 교육프로그램구분명
+	FROM AFA600 A  /* 운영시수 */
+	WHERE  1=1
+	   AND A.RESRCE_NO         = #{RESRCE_NO}
+	   AND A.CLRO_SE_CD        = #{CLRO_SE_CD}
+	   AND A.SEMSTR_SE_CD      = #{SEMSTR_SE_CD}
+	   AND A.RPT_MM            = #{RPT_MM}
+	   AND A.EDU_PROGRM_SE_CD  = #{EDU_PROGRM_SE_CD}
+	]]>
+	<if test="RESRCE_NO_OLD != NULL and RESRCE_NO_OLD != ''">
+	   AND (
+	       A.RESRCE_NO         != #{RESRCE_NO_OLD}
+	   OR  A.CLRO_SE_CD        != #{CLRO_SE_CD_OLD}
+	   OR  A.SEMSTR_SE_CD      != #{SEMSTR_SE_CD_OLD}
+	   OR  A.RPT_MM            != #{RPT_MM_OLD}
+	   OR  A.EDU_PROGRM_SE_CD  != #{EDU_PROGRM_SE_CD_OLD}
+	   )
+	</if>
+	</select>
+
+	<insert id="insertOperWohoMng">
+	<![CDATA[
+    /*isry.subms.preconmng.operwoho.mapper.OperWohoMapper - insertOperWohoMng [응용3팀] Lee SangHoon*/
+
+    INSERT INTO AFA600 /*운영시수*/ (
+        RESRCE_NO               -- 자원번호
+    ,   CLRO_SE_CD              -- 수업반구분코드
+    ,   SEMSTR_SE_CD            -- 학기구분코드
+    ,   RPT_MM                  -- 보고월
+    ,   EDU_PROGRM_SE_CD        -- 교육프로그램구분코드
+    ,   OPER_HR_CNT             -- 운영시수
+    ,   PIC_NO                  -- 담당자번호
+    ,   FRST_RGTR_ID            -- 최초등록자아이디
+    ,   LAST_MDFR_ID            -- 최종수정자아이디
+    ) VALUES (
+        #{RESRCE_NO}            -- 자원번호
+    ,   #{CLRO_SE_CD}           -- 수업반구분코드
+    ,   #{SEMSTR_SE_CD}         -- 학기구분코드
+    ,   #{RPT_MM}               -- 보고월
+    ,   #{EDU_PROGRM_SE_CD}     -- 교육프로그램구분코드
+    ,   #{OPER_HR_CNT}          -- 운영시수
+    ,   #{PIC_NO}               -- 담당자번호
+    ,   #{LGN_USER_ID}          -- 최초등록자아이디
+    ,   #{LGN_USER_ID}          -- 최종수정자아이디
+    )
+	]]>
+	</insert>
+
+	<update id="updateOperWohoMng">
+	<![CDATA[
+    /*isry.subms.preconmng.operwoho.mapper.OperWohoMapper - updateOperWohoMng [응용3팀] Lee SangHoon*/
+
+	UPDATE AFA600 /*운영시수*/ SET
+	   CLRO_SE_CD          = #{CLRO_SE_CD}         -- 수업반구분코드
+	,  SEMSTR_SE_CD        = #{SEMSTR_SE_CD}       -- 학기구분코드
+	,  RPT_MM              = #{RPT_MM}             -- 보고월
+	,  EDU_PROGRM_SE_CD    = #{EDU_PROGRM_SE_CD}   -- 교육프로그램구분코드
+	,  OPER_HR_CNT         = #{OPER_HR_CNT}        -- 운영시수
+	,  PIC_NO              = #{PIC_NO}             -- 담당자번호
+	,  LAST_MDFR_ID        = #{LGN_USER_ID}        -- 최종수정자아이디
+	,  LAST_MDFCN_DT       = SYSDATE               -- 최종수정일시
+	WHERE  1=1
+	   AND RESRCE_NO           = #{RESRCE_NO_OLD}
+	   AND CLRO_SE_CD          = #{CLRO_SE_CD_OLD}
+	   AND SEMSTR_SE_CD        = #{SEMSTR_SE_CD_OLD}
+	   AND RPT_MM              = #{RPT_MM_OLD}
+	   AND EDU_PROGRM_SE_CD    = #{EDU_PROGRM_SE_CD_OLD}
+	]]>
+	</update>
+
+	<delete id="deleteOperWohoMng">
+	<![CDATA[
+    /*isry.subms.preconmng.operwoho.mapper.deleteOperWohoMng - deleteOperWohoMng [응용3팀] Lee SangHoon*/
+
+    DELETE FROM AFA600
+    WHERE   1=1
+        AND RESRCE_NO           = #{RESRCE_NO_OLD}
+        AND CLRO_SE_CD          = #{CLRO_SE_CD_OLD}
+        AND SEMSTR_SE_CD        = #{SEMSTR_SE_CD_OLD}
+        AND RPT_MM              = #{RPT_MM_OLD}
+        AND EDU_PROGRM_SE_CD    = #{EDU_PROGRM_SE_CD_OLD}
+	]]>
+	</delete>
+</mapper>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><!--Converted at: Fri Oct 22 16:29:19 KST 2021-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.sysmgmt.userauth.mapper.MgmtOrgMapper">
+
+	<update id="saveOrg" parameterType="HashMap">
+    <![CDATA[
+        /* saveOrg - Lee JiSeob */
+        
+        MERGE INTO SAA000 /* 통합기관 */
+        USING DUAL
+        ON (INST_NO = #{INST_CD})
+        
+        WHEN MATCHED THEN
+            
+            UPDATE SET
+	            INST_NM = #{INST_NM},
+	            UP_INST_NO = #{UP_INST_CD},
+	            INST_TYPE_SE_CD = #{INST_TYPE_SE_CD},
+	            LAST_MDFR_ID = #{USER_ID},
+	            LAST_MDFCN_DT = SYSDATE,
+	            DEL_YN = #{DEL_YN}
+        
+        WHEN NOT MATCHED THEN
+
+            INSERT
+            (
+	            INST_NO,
+	            INST_NM,
+	            UP_INST_NO,
+	            INST_TYPE_SE_CD,
+				FRST_RGTR_ID,
+				FRST_REG_DT,
+				LAST_MDFR_ID,
+				LAST_MDFCN_DT,
+				DEL_YN
+	        )
+	        VALUES
+	        (
+	            #{INST_CD},
+	            #{INST_NM},
+	            #{UP_INST_CD},
+	            #{INST_TYPE_SE_CD},
+	            #{USER_ID},
+	            SYSDATE,
+	            #{USER_ID},
+	            SYSDATE,
+	            #{DEL_YN}
+	        )
+    ]]>
+	</update>
+
+
+
+    <delete id="deleteOrgUnitSystem" parameterType="HashMap">
+    <![CDATA[
+        /* deleteOrgUnitSystem - Lee JiSeob */
+        
+        DELETE FROM SAA030 /* 기관수행업무 */
+        WHERE INST_NO = #{INST_CD}
+
+    ]]>
+    </delete>
+    
+    
+    <update id="insertOrgUnitSystem" parameterType="HashMap">
+    <![CDATA[
+        /* insertOrgUnitSystem - Lee JiSeob */
+
+        INSERT INTO SAA030
+        (
+            INST_NO,
+            UNT_TASKWK_SE_CD,
+            FRST_RGTR_ID,
+            FRST_REG_DT,
+            LAST_MDFR_ID,
+            LAST_MDFCN_DT
+        )
+        VALUES
+        (
+            #{INST_CD},
+            #{UNT_SYS_SE_CD},
+            #{USER_ID},
+            SYSDATE,
+            #{USER_ID},
+            SYSDATE
+        )
+    ]]>
+    </update>
+
+    <select id="selectMaxInstCd" resultType="HashMap">
+    <![CDATA[
+        /* selectMaxInstCd - Lee JiSeob */
+
+        SELECT SAA000_SQ01.NEXTVAL AS MAX_INST_CD
+        FROM DUAL
+    ]]>
+    </select>
+
+    
+    <update id="saveApproveInstitute" parameterType="HashMap">
+    <![CDATA[
+        /* saveApproveInstitute - Lee JiSeob */
+
+        UPDATE SAA000
+
+        SET
+            APRV_YN = 'Y',
+            AUTZR_ID = #{USER_ID},
+            PRCS_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+            
+        WHERE
+            INST_NO = #{INST_NO}
+
+    ]]>
+    </update>
+
+
+    
+    <update id="saveRejectInstitute" parameterType="HashMap">
+    <![CDATA[
+        /* saveRejectInstitute - Lee JiSeob */
+
+        UPDATE SAA000
+
+        SET
+            APRV_YN = 'N',
+            AUTZR_ID = #{USER_ID},
+            PRCS_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD'),
+            RJCT_CS_CN = #{REJECT_REASON}
+            
+        WHERE
+            INST_NO = #{INST_NO}
+
+    ]]>
+    </update>
+	
+	<update id="saveApproveOrgChangeData" parameterType="HashMap">
+	   <![CDATA[
+        /* saveApproveOrgChangeData - Taesoo Song */
+	   UPDATE SAA000
+	   
+	   SET 
+	       INST_NM = #{INST_NM}, 
+		     UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD},
+			 UP_INST_NO = #{UP_INST_NO},
+			 UP_APRV_INST_NO = #{UP_APRV_INST_NO},
+			 CTPV_CD = #{CTPV_CD},
+			 SGG_CD = #{SGG_CD},
+			 RPRSV_NM_ENCPT = #{RPRSV_NM_ENCPT},
+			 AUTZR_ID = #{USER_ID},
+			]]>
+			<if test="OFFCS_SGNNG_NO != null and OFFCS_SGNNG_NO != ''">
+			     OFFCS_SGNNG_NO = #{OFFCS_SGNNG_NO},
+			</if>
+			<![CDATA[
+			
+			 LAST_MDFR_ID = #{USER_ID},
+			 LAST_MDFCN_DT = SYSDATE
+			
+		WHERE INST_NO = #{INST_NO}
+		]]>
+	</update>
+	
+	<update id="updateApproveOrgStatus" parameterType="HashMap">
+       <![CDATA[
+        /* updateApproveOrgStatus - Taesoo Song */
+       UPDATE SAA010
+       
+       SET  APRV_STTS_SE_CD = #{APRV_STTS_SE_CD},
+            LAST_MDFR_ID = #{USER_ID},
+            LAST_MDFCN_DT = SYSDATE
+            
+        WHERE INST_NO = #{INST_NO}
+        AND APRV_STTS_SE_CD = '1'
+        AND APLY_DT = TO_DATE(#{APLY_DT}, 'YYYYMMDDHH24MISS')
+        ]]>
+    </update>
+    
+    <update id="updateUsingSealInfo" parameterType="HashMap">
+        <![CDATA[
+        /* updateUsingSealInfo - Taesoo Song */
+        UPDATE SAA230
+        
+        SET USE_YN = 'Y'
+        
+        WHERE OFFCS_SGNNG_NO = #{OFFCS_SGNNG_NO}
+        AND ATFINO = #{ATFINO}
+        ]]>
+    </update>
+    
+    <update id="updateRejectInstituteOffer" parameterType="HashMap">
+        <![CDATA[
+        /* updateRejectInstituteOffer - Taesoo Song */
+        UPDATE SAA010
+        SET APRV_STTS_SE_CD = '3'
+            , AUTZR_ID = #{USER_ID}
+            , RJCT_CS_CN = #{REJECT_REASON}
+            , PRCS_YMD = TO_CHAR(SYSDATE, 'YYYYMMDD')
+            , LAST_MDFR_ID = #{USER_ID}
+        WHERE INST_NO = #{INST_NO}
+        AND APRV_STTS_SE_CD = '1'
+        ]]>
+    </update>
+</mapper>

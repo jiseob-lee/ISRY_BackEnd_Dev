@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubms.instinfo.sheltrinfo.mapper.SheltrInfoMapper">
+
+    <select id="selectReqList" resultType="HashMap">
+    <![CDATA[
+        /* selectReqList - Lee MS */
+        SELECT
+            A.INST_NM AS INST_NM,                                       /* 기관명 */ 
+            A.BPLC_PST_ADDR ||' ' || A.BPLC_DADDR AS BPLC_PST_ADDR,     /* 주소 */
+            A.RPRS_TELNO AS RPRS_TELNO,                                 /* 전화번호 */
+            B.PRTCTN_YNGBGS_TYPE_SE_CD AS PRTCTN_YNGBGS_TYPE_SE_CD,     /* 보호청소년유형 */ 
+            B.FCLTY_TYPE_SE_CD AS FCLTY_TYPE_SE_CD,                     /* 시설유형 */
+            B.PRTCTN_PSNCPA_CNT AS PRTCTN_PSNCPA_CNT,                   /* 보호정원 */
+            (SELECT COUNT(*) FROM SEB150 T1, SEB100 T2, AEA100 T3, AEA140 T4
+             WHERE T1.PIC_INST_NO = A.INST_NO
+              AND T1.PCHPRS_YN = 'Y'
+              AND T1.CASE_MNG_NO = T2.CASE_MNG_NO
+              AND T1.CASE_MNG_ODRNO = T2.CASE_MNG_ODRNO
+              AND T2.CASE_TRMN_YMD IS NULL
+              AND T1.CASE_MNG_NO = T3.CASE_MNG_NO
+              AND T1.CASE_MNG_ODRNO = T3.CASE_MNG_ODRNO
+              AND T3.SHELTR_TRPR_SE_CD = '1'
+              AND T1.CASE_MNG_NO = T4.CASE_MNG_NO(+)
+              AND T1.CASE_MNG_ODRNO = T4.CASE_MNG_ODRNO(+)
+              AND T4.CASE_MNG_ODRNO IS NULL
+              )  AS CASE_NOPE                /*사례인원 */
+        FROM SAA000 A, AKA500 B /* 통합기관(C), 센터현황(B) */
+        WHERE A.UNT_TASKWK_SE_CD = 'U04'
+          AND A.INST_TYPE_SE_CD IN ('5', '8')
+        AND A.INST_NO = B.INST_NO(+)
+        AND NVL(A.CTPV_CD, ' ') LIKE #{CTPV_CD}||'%'
+        
+    ]]>
+    </select>
+
+    <select id="selectSheltrCntList" resultType="HashMap">
+    <![CDATA[
+        /* selectSheltrCntList - Lee MS */
+        
+        SELECT
+            '00' AS CTPV_CD,                                  /* 시도코드 */ 
+            '전국' AS CTPV_NM,                                 /* 시도명 */ 
+            COUNT(*) AS CTPV_CNT                              /* 시도숫자 */ 
+        FROM SAA000 A 
+        WHERE A.UNT_TASKWK_SE_CD = 'U04'
+        AND A.INST_TYPE_SE_CD IN ('5', '8')
+        UNION ALL
+        SELECT 
+            B.CMMNS_CD_VALUE AS CTPV_CD,                     /* 시도코드 */ 
+            B.ADDTNG_MNG_VALUE1 AS CTPV_NM,                  /* 시도명 */ 
+            NVL(A.CTPV_CNT, 0) AS CTPV_CNT                   /* 시도숫자 */
+        FROM (SELECT
+                  A.CTPV_CD AS CTPV_CD,
+                  COUNT(*) AS CTPV_CNT                                  
+              FROM SAA000 A  
+              WHERE A.UNT_TASKWK_SE_CD = 'U04'
+              AND A.INST_TYPE_SE_CD IN ('5', '8')
+              GROUP BY A.CTPV_CD
+              ORDER BY A.CTPV_CD) A, 
+              (SELECT CMMNS_CD_VALUE, CMMNS_CD_VALUE_NM, ADDTNG_MNG_VALUE1 
+                 FROM SAC100
+               WHERE CMMNS_CD_ID = 'CTPV_SE_CD'
+               ORDER BY SRTNG_SQNCE) B
+        WHERE B.CMMNS_CD_VALUE = A.CTPV_CD(+)
+        
+    ]]>
+    </select>
+
+</mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.syscmmn.survsht.mapper.SurvshtCmmnsInqMapper">
+
+    <!-- 설문지템플릿 사용여부 조회(SBB000) -->
+    <select id="searchQustnbTmptUseYn" parameterType="HashMap" resultType="HashMap">
+	    <![CDATA[
+	        /*SQL-ID : sry.itgcms.syscmmn.survsht.mapper.SurvshtCmmnsInqMapper searchQustnbTmptUseYn : 설문지템플릿 사용여부 조회(SBB000) */
+	        SELECT 
+			    USE_YN
+			FROM SBB000 /* 설문지템플릿 */
+			WHERE 1=1
+			AND QUSTNB_TMPT_MNG_NO = #{QUSTNB_TMPT_MNG_NO}
+	    ]]>
+
+    </select>
+    
+</mapper>

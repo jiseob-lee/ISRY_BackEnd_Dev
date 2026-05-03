@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* @Class Name  : ProgramExcnMngMapper.xml
+* @Description : 프로그램실행 관리 SQL Mapper
+*
+* @author  : Yoo.Chi.Hoon
+* @since   : 2022. 8. 5.
+* @version : 1.0
+* @see
+* <pre>
+* ******************************************************************
+* Modification Information
+* ******************************************************************
+* 수정일         수정자          수정내용
+* ******************************************************************
+* 2022. 8. 5..  Yoo.Chi.Hoon    최초작성
+* </pre>
+-->
+
+<mapper namespace="isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper">
+
+    <!-- 서비스실행사업 목록 조회 -->
+    <select id="selectSrvcExcnBizList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+		  SELECT /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.selectSrvcExcnBizList(서비스실행사업 조회) 업무공통팀 유치훈*/
+		         T9.SRVC_EXCN_BIZ_NO                                  AS SRVC_EXCN_BIZ_NO         /* 서비스실행사업번호*/
+		       , T9.SRVC_BIZ_NO                                       AS SRVC_BIZ_NO              /* 서비스사업번호*/
+		       , T9.SRVC_EXCN_BIZ_NM                                  AS SRVC_EXCN_BIZ_NM         /* 서비스실행사업명*/
+		       , T9.BGT_EXCN_AMT                                      AS BGT_EXCN_AMT             /* 예산실행금액*/
+		       , T9.BIZ_BGNG_YMD                                      AS BIZ_BGNG_YMD             /* 사업시작일자*/
+		       , T9.BIZ_END_YMD                                       AS BIZ_END_YMD              /* 사업종료일자*/
+		    FROM SDA420 T9  /* 서비스실행사업*/
+           WHERE 1 = 1 
+           ]]>   		        
+		<if test = " SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != '' ">
+		  <![CDATA[
+		     AND T9.SRVC_EXCN_BIZ_NO  = #{SRVC_EXCN_BIZ_NO}           /* 서비스실행사업번호*/
+		  ]]>
+		</if>
+    </select>
+    
+    <!-- 통합기관 검색 목록 조회 -->
+    <select id="selectUnityInstList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[    
+          SELECT /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.selectUnityInstList(자원제공주체 조회) 업무공통팀 유치훈*/
+                 T10.INST_NO                                           AS INST_NO                  /* 기관번호*/
+               , T10.INST_NM                                           AS INST_NM                  /* 기관명*/
+            FROM SAA000 T10  /* 통합기관*/
+           WHERE 1 = 1   
+           ]]> 
+        <if test = " RSFR_INST_NO != null and RSFR_INST_NO != '' ">
+            <![CDATA[
+             AND T10.INST_NO  = #{RSFR_INST_NO}
+             ]]>
+        </if>
+    </select>    
+    
+    <!-- 자원기본 검색 목록 조회 -->
+    <select id="selectResrceBassList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[         
+            SELECT /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.selectResrceBassList(자원기본 조회) 업무공통팀 유치훈*/ 
+                   T1.RESRCE_NO                                             AS RESRCE_NO                /* 자원번호*/
+                 , T1.SRVC_EXCN_BIZ_NO                                      AS SRVC_EXCN_BIZ_NO         /* 서비스실행사업번호*/
+                 , (SELECT X.SRVC_EXCN_BIZ_NM FROM SDA420 X WHERE X.SRVC_EXCN_BIZ_NO = T1.SRVC_EXCN_BIZ_NO) AS SRVC_EXCN_BIZ_NM /* 서비스실행사업명*/
+                 , T1.RSFR_INST_NO                                          AS RSFR_INST_NO             /* 자원제공주체번호*/                
+                 , (SELECT X.INST_NM FROM SAA000 X WHERE X.INST_NO = T1.RSFR_INST_NO) AS RSFR_INST_NM   /* 자원제공주체명*/ 
+                 , T1.PVSN_RESRCE_NM                                        AS PVSN_RESRCE_NM           /* 제공자원명*/
+                 , T1.SRVC_TYPE_SE_CD                                       AS SRVC_TYPE_SE_CD          /* 서비스유형구분코드*/
+                 , T1.APRV_STTS_SE_CD                                       AS APRV_STTS_SE_CD          /* 승인상태구분코드*/
+                 , T1.USE_YN                                                AS USE_YN                   /* 사용여부*/
+              FROM SDA100 T1  /* 자원기본*/
+             WHERE 1 = 1
+               AND T1.SRVC_TYPE_SE_CD       = '04'                  /* 서비스유형구분코드 , 프로그램 : 04*/
+               AND T1.APRV_STTS_SE_CD     IN  ('2')                 /* 승인상태구분코드  , (대기 : 0), (요청 : 1), (승인 : 2), (반려 : 3), (보류 : 4), (수정요청 : 5)*/
+               AND T1.USE_YN                = 'Y'                   /* 사용여부          , 사용 : Y, 미사용 : N*/
+        ]]>
+          <if test = " RESRCE_NO != null and RESRCE_NO != '' ">
+            <![CDATA[                      
+               AND T1.RESRCE_NO  = #{RESRCE_NO}                 /* 자원번호*/
+            ]]>
+          </if> 
+          <if test = " SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != '' ">
+            <![CDATA[                      
+               AND T1.SRVC_EXCN_BIZ_NO  = #{SRVC_EXCN_BIZ_NO}   /* 서비스실행사업번호*/
+            ]]>
+          </if> 
+          <if test = " RSFR_INST_NO != null and RSFR_INST_NO != '' ">
+            <![CDATA[           
+               AND T1.RSFR_INST_NO  = #{RSFR_INST_NO}           /* 자원제공주체번호*/
+            ]]>
+          </if>           
+    </select> 
+    
+    <!-- 자원프로그램실행시간 목록 조회 -->
+    <select id="selectProgramExcnHrList" parameterType="HashMap" resultType="HashMap">
+            <![CDATA[  
+            SELECT /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.selectProgramExcnHrList(자원프로그램 실행시간 목록 조회) 업무공통팀 유치훈*/
+                   T4.PROGRM_NO                                             AS PROGRM_NO                /* 프로그램번호*/
+                 , T4.RESRCE_NO                                             AS RESRCE_NO                /* 자원번호*/
+                 , T4.LCTRE_SN                                              AS LCTRE_SN                 /* 강의일련번호*/
+                 , T4.LCTRE_YMD                                             AS LCTRE_YMD                /* 강의일자*/
+                 , T4.LCTRE_HR                                              AS LCTRE_HR                 /* 강의시간*/
+                 , T4.PROGRM_DTL_CN                                         AS PROGRM_DTL_CN            /* 프로그램상세내용*/
+              FROM SDA320 T4 /* 자원프로그램 실행시간*/
+             WHERE 1 = 1     
+               AND T4.PROGRM_NO = #{PROGRM_NO}                     
+               AND T4.RESRCE_NO = #{RESRCE_NO}
+               AND T4.LCTRE_SN  = #{LCTRE_SN}
+            ]]>                                    
+    </select>
+    
+    <!-- 자원프로그램실행시간 중복조회 -->
+    <select id="selectProgramExcnHrCnt" parameterType="HashMap" resultType="Integer">
+            /*selectProgramExcnHrCnt - Yoo ChiHoon*/         
+            SELECT /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.selectProgramExcnHrCnt(자원프로그램실행시간 중복조회) 업무공통팀 유치훈*/
+                   COUNT(*)         AS          ExcnHrCnt
+              FROM SDA320 T4 /* 자원프로그램 실행시간*/
+             WHERE 1 = 1     
+               AND T4.PROGRM_NO = #{PROGRM_NO}                     
+               AND T4.RESRCE_NO = #{RESRCE_NO}
+               AND T4.LCTRE_SN  = #{LCTRE_SN}                                    
+               AND T4.LCTRE_YMD = #{LCTRE_YMD}                                    
+    </select>           
+    
+    <!-- 프로그램실행관리 목록 조회 -->
+    <select id="selectProgramExcnMngList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        WITH VS_PROGRAM AS ( /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.selectProgramExcnMngList(프로그램실행관리 조회) 업무공통팀 유치훈*/     
+            SELECT T2.PROGRM_NO                                              AS PROGRM_NO               /* 프로그램 번호*/
+                 , T2.RESRCE_NO                                              AS RESRCE_NO               /* 자원번호*/
+                 , T2.PROGRM_TTL_NM                                          AS PROGRM_TTL_NM           /* 프로그램 제목명*/
+                 , T2.PROGRM_DSCRP_CN                                        AS PROGRM_DSCRP_CN         /* 프로그램 설명내용*/
+                 , T2.EDU_PROGRM_SE_CD                                       AS EDU_PROGRM_SE_CD        /* 교육프로그램 구분코드*/
+                 , T2.PROGRM_CN                                              AS PROGRM_CN               /* 프로그램 내용*/
+                 , T2.PROGRM_BGNG_YMD                                        AS PROGRM_BGNG_YMD         /* 프로그램 시작일자*/
+                 , T2.PROGRM_END_YMD                                         AS PROGRM_END_YMD          /* 프로그램 종료일자*/
+                 , T2.PROGRM_SUM_HR                                          AS PROGRM_SUM_HR           /* 프로그램 합계시간*/
+                 , T3.LCTRE_SN                                               AS LCTRE_SN                /* 강의 일련번호*/
+                 , T3.LCTRE_BGNG_YMD                                         AS LCTRE_BGNG_YMD          /* 강의 시작일자*/
+                 , T3.LCTRE_END_YMD                                          AS LCTRE_END_YMD           /* 강의 종료일자*/
+                 , T3.PROGRM_BGNG_HR                                         AS PROGRM_BGNG_HR          /* 프로그램 시작시간*/
+                 , T3.PROGRM_END_HR                                          AS PROGRM_END_HR           /* 프로그램 종료시간*/
+                 
+                 , (SELECT BGNG_HR || ' ~ ' || END_HR
+                      FROM (
+		                    (SELECT 
+		                            CONCAT(CONCAT(SUBSTR(T3.PROGRM_BGNG_HR, 0, 2), ':') ,SUBSTR(T3.PROGRM_BGNG_HR, 3, 2))  AS BGNG_HR
+		                          , CONCAT(CONCAT(SUBSTR(T3.PROGRM_END_HR, 0,2)  , ':') ,SUBSTR(T3.PROGRM_END_HR, 3,2))    AS END_HR
+		                       FROM DUAL /* 프로그램 시작시간, 종료시간*/ )
+                           )
+                    )                                                        AS PROGRM_HR               /* 프로그램 시간*/ 
+                    
+                 , T3.LCTRE_SUM_HR                                           AS LCTRE_SUM_HR            /* 강의 합계시간*/
+                 , T5.LCTRE_SN                                               AS LCTRE_SN_1              /* 강사 강의일련번호*/
+                 , T5.INSTR_ENFSN_NO                                         AS INSTR_ENFSN_NO          /* 강사 종사자번호*/
+                 , (SELECT C##RG.DEC_B64(X.FLNM_ENCPT) FROM SCA100 X WHERE X.ENFSN_NO = T5.INSTR_ENFSN_NO) AS INSTR_ENFSN_NM   /* 강사명 암호화*/            
+              FROM SDA300 T2 /* 자원프로그램*/
+                 , SDA340 T3 /* 자원프로그램 상세일정*/
+                 , SDA342 T5 /* 자원프로그램 강사*/
+             WHERE 1 = 1
+               AND T2.RESRCE_NO             = T3.RESRCE_NO
+               AND T2.PROGRM_NO             = T3.PROGRM_NO
+               AND T2.RESRCE_NO             = T5.RESRCE_NO
+               AND T2.PROGRM_NO             = T5.PROGRM_NO
+               AND T3.LCTRE_SN              = T5.LCTRE_SN
+               AND T2.RESRCE_NO             = #{RESRCE_NO}           /* 자원번호*/               
+               AND T2.DEL_YN                = 'N'                    /* 삭제여부        , 삭제 : Y, 미삭제 : N*/
+               AND T3.DEL_YN                = 'N'                    /* 삭제여부        , 삭제 : Y, 미삭제 : N*/     
+               AND T5.DEL_YN                = 'N'                    /* 삭제여부        , 삭제 : Y, 미삭제 : N*/       
+               AND T5.PCHPRS_YN             = 'Y'                    /* 주담당자여부    , 삭제 : Y, 미삭제 : N*/
+            ]]>               
+          <if test = "PROGRM_NO != null and PROGRM_NO != ''">
+            <![CDATA[                      
+               AND T2.PROGRM_NO         = #{PROGRM_NO}      /* 프로그램번호 */
+               ]]>
+          </if> 
+        <![CDATA[                             
+        )
+            SELECT T33.PROGRM_NO                                             AS PROGRM_NO               /* 프로그램번호*/
+                 , T33.RESRCE_NO                                             AS RESRCE_NO               /* 자원번호*/
+                 , T33.PROGRM_TTL_NM                                         AS PROGRM_TTL_NM           /* 프로그램제목명*/
+                 , T33.PROGRM_DSCRP_CN                                       AS PROGRM_DSCRP_CN         /* 프로그램설명내용*/
+                 , T33.EDU_PROGRM_SE_CD                                      AS EDU_PROGRM_SE_CD        /* 교육프로그램구분코드*/
+                 , T33.PROGRM_CN                                             AS PROGRM_CN               /* 프로그램내용*/
+                 , T33.PROGRM_BGNG_YMD                                       AS PROGRM_BGNG_YMD         /* 프로그램시작일자*/
+                 , T33.PROGRM_END_YMD                                        AS PROGRM_END_YMD          /* 프로그램종료일자*/
+                 , T33.PROGRM_SUM_HR                                         AS PROGRM_SUM_HR           /* 프로그램합계시간*/
+                 , T33.LCTRE_SN                                              AS LCTRE_SN                /* 강의일련번호*/
+                 , T33.LCTRE_BGNG_YMD                                        AS LCTRE_BGNG_YMD          /* 강의시작일자*/
+                 , T33.LCTRE_END_YMD                                         AS LCTRE_END_YMD           /* 강의종료일자*/
+                 , T33.PROGRM_BGNG_HR                                        AS PROGRM_BGNG_HR          /* 프로그램 시작시간*/
+                 , T33.PROGRM_END_HR                                         AS PROGRM_END_HR           /* 프로그램 종료시간*/
+                 , T33.PROGRM_HR                                             AS PROGRM_HR               /* 프로그램 시간*/
+                 , T33.LCTRE_SUM_HR                                          AS LCTRE_SUM_HR            /* 강의 합계시간*/
+                 , T33.LCTRE_SN_1                                            AS LCTRE_SN_1              /* 강의일련번호*/
+                 , T33.INSTR_ENFSN_NM                                        AS INSTR_ENFSN_NM          /* 강사명 암호화*/                 
+              FROM VS_PROGRAM T33
+          ORDER BY T33.PROGRM_NO, T33.LCTRE_SN    
+        ]]>                     
+    </select>
+
+    <!-- 자원제공기간 조회 -->  
+    <select id="selectResrcePvsnPrdList" parameterType="HashMap" resultType="HashMap">
+        <![CDATA[
+        WITH VS_RESRCE_DATE AS ( /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.selectResrcePvsnPrdList(자원제공기간 조회) 업무공통팀 유치훈*/
+              SELECT TO_CHAR(DT, 'YYYYMMDD')                                 AS DATETS                  /* 자원제공기간*/
+                   , TO_CHAR(DT, 'DAY')                                      AS DAYS                    /* 자원제공기간 일별 요일*/
+                   , TO_CHAR(DT, 'DD')                                       AS YMD                     /* 일자*/
+                   , SUBSTR (TO_CHAR(DT, 'DAY') , 1, 1)                      AS DAOFTH                  /* 요일*/
+                FROM (
+                     SELECT ( PROGRM_BGNG_YMD + (LEVEL - 1))                 AS DT                      /* 자원제공기간 시작일 ~ 자원제공기간 종료일*/            
+                       FROM (
+                            SELECT TO_DATE(#{EXCN_BGNG_YMD}, 'YYYYMMDD') AS PROGRM_BGNG_YMD           /* 실행년월 시작일*/
+                                 , TO_DATE(#{EXCN_END_YMD} , 'YYYYMMDD') AS PROGRM_END_YMD            /* 실행년월 종료일*/
+                              FROM  DUAL /* 대상자정보*/
+                             WHERE 1 = 1
+                            )
+           CONNECT BY LEVEL <= (PROGRM_END_YMD - PROGRM_BGNG_YMD) + 1                                   /* (종료일 - 시작일) + 1*/
+                     )
+        )
+              SELECT T.DATETS                                               AS DATETS   
+                   , T.DAOFTH                                               AS DAOFTH
+                   , #{SRVC_EXCN_BIZ_NM}                                    AS SRVC_EXCN_BIZ_NM             /* 서비스실행사업명*/
+                   , #{RSFR_INST_NM}                                        AS RSFR_INST_NM                 /* 자원제공주체*/
+                   , #{PROGRM_NO}                                           AS PROGRM_NO                    /* 프로그램번호*/
+                   , #{RESRCE_NO}                                           AS RESRCE_NO                    /* 자원번호*/
+                   , #{PROGRM_TTL_NM}                                       AS PROGRM_TTL_NM                /* 프로그램이름*/
+                   , #{PROGRM_BGNG_YMD}                                     AS PROGRM_BGNG_YMD              /* 프로그램시작일자*/
+                   , #{PROGRM_END_YMD}                                      AS PROGRM_END_YMD               /* 프로그램종료일자*/
+                   , #{LCTRE_SN}                                            AS LCTRE_SN                     /* 강의일련번호*/
+                   , #{LCTRE_BGNG_YMD}                                      AS LCTRE_BGNG_YMD               /* 강의시작일자*/
+                   , #{LCTRE_END_YMD}                                       AS LCTRE_END_YMD                /* 강의종료일자*/
+                   , #{PROGRM_BGNG_HR}                                      AS PROGRM_BGNG_HR               /* 프로그램시작시간*/
+                   , #{PROGRM_END_HR}                                       AS PROGRM_END_HR                /* 프로그램종료시간*/
+                   , #{PROGRM_HR}                                           AS PROGRM_HR                    /* 프로그램시작시간 ~ 프로그램종료시간*/
+                   , #{INSTR_ENFSN_NM}                                      AS INSTR_ENFSN_NM               /* 강사종사자성명*/
+                   , #{PROGRM_DSCRP_CN}                                     AS PROGRM_DSCRP_CN              /* 프로그램내용*/
+                   , ''                                                     AS LCTRE_YMD                    /* 강의일자*/
+                   , ''                                                     AS LCTRE_HR                     /* 강의시간*/                   
+                FROM VS_RESRCE_DATE T
+            ORDER BY DATETS DESC
+        ]]>
+    </select>  
+
+    <!-- 자원프로그램 실행시간 강의일련번호 조회 -->
+    <select id="selectResrceProgrmDtlSchdlLctreSn" parameterType="String" resultType="String">
+        <![CDATA[    
+        SELECT NVL(MAX(LCTRE_SN) +1, 1)         AS LCTRE_SN         /* 강의일련번호*/
+          FROM SDA320 T21   
+         WHERE T21.PROGRM_NO = #{PROGRM_NO}                         /* 프로그램번호*/
+           AND T21.RESRCE_NO = #{RESRCE_NO}                         /* 자원번호*/
+        ]]>           
+    </select>
+    
+    <!-- 자원프로그램 상세일정 이력 등록 -->          
+    <insert id = "insertResrceProgrmDtlSchdlHistory" parameterType="HashMap">
+        <![CDATA[    
+        INSERT /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.insertResrceProgrmDtlSchdlHistory(자원프로그램상세일정 이력) 업무공통팀 유치훈*/
+          INTO SDA341 T1 /* 자원프로그램실행시간 등록 */
+             ( T1.PROGRM_NO                   /* 프로그램번호*/
+             , T1.RESRCE_NO                   /* 자원번호*/
+             , T1.LCTRE_SN                    /* 강의일련번호*/
+             , T1.LCTRE_BGNG_YMD              /* 강의시작일자*/
+             , T1.LCTRE_END_YMD               /* 강의종료일자*/            
+             , T1.PROGRM_BGNG_HR              /* 강의시간*/          
+             , T1.PROGRM_END_HR               /* 프로그램상세내용*/      
+             , T1.LCTRE_SUM_HR                /* 최초등록자아이디*/ 
+             , T1.DEL_YN                      /* 삭제여부*/
+             , T1.FRST_RGTR_ID                /* 최초등록자아이디*/          
+             , T1.FRST_REG_DT                 /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT               /* 최종수정일시*/                    
+             )
+        VALUES
+             ( #{PROGRM_NO}                   /* 프로그램번호*/
+             , #{RESRCE_NO}                   /* 자원번호*/
+             , #{LCTRE_SN}                    /* 강의일련번호*/
+             , #{LCTRE_BGNG_YMD}              /* 강의시작일자*/
+             , #{LCTRE_END_YMD}               /* 강의종료일자*/            
+             , #{PROGRM_BGNG_HR}              /* 강의시간*/          
+             , #{PROGRM_END_HR}               /* 프로그램상세내용*/      
+             , #{LCTRE_SUM_HR}                /* 최초등록자아이디*/ 
+             , NVL(#{DEL_YN}, 'N')            /* 삭제여부*/
+             , #{PROGRM_DTL_CN}               /* 프로그램상세내용*/
+             , #{FRST_RGTR_ID}                /* 최초등록자아이디*/
+             , SYSDATE                        /* 최초등록일시*/
+             , #{LAST_MDFR_ID}                /* 최종수정자아이디*/
+             , SYSDATE                        /* 최종수정일시*/
+             )
+            ]]>             
+    </insert>           
+
+    <!-- 자원프로그램 실행시간 등록 -->         
+    <insert id = "insertResrceProgrmExcnHr" parameterType="HashMap">
+        <![CDATA[    
+        INSERT /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.insertResrceProgrmExcnHr(자원프로그램 실행시간) 업무공통팀 유치훈*/
+          INTO SDA320 T1 /* 자원프로그램 실행시간 등록 */
+             ( T1.PROGRM_NO                   /* 프로그램번호*/
+             , T1.RESRCE_NO                   /* 자원번호*/
+             , T1.LCTRE_SN                    /* 강의일련번호*/
+             , T1.LCTRE_YMD                   /* 강의일자*/
+             , T1.LCTRE_HR                    /* 강의시간*/          
+             , T1.PROGRM_DTL_CN               /* 프로그램상세내용*/      
+             , T1.FRST_RGTR_ID                /* 최초등록자아이디*/ 
+             , T1.FRST_REG_DT                 /* 최초등록일시*/
+             , T1.LAST_MDFR_ID                /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT               /* 최종수정일시*/                    
+             )
+        VALUES
+             ( #{PROGRM_NO}                   /* 프로그램번호*/
+             , #{RESRCE_NO}                   /* 자원번호*/
+             , #{LCTRE_SN}                    /* 강의일련번호*/
+             , #{LCTRE_YMD}                   /* 강의일자*/
+             , #{LCTRE_HR}                    /* 강의시간*/
+             , #{PROGRM_DTL_CN}               /* 프로그램상세내용*/
+             , #{FRST_RGTR_ID}                /* 최초등록자아이디*/
+             , SYSDATE                        /* 최초등록일시*/
+             , #{LAST_MDFR_ID}                /* 최종수정자아이디*/
+             , SYSDATE                        /* 최종수정일시*/
+             )
+            ]]>             
+    </insert>       
+    
+    <!-- 자원프로그램 실행시간 수정 -->     
+    <update id = "updateResrceProgrmExcnHr" parameterType = "HashMap"> 
+        <![CDATA[       
+        UPDATE /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.updateResrceProgrmExcnHr(자원프로그램 실행시간) 업무공통팀 유치훈*/
+               SDA320 T1 /* 자원프로그램 실행시간 수정 */
+           SET T1.LCTRE_HR                    = #{LCTRE_HR}                 /* 강의시간*/        
+             , T1.LAST_MDFR_ID                = #{LAST_MDFR_ID}             /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT               = SYSDATE                     /* 최종수정일시*/
+         WHERE T1.RESRCE_NO                   = #{RESRCE_NO}                /* 자원번호(RS)*/   
+           AND T1.PROGRM_NO                   = #{PROGRM_NO}                /* 프로그램번호(PG)*/
+           AND T1.LCTRE_SN                    = #{LCTRE_SN}                 /* 강의일련번호*/
+           AND T1.LCTRE_YMD                   = #{LCTRE_YMD}                 /* 강의일자*/
+           ]]>
+    </update>        
+
+    <!-- 자원프로그램 실행시간 삭제 --> 
+    <update id = "deleteResrceProgrmExcnHr" parameterType = "HashMap">
+        <![CDATA[
+        UPDATE /* isry.itgcm.crtrinfo.resrce.mapper.ProgramExcnMngMapper.deleteResrceProgrmExcnHr(자원프로그램 실행시간) 업무공통팀 유치훈*/
+               SDA320 T1 /* 자원프로그램 실행시간 삭제 */
+           SET T1.DEL_YN                    = 'Y'                            /* 삭제여부*/
+             , T1.LAST_MDFR_ID              = #{LAST_MDFR_ID}                /* 최종수정자아이디*/
+             , T1.LAST_MDFCN_DT             = SYSDATE                        /* 최종수정일시*/
+         WHERE T1.RESRCE_NO                 = #{RESRCE_NO}                 /* 자원번호(RS)*/  
+           AND T1.PROGRM_NO                 = #{PROGRM_NO}                 /* 프로그램번호(PG)*/
+           AND T1.LCTRE_SN                  = #{LCTRE_SN}                  /* 강의일련번호*/
+          ]]>         
+    </update>   
+	
+	
+</mapper>

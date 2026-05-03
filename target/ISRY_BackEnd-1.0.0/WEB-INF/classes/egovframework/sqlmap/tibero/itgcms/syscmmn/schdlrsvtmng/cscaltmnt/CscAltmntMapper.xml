@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="isry.itgcms.syscmmn.schdlrsvtmng.cscaltmnt.mapper.CscAltmntMapper">
+
+    <!-- 메뉴 정보 조회 -->
+    <select id="selectTaskwkSeCd" parameterType="HashMap" resultType="string">
+    <![CDATA[
+        /* selectTaskwkSeCd - kim.seong.ok */
+
+        SELECT D.CMMNS_CD_VALUE
+
+            FROM SAB200 C /* 메뉴 */, SAC100 D /* 공통코드 값 */
+
+            WHERE
+                C.MENU_NO = (
+                 SELECT E.MENU_NO
+                    FROM SAB200 E
+                    WHERE E.MENU_LEVELA_NO = 1
+                    START WITH E.MENU_NO = #{MENU_NO}
+                    CONNECT BY PRIOR E.UP_MENU_NO = E.MENU_NO
+                )
+
+            AND D.CMMNS_CD_ID = 'UNT_TASKWK_SE_CD'
+            AND D.CMMNS_CD_VALUE_NM = C.MENU_NM
+        ]]>
+
+    </select>
+
+
+
+    <!-- 상담실 리스트 겟 수 -->
+    <select id="getCscListTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* getCscListTotalCount - kim.seong.ok */
+
+        SELECT
+
+            COUNT(*)
+
+        FROM SBD200
+            WHERE INST_NO = #{INST_NO}
+            AND USER_ID = #{USER_ID}
+            AND DEL_YN = 'N'
+        ]]>
+        <if test='SEARCH_KEY == "01" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            <![CDATA[
+            AND CSC_NM LIKE '%'|| #{SEARCH_DATA} || '%'
+            ]]>
+        </if>
+        <if test='SEARCH_KEY == "02" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            <![CDATA[
+            AND CSC_ESNTAL_NO LIKE '%'|| #{SEARCH_DATA} || '%'
+            ]]>
+        </if>
+
+    </select>
+
+
+
+    <!-- 상담실 리스트(USE_YN Y,N) -->
+    <select id="selectCscList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCscList - kim.seong.ok */
+
+        SELECT
+
+            INST_NO             /*기관번호*/
+			,CSC_ESNTAL_NO      /*상담실고유번호*/
+			,TASKWK_SYS_SE_CD   /*업무시스템구분코드*/
+			,USER_ID                /*사용자아이디*/
+			,CSC_NM             /*상담실명*/
+			,USE_YN             /*사용여부*/
+			,DEL_YN             /*삭제여부*/
+			,FRST_RGTR_ID       /*최초등록자아이디*/
+			,FRST_REG_DT            /*최초등록일시*/
+			,LAST_MDFR_ID       /*최종수정자아이디*/
+			,LAST_MDFCN_DT      /*최종수정일시*/
+
+        FROM SBD200
+            WHERE INST_NO = #{INST_NO}
+            AND USER_ID = #{USER_ID}
+            AND DEL_YN = 'N'
+        ]]>
+        <if test='SEARCH_KEY == "01" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            <![CDATA[
+            AND CSC_NM LIKE '%'|| #{SEARCH_DATA} || '%'
+            ]]>
+        </if>
+        <if test='SEARCH_KEY == "02" and SEARCH_DATA != null and SEARCH_DATA != ""'>
+            <![CDATA[
+            AND CSC_ESNTAL_NO LIKE '%'|| #{SEARCH_DATA} || '%'
+            ]]>
+        </if>
+
+    </select>
+
+
+    <!-- 상담실 리스트(USE_YN Y) -->
+    <select id="selectCscListUseY" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCscListUseY - kim.seong.ok */
+
+        SELECT
+
+            INST_NO             /*기관번호*/
+            ,CSC_ESNTAL_NO      /*상담실고유번호*/
+            ,TASKWK_SYS_SE_CD   /*업무시스템구분코드*/
+            ,USER_ID                /*사용자아이디*/
+            ,CSC_NM             /*상담실명*/
+            ,USE_YN             /*사용여부*/
+            ,DEL_YN             /*삭제여부*/
+            ,FRST_RGTR_ID       /*최초등록자아이디*/
+            ,FRST_REG_DT            /*최초등록일시*/
+            ,LAST_MDFR_ID       /*최종수정자아이디*/
+            ,LAST_MDFCN_DT      /*최종수정일시*/
+
+        FROM SBD200
+            WHERE INST_NO = #{INST_NO}
+            AND USER_ID = #{USER_ID}
+            AND USE_YN = 'Y'
+            AND DEL_YN = 'N'
+        ]]>
+
+    </select>
+
+
+
+    <!-- 상담실 예약 리스트(일간 및 요일데이터)-->
+    <select id="selectCscAltmntRsvtList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCscAltmntRsvtList - kim.seong.ok */
+
+        SELECT
+            B.*
+            , DEC_B64(B.RSVCTM_NM_ENCPT) AS RSVCTM
+            , TO_CHAR(TO_date(B.RSVT_YMD, 'YYYYMMDD'), 'dy') AS DAYOFWEEK
+        FROM
+            SBD200 A
+            JOIN SBD210 B ON A.INST_NO = B.INST_NO AND A.USER_ID = B.USER_ID AND A.CSC_ESNTAL_NO = B.CSC_ESNTAL_NO
+
+        WHERE A.INST_NO = #{INST_NO}
+        AND A.USER_ID = #{USER_ID}
+        AND B.DEL_YN = 'N'
+        AND B.RSVT_YMD = #{SEARCH_DATE}
+        ]]>
+    </select>
+
+
+
+
+
+
+    <!-- 선택한날짜 요일 가져오기-->
+    <select id="selectDayOfWeek" parameterType="HashMap" resultType="int">
+    <![CDATA[
+        /* selectDayOfWeek - kim.seong.ok */
+
+        SELECT
+            TO_CHAR(TO_date(#{SEARCH_DATE}, 'yyyymmdd'), 'd') AS DAYOFWEEK
+        FROM DUAL
+        ]]>
+    </select>
+
+
+    <!-- 상담실 예약 리스트(선택한 날짜 속한 주간 예약리스트)-->
+    <select id="selectDateWeeklyList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectDateWeeklyList - kim.seong.ok */
+
+        SELECT
+            B.*
+            , DEC_B64(B.RSVCTM_NM_ENCPT) AS RSVCTM
+            , TO_CHAR(TO_date(B.RSVT_YMD, 'YYYYMMDD'), 'dy') AS DAYOFWEEK
+        FROM
+            SBD200 A
+            JOIN SBD210 B ON A.INST_NO = B.INST_NO AND A.USER_ID = B.USER_ID AND A.CSC_ESNTAL_NO = B.CSC_ESNTAL_NO
+
+        WHERE A.INST_NO = #{INST_NO}
+        AND A.USER_ID = #{USER_ID}
+        AND B.DEL_YN = 'N'
+        AND B.RSVT_YMD >= TO_CHAR(TO_DATE(#{SEARCH_DATE},'yyyymmdd') - TO_NUMBER(#{PREV_DAY}) ,'yyyymmdd')
+        AND B.RSVT_YMD <= TO_CHAR(TO_DATE(#{SEARCH_DATE},'yyyymmdd') + TO_NUMBER(#{NEXT_DAY}) ,'yyyymmdd')
+        ]]>
+    </select>
+
+
+
+    <!-- 선택한 상담실 예약 리스트-->
+    <select id="selectedCscAltmntRsvtSearchList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectedCscAltmntRsvtSearchList - kim.seong.ok */
+
+        SELECT
+            B.*
+            , DEC_B64(B.RSVCTM_NM_ENCPT) AS RSVCTM
+        FROM
+            SBD200 A
+            JOIN SBD210 B ON A.INST_NO = B.INST_NO AND A.USER_ID = B.USER_ID AND A.CSC_ESNTAL_NO = B.CSC_ESNTAL_NO
+
+        WHERE A.INST_NO = #{INST_NO}
+        AND A.USER_ID = #{USER_ID}
+        AND B.CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+        AND B.DEL_YN = 'N'
+        AND B.RSVT_YMD = #{SEARCH_DATE}
+        ]]>
+    </select>
+
+
+
+
+
+
+
+    <!-- 사용자가 속한 기관에 모든 종사자 -->
+    <select id="selectRsvctmList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectRsvctmList - kim.seong.ok */
+
+        SELECT
+
+            A.USER_ID AS RSVCTM_ID
+            ,DEC_B64(B.FLNM_ENCPT) AS FLNM_ENCPT
+
+        FROM
+            SAA200 A /* 사용자 */
+            JOIN SCA100 B ON A.ENFSN_NO = B.ENFSN_NO  /* 종사자 */
+
+        WHERE
+            B.OGDP_INST_NO = #{INST_NO}        /* A 사용자아이디사용구분코드 사용자접속차단여부 B 삭제여부 추후 체크 정책 확인필요 */
+
+        ]]>
+
+    </select>
+
+
+
+
+    <!-- 상담실 등록 -->
+    <insert id="insertCscDetail" parameterType="HashMap" useGeneratedKeys="true" keyProperty="CSC_ESNTAL_NO">
+    <selectKey keyProperty="CSC_ESNTAL_NO" resultType="int" order="BEFORE">
+        SELECT NVL(MAX(CSC_ESNTAL_NO)+1 ,1) FROM SBD200
+    </selectKey>
+    <![CDATA[
+        /* insertCscDetail - kim.seong.ok */
+
+        INSERT INTO SBD200
+        (
+            INST_NO                             /* 기관번호        */
+            ,CSC_ESNTAL_NO                      /* 상담실고유번호       */
+            ,TASKWK_SYS_SE_CD                   /* 업무시스템구분코드       */
+            ,USER_ID                            /* 사용자 아이디            */
+            ,CSC_NM                             /* 상담실명           */
+            ,USE_YN                             /* 사용여부           */
+            ,DEL_YN                             /* 삭제여부             */
+            ,FRST_RGTR_ID                       /* 최초등록자아이디        */
+            ,FRST_REG_DT                        /* 최초등록일시           */
+            ,LAST_MDFR_ID                       /* 최종수정자아이디        */
+            ,LAST_MDFCN_DT                      /* 최종수정일시           */
+        )
+        VALUES
+        (
+
+            #{INST_NO},                         /* 집단연계지원관리번호       */
+            #{CSC_ESNTAL_NO},                   /* 상담실고유번호            */
+            #{TASKWK_SYS_SE_CD},                /* 업무시스템구분코드           */
+            #{USER_ID},                         /* 사용자 아이디           */
+            #{CSC_NM},                          /* 상담실명        */
+            #{USE_YN},                          /* 사용여부      */
+            'N',                                /* 삭제여부             */
+            #{FRST_RGTR_ID},                    /* 최초등록자아이디        */
+            SYSDATE,                            /* 최초등록일시           */
+            #{LAST_MDFR_ID},                    /* 최종수정자아이디        */
+            SYSDATE                             /* 최종수정일시           */
+        )
+
+    ]]>
+    </insert>
+
+
+
+
+
+    <!-- 상담실 상세 -->
+    <select id="selectCscDetail" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCscDetail - kim.seong.ok */
+
+        SELECT
+
+            INST_NO             /*기관번호*/
+            ,CSC_ESNTAL_NO      /*상담실고유번호*/
+            ,TASKWK_SYS_SE_CD   /*업무시스템구분코드*/
+            ,USER_ID                /*사용자아이디*/
+            ,CSC_NM             /*상담실명*/
+            ,USE_YN             /*사용여부*/
+            ,DEL_YN             /*삭제여부*/
+            ,FRST_RGTR_ID       /*최초등록자아이디*/
+            ,FRST_REG_DT            /*최초등록일시*/
+            ,LAST_MDFR_ID       /*최종수정자아이디*/
+            ,LAST_MDFCN_DT      /*최종수정일시*/
+
+        FROM SBD200
+            WHERE INST_NO = #{INST_NO}
+            AND USER_ID = #{USER_ID}
+            AND CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+            AND DEL_YN = 'N'
+        ]]>
+
+    </select>
+
+
+    <!-- 상담실 수정 -->
+    <update id="updateCscDetail" parameterType="HashMap">
+        /* updateCscDetail - kim.seong.ok */
+
+        <![CDATA[
+        UPDATE SBD200 SET
+
+            CSC_NM        = #{CSC_NM},                                              /* 상담실명        */
+            USE_YN        = #{USE_YN},                                              /* 사용여부       */
+            LAST_MDFR_ID               = #{LAST_MDFR_ID},                                /* 최종수정자아이디        */
+            LAST_MDFCN_DT              = SYSDATE                                    /* 최종수정일시           */
+
+        WHERE INST_NO = #{INST_NO}
+        AND USER_ID = #{USER_ID}
+        AND CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+        AND DEL_YN = 'N'
+
+        ]]>
+    </update>
+
+
+
+    <!-- 상담실 삭제 -->
+    <update id="deleteCscDetail" parameterType="HashMap">
+        /* deleteCscDetail - kim.seong.ok */
+
+        <![CDATA[
+        UPDATE SBD200 SET
+
+            DEL_YN = 'Y',
+            LAST_MDFR_ID               = #{LAST_MDFR_ID},                                /* 최종수정자아이디        */
+            LAST_MDFCN_DT              = SYSDATE                                    /* 최종수정일시           */
+
+        WHERE INST_NO = #{INST_NO}
+        AND USER_ID = #{USER_ID}
+        AND CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+
+        ]]>
+    </update>
+
+
+
+    <!-- 상담실배정 리스트 겟 수 -->
+    <select id="getCscAltmntRsvtListTotalCount" parameterType="HashMap" resultType="Integer">
+    <![CDATA[
+        /* getCscAltmntRsvtListTotalCount - kim.seong.ok */
+
+        SELECT
+		    COUNT(*)
+
+		FROM
+		    SBD200 A
+		    JOIN SBD210 B ON A.INST_NO = B.INST_NO AND A.USER_ID = B.USER_ID AND A.CSC_ESNTAL_NO = B.CSC_ESNTAL_NO
+
+		WHERE A.INST_NO = #{INST_NO}
+			AND A.USER_ID = #{USER_ID}
+			AND B.DEL_YN = 'N'
+			AND B.RSVT_YMD = #{SEARCH_DATE}
+        ]]>
+    </select>
+
+
+    <!-- 상담실배정 리스트 (예약시간 중복 등록인 경우 체크용)-->
+    <select id="getAltmntRsvtDpcnItypeList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* getAltmntRsvtDpcnItypeList - kim.seong.ok */
+
+        SELECT
+            B.*
+        FROM
+            SBD200 A
+            JOIN SBD210 B ON A.INST_NO = B.INST_NO AND A.USER_ID = B.USER_ID AND A.CSC_ESNTAL_NO = B.CSC_ESNTAL_NO
+
+        WHERE A.INST_NO = #{INST_NO}
+        AND A.USER_ID = #{USER_ID}
+        AND B.DEL_YN = 'N'
+        AND B.CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+        AND B.RSVT_YMD = #{SEARCH_DATE}
+        ]]>
+    </select>
+
+
+    <!-- 상담실배정 리스트 (예약시간 중복 수정인 경우 체크용)-->
+    <select id="getAltmntRsvtDpcnUtypeList" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* getAltmntRsvtDpcnUtypeList - kim.seong.ok */
+
+        SELECT
+		    B.*
+		FROM
+		    SBD200 A
+		    JOIN SBD210 B ON A.INST_NO = B.INST_NO AND A.USER_ID = B.USER_ID AND A.CSC_ESNTAL_NO = B.CSC_ESNTAL_NO
+
+	    WHERE A.INST_NO = #{INST_NO}
+        AND A.USER_ID = #{USER_ID}
+        AND B.DEL_YN = 'N'
+        AND B.CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+        AND B.RSVT_YMD = #{SEARCH_DATE}
+        AND B.RSVT_BGNG_HR <> #{DPCN_CHECK_START_TIME}
+
+        ]]>
+    </select>
+
+
+
+    <!-- 상담실배정 등록 -->
+    <insert id="insertCscAltmntDetail" parameterType="HashMap" useGeneratedKeys="true" keyProperty="INDEX_SN">
+    <selectKey keyProperty="INDEX_SN" resultType="int" order="BEFORE">
+        SELECT NVL(MAX(INDEX_SN)+1 ,1) FROM SBD210
+    </selectKey>
+    <![CDATA[
+        /* insertCscAltmntDetail - kim.seong.ok */
+
+        INSERT INTO SBD210
+        (
+            INST_NO                 /*기관번호          */
+			,CSC_ESNTAL_NO          /*상담실고유번호       */
+			,INDEX_SN               /*색인일련번호        */
+			,TASKWK_SYS_SE_CD       /*업무시스템구분코드 */
+			,USER_ID                /*사용자 아이디       */
+			,CSC_NM                 /*상담실명          */
+			,RSVT_YMD               /*예약일자          */
+			,RSVT_BGNG_HR           /*예약시작시간        */
+			,RSVT_END_HR            /*예약종료시간        */
+			,RSVCTM_ID              /*예약자아이디        */
+			,RSVCTM_NM_ENCPT        /*예약자명암호화       */
+			,RM_CN                  /*비고내용          */
+			,REG_YMD                /*등록일자          */
+			,DEL_YN                 /*삭제여부          */
+			,FRST_RGTR_ID           /*최초등록자아이디  */
+			,FRST_REG_DT            /*최초등록일시        */
+			,LAST_MDFR_ID           /*최종수정자아이디  */
+			,LAST_MDFCN_DT          /*최종수정일시        */
+        )
+        VALUES
+        (
+            #{INST_NO},             /*기관번호          */
+			#{CSC_ESNTAL_NO},       /*상담실고유번호       */
+			#{INDEX_SN},            /*색인일련번호        */
+			#{TASKWK_SYS_SE_CD},    /*업무시스템구분코드 */
+			#{USER_ID},             /*사용자 아이디       */
+			#{CSC_NM},              /*상담실명          */
+			#{RSVT_YMD},            /*예약일자          */
+			#{RSVT_BGNG_HR},        /*예약시작시간        */
+			#{RSVT_END_HR},         /*예약종료시간        */
+			#{RSVCTM_ID},           /*예약자아이디        */
+			ENC_B64(#{RSVCTM_NM_ENCPT}),     /*예약자명암호화       */
+			#{RM_CN},               /*비고내용          */
+			#{REG_YMD},             /*등록일자          */
+			'N',                    /*삭제여부          */
+			#{FRST_RGTR_ID},        /*최초등록자아이디  */
+			SYSDATE,                /*최초등록일시        */
+			#{LAST_MDFR_ID},        /*최종수정자아이디  */
+			SYSDATE                 /*최종수정일시        */
+        )
+
+    ]]>
+    </insert>
+
+
+    <!-- 상담실 배정 상세 수정 -->
+    <update id="updateCscAltmntDetail" parameterType="HashMap">
+        /* updateCscAltmntDetail - kim.seong.ok */
+
+        <![CDATA[
+        UPDATE SBD210 SET
+
+            CSC_NM                      = #{CSC_NM}    /*상담실명          */
+            ,RSVT_YMD                   = #{RSVT_YMD}    /*예약일자          */
+            ,RSVT_BGNG_HR               = #{RSVT_BGNG_HR}    /*예약시작시간        */
+            ,RSVT_END_HR                = #{RSVT_END_HR}    /*예약종료시간        */
+            ,RSVCTM_ID                  = #{RSVCTM_ID}    /*예약자아이디        */
+            ,RSVCTM_NM_ENCPT            = ENC_B64(#{RSVCTM_NM_ENCPT})    /*예약자명암호화       */
+            ,RM_CN                      = #{RM_CN}    /*비고내용          */
+            ,LAST_MDFR_ID               = #{LAST_MDFR_ID}    /* 최종수정자아이디        */
+            ,LAST_MDFCN_DT              = SYSDATE       /* 최종수정일시           */
+
+        WHERE INST_NO = #{INST_NO}
+        AND USER_ID = #{USER_ID}
+        AND DEL_YN = 'N'
+        AND RSVT_YMD = #{RSVT_YMD}
+        AND RSVT_BGNG_HR = #{DPCN_CHECK_START_TIME}
+        AND CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+        AND INDEX_SN = #{INDEX_SN}
+
+        ]]>
+    </update>
+
+
+    <!-- 상담실 배정 상세 삭제 -->
+    <update id="deleteCscAltmntDetail" parameterType="HashMap">
+        /* deleteCscAltmntDetail - kim.seong.ok */
+
+        <![CDATA[
+        UPDATE SBD210 SET
+
+            DEL_YN                      = 'Y'
+            ,LAST_MDFR_ID               = #{LAST_MDFR_ID}    /* 최종수정자아이디        */
+            ,LAST_MDFCN_DT              = SYSDATE       /* 최종수정일시           */
+
+        WHERE INST_NO = #{INST_NO}
+        AND USER_ID = #{USER_ID}
+        AND RSVT_YMD = #{RSVT_YMD}
+        AND RSVT_BGNG_HR = #{DPCN_CHECK_START_TIME}
+        AND CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+        AND INDEX_SN = #{INDEX_SN}
+
+        ]]>
+    </update>
+
+
+
+
+
+    <!-- 상담실 배정 예약 상세-->
+    <select id="selectCscAltmntDetail" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectCscAltmntDetail - kim.seong.ok */
+
+        SELECT
+            B.*
+            , DEC_B64(B.RSVCTM_NM_ENCPT) AS RSVCTM
+        FROM
+            SBD200 A
+            JOIN SBD210 B ON A.INST_NO = B.INST_NO AND A.USER_ID = B.USER_ID AND A.CSC_ESNTAL_NO = B.CSC_ESNTAL_NO
+
+        WHERE A.INST_NO = #{INST_NO}
+        AND A.USER_ID = #{USER_ID}
+        AND B.DEL_YN = 'N'
+        AND B.RSVT_YMD = #{SEARCH_DATE}
+        AND B.CSC_ESNTAL_NO = #{CSC_ESNTAL_NO}
+        AND B.INDEX_SN = #{INDEX_SN}
+        ]]>
+    </select>
+
+
+
+</mapper>

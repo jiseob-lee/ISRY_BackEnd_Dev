@@ -1,0 +1,198 @@
+/******************************************************************************************
+ * 본 프로그램 소스는 여성 가족부의 사전 승인 없이 
+ * 임의 복제, 복사, 배포 할 수 없습니다. 위반 시 법적 처벌을 받게 됩니다.  
+ * Copyright (C) 2021 by MOGEF , All right All right reserved. 
+ ******************************************************************************************/
+package isry.itgcm.casemng.caseunity.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import egovframework.rte.psl.dataaccess.mapper.Mapper;
+
+
+/**
+ * @파일명        : CaseExcnMapper.java
+ * @프로그램 설명 	: 사례제공 Mapper Class
+ * 
+ * @작성자        : Lee.Jun.Yeong
+ * @작성일        : 2022. 6. 13. 
+ * @수정자        : Lee.Jun.Yeong
+ * @수정일        : 2022. 6. 13.
+ * @수정내용      : 
+ * -                
+ * -                
+ */
+@Mapper("caseExcnMapper")
+public interface CaseExcnMapper {
+
+	/**
+	* @Method    : 사례제공 목록조회
+	* @param     : Map  : CASE_MNG_NO(사례관리번호), CASE_MNG_ODRNO(사례관리차수)
+	* @return    : list 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public List<Map<String, Object>> selectCaseExcnList(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 프로그램 목록조회
+	* @param     : Map  : RESRCE_NO(자원번호)
+	* @return    : list 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public List<Map<String, Object>> selectExcnProgramList(Map<String, String> paramMap) throws Exception;
+	
+	/**
+	* @Method    : 프로그램 목록조회2
+	* @param     : Map  : CASE_MNG_NO(사례관리번호), CASE_MNG_ODRNO(사례관리차수)
+	* @return    : list 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public List<Map<String, Object>> selectExcnProgramList2(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 사례제공이력 목록조회
+	* @param     : Map  : SRVC_PVSN_BGNG_YMD(서비스제공시작일자), SRVC_PVSN_END_YMD(서비스제공종료일자), RESRCE_NO(자원명)
+	* @return    : list 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public List<Map<String, Object>> selectCaseExcnHstrList(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 서비스제공 저장
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int saveSEB500Data(Map<String, String> paramMap) throws Exception;
+
+	/**
+	 * @Method    : 서비스제공 등록
+	 * @param     : Map  : paramMap
+	 * @return    : void 
+	 * @exception : MyException
+	 * @see       : cmm.ROLE
+	 */	
+	public int insertSEB500Data(Map<String, String> paramMap) throws Exception;
+	
+	/**
+	* @Method    : 서비스제공 이력등록
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int insertSEB501Data(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 서비스제공 삭제
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int deleteSEB500Data(Map<String, String> paramMap) throws Exception;
+	
+	/**
+	* @Method    : 서비스제공 삭제여부 수정
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int updateSEB500DelYN(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 서비스제공대상자 저장
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int saveSEB510Data(Map<String, String> paramMap) throws Exception;
+	
+	/**
+	* @Method    : 서비스제공대상자 이력등록
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int insertSEB511Data(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 서비스제공대상자 삭제
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int deleteSEB510Data(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 자원프로그램제공대상자 저장
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int saveSEB520Data(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 자원프로그램제공대상자 이력등록
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int insertSEB521Data(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 자원프로그램제공대상자 삭제
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public int deleteSEB520Data(Map<String, String> paramMap) throws Exception;
+
+	/**
+	* @Method    : 자원프로그램제공대상자 삭제
+	* @param     : String  : trprInfoNo
+	* @return    : String 
+	* @exception : MyException
+	*/	
+	public String selectRqstNo(String trprInfoNo) throws Exception;
+	
+	/**
+	* @Method    : 실행서비스 사업분류 목록 조회
+	* @param     : Map  : paramMap
+	* @return    : list 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public List<Map<String, Object>> selectCaseExcnSrvcBizClList(Map<String, String> paramMap) throws Exception;
+	
+	/**
+	* @Method    : 실행서비스 세부사업 저장
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public void insertExcnDetaiaBiz(Map<String, String> paramMap) throws Exception;
+	
+	/**
+	* @Method    : 실행서비스 세부사업 삭제
+	* @param     : Map  : paramMap
+	* @return    : void 
+	* @exception : MyException
+	* @see       : cmm.ROLE
+	*/	
+	public void deleteExcnDetaiaBiz(Map<String, String> paramMap) throws Exception;
+}

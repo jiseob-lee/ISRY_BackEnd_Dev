@@ -1,0 +1,617 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper">
+
+	<select id="selectMentorList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper - selectMentorList */
+    /* Lee SangHoon [멘토목록조회] */
+
+    SELECT
+
+       A.ENFSN_NO AS MENTOR_NO                                         /* 멘토번호(종사자번호) */
+       ,DEC_B64(A.FLNM_ENCPT) AS MENTOR_NM                             /* 멘토명(암호화) */
+       ,B.SCHL_NM AS MENTOR_SCHL_NM                                    /* 학교명 */
+       ,B.MAJOR_NM AS MENTOR_MAJOR_NM                                  /* 전공명 */
+/*     ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100  /* 공통코드값 */
+/*         WHERE CMMNS_CD_ID = 'GRADE_SE_CD'
+           AND CMMNS_CD_VALUE = B.GRADE_SE_CD) AS MENTOR_GRADE         /* 학년 */
+
+       ,A.OGDP_INST_NO AS MENTOR_INST_NO                               /* 멘토기관번호 */
+
+    FROM SCA100 A                                                      /* 종사자 */
+    LEFT JOIN
+       (SELECT A.*
+           , ROW_NUMBER() OVER(PARTITION BY A.ENFSN_NO ORDER BY B.ADDTNG_MNG_VALUE1 DESC, A.MNG_SN DESC) AS RN
+       FROM SCA120 A                   /* 학력사항정보 */
+       LEFT JOIN SAC100 B
+       ON B.CMMNS_CD_ID = 'ACBG_SE_CD'
+       AND B.CMMNS_CD_VALUE = A.ACBG_SE_CD
+       WHERE A.DEL_YN != 'Y'
+       ) B
+    ON B.ENFSN_NO = A.ENFSN_NO
+    AND B.RN = 1
+    JOIN SAA200 C
+    ON C.ENFSN_NO = A.ENFSN_NO
+    JOIN SAB230 D
+    ON D.USER_ID = C.USER_ID
+        AND D.INST_NO = A.OGDP_INST_NO
+    JOIN SAA000 E
+    ON  E.INST_NO = A.OGDP_INST_NO
+
+    WHERE 1=1
+    AND D.AUTHRT_SE_CD = '3400703'
+    AND E.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    AND (A.OGDP_INST_NO = #{INST_NO} OR #{INST_TYPE_SE_CD} IN ('1','4','6'))
+    AND A.DEL_YN != 'Y'
+
+    ORDER BY A.ENFSN_NO
+    ]]>
+	</select>
+
+	<select id="selectMenteeList" parameterType="HashMap"
+		resultType="HashMap">
+    <![CDATA[
+    /* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper - selectMenteeList */
+    /* Lee SangHoon [멘티목록조회(멘토멘티매칭용)] */
+
+    SELECT
+
+       A.CASE_MNG_NO AS CASE_MNG_NO                                    /* 사례관리번호 */
+       ,A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO                             /* 사례관리차수 */
+       ,A.CASE_MNG_NO || '-' || A.CASE_MNG_ODRNO AS MENTEE_NO          /* 멘티번호[사례관리번호-차수] */
+       ,DEC_B64(B.TRPR_NM_ENCPT) AS MENTEE_NM                          /* 멘티명(암호화) */
+       ,C.SCHL_NM AS MENTEE_SCHL_NM                                    /* 학교명 */
+       ,(SELECT CMMNS_CD_VALUE_NM FROM SAC100  /* 공통코드값 */
+           WHERE CMMNS_CD_ID = 'GRADE_SE_CD'
+           AND CMMNS_CD_VALUE = C.GRADE_SE_CD) AS MENTEE_GRADE         /* 학년 */
+
+       ,D.SRVC_EXCN_BIZ_NO AS SRVC_EXCN_BIZ_NO                         /* 서비스실행사업번호 */
+       ,A.ALTMNT_GROUP_SCLAS_SE_CD AS ALTMNT_GROUP_SCLAS_SE_CD         /* 배정그룹소분류구분코드 */
+
+    FROM SEB100 A                           /* 사례기본 */
+    JOIN SEA200 B                      /* 대상자정보 */
+    ON B.TRPR_INFO_NO = A.TRPR_INFO_NO
+    LEFT JOIN
+       (SELECT A.*
+           , ROW_NUMBER() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY B.ADDTNG_MNG_VALUE1 DESC, A.MNG_SN DESC) AS RN
+       FROM SEA230 A                   /* 학력상태 */
+       LEFT JOIN SAC100 B
+       ON B.CMMNS_CD_ID = 'ACBG_SE_CD'
+       AND B.CMMNS_CD_VALUE = A.ACBG_SE_CD
+       WHERE A.DEL_YN != 'Y'
+       ) C
+    ON C.TRPR_INFO_NO = A.TRPR_INFO_NO
+    AND C.RN = 1
+    INNER JOIN SEB120 D                     /* 서비스사업대상자 */
+    ON D.CASE_MNG_NO = A.CASE_MNG_NO
+    AND D.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+    INNER JOIN SDA420 E                     /* 서비스실행사업 */
+    ON E.SRVC_EXCN_BIZ_NO = D.SRVC_EXCN_BIZ_NO
+
+    WHERE 1=1
+    AND A.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+    AND (E.INST_NO = #{INST_NO} OR #{INST_TYPE_SE_CD} IN('1','4','6'))
+    ]]>
+		<if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+			AND D.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+		</if>
+		<if
+			test="ALTMNT_GROUP_SCLAS_SE_CD != null and ALTMNT_GROUP_SCLAS_SE_CD != ''">
+			AND A.ALTMNT_GROUP_SCLAS_SE_CD = #{ALTMNT_GROUP_SCLAS_SE_CD}
+		</if>
+
+		ORDER BY A.CASE_MNG_NO, A.CASE_MNG_ODRNO
+	</select>
+
+	<select id="selectMmMatchingList" resultType="HashMap">
+	<![CDATA[
+	/* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.selectMmMatchingList */
+    /* 멘토멘티매칭 목록조회 - Lee SangHoon */
+
+	SELECT
+		  A.MENTOR_NO                                             AS MENTOR_NO                    /* 멘토번호(종사자번호) */
+		, DEC_B64(B.FLNM_ENCPT)                                   AS MENTOR_NM                    /* 멘토명[암호화] */
+		, C.SCHL_NM                                               AS MENTOR_SCHL_NM               /* 멘토학교명 */
+		, C.MAJOR_NM                                              AS MENTOR_MAJOR_NM              /* 멘토전공명 */
+		, A.CASE_MNG_NO                                           AS CASE_MNG_NO                  /* 사례관리번호 */
+		, A.CASE_MNG_ODRNO                                        AS CASE_MNG_ODRNO               /* 사례관리차수 */
+		, A.CASE_MNG_NO || '-' || A.CASE_MNG_ODRNO                AS MENTEE_NO                    /* 멘티번호[사례관리번호-차수] */
+		, DEC_B64(E.TRPR_NM_ENCPT)                                AS MENTEE_NM                    /* 멘티명(암호화) */
+		, E.TRPR_BRTH_YMD                                         AS BRDT                         /* 대상자출생일자(멘티) */
+		, E.SXDC_SE_CD                                            AS SXDC_SE_CD                   /* 성별구분코드(멘티) */
+		, F.SCHL_NM                                               AS MENTEE_SCHL_NM               /* 멘티학교명 */
+		, (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+		  WHERE CMMNS_CD_ID = 'ACBG_SE_CD'
+		  AND CMMNS_CD_VALUE = F.ACBG_SE_CD)                      AS SCHL                         /* 교급(멘티) */
+		, (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+		  WHERE CMMNS_CD_ID = 'GRADE_SE_CD'
+		  AND CMMNS_CD_VALUE = F.GRADE_SE_CD)                     AS MENTEE_GRADE                 /* 멘티학년 */
+		, A.RM_NM                                                 AS RM_NM                        /* 비고명 */
+		, A.SRVC_EXCN_BIZ_NO                                      AS SRVC_EXCN_BIZ_NO             /* 서비스실행사업번호 */
+		, A.ALTMNT_GROUP_SCLAS_SE_CD                              AS ALTMNT_GROUP_SCLAS_SE_CD     /* 배정그룹구분코드 */
+		, G.GNRLZ_OPIN_DTL_CN                                     AS GNRLZ_OPIN_DTL_CN            /* 종합소견상세내용 */
+	FROM AFA250 A                      /* 멘토멘티매칭 */
+	JOIN SCA100 B                 /* 종사자 */
+	ON B.ENFSN_NO = A.MENTOR_NO
+	LEFT JOIN
+	   (SELECT A.*
+	       , ROW_NUMBER() OVER(PARTITION BY A.ENFSN_NO ORDER BY B.ADDTNG_MNG_VALUE1 DESC, A.MNG_SN DESC) AS RN
+	   FROM SCA120 A                   /* 학력사항정보 */
+	   LEFT JOIN SAC100 B
+	   ON B.CMMNS_CD_ID = 'ACBG_SE_CD'
+	   AND B.CMMNS_CD_VALUE = A.ACBG_SE_CD
+	   WHERE A.DEL_YN != 'Y'
+	   ) C
+    ON C.ENFSN_NO = B.ENFSN_NO
+    AND C.RN = 1
+	JOIN SEB100 D                 /* 사례기본 */
+	ON D.CASE_MNG_NO = A.CASE_MNG_NO
+	AND D.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+	JOIN SEA200 E                 /* 대상자정보 */
+	ON E.TRPR_INFO_NO = D.TRPR_INFO_NO
+    LEFT JOIN
+       (SELECT A.*
+           , ROW_NUMBER() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY B.ADDTNG_MNG_VALUE1 DESC, A.MNG_SN DESC) AS RN
+       FROM SEA230 A                   /* 학력상태 */
+       LEFT JOIN SAC100 B
+       ON B.CMMNS_CD_ID = 'ACBG_SE_CD'
+       AND B.CMMNS_CD_VALUE = A.ACBG_SE_CD
+       WHERE A.DEL_YN != 'Y'
+       ) F
+    ON F.TRPR_INFO_NO = E.TRPR_INFO_NO
+    AND F.RN = 1
+	LEFT JOIN AFA260 G                                                  /* 멘토관찰일지 */
+	ON G.SRVC_EXCN_BIZ_NO = A.SRVC_EXCN_BIZ_NO
+	AND G.CASE_MNG_NO = A.CASE_MNG_NO
+	AND G.CASE_MNG_ODRNO = A.CASE_MNG_ODRNO
+
+	WHERE 1=1
+    ]]>
+		<if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+			AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+		</if>
+		<if
+			test="ALTMNT_GROUP_SCLAS_SE_CD != null and ALTMNT_GROUP_SCLAS_SE_CD != ''">
+			AND A.ALTMNT_GROUP_SCLAS_SE_CD = #{ALTMNT_GROUP_SCLAS_SE_CD}
+		</if>
+
+		ORDER BY CASE_MNG_NO, CASE_MNG_ODRNO
+	</select>
+
+	<!-- 멘토 멘티 매칭 등록 -->
+	<insert id="insertMmMatchingList">
+    <![CDATA[
+    /* 멘토멘티매칭 등록 - Lee SangHoon [isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.insertMmMatchingList] */
+
+    INSERT INTO AFA250(     /* 멘토멘티매칭 */
+        SRVC_EXCN_BIZ_NO
+        ,ALTMNT_GROUP_SCLAS_SE_CD
+        ,MENTOR_NO
+        ,CASE_MNG_NO
+        ,CASE_MNG_ODRNO
+        ,RM_NM
+        ,FRST_RGTR_ID
+        ,LAST_MDFR_ID
+    )VALUES(
+        #{SRVC_EXCN_BIZ_NO}
+        ,#{ALTMNT_GROUP_SCLAS_SE_CD}
+        ,#{MENTOR_NO}
+        ,#{CASE_MNG_NO}
+        ,#{CASE_MNG_ODRNO}
+        ,#{RM_NM}
+        ,#{LGN_USER_ID}
+        ,#{LGN_USER_ID}
+    )
+    ]]>
+	</insert>
+
+	<!-- 멘토 멘티 매칭 수정 -->
+	<update id="updateMmMatchingList">
+	<![CDATA[
+    /* 멘토멘티매칭 수정 - Lee SangHoon [isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.updateMmMatchingList] */
+
+    UPDATE AFA250 SET   /* 멘토멘티매칭 */
+        SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+        ,ALTMNT_GROUP_SCLAS_SE_CD = #{ALTMNT_GROUP_SCLAS_SE_CD}
+        ,MENTOR_NO = #{MENTOR_NO}
+        ,CASE_MNG_NO = #{CASE_MNG_NO}
+        ,CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+        ,RM_NM = #{RM_NM}
+        ,FRST_RGTR_ID = #{LGN_USER_ID}
+        ,LAST_MDFR_ID = #{LGN_USER_ID}
+        ,LAST_MDFCN_DT = SYSDATE
+    WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO__origin}
+    AND ALTMNT_GROUP_SCLAS_SE_CD = #{ALTMNT_GROUP_SCLAS_SE_CD__origin}
+    AND MENTOR_NO = #{MENTOR_NO__origin}
+    AND CASE_MNG_NO = #{CASE_MNG_NO__origin}
+    AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO__origin}
+    ]]>
+	</update>
+
+	<!-- 멘토멘티매칭 삭제 -->
+	<delete id="deleteMmMatchingList">
+	<![CDATA[
+    /* 멘토멘티매칭 삭제 - Lee SangHoon [isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.deleteMmMatchingList] */
+
+	DELETE FROM AFA250     /* 멘토멘티매칭 */
+    WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO__origin}
+    AND ALTMNT_GROUP_SCLAS_SE_CD = #{ALTMNT_GROUP_SCLAS_SE_CD__origin}
+    AND MENTOR_NO = #{MENTOR_NO__origin}
+    AND CASE_MNG_NO = #{CASE_MNG_NO__origin}
+    AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO__origin}
+	]]>
+	</delete>
+
+	<!-- 일일관찰일지 목록조회 -->
+	<select id="selectDayObservDiaryList" resultType="HashMap">
+	<!-- 페이지 인덱서 헤더 -->
+    <include refid="ComPagingMapper.pageHeader" />
+    <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+	<![CDATA[
+    /* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.selectDayObservDiaryList */
+    /* 일일관찰일지 목록조회 - Lee Sanghoon */
+	     B.WRT_YMD AS CHCK_YMD                                               --점검일자
+	   , B.DD_ODRNO                                                         --일차
+	   , DEC_B64(D.TRPR_NM_ENCPT) AS TRPR_NM                                                    --대상자명(암호화)
+	   , NVL(G.BRTH_YMD, D.TRPR_BRTH_YMD)                      AS BRDT     --생년월일
+	   , TRUNC(MONTHS_BETWEEN (SYSDATE,NVL(G.BRTH_YMD, D.TRPR_BRTH_YMD)) /12,0)
+	                                                           AS AGEA      --만 나이
+	   , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'SXDC_SE_CD'
+	       AND CMMNS_CD_VALUE = NVL(G.SXDC_SE_CD, D.SXDC_SE_CD)
+	       )                                                   AS SXDC_SE_CD   --성별
+	   , E.SCHL_NM                                                          --학교명
+	   , (SELECT CMMNS_CD_VALUE_NM
+	       FROM SAC100
+	       WHERE CMMNS_CD_ID = 'GRADE_SE_CD'
+	       AND CMMNS_CD_VALUE = E.GRADE_SE_CD
+	       ) AS GRADE                                                      --학년명
+	   , H.SRVC_EXCN_BIZ_NM AS CRSE_NM                                      --과정명(서비스실행사업명)
+	   , A.ALTMNT_GROUP_SCLAS_SE_CD                                         --생활동(배정그룹소분류구분코드)
+	   , DEC_B64(F.FLNM_ENCPT) AS WRTR_NM                                     --작성자명(암호화)
+	   , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'SNITAT_STTS_SE_CD'
+	       AND CMMNS_CD_VALUE = B.SNITAT_STTS_SE_CD
+	       )                                                   AS SNITAT_STTS_SE_CD    --위생상태
+	   , (SELECT CMMNS_cD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'HEALTH_SE_CD'
+	       AND CMMNS_CD_VALUE = B.HEALTH_SE_CD
+	       )                                                   AS HEALTH_SE_CD         --건강상태
+	   , CASE
+		  WHEN (A.GNRLZ_OPIN_DTL_CN IS NULL OR A.GNRLZ_OPIN_DTL_CN = '')
+		  THEN 'X'
+		  ELSE 'O'
+		  END AS GNRLZ_OPIN_YN                                            --종합소견여부
+	   , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'PTCPTN_ATITD_SE_CD'
+	       AND CMMNS_CD_VALUE = B.PTCPTN_ATITD_SE_CD
+	       )                                                   AS PTCPTN_ATITD_SE_CD   --참여태도구분코드
+	   , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'GHVR_CHAR_SE_CD'
+	       AND CMMNS_CD_VALUE = B.GHVR_CHAR_SE_CD
+	       )                                                   AS GHVR_CHAR_SE_CD      --행동특성구분
+	   , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'LEADER_TWDPSN_REL_SE_CD'
+	       AND CMMNS_CD_VALUE = B.LEADER_TWDPSN_REL_SE_CD
+	       )                                                   AS LEADER_TWDPSN_REL_SE_CD  --지도자와의대인관계
+	   , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'FRIDA_TWDPSN_REL_SE_CD'
+	       AND CMMNS_CD_VALUE = B.FRIDA_TWDPSN_REL_SE_CD
+	       )                                                   AS FRIDA_TWDPSN_REL_SE_CD   --또래와의대인관계구분명
+	   , (SELECT CMMNS_CD_VALUE_NM FROM SAC100
+	       WHERE CMMNS_CD_ID = 'GOAL_ACHIV_DGREE_SE_CD'
+	       AND CMMNS_CD_VALUE = B.GOAL_ACHIV_DGREE_SE_CD
+	       )                                                   AS GOAL_ACHIV_DGREE_SE_CD   --개별목표달성정도
+
+       , A.SRVC_EXCN_BIZ_NO                                                 --서비스실행사업번호
+       , A.CASE_MNG_NO || '-' || A.CASE_MNG_ODRNO              AS MENTEE_NO   -- 멘티번호[사례관리번호-차수]
+       , B.WRT_YMD                                                         --작성일자
+
+	FROM AFA260 A                                      /*멘토관찰일지 테이블*/
+	INNER JOIN AFA261 B                                /*멘토관찰일지상세내용 테이블*/
+	ON A.SRVC_EXCN_BIZ_NO = B.SRVC_EXCN_BIZ_NO             --서비스실행사업번호
+	AND A.CASE_MNG_NO = B.CASE_MNG_NO                      --사례관리번호
+	AND A.CASE_MNG_ODRNO = B.CASE_MNG_ODRNO                --사례관리차수
+	LEFT JOIN SEB100 C                                 /*사례기본 테이블*/
+	ON A.CASE_MNG_NO = C.CASE_MNG_NO                       --사례관리번호
+	AND A.CASE_MNG_ODRNO = C.CASE_MNG_ODRNO                --사례관리차수
+	LEFT JOIN SEA200 D                                 /*대상자정보 테이블*/
+	ON C.TRPR_INFO_NO = D.TRPR_INFO_NO                     --대상자정보번호
+	LEFT JOIN
+	   (SELECT A.*
+	       , ROW_NUMBER() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY B.ADDTNG_MNG_VALUE1 DESC, A.MNG_SN DESC) AS RN
+	   FROM SEA230 A
+	   LEFT JOIN SAC100 B
+	   ON B.CMMNS_CD_ID = 'ACBG_SE_CD'
+	   AND B.CMMNS_CD_VALUE = A.ACBG_SE_CD
+	   WHERE A.DEL_YN != 'Y'
+	   ) E                                             /*학력관리 테이블*/
+	ON E.RN = 1
+	AND D.TRPR_INFO_NO = E.TRPR_INFO_NO                     --대상자정보번호
+	LEFT JOIN SCA100 F                                 /*종사자 테이블*/
+	ON B.PIC_NO = F.ENFSN_NO                               --종사자번호
+	LEFT JOIN SDA420 H                                 /*서비스실행사업 테이블*/
+	ON A.SRVC_EXCN_BIZ_NO = H.SRVC_EXCN_BIZ_NO             --서비스실행사업번호
+	LEFT JOIN SCA300 G                                 /* 대상자 개인정보 */
+	ON G.INDV_IDNTFC_NO = D.INDV_IDNTFC_NO                 -- 개인식별번호
+
+	WHERE 1=1
+	AND (B.TKCG_INST_NO = #{INST_NO} OR #{INST_TYPE_SE_CD} IN ('1','4','6'))
+	]]>
+		<if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+			AND A.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+		</if>
+		<if
+			test="ALTMNT_GROUP_SCLAS_SE_CD != null and ALTMNT_GROUP_SCLAS_SE_CD != ''">
+			AND A.ALTMNT_GROUP_SCLAS_SE_CD = #{ALTMNT_GROUP_SCLAS_SE_CD}
+		</if>
+		<if test="ENFSN_NO != null and ENFSN_NO != ''">
+			AND B.PIC_NO = #{ENFSN_NO}
+		</if>
+		<if test="CASE_MNG_NO != null and CASE_MNG_NO != ''">
+			AND A.CASE_MNG_NO = #{CASE_MNG_NO}
+		</if>
+		<if test="CASE_MNG_ODRNO != null and CASE_MNG_ODRNO != ''">
+			AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+		</if>
+	<![CDATA[
+	AND B.WRT_YMD BETWEEN #{BGNG_YMD} AND #{END_YMD}
+	]]>
+
+		ORDER BY B.WRT_YMD DESC, A.CASE_MNG_NO, A.CASE_MNG_ODRNO
+      <!-- 페이지 인덱서 OFFSET 조건 -->
+      <include refid="ComPagingMapper.pageOffset"/>
+
+	</select>
+
+	<!-- 일일관찰일지 상세조회 -->
+	<select id="selectDayObservDiary" resultType="HashMap">
+	<![CDATA[
+	/* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.selectDayObservDiary */
+	/* 일일관찰일지 상세조회 - Lee Sanghoon */
+
+		SELECT
+
+			  T4.BIZ_YR                                                      -- 사업년도
+			, T.SRVC_EXCN_BIZ_NO                                             -- 서비스실행사업번호
+			, T.ALTMNT_GROUP_SCLAS_SE_CD                                     -- 배정그룹소분류구분코드
+			, T2.PIC_NO AS ENFSN_NO                                          -- 담당자번호
+			, (SELECT DEC_B64(FLNM_ENCPT) FROM SCA100
+                WHERE ENFSN_NO = T2.PIC_NO) AS WRTR_NM                       -- 담당자명[암호화]
+            , T.CASE_MNG_NO || '-' || T.CASE_MNG_ODRNO      AS MENTEE_NO     -- 멘티번호[사례관리번호-차수]
+			, T2.WRT_YMD                                                     -- 작성일자
+			, T2.DD_ODRNO                                                    -- 일차
+			, T2.SNITAT_STTS_SE_CD                                           -- 위생구분코드
+			, T2.SNITAT_ETC_NM                                               -- 위생기타명
+			, T2.HEALTH_SE_CD                                                -- 건강구분코드
+			, T2.HEALTH_PRTCLR_MATTER_NM                                     -- 건강특이사항명
+			, T2.PTCPTN_ATITD_SE_CD                                          -- 참여태도구분코드
+			, T2.PTCPTN_ATITD_ETC_NM                                         -- 참여태도기타명
+			, T2.GHVR_CHAR_SE_CD                                             -- 행동특성구분코드
+			, T2.MAOB_EXPRSN_NM                                              -- 주관찰표현명
+			, T2.LEADER_TWDPSN_REL_SE_CD                                     -- 지도자대인관계구분코드
+			, T2.LEADER_REL_ETC_NM                                           -- 지도자관계기타명
+			, T2.FRIDA_TWDPSN_REL_SE_CD                                      -- 또래대인관계구분코드
+			, T2.FRIDA_REL_ETC_NM                                            -- 또래관계기타명
+			, T2.GOAL_ACHIV_DGREE_SE_CD                                      -- 개별목표달성정도구분코드
+			, T2.INDIV_GOAL_ETC_NM                                           -- 개별목표기타명
+			, T2.POSTV_SIDE_CN                                               -- 긍정측면내용
+			, T2.DD_DD_OPIN_CN                                               -- 일일소견내용
+			, T.GNRLZ_OPIN_DTL_CN                                            -- 종합소견상세내용
+			, NVL(T8.BRTH_YMD, T6.TRPR_BRTH_YMD)         AS BRDT             -- 생년월일
+			, NVL(T8.SXDC_SE_CD, T6.SXDC_SE_CD)          AS SXDC_SE_CD       -- 성별구분코드
+			, T7.ACBG                                                        -- 학력
+			, NVL((SELECT CMMNS_CD_VALUE_NM FROM SAC100
+                WHERE CMMNS_CD_ID = 'GRADE_SE_CD'
+                AND CMMNS_CD_VALUE = T7.GRADE_SE_CD),'')    AS GRADE            -- 학년
+
+		FROM AFA260 T                                                 /*멘토관찰일지 테이블*/
+		INNER JOIN AFA261 T2                                          /*멘토관찰일지상세내용 테이블*/
+		ON T2.SRVC_EXCN_BIZ_NO = T.SRVC_EXCN_BIZ_NO                       --서비스실행사업번호
+		AND T2.CASE_MNG_NO = T.CASE_MNG_NO                                --사례관리번호
+		AND T2.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO                          --사례관리차수
+		LEFT JOIN SDA420 T3                                           /*서비스실행사업 테이블*/
+		ON T3.SRVC_EXCN_BIZ_NO = T.SRVC_EXCN_BIZ_NO                       --서비스실행사업번호
+		LEFT JOIN SDA400 T4                                           /*서비스사업 테이블*/
+		ON T4.SRVC_BIZ_NO = T3.SRVC_BIZ_NO                                --서비스사업번호
+		LEFT JOIN SEB100 T5                                           /*사례기본*/
+		ON T5.CASE_MNG_NO = T.CASE_MNG_NO                                 --사례관리번호
+		AND T5.CASE_MNG_ODRNO = T.CASE_MNG_ODRNO                          --사례관리차수
+		LEFT JOIN SEA200 T6                                           /*대상자정보 */
+		ON T6.TRPR_INFO_NO = T5.TRPR_INFO_NO                              --대상자정보번호
+		LEFT JOIN
+		  (SELECT A.*
+		      , B.CMMNS_CD_VALUE_NM AS ACBG
+		      , ROW_NUMBER() OVER(PARTITION BY A.TRPR_INFO_NO ORDER BY B.ADDTNG_MNG_VALUE1 DESC, A.MNG_SN DESC) AS RN
+		  FROM SEA230 A                                               /*학력정보*/
+		  LEFT JOIN SAC100 B
+		  ON B.CMMNS_CD_ID = 'ACBG_SE_CD'
+		  AND B.CMMNS_CD_VALUE = A.ACBG_SE_CD
+		  WHERE A.DEL_YN != 'Y'                                           --삭제여부
+		  ) T7
+		ON T7.RN = 1
+		AND T7.TRPR_INFO_NO = T6.TRPR_INFO_NO                             --대상자정보번호
+		LEFT JOIN SCA300 T8                                           /*개인정보*/
+		ON T8.INDV_IDNTFC_NO = T6.INDV_IDNTFC_NO                          --개인식별번호
+
+		WHERE 1=1
+		AND T.SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}                      --서비스실행사업번호
+		AND T.CASE_MNG_NO = #{CASE_MNG_NO}                                --사례관리번호
+		AND T.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}                          --사례관리차수
+		AND T2.WRT_YMD = #{WRT_YMD}                                       --작성일자
+    ]]>
+	</select>
+
+	<!-- 멘토관찰일지 등록 -->
+	<insert id="insertDayObservDiary">
+	<![CDATA[
+    /* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.insertDayObservDiary */
+    /* 멘토관찰일지 등록 - Lee Sanghoon */
+
+	INSERT INTO AFA260 (
+
+		SRVC_EXCN_BIZ_NO
+		,CASE_MNG_NO
+		,CASE_MNG_ODRNO
+		,ALTMNT_GROUP_SCLAS_SE_CD
+		,GNRLZ_OPIN_DTL_CN
+		,FRST_RGTR_ID
+		,LAST_MDFR_ID
+
+	) VALUES(
+
+		#{SRVC_EXCN_BIZ_NO}
+		,#{CASE_MNG_NO}
+		,#{CASE_MNG_ODRNO}
+		,#{ALTMNT_GROUP_SCLAS_SE_CD}
+		,#{GNRLZ_OPIN_DTL_CN}
+		,#{LGN_USER_ID}
+		,#{LGN_USER_ID}
+
+	)
+	]]>
+	</insert>
+
+	<!-- 멘토관찰일지 상세내용 등록 -->
+	<insert id="insertDayObservDiaryDtl">
+	<![CDATA[
+    /* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.insertDayObservDiaryDtl */
+    /* 멘토관찰일지상세내용 등록 - Lee Sanghoon */
+
+	INSERT INTO AFA261(
+
+		SRVC_EXCN_BIZ_NO                      --서비스실행사업번호
+		,CASE_MNG_NO                          --사례관리번호
+		,CASE_MNG_ODRNO                       --사례관리차수
+		,WRT_YMD                              --작성일자
+		,DD_ODRNO                             --일차수
+		,SNITAT_STTS_SE_CD                    --위생상태구분코드
+		,SNITAT_ETC_NM                        --위생기타명
+		,HEALTH_SE_CD                         --건강구분코드
+		,HEALTH_PRTCLR_MATTER_NM              --건강특이사항명
+		,PTCPTN_ATITD_SE_CD                   --참여태도구분코드
+		,PTCPTN_ATITD_ETC_NM                  --참여태도기타명
+		,GHVR_CHAR_SE_CD                      --행동특성구분코드
+		,MAOB_EXPRSN_NM                       --주관찰표현명
+		,LEADER_TWDPSN_REL_SE_CD              --지도자와의대인관계구분코드
+		,LEADER_REL_ETC_NM                    --지도자관계기타명
+		,FRIDA_TWDPSN_REL_SE_CD               --또래와의대인관계구분코드
+		,FRIDA_REL_ETC_NM                     --또래관계기타명
+		,GOAL_ACHIV_DGREE_SE_CD               --목표달성정도구분코드
+		,INDIV_GOAL_ETC_NM                    --개별목표기타명
+		,POSTV_SIDE_CN                        --긍정측면내용
+		,DD_DD_OPIN_CN                        --일일소견내용
+		,PIC_NO                               --담당자번호
+		,TKCG_INST_NO                         --담당기관번호
+		,FRST_RGTR_ID                         --최초등록자아이디
+		,LAST_MDFR_ID                         --최종수정자아이디
+
+	) VALUES(
+
+		#{SRVC_EXCN_BIZ_NO}
+		,#{CASE_MNG_NO}
+		,#{CASE_MNG_ODRNO}
+		,#{WRT_YMD}
+		,#{DD_ODRNO}
+		,#{SNITAT_STTS_SE_CD}
+		,#{SNITAT_ETC_NM}
+		,#{HEALTH_SE_CD}
+		,#{HEALTH_PRTCLR_MATTER_NM}
+		,#{PTCPTN_ATITD_SE_CD}
+		,#{PTCPTN_ATITD_ETC_NM}
+		,#{GHVR_CHAR_SE_CD}
+		,#{MAOB_EXPRSN_NM}
+		,#{LEADER_TWDPSN_REL_SE_CD}
+		,#{LEADER_REL_ETC_NM}
+		,#{FRIDA_TWDPSN_REL_SE_CD}
+		,#{FRIDA_REL_ETC_NM}
+		,#{GOAL_ACHIV_DGREE_SE_CD}
+		,#{INDIV_GOAL_ETC_NM}
+		,#{POSTV_SIDE_CN}
+		,#{DD_DD_OPIN_CN}
+		,#{ENFSN_NO}
+		,#{TKCG_INST_NO}
+		,#{LGN_USER_ID}
+		,#{LGN_USER_ID}
+
+	)
+	]]>
+	</insert>
+
+	<!-- 멘토관찰일지 수정 -->
+	<update id="updateDayObservDiary">
+	<![CDATA[
+    /* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.updateDayObservDiary */
+    /* 멘토관찰일지 수정 - Lee Sanghoon */
+
+	UPDATE AFA260 SET
+
+		GNRLZ_OPIN_DTL_CN = #{GNRLZ_OPIN_DTL_CN}
+		,LAST_MDFR_ID = #{LGN_USER_ID}
+		,LAST_MDFCN_DT = SYSDATE
+
+	WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+	AND CASE_MNG_NO = #{CASE_MNG_NO}
+	AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+	]]>
+	</update>
+
+	<!-- 멘토관찰일지상세내용 수정 -->
+	<update id="updateDayObservDiaryDtl">
+	<![CDATA[
+    /* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.updateDayObservDiaryDtl */
+    /* 멘토관찰일지상세내용 수정 - Lee Sanghoon */
+
+	UPDATE AFA261 SET
+
+		WRT_YMD = #{WRT_YMD}                                              --작성일자
+		,DD_ODRNO = #{DD_ODRNO}                                           --일차
+		,SNITAT_STTS_SE_CD = #{SNITAT_STTS_SE_CD}                         --위생상태구분코드
+		,SNITAT_ETC_NM = #{SNITAT_ETC_NM}                                 --위생기타명
+		,HEALTH_SE_CD = #{HEALTH_SE_CD}                                   --건강구분코드
+		,HEALTH_PRTCLR_MATTER_NM = #{HEALTH_PRTCLR_MATTER_NM}             --건강특이사항명
+		,PTCPTN_ATITD_SE_CD = #{PTCPTN_ATITD_SE_CD}                       --참여태도구분코드
+		,PTCPTN_ATITD_ETC_NM = #{PTCPTN_ATITD_ETC_NM}                     --참여태도기타명
+		,GHVR_CHAR_SE_CD = #{GHVR_CHAR_SE_CD}                             --행동특성구분코드
+		,MAOB_EXPRSN_NM = #{MAOB_EXPRSN_NM}                               --주관찰표현명
+		,LEADER_TWDPSN_REL_SE_CD = #{LEADER_TWDPSN_REL_SE_CD}             --지도자와의대인관계구분코드
+		,LEADER_REL_ETC_NM = #{LEADER_REL_ETC_NM}                         --지도자관계기타명
+		,FRIDA_TWDPSN_REL_SE_CD = #{FRIDA_TWDPSN_REL_SE_CD}               --또래와의대인관계구분코드
+		,FRIDA_REL_ETC_NM = #{FRIDA_REL_ETC_NM}                           --또래관계기타명
+		,GOAL_ACHIV_DGREE_SE_CD = #{GOAL_ACHIV_DGREE_SE_CD}               --목표달성정도구분코드
+		,INDIV_GOAL_ETC_NM = #{INDIV_GOAL_ETC_NM}                         --개별목표기타명
+		,POSTV_SIDE_CN = #{POSTV_SIDE_CN}                                 --긍정측면내용
+		,DD_DD_OPIN_CN = #{DD_DD_OPIN_CN}                                 --일일소견내용
+		,LAST_MDFR_ID = #{LGN_USER_ID}
+		,LAST_MDFCN_DT = SYSDATE
+
+	WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+	AND CASE_MNG_NO = #{CASE_MNG_NO}
+	AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+		<if test="WRT_YMD__origin == null or WRT_YMD__origin == ''">
+			AND WRT_YMD = #{WRT_YMD}
+		</if>
+		<if test="WRT_YMD__origin != null and WRT_YMD__origin != ''">
+			AND WRT_YMD = #{WRT_YMD__origin}
+		</if>
+	</update>
+
+	<select id="selectDayObservDiaryCheck" resultType="int">
+	<![CDATA[
+    /* isry.csemd.mdlrtrehabcrsemng.hlngcmp.mapper.HlngCmpMapper.selectDayObservDiaryCheck */
+    /* 멘토관찰일지 저장여부 확인 - Lee Sanghoon */
+
+	SELECT
+	   COUNT(*)
+	FROM AFA260
+    WHERE SRVC_EXCN_BIZ_NO = #{SRVC_EXCN_BIZ_NO}
+    AND CASE_MNG_NO = #{CASE_MNG_NO}
+    AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+	]]>
+	</select>
+</mapper>

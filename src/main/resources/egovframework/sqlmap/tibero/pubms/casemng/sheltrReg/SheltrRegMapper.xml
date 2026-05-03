@@ -1,0 +1,985 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="isry.pubms.casemng.sheltrreg.mapper.SheltrRegMapper">
+
+    <select id="selectReqById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectReqById - Lee MS */
+        
+        SELECT
+            A.SHELTR_TRPR_SE_CD AS SHELTR_TRPR_SE_CD,                 /* 쉼터대상자구분코드 */
+            A.LVM_EXPRNC_CNT AS LVM_EXPRNC_CNT,                       /* 가출경험수 */
+            A.FRST_LVM_ERA_SCHL_SE_CD AS FRST_LVM_ERA_SCHL_SE_CD,     /* 최초가출시기학교구분코드 */
+            A.FRST_LVM_ERA_GRADE_SE_CD AS FRST_LVM_ERA_GRADE_SE_CD,   /* 최초가출시기학년구분코드 */
+            A.FRST_LVM_ERA_SCHL_ETC_CN AS FRST_LVM_ERA_SCHL_ETC_CN,   /* 최초가출시기학교기타내용 */
+            A.LVM_DAYCNT AS LVM_DAYCNT,                               /* 가출일수 */
+
+            A.ACMPNY_LVM_SASE_FRID_CNT AS ACMPNY_LVM_SASE_FRID_CNT,   /* 동반가출동성친구수 */
+            A.ACMPNY_LVM_OPSE_FRID_CNT AS ACMPNY_LVM_OPSE_FRID_CNT,   /* 동반가출이성친구수 */
+
+            A.AFRU_LVING_PLACE_CN AS AFRU_LVING_PLACE_CN,             /* 가출후생활장소내용 */
+            A.AFRU_LVING_PLACE_ETC_CN AS AFRU_LVING_PLACE_ETC_CN,     /* 가출후생활장소기타내용 */
+            A.AFRU_GETJOB_CN AS AFRU_GETJOB_CN,                       /* 가출후취직내용 */
+            A.AFRU_GETJOB_ETC_CN AS AFRU_GETJOB_ETC_CN,               /* 가출후취직기타내용 */
+            A.DLINQ_EXPRNC_CN AS DLINQ_EXPRNC_CN,                     /* 비행경험내용 */
+            A.DLINQ_EXPRNC_ETC_CN AS DLINQ_EXPRNC_ETC_CN,             /* 비행경험기타내용 */
+
+            A.KEEN_DESIR_CN AS KEEN_DESIR_CN,                         /* 절실욕구내용 */
+            A.KEEN_DESIR_ETC_CN AS KEEN_DESIR_ETC_CN,                 /* 절실욕구기타내용 */
+            A.KEEN_DESIR_DETAIA_CN AS KEEN_DESIR_DETAIA_CN,           /* 절식욕구세부내용 */
+
+            A.CHUP_YMD AS CHUP_YMD,                                   /* 건강검진일자 */
+            A.CHUP_HSPTL_NM AS CHUP_HSPTL_NM,                         /* 건강검진병원명 */
+            A.MLTS_MGRT_SE_CD AS MLTS_MGRT_SE_CD,                     /* 병역이행구분코드 */
+            
+            A.CASE_MNG_NO AS CASE_MNG_NO,                             /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO                        /* 사례관리차수 */
+        FROM AEA100 A /* 쉼터사례등록 */
+        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+        AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveData" parameterType="HashMap">
+    <![CDATA[
+         /* saveData - Lee  MS */
+         
+        MERGE INTO AEA100 /* 쉼터사례등록 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+         WHEN MATCHED THEN
+       UPDATE SET
+              SHELTR_TRPR_SE_CD = #{SHELTR_TRPR_SE_CD},                 /* 쉼터대상자구분코드 */
+              LVM_EXPRNC_CNT = #{LVM_EXPRNC_CNT},                       /* 가출경험수 */
+              FRST_LVM_ERA_SCHL_SE_CD = #{FRST_LVM_ERA_SCHL_SE_CD},     /* 최초가출시기학교구분코드 */
+              FRST_LVM_ERA_GRADE_SE_CD = #{FRST_LVM_ERA_GRADE_SE_CD},   /* 최초가출시기학년구분코드 */
+              FRST_LVM_ERA_SCHL_ETC_CN = #{FRST_LVM_ERA_SCHL_ETC_CN},     /* 최초가출시기학교기타내용 */
+              LVM_DAYCNT = #{LVM_DAYCNT},                               /* 가출일수 */
+
+              ACMPNY_LVM_SASE_FRID_CNT = #{ACMPNY_LVM_SASE_FRID_CNT},   /* 동반가출동성친구수 */
+              ACMPNY_LVM_OPSE_FRID_CNT = #{ACMPNY_LVM_OPSE_FRID_CNT},   /* 동반가출이성친구수 */
+
+              AFRU_LVING_PLACE_CN = #{AFRU_LVING_PLACE_CN},             /* 가출후생활장소내용 */
+              AFRU_LVING_PLACE_ETC_CN = #{AFRU_LVING_PLACE_ETC_CN},     /* 가출후생활장소기타내용 */
+              AFRU_GETJOB_CN = #{AFRU_GETJOB_CN},                       /* 가출후취직내용 */
+              AFRU_GETJOB_ETC_CN = #{AFRU_GETJOB_ETC_CN},               /* 가출후취직기타내용 */
+              DLINQ_EXPRNC_CN = #{DLINQ_EXPRNC_CN},                     /* 비행경험내용 */
+              DLINQ_EXPRNC_ETC_CN = #{DLINQ_EXPRNC_ETC_CN},             /* 비행경험기타내용 */
+
+              KEEN_DESIR_CN = #{KEEN_DESIR_CN},                         /* 절실욕구내용 */
+              KEEN_DESIR_ETC_CN = #{KEEN_DESIR_ETC_CN},                 /* 절실욕구기타내용 */
+              KEEN_DESIR_DETAIA_CN = #{KEEN_DESIR_DETAIA_CN},           /* 절실욕구세부내용 */
+
+              CHUP_YMD = #{CHUP_YMD},                                   /* 건강검진일자 */
+              CHUP_HSPTL_NM = #{CHUP_HSPTL_NM},                         /* 건강검진병원명 */
+              MLTS_MGRT_SE_CD = #{MLTS_MGRT_SE_CD},                     /* 병역이행구분코드 */
+
+              LAST_MDFR_ID = #{USER_ID},                        /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                           /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,              /* 사례관리번호 */
+              CASE_MNG_ODRNO,           /* 사례관리차수 */
+
+              SHELTR_TRPR_SE_CD,          /* 쉼터대상자구분코드 */
+              LVM_EXPRNC_CNT,             /* 가출경험수 */
+              FRST_LVM_ERA_SCHL_SE_CD,    /* 최초가출시기학교구분코드 */
+              FRST_LVM_ERA_GRADE_SE_CD,   /* 최초가출시기학년구분코드 */
+              FRST_LVM_ERA_SCHL_ETC_CN,   /* 최초가출시기학교기타내용 */
+              LVM_DAYCNT,                 /* 가출일수 */
+
+              ACMPNY_LVM_SASE_FRID_CNT,   /* 동반가출동성친구수 */
+              ACMPNY_LVM_OPSE_FRID_CNT,   /* 동반가출이성친구수 */
+
+              AFRU_LVING_PLACE_CN,        /* 가출후생활장소내용 */
+              AFRU_LVING_PLACE_ETC_CN,    /* 가출후생활장소기타내용 */
+              AFRU_GETJOB_CN,             /* 가출후취직내용 */
+              AFRU_GETJOB_ETC_CN,         /* 가출후취직기타내용 */
+              DLINQ_EXPRNC_CN,            /* 비행경험내용 */
+              DLINQ_EXPRNC_ETC_CN,        /* 비행경험기타내용 */
+              
+              KEEN_DESIR_CN,              /* 절실욕구내용 */
+              KEEN_DESIR_ETC_CN,          /* 절실욕구기타내용 */
+              KEEN_DESIR_DETAIA_CN,       /* 절실욕구세부내용 */
+              
+              CHUP_YMD,                   /* 건강검진일자 */
+              CHUP_HSPTL_NM,              /* 건강검진병원명 */
+              MLTS_MGRT_SE_CD,            /* 병역이행구분코드 */
+             
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              
+              #{SHELTR_TRPR_SE_CD},
+              #{LVM_EXPRNC_CNT},
+              #{FRST_LVM_ERA_SCHL_SE_CD},
+              #{FRST_LVM_ERA_GRADE_SE_CD},
+              #{FRST_LVM_ERA_SCHL_ETC_CN},
+              #{LVM_DAYCNT},
+
+              #{ACMPNY_LVM_SASE_FRID_CNT},
+              #{ACMPNY_LVM_OPSE_FRID_CNT},
+
+              #{AFRU_LVING_PLACE_CN},
+              #{AFRU_LVING_PLACE_ETC_CN},
+              #{AFRU_GETJOB_CN},
+              #{AFRU_GETJOB_ETC_CN},
+              #{DLINQ_EXPRNC_CN},
+              #{DLINQ_EXPRNC_ETC_CN},
+
+              #{KEEN_DESIR_CN},
+              #{KEEN_DESIR_ETC_CN},
+              #{KEEN_DESIR_DETAIA_CN},
+
+              #{CHUP_YMD},
+              #{CHUP_HSPTL_NM},
+              #{MLTS_MGRT_SE_CD},
+              
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+        
+    ]]>
+    </update>
+
+    <delete id="deleteData" parameterType="HashMap">
+    <![CDATA[
+         /* deleteData - Lee  MS */
+    
+        DELETE FROM AEA100 /* 쉼터사례등록 */
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+        AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+    
+    ]]>
+    </delete>
+
+    <select id="selectAsessRcordById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectAsessRcordById - Lee MS */
+        
+        SELECT
+            A.ASESS_RCORD_YMD AS ASESS_RCORD_YMD,            /* 사정기록일자 */
+            A.EXPERT_OPIN_CN AS EXPERT_OPIN_CN,              /* 전문가소견내용 */
+            A.INNER_OPIN_CN AS INNER_OPIN_CN,                /* 내부소견내용 */
+            A.DGDGR_SE_CD AS DGDGR_SE_CD,                    /* 위험도구분코드 */
+            A.BDY_TROBL_CN AS BDY_TROBL_CN,                  /* 신체장애내용 */
+
+            A.LRN_CN AS LRN_CN,                              /* 학습내용 */
+            A.EMTNL_SPFE_CN AS EMTNL_SPFE_CN,                /* 정서적특징내용 */
+            A.TWDPSN_REL_CN AS TWDPSN_REL_CN,                /* 대인관계내용 */
+            A.CHIL_CNFRNT_PROBM_CN AS CHIL_CNFRNT_PROBM_CN,  /* 아동당면문제내용 */
+            A.CHIL_STGTH_CN AS CHIL_STGTH_CN,                /* 아동강점내용 */
+
+            A.FAM_CNFRNT_TASK_CN AS FAM_CNFRNT_TASK_CN,      /* 가족당면과제내용 */
+            A.FAM_STGTH_CN AS FAM_STGTH_CN,                  /* 가족강점내용 */
+            A.INST_NO AS INST_NO,                            /* 기관번호 */
+            A.PIC_NO AS PIC_NO,                              /* 담당자번호 */
+            
+            A.CASE_MNG_NO AS CASE_MNG_NO,                    /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO               /* 사례관리차수 */
+        FROM AEA120 A /* 사정기록지 */
+        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+        AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveAsessRcordData" parameterType="HashMap">
+    <![CDATA[
+         /* saveAsessRcordData - Lee  MS */
+         
+        MERGE INTO AEA120 /* 사정기록지 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO})
+         WHEN MATCHED THEN
+       UPDATE SET
+              ASESS_RCORD_YMD = #{ASESS_RCORD_YMD},             /* 사정기록일자 */
+              EXPERT_OPIN_CN = #{EXPERT_OPIN_CN},               /* 전문가소견내용 */
+              INNER_OPIN_CN = #{INNER_OPIN_CN},                 /* 내부소견내용 */
+              DGDGR_SE_CD = #{DGDGR_SE_CD},                     /* 위험도구분코드 */
+              BDY_TROBL_CN = #{BDY_TROBL_CN},                   /* 신체장애내용 */
+
+              LRN_CN = #{LRN_CN},                               /* 학습내용 */
+              EMTNL_SPFE_CN = #{EMTNL_SPFE_CN},                 /* 정서적특징내용 */
+              TWDPSN_REL_CN = #{TWDPSN_REL_CN},                 /* 대인관계내용 */
+              CHIL_CNFRNT_PROBM_CN = #{CHIL_CNFRNT_PROBM_CN},   /* 아동당면문제내용 */
+              CHIL_STGTH_CN = #{CHIL_STGTH_CN},                 /* 아동강점내용 */
+ 
+              FAM_CNFRNT_TASK_CN = #{FAM_CNFRNT_TASK_CN},       /* 가족당면과제내용 */
+              FAM_STGTH_CN = #{FAM_STGTH_CN},                   /* 가족강점내용 */
+              INST_NO = #{INST_NO},                             /* 기관번호 */
+              PIC_NO = #{PIC_NO},                               /* 담당자번호 */
+
+              LAST_MDFR_ID = #{USER_ID},                        /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                           /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,          /* 사례관리번호 */
+              CASE_MNG_ODRNO,       /* 사례관리차수 */
+
+              ASESS_RCORD_YMD,      /* 사정기록일자 */
+              EXPERT_OPIN_CN,       /* 전문가소견내용 */
+              INNER_OPIN_CN,        /* 내부소견내용 */
+              DGDGR_SE_CD,          /* 위험도구분코드 */
+              BDY_TROBL_CN,         /* 신체장애내용 */
+
+              LRN_CN,               /* 학습내용 */
+              EMTNL_SPFE_CN,        /* 정서적특징내용 */
+              TWDPSN_REL_CN,       /* 대인관계내용 */
+              CHIL_CNFRNT_PROBM_CN, /* 아동당면문제내용 */
+              CHIL_STGTH_CN,        /* 아동강점내용 */
+
+              FAM_CNFRNT_TASK_CN,   /* 가족당면과제내용 */
+              FAM_STGTH_CN,         /* 가족강점내용 */
+              INST_NO,              /* 기관번호 */
+              PIC_NO,               /* 담당자번호 */
+
+             
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              
+              TO_CHAR(SYSDATE, 'YYYYMMDD'),
+              #{EXPERT_OPIN_CN},
+              #{INNER_OPIN_CN},
+              #{DGDGR_SE_CD},
+              #{BDY_TROBL_CN},
+
+              #{LRN_CN},
+              #{EMTNL_SPFE_CN},
+              #{TWDPSN_REL_CN},
+              #{CHIL_CNFRNT_PROBM_CN},
+              #{CHIL_STGTH_CN},
+
+              #{FAM_CNFRNT_TASK_CN},
+              #{FAM_STGTH_CN},
+              #{INST_NO},
+              #{PIC_NO},
+
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+    ]]>
+    </update>
+
+    <select id="selectSprtPensnById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectSprtPensnById - Lee MS */
+        
+        SELECT
+            A.RCMDTN_INST_NO AS RCMDTN_INST_NO,             /* 추천기관번호 */
+            B.INST_NM AS RCMDTN_INST_NM,                    /* 추천기관명 */
+            A.CTPV_SE_CD AS CTPV_SE_CD,                     /* 시도구분코드 */
+            A.SGG_CD AS SGG_CD,                             /* 시군구코드 */
+            C.CTPV_NM || ' ' || C.SGG_NM AS SGG_NM,         /* 시군구명 */
+
+            A.SLFRL_SPRT_PENSN_SE_CD AS SLFRL_SPRT_PENSN_SE_CD, /* 자립지원수당구분코드 */
+            A.DCSN_YMD AS DCSN_YMD,                         /* 결정일자 */
+            A.PENSN_GIVE_YM AS PENSN_GIVE_YM,               /* 수당지급연월 */
+            A.SALARY_AMT AS SALARY_AMT,                     /* 급여금액 */
+
+            A.SLFRL_SPRT_CS_SE_CD AS SLFRL_SPRT_CS_SE_CD,   /* 자립지원사유구분코드 */
+            A.SLFRL_SPRT_CS_ETC_CN AS SLFRL_SPRT_CS_ETC_CN, /* 자립지원사유기타내용 */
+
+            A.CASE_MNG_NO AS CASE_MNG_NO,                   /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO,             /* 사례관리차수 */
+            A.MNG_SN AS MNG_SN                              /* 관리일련번호 */
+        FROM AEA140 A, SAA000 B, SAA020 C       /* 자립지원수당 */
+        WHERE A.RCMDTN_INST_NO = B.INST_NO
+        AND A.SGG_CD = C.SGG_CD(+)
+        AND A.CASE_MNG_NO = #{CASE_MNG_NO}
+        AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveSprtPensnData" parameterType="HashMap">
+    <![CDATA[
+         /* saveSprtPensnData - Lee  MS */
+         
+        MERGE INTO AEA140 /* 자립지원수당 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND MNG_SN = #{MNG_SN})
+         WHEN MATCHED THEN
+       UPDATE SET
+              RCMDTN_INST_NO = #{RCMDTN_INST_NO},               /* 추천기관번호 */
+              CTPV_SE_CD = #{CTPV_SE_CD},                       /* 시도구분코드 */
+              SGG_CD = #{SGG_CD},                               /* 시군구코드 */
+              SLFRL_SPRT_PENSN_SE_CD = #{SLFRL_SPRT_PENSN_SE_CD}, /* 자립지원수당구분코드 */
+              DCSN_YMD = #{DCSN_YMD},                           /* 결정일자 */
+
+              PENSN_GIVE_YM = #{PENSN_GIVE_YM},                 /* 수당지급연월 */
+              SALARY_AMT = #{SALARY_AMT},                       /* 급여금액 */
+              SLFRL_SPRT_CS_SE_CD = #{SLFRL_SPRT_CS_SE_CD},     /* 자립지원사유구분코드 */
+              SLFRL_SPRT_CS_ETC_CN = #{SLFRL_SPRT_CS_ETC_CN},   /* 자립지원사유기타내용 */
+
+              INST_NO = #{INST_NO},                             /* 기관번호 */
+              PIC_NO = #{PIC_NO},                               /* 담당자번호 */
+              LAST_MDFR_ID = #{USER_ID},                        /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                           /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,          /* 사례관리번호 */
+              CASE_MNG_ODRNO,       /* 사례관리차수 */
+              MNG_SN,               /* 관리일련번호 */
+
+              RCMDTN_INST_NO,       /* 추천기관번호 */
+              CTPV_SE_CD,           /* 시도구분코드 */
+              SGG_CD,               /* 시군구코드 */
+              SLFRL_SPRT_PENSN_SE_CD,          /* 자립지원수당구분코드 */
+              DCSN_YMD,             /* 결정일자 */
+
+              PENSN_GIVE_YM,        /* 수당지급연월 */
+              SALARY_AMT,           /* 급여금액 */
+              SLFRL_SPRT_CS_SE_CD,  /* 자립지원사유구분코드 */
+              SLFRL_SPRT_CS_ETC_CN, /* 자립지원사유기타내용 */
+
+              INST_NO,              /* 기관번호 */
+              PIC_NO,               /* 담당자번호 */
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              (SELECT NVL(MAX(MNG_SN),0)+1 FROM AEA140 WHERE CASE_MNG_NO = #{CASE_MNG_NO} AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}),
+              
+              #{RCMDTN_INST_NO},
+              #{CTPV_SE_CD},
+              #{SGG_CD},
+              #{SLFRL_SPRT_PENSN_SE_CD},
+
+              #{DCSN_YMD},
+              #{PENSN_GIVE_YM},
+              #{SALARY_AMT},
+              #{SLFRL_SPRT_CS_SE_CD},
+              #{SLFRL_SPRT_CS_ETC_CN},
+
+              #{INST_NO},
+              #{PIC_NO},
+
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+        
+    ]]>
+    </update>
+    
+    <delete id="deleteSprtPensnData" parameterType="HashMap">
+    <![CDATA[
+         /* deleteSprtPensnData - Lee  MS */
+         
+        DELETE FROM AEA140 /* 자립지원수당  */
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+          AND MNG_SN = #{MNG_SN}
+        
+    ]]>
+    </delete>
+
+    <select id="selectRthousSprtById" parameterType="HashMap" resultType="HashMap">
+    <![CDATA[
+        /* selectRthousSprtById - Lee MS */
+        
+        SELECT
+            A.RTHOUS_SPRT_SE_CD AS RTHOUS_SPRT_SE_CD,       /* 임대주택지원구분코드 */
+            A.CTRT_YMD AS CTRT_YMD,                         /* 계약일자 */
+            A.CTRT_BGNG_YMD AS CTRT_BGNG_YMD,               /* 계약시작일자 */
+            A.CTRT_END_YMD AS CTRT_END_YMD,                 /* 계약종료일자 */
+            A.RTHOUS_PRCHS_SE_CD AS RTHOUS_PRCHS_SE_CD,     /* 임대주택구매구분코드 */
+
+            A.RENT_PST_ADDR AS RENT_PST_ADDR,               /* 임대우편주소 */
+            A.RENT_ADDR AS RENT_ADDR,                       /* 임대주소 */
+            A.CTRT_MDSTRM_END_YMD AS CTRT_MDSTRM_END_YMD,   /* 계약중도종료일자 */
+            A.CTRT_MDSTRM_END_CN AS CTRT_MDSTRM_END_CN,     /* 계약중도종료내용 */
+            
+            A.CASE_MNG_NO AS CASE_MNG_NO,                   /* 사례관리번호 */
+            A.CASE_MNG_ODRNO AS CASE_MNG_ODRNO,             /* 사례관리차수 */
+            A.MNG_SN AS MNG_SN                              /* 관리일련번호 */
+            
+        FROM AEA150 A /* 임대주택지원 */
+        WHERE A.CASE_MNG_NO = #{CASE_MNG_NO}
+        AND A.CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+
+    ]]>
+    </select>
+
+    <update id="saveRthousSprtData" parameterType="HashMap">
+    <![CDATA[
+         /* saveRthousSprtData - Lee  MS */
+         
+        MERGE INTO AEA150 /* 임대주택지원 */
+        USING DUAL
+           ON (CASE_MNG_NO = #{CASE_MNG_NO}
+           AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+           AND MNG_SN = #{MNG_SN})
+         WHEN MATCHED THEN
+       UPDATE SET
+              RTHOUS_SPRT_SE_CD = #{RTHOUS_SPRT_SE_CD},         /* 임대주택지원구분코드 */
+              CTRT_YMD = #{CTRT_YMD},                           /* 계약일자 */
+              CTRT_BGNG_YMD = #{CTRT_BGNG_YMD},                 /* 계약시작일자 */
+              CTRT_END_YMD = #{CTRT_END_YMD},                   /* 계약종료일자 */
+              RTHOUS_PRCHS_SE_CD = #{RTHOUS_PRCHS_SE_CD},       /* 임대주택구매구분코드 */
+
+              RENT_PST_ADDR = #{RENT_PST_ADDR},                 /* 임대우편주소 */
+              RENT_ADDR = #{RENT_ADDR},                         /* 임대주소 */
+              CTRT_MDSTRM_END_YMD = #{CTRT_MDSTRM_END_YMD},     /* 계약중도종료일자 */
+              CTRT_MDSTRM_END_CN = #{CTRT_MDSTRM_END_CN},       /* 계약중도종료내용 */
+
+              INST_NO = #{INST_NO},                             /* 기관번호 */
+              PIC_NO = #{PIC_NO},                               /* 담당자번호 */
+              LAST_MDFR_ID = #{USER_ID},                        /* 최종수정자아이디 */
+              LAST_MDFCN_DT = SYSDATE                           /* 최종수정일시 */
+         WHEN NOT MATCHED THEN
+        INSERT (
+              CASE_MNG_NO,          /* 사례관리번호 */
+              CASE_MNG_ODRNO,       /* 사례관리차수 */
+              MNG_SN,               /* 관리일련번호 */
+
+              RTHOUS_SPRT_SE_CD,    /* 임대주택지원구분코드 */
+              CTRT_YMD,             /* 계약일자 */
+              CTRT_BGNG_YMD,        /* 계약시작일자 */
+              CTRT_END_YMD,         /* 계약종료일자 */
+              RTHOUS_PRCHS_SE_CD,   /* 임대주택구매구분코드 */
+
+              RENT_PST_ADDR,        /* 임대우편주소 */
+              RENT_ADDR,            /* 임대주소 */
+              CTRT_MDSTRM_END_YMD,  /* 계약중도종료일자 */
+              CTRT_MDSTRM_END_CN,   /* 계약중도종료내용 */
+
+              INST_NO,              /* 기관번호 */
+              PIC_NO,               /* 담당자번호 */
+              FRST_RGTR_ID,
+              FRST_REG_DT,
+              LAST_MDFR_ID,
+              LAST_MDFCN_DT
+        )
+        VALUES (
+              #{CASE_MNG_NO},
+              #{CASE_MNG_ODRNO},
+              (SELECT NVL(MAX(MNG_SN),0)+1 FROM AEA150 WHERE CASE_MNG_NO = #{CASE_MNG_NO} AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}),
+              
+              #{RTHOUS_SPRT_SE_CD},
+              #{CTRT_YMD},
+              #{CTRT_BGNG_YMD},
+              #{CTRT_END_YMD},
+              #{RTHOUS_PRCHS_SE_CD},
+
+              #{RENT_PST_ADDR},
+              #{RENT_ADDR},
+              #{CTRT_MDSTRM_END_YMD},
+              #{CTRT_MDSTRM_END_CN},
+
+              #{INST_NO},
+              #{PIC_NO},
+              #{USER_ID},
+              SYSDATE,
+              #{USER_ID},
+              SYSDATE
+        )
+    ]]>
+    </update>
+
+    <delete id="deleteRthousSprtData" parameterType="HashMap">
+    <![CDATA[
+         /* deleteRthousSprtData - Lee  MS */
+         
+        DELETE FROM AEA150 /* 임대주택지원 */
+        WHERE CASE_MNG_NO = #{CASE_MNG_NO}
+          AND CASE_MNG_ODRNO = #{CASE_MNG_ODRNO}
+          AND MNG_SN = #{MNG_SN}
+        
+    ]]>
+    </delete>
+
+    <select id="selectSLfrlCaseListCount" parameterType="HashMap" resultType="String">
+      SELECT   
+            /* isry.pubms.casemng.sheltrreg.mapper.SheltrRegMapper.selectSLfrlCaseListCount */
+            COUNT(*)
+        FROM SEB100 T1
+         , SEA201 T2
+         , SCA100 X          
+         , SEB150 Y
+         , SAA000 Z
+         , AEB120 T5
+        WHERE 1=1 
+        AND T1.TRPR_INFO_NO= T2.TRPR_INFO_NO                                                                       
+        AND T2.MDFCN_DT= ( SELECT MAX(MDFCN_DT) FROM SEA201
+                            WHERE TRPR_INFO_NO= T2.TRPR_INFO_NO
+                              AND NVL(TRMN_CASE_MNG_NO, '1') = CASE WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('04','08','10','11') THEN T1.CASE_MNG_NO
+                                                                    ELSE '1' END
+                              AND NVL(TRMN_CASE_MNG_ODRNO, 1) = CASE WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('04','08','10','11') THEN T1.CASE_MNG_ODRNO
+                                                                     ELSE 1 END )                                                                         
+        AND Z.INST_NO = Y.PIC_INST_NO
+        AND X.ENFSN_NO = Y.CASE_PIC_NO
+        AND Y.PCHPRS_YN = 'Y' 
+        AND Y.CASE_MNG_NO = T1.CASE_MNG_NO
+        AND Y.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        AND T1.CASE_MNG_NO = T5.CASE_MNG_NO(+)
+        AND T1.CASE_MNG_ODRNO = T5.CASE_MNG_ODRNO(+) 
+        <include refid="SLFRL_LIST_WHERE"></include>
+    </select>
+
+    <select id="selectSlfrlCasePagingList" parameterType="HashMap" resultType="HashMap">
+    
+            SELECT           
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+            /* isry.pubms.casemng.sheltrreg.mapper.SheltrRegMapper.selectSlfrlCasePagingList */
+            TT.*
+            , A.UP_CMMNS_CD_VALUE                 AS CASE_PRGRS_STTS_TYPE_SE_CD   /* 사례진행상태유형구분코드 */
+        FROM (    
+            SELECT
+                  T1.*              
+             FROM (
+                    <include refid="SLFRL_PAGING_LIST">
+                    </include>
+                  ) T1
+           WHERE 1 = 1
+           <![CDATA[
+            AND T1.SEQ >= #{START_IDX} AND T1.SEQ <= #{LAST_IDX}
+            ]]>
+        ) TT, SAC100 A
+        WHERE TT.CASE_PRGRS_STTS_SE_CD = A.CMMNS_CD_VALUE(+)
+        AND 'CASE_PRGRS_STTS_SE_CD' = A.CMMNS_CD_ID(+)
+    
+    </select>
+
+    <sql id="SLFRL_PAGING_LIST">
+       SELECT /*+ INDEX_DESC(T1 SEB100_IX05) USE_NL(Y)*/ T1.CASE_MNG_NO           AS CASE_MNG_NO                  /* 사례관리번호 */
+             , T1.CASE_MNG_ODRNO                                                  AS CASE_MNG_ODRNO               /* 사례관리차수 */
+             , TO_CHAR(T1.FRST_REG_DT,  'YYYY-MM-DD')                             AS FRST_REG_DT                  /* 등록일자 */
+             , NVL(T5.SLFRL_SPRT_TRPR_SE_CD, '1')                                 AS SHELTR_TRPR_SE_CD            /* 쉼터대상자구분 */
+             , T2.TRPR_INFO_NO                                                    AS TRPR_INFO_NO                 /* 대상자정보번호 */
+             , C##RG.DEC_B64(T2.TRPR_NM_ENCPT)                                 AS TRPR_NM_ENCPT                /* 대상자명 */
+             , TO_CHAR(TO_DATE(REPLACE(T2.TRPR_BRTH_YMD, '-', '')), 'YYYY-MM-DD') AS TRPR_BRTH_YMD                /* 대상자출생일자 */
+             , T2.SXDC_SE_CD                                                   AS SXDC_SE_CD                   /* 대상자성별구분코드 */
+             , T1.YNGBGS_STTS_LCLAS_SE_CD                                         AS YNGBGS_STTS_LCLAS_SE_CD      /* 청소년상태대분류구분코드 */
+             , T1.YNGBGS_STTS_SCLAS_SE_CD                                         AS YNGBGS_STTS_SCLAS_SE_CD      /* 청소년상태소분류구분코드 */
+             , T1.YNGBGS_SE_NO                                                    AS YNGBGS_SE_NO                 /* 청소년구분번호 */
+             , C##RG.DEC_B64(X.FLNM_ENCPT)                                    AS PIC_NM_ENCPT                 /* 담당자명(주담당자기준) */
+             , Y.PIC_INST_NO                                                     AS PIC_INST_NO                  /* 담당기관(주담당자기준) */
+             , CASE WHEN X.JBPS_NM IS NOT NULL THEN X.JBPS_NM
+               ELSE (SELECT TT1.CMMNS_CD_VALUE_NM FROM SAC100 TT1
+                       WHERE TT1.CMMNS_CD_ID = 'JBPS_SE_CD'
+                       AND TT1.CMMNS_CD_VALUE = X.JBPS_SE_CD) END                AS JBPS_NM                 /* 담당자직위명(주담당자기준) */
+              , X.JBPS_SE_CD                                                    AS JBPS_SE_CD                 /* 담당자직위구분코드(주담당자기준) */
+              , Z.INST_NM                                                       AS INST_NM                      /* 담당기관명(주담당자기준) */
+              , T2.CASE_TRPR_TYPE_SE_CD                                            AS CASE_TRPR_TYPE_SE_CD         /* 사례대상자유형구분코드 */
+            , T1.CASE_PRGRS_STTS_SE_CD                                           AS CASE_PRGRS_STTS_SE_CD        /* 사례진행상태구분코드 */
+            , T1.UNT_TASKWK_SE_CD                                                AS UNT_TASKWK_SE_CD             /* 단위업무구분코드 */
+            /* 
+            , (SELECT UP_CMMNS_CD_VALUE
+                 FROM SAC100
+                WHERE CMMNS_CD_ID    = 'CASE_PRGRS_STTS_SE_CD'
+                  AND CMMNS_CD_VALUE = T1.CASE_PRGRS_STTS_SE_CD)                 AS CASE_PRGRS_STTS_TYPE_SE_CD   /* 사례진행상태유형구분코드 *--/
+            */
+        
+            /* 2022.08.22 
+             *  - 권한적용을 위한 항목 추가
+             */
+            
+            /*
+            , ( SELECT LISTAGG(X.CASE_PIC_NO, ',') WITHIN GROUP (ORDER BY X.PCHPRS_YN DESC, X.CASE_PIC_NO)
+                  FROM SEB150 X
+                 WHERE X.CASE_MNG_NO    = T1.CASE_MNG_NO
+                   AND X.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO )                    AS ENFSN_NO
+            , ( SELECT LISTAGG(X.PIC_INST_NO, ',') WITHIN GROUP (ORDER BY X.PCHPRS_YN DESC, X.CASE_PIC_NO)
+                  FROM SEB150 X
+                 WHERE X.CASE_MNG_NO    = T1.CASE_MNG_NO
+                   AND X.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO )                    AS INST_NO
+            */
+            , T2.TRMN_CASE_MNG_NO                                                AS TRMN_CASE_MNG_NO             /* 종결사례관리번호 */
+            , T2.TRMN_CASE_MNG_ODRNO                                             AS TRMN_CASE_MNG_ODRNO          /* 종결사례관리차수 */
+            , TO_CHAR(T2.MDFCN_DT, 'YYYYMMDDHH24MISS')                           AS SEA201_MDFCN_DT              /* 수정일시(SEA201) */
+            , T1.CASE_BGNG_YMD AS CASE_BGNG_YMD
+            , T1.CASE_TRMN_YMD AS CASE_TRMN_YMD
+            , CASE WHEN T1.CASE_PRGRS_STTS_SE_CD = '01'                   THEN 'REG'   /* 등록 */
+                WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('02','03','06','12') THEN 'PRGRS' /* 진행 */
+                WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('04','08','10')      THEN 'TRMN'  /* 종결 */
+                ELSE ''
+            END                                 AS STEP_SE
+            , T2.RCPT_PIC_NO                    AS RCPT_PIC_NO
+            , Z.CTPV_CD                         AS CTPV_CD
+            , T1.ORGNL_CASE_MNG_NO              AS ORGNL_CASE_MNG_NO
+            , DECODE(T1.CASE_TRMN_YMD, NULL, TRUNC(SYSDATE - TO_DATE(T1.CASE_BGNG_YMD, 'YYYYMMDD')),
+              TO_DATE(T1.CASE_TRMN_YMD, 'YYYYMMDD') - TO_DATE(T1.CASE_BGNG_YMD, 'YYYYMMDD')) +1 AS PROTECT_DAYCNT  /* 일수 */
+            , ROWNUM AS SEQ
+        FROM SEB100 T1
+         , SEA201 T2
+         , SCA100 X          
+         , SEB150 Y
+         , SAA000 Z
+         , AEB120 T5
+        WHERE 1=1 
+        AND T1.TRPR_INFO_NO          = T2.TRPR_INFO_NO
+        AND T2.MDFCN_DT = ( SELECT MAX(MDFCN_DT) FROM SEA201
+                              WHERE TRPR_INFO_NO = T2.TRPR_INFO_NO
+                             AND NVL(TRMN_CASE_MNG_NO, '1') = CASE WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('04','08','10','11') THEN T1.CASE_MNG_NO
+                                                                   ELSE '1' END
+                             AND NVL(TRMN_CASE_MNG_ODRNO, 1) = CASE WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('04','08','10','11') THEN T1.CASE_MNG_ODRNO
+                                                                    ELSE 1 END )                                                                         
+        AND Z.INST_NO        = Y.PIC_INST_NO
+        AND X.ENFSN_NO       = Y.CASE_PIC_NO
+        AND Y.PCHPRS_YN      = 'Y' 
+        AND Y.CASE_MNG_NO    = T1.CASE_MNG_NO
+        AND Y.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO 
+        AND T1.CASE_MNG_NO = T5.CASE_MNG_NO(+)
+        AND T1.CASE_MNG_ODRNO = T5.CASE_MNG_ODRNO(+)
+        <include refid="SLFRL_LIST_WHERE"></include>
+                   
+    </sql>
+
+    <sql id="SLFRL_LIST_WHERE">
+        <choose>
+           <when test="SEARCH_GUBN == '02'">
+               <![CDATA[
+                  /* 진행일자 조회 */
+                  AND T1.CASE_BGNG_YMD <= #{END_DATE} AND NVL(T1.CASE_TRMN_YMD, T1.CASE_BGNG_YMD) >= #{START_DATE}
+                ]]>
+           </when>
+           <otherwise>
+               <![CDATA[
+                  /* 등록일자 조회 */                        
+                  AND T1.FRST_REG_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS') 
+                  AND T1.FRST_REG_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS') 
+                ]]>
+           </otherwise>
+        </choose>
+        <if test="CASE_PRGRS_STTS_SE_CD != null and CASE_PRGRS_STTS_SE_CD != ''">
+         <![CDATA[
+           AND T1.CASE_PRGRS_STTS_SE_CD IN (SELECT CMMNS_CD_VALUE FROM SAC100
+                                             WHERE CMMNS_CD_ID       = 'CASE_PRGRS_STTS_SE_CD'
+                                               AND UP_CMMNS_CD_VALUE = #{CASE_PRGRS_STTS_SE_CD})
+         ]]>
+        </if>
+        <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+         <![CDATA[
+           AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+         ]]>
+        </if>
+        /* 20230220_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작*/
+        <include refid="GroupAuthrtMapper.caseinqGropuListAuthrt"/>   
+        /* 20230220_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+        <if test="YNGBGS_STTS_LCLAS_SE_CD != null and YNGBGS_STTS_LCLAS_SE_CD != ''">
+        <![CDATA[
+          AND T1.YNGBGS_SE_NO LIKE '%' || #{YNGBGS_STTS_LCLAS_SE_CD} || '%'
+        ]]>
+        </if>
+        <if test="YNGBGS_STTS_SCLAS_SE_CD != null and YNGBGS_STTS_SCLAS_SE_CD != ''">
+        <![CDATA[
+          AND T1.YNGBGS_STTS_SCLAS_SE_CD = #{YNGBGS_STTS_SCLAS_SE_CD}
+        ]]>
+        </if>
+        <if test="CASE_TRPR_TYPE_SE_CD != null and CASE_TRPR_TYPE_SE_CD != ''">
+        <![CDATA[
+          AND T2.CASE_TRPR_TYPE_SE_CD  = #{CASE_TRPR_TYPE_SE_CD}
+        ]]>
+        </if>
+        <if test="ENFSN_ROLE_SE_CD != null and ENFSN_ROLE_SE_CD != ''">
+          <if test='ENFSN_ROLE_SE_CD !="1" and ENFSN_ROLE_SE_CD !="2"'>
+          <![CDATA[
+          AND T2.RCPT_PIC_NO = #{USER_ID}
+          ]]>
+        </if>
+        </if>
+        <if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+        <![CDATA[
+          AND #{SRVC_EXCN_BIZ_NO} IN (SELECT SRVC_EXCN_BIZ_NO
+                                        FROM SEB120
+                                       WHERE CASE_MNG_NO     = T1.CASE_MNG_NO
+                                         AND CASE_MNG_ODRNO  = T1.CASE_MNG_ODRNO
+                                         AND DEL_YN         != 'Y')
+        ]]>
+        </if>
+        <if test="PIC_NM_ENCPT != null and PIC_NM_ENCPT != ''">
+        <![CDATA[
+            AND C##RG.DEC_B64(X.FLNM_ENCPT) = #{PIC_NM_ENCPT}
+        ]]>
+        </if>
+        <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+        <![CDATA[
+            AND C##RG.DEC_B64(T2.TRPR_NM_ENCPT) = #{TRPR_NM_ENCPT}
+        ]]>
+        </if>
+        <if test="INST_NM != null and INST_NM != ''">
+        <![CDATA[
+            AND(Y.PIC_INST_NO       = #{INST_NO}
+             OR Z.INST_NM           = #{INST_NM})
+        ]]>
+        </if>         
+        <if test="JBPS_SE_CD != null and JBPS_SE_CD != ''">
+            AND X.JBPS_SE_CD = #{JBPS_SE_CD}
+        </if>
+         <if test="SHELTR_TRPR_SE_CD != null and SHELTR_TRPR_SE_CD != ''">
+             AND T5.SLFRL_SPRT_TRPR_SE_CD = #{SHELTR_TRPR_SE_CD}                    /* 자립지원대상자구분 */
+         </if>
+    </sql>
+
+    <!-- 쉼터 사례 목록 조회 -->
+    <select id="selectSheltrCaseListCount" parameterType="HashMap" resultType="String">
+      SELECT   
+            /* isry.pubms.casemng.sheltrreg.mapper.SheltrRegMapper.selectSheltrCaseListCount */
+            COUNT(*)
+        FROM SEB100 T1
+         , SEA200 T2
+         , SCA100 X          
+         , SEB150 Y
+         , SAA000 Z
+         , AEA100 T5
+        WHERE 1=1 
+        AND T1.TRPR_INFO_NO= T2.TRPR_INFO_NO                                                                        
+        AND Z.INST_NO = Y.PIC_INST_NO
+        AND X.ENFSN_NO = Y.CASE_PIC_NO
+        AND Y.PCHPRS_YN = 'Y' 
+        AND Y.CASE_MNG_NO = T1.CASE_MNG_NO
+        AND Y.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO
+        AND T1.CASE_MNG_NO = T5.CASE_MNG_NO(+)
+        AND T1.CASE_MNG_ODRNO = T5.CASE_MNG_ODRNO(+) 
+        <include refid="SHELTR_LIST_WHERE"></include>
+    </select>
+
+    <select id="selectSheltrCasePagingList" parameterType="HashMap" resultType="HashMap">
+
+        SELECT           
+        <!-- 페이지 인덱서 실행 쿼리 SELECT 이후-->
+            /* isry.pubms.casemng.sheltrreg.mapper.SheltrRegMapper.selectSheltrCasePagingList */
+            TT.*
+            , A.UP_CMMNS_CD_VALUE                 AS CASE_PRGRS_STTS_TYPE_SE_CD   /* 사례진행상태유형구분코드 */
+        FROM (    
+            SELECT
+                  T1.*              
+             FROM (
+                    <include refid="SHELTR_PAGING_LIST">
+                    </include>
+                  ) T1
+           WHERE 1 = 1
+           <![CDATA[
+            AND T1.SEQ >= #{START_IDX} AND T1.SEQ <= #{LAST_IDX}
+            ]]>
+        ) TT, SAC100 A
+        WHERE TT.CASE_PRGRS_STTS_SE_CD = A.CMMNS_CD_VALUE(+)
+        AND 'CASE_PRGRS_STTS_SE_CD' = A.CMMNS_CD_ID(+)
+        
+    </select>
+
+    <sql id="SHELTR_PAGING_LIST">
+       SELECT /*+ INDEX_DESC(T1 SEB100_IX05) USE_NL(Y) USE_NL(X) USE_NL(Z) USE_NL(T5)*/ 
+               T1.CASE_MNG_NO                                                     AS CASE_MNG_NO                  /* 사례관리번호 */
+             , T1.CASE_MNG_ODRNO                                                  AS CASE_MNG_ODRNO               /* 사례관리차수 */
+             , TO_CHAR(T1.FRST_REG_DT,  'YYYY-MM-DD')                             AS FRST_REG_DT                  /* 등록일자 */
+             , NVL(T5.SHELTR_TRPR_SE_CD, '1')                                     AS SHELTR_TRPR_SE_CD            /* 쉼터대상자구분 */
+             , T2.TRPR_INFO_NO                                                    AS TRPR_INFO_NO                 /* 대상자정보번호 */
+             , C##RG.DEC_B64(T2.TRPR_NM_ENCPT)                                 AS TRPR_NM_ENCPT                /* 대상자명 */
+             , TO_CHAR(TO_DATE(REPLACE(T2.TRPR_BRTH_YMD, '-', '')), 'YYYY-MM-DD') AS TRPR_BRTH_YMD                /* 대상자출생일자 */
+             , T2.SXDC_SE_CD                                                   AS SXDC_SE_CD                   /* 대상자성별구분코드 */
+             , T1.YNGBGS_STTS_LCLAS_SE_CD                                         AS YNGBGS_STTS_LCLAS_SE_CD      /* 청소년상태대분류구분코드 */
+             , T1.YNGBGS_STTS_SCLAS_SE_CD                                         AS YNGBGS_STTS_SCLAS_SE_CD      /* 청소년상태소분류구분코드 */
+             , T1.YNGBGS_SE_NO                                                    AS YNGBGS_SE_NO                 /* 청소년구분번호 */
+             , C##RG.DEC_B64(X.FLNM_ENCPT)                                    AS PIC_NM_ENCPT                 /* 담당자명(주담당자기준) */
+             , Y.PIC_INST_NO                                                     AS PIC_INST_NO                  /* 담당기관(주담당자기준) */
+             , CASE WHEN X.JBPS_NM IS NOT NULL THEN X.JBPS_NM
+               ELSE (SELECT TT1.CMMNS_CD_VALUE_NM FROM SAC100 TT1
+                       WHERE TT1.CMMNS_CD_ID = 'JBPS_SE_CD'
+                       AND TT1.CMMNS_CD_VALUE = X.JBPS_SE_CD) END                AS JBPS_NM                 /* 담당자직위명(주담당자기준) */
+              , X.JBPS_SE_CD                                                    AS JBPS_SE_CD                 /* 담당자직위구분코드(주담당자기준) */
+              , Z.INST_NM                                                       AS INST_NM                      /* 담당기관명(주담당자기준) */
+              , T2.CASE_TRPR_TYPE_SE_CD                                            AS CASE_TRPR_TYPE_SE_CD         /* 사례대상자유형구분코드 */
+            , T1.CASE_PRGRS_STTS_SE_CD                                           AS CASE_PRGRS_STTS_SE_CD        /* 사례진행상태구분코드 */
+            , T1.UNT_TASKWK_SE_CD                                                AS UNT_TASKWK_SE_CD             /* 단위업무구분코드 */
+            /* 
+            , (SELECT UP_CMMNS_CD_VALUE
+                 FROM SAC100
+                WHERE CMMNS_CD_ID    = 'CASE_PRGRS_STTS_SE_CD'
+                  AND CMMNS_CD_VALUE = T1.CASE_PRGRS_STTS_SE_CD)                 AS CASE_PRGRS_STTS_TYPE_SE_CD   /* 사례진행상태유형구분코드 *--/
+            */
+        
+            /* 2022.08.22 
+             *  - 권한적용을 위한 항목 추가
+             */
+            
+            /*
+            , ( SELECT LISTAGG(X.CASE_PIC_NO, ',') WITHIN GROUP (ORDER BY X.PCHPRS_YN DESC, X.CASE_PIC_NO)
+                  FROM SEB150 X
+                 WHERE X.CASE_MNG_NO    = T1.CASE_MNG_NO
+                   AND X.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO )                    AS ENFSN_NO
+            , ( SELECT LISTAGG(X.PIC_INST_NO, ',') WITHIN GROUP (ORDER BY X.PCHPRS_YN DESC, X.CASE_PIC_NO)
+                  FROM SEB150 X
+                 WHERE X.CASE_MNG_NO    = T1.CASE_MNG_NO
+                   AND X.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO )                    AS INST_NO
+            */
+        
+            , T2.TRMN_CASE_MNG_NO                                                AS TRMN_CASE_MNG_NO             /* 종결사례관리번호 */
+            , T2.TRMN_CASE_MNG_ODRNO                                             AS TRMN_CASE_MNG_ODRNO          /* 종결사례관리차수 */
+            , T1.CASE_BGNG_YMD AS CASE_BGNG_YMD
+            , T1.CASE_TRMN_YMD AS CASE_TRMN_YMD
+            , CASE WHEN T1.CASE_PRGRS_STTS_SE_CD = '01'                   THEN 'REG'   /* 등록 */
+                WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('02','03','06','12') THEN 'PRGRS' /* 진행 */
+                WHEN T1.CASE_PRGRS_STTS_SE_CD IN ('04','08','10')      THEN 'TRMN'  /* 종결 */
+                ELSE ''
+            END                                 AS STEP_SE
+            , T2.RCPT_PIC_NO                    AS RCPT_PIC_NO
+            , Z.CTPV_CD                         AS CTPV_CD
+            , T1.ORGNL_CASE_MNG_NO              AS ORGNL_CASE_MNG_NO
+            , DECODE(T1.CASE_TRMN_YMD, NULL, TRUNC(SYSDATE - TO_DATE(T1.CASE_BGNG_YMD, 'YYYYMMDD')),
+              TO_DATE(T1.CASE_TRMN_YMD, 'YYYYMMDD') - TO_DATE(T1.CASE_BGNG_YMD, 'YYYYMMDD')) +1 AS PROTECT_DAYCNT  /* 일수 */
+            , ROWNUM AS SEQ
+        FROM SEB100 T1
+         , SEA200 T2
+         , SCA100 X          
+         , SEB150 Y
+         , SAA000 Z
+         , AEA100 T5
+        WHERE 1=1 
+        AND T1.TRPR_INFO_NO          = T2.TRPR_INFO_NO
+        AND Z.INST_NO        = Y.PIC_INST_NO
+        AND X.ENFSN_NO       = Y.CASE_PIC_NO
+        AND Y.PCHPRS_YN      = 'Y' 
+        AND Y.CASE_MNG_NO    = T1.CASE_MNG_NO
+        AND Y.CASE_MNG_ODRNO = T1.CASE_MNG_ODRNO 
+        AND T1.CASE_MNG_NO = T5.CASE_MNG_NO(+)
+        AND T1.CASE_MNG_ODRNO = T5.CASE_MNG_ODRNO(+)
+        <include refid="SHELTR_LIST_WHERE"></include>
+                   
+    </sql>
+
+    <sql id="SHELTR_LIST_WHERE">
+        <choose>
+           <when test="SEARCH_GUBN == '02'">
+               <![CDATA[
+                  /* 진행일자 조회 */
+                  AND T1.CASE_BGNG_YMD <= #{END_DATE} AND NVL(T1.CASE_TRMN_YMD, T1.CASE_BGNG_YMD) >= #{START_DATE}
+                ]]>
+           </when>
+           <otherwise>
+               <![CDATA[
+                  /* 등록일자 조회 */                        
+                  AND T1.FRST_REG_DT >= TO_DATE(#{START_DATE} || '000000', 'YYYYMMDDHH24MISS') 
+                  AND T1.FRST_REG_DT <= TO_DATE(#{END_DATE} || '235959', 'YYYYMMDDHH24MISS') 
+                ]]>
+           </otherwise>
+        </choose>
+        <if test="CASE_PRGRS_STTS_SE_CD != null and CASE_PRGRS_STTS_SE_CD != ''">
+         <![CDATA[
+           AND T1.CASE_PRGRS_STTS_SE_CD IN (SELECT CMMNS_CD_VALUE FROM SAC100
+                                             WHERE CMMNS_CD_ID       = 'CASE_PRGRS_STTS_SE_CD'
+                                               AND UP_CMMNS_CD_VALUE = #{CASE_PRGRS_STTS_SE_CD})
+         ]]>
+        </if>
+        <if test="UNT_TASKWK_SE_CD != null and UNT_TASKWK_SE_CD != ''">
+         <![CDATA[
+           AND T1.UNT_TASKWK_SE_CD = #{UNT_TASKWK_SE_CD}
+         ]]>
+        </if>
+        /* 20230220_강화영_권한 쿼리 최종변경사항 수정_권한쿼리시작*/
+        <choose>
+            <when test="GROUP_AUTHRT_SE_CD lt 300">
+            </when>
+            <when test="GROUP_AUTHRT_SE_CD.SUBSTR(1,3) eq '40'.toString()">
+            <![CDATA[
+            AND EXISTS (SELECT 1 FROM SEB150 YY
+                WHERE 1=1
+                AND T1.CASE_MNG_NO = YY.CASE_MNG_NO 
+                AND T1.CASE_MNG_ODRNO = YY.CASE_MNG_ODRNO
+                AND YY.PIC_DSGN_YMD <= TO_CHAR(SYSDATE,'YYYYMMDD')
+                AND YY.CASE_PIC_NO = #{ENFSN_NO}
+            )
+            ]]>
+            </when>
+            <otherwise>
+            <![CDATA[
+            AND (T1.CASE_MNG_NO, T1.CASE_MNG_ODRNO) 
+                IN (SELECT YY.CASE_MNG_NO,YY.CASE_MNG_ODRNO  
+                    FROM SEB150 YY
+                    WHERE 1=1
+                    AND YY.PIC_INST_NO IN             
+                ]]>
+                    <foreach collection="INST_NOS" item="item" open="("
+                        separator="," close=")">
+                        #{item}
+                    </foreach>
+            )
+            </otherwise>
+        </choose>
+        /* 20230220_강화영_권한 쿼리 최종변경사항 수정_권한쿼리종료*/
+        <if test="YNGBGS_STTS_LCLAS_SE_CD != null and YNGBGS_STTS_LCLAS_SE_CD != ''">
+        <![CDATA[
+          AND T1.YNGBGS_SE_NO LIKE '%' || #{YNGBGS_STTS_LCLAS_SE_CD} || '%'
+        ]]>
+        </if>
+        <if test="YNGBGS_STTS_SCLAS_SE_CD != null and YNGBGS_STTS_SCLAS_SE_CD != ''">
+        <![CDATA[
+          AND T1.YNGBGS_STTS_SCLAS_SE_CD = #{YNGBGS_STTS_SCLAS_SE_CD}
+        ]]>
+        </if>
+        <if test="CASE_TRPR_TYPE_SE_CD != null and CASE_TRPR_TYPE_SE_CD != ''">
+        <![CDATA[
+          AND T2.CASE_TRPR_TYPE_SE_CD  = #{CASE_TRPR_TYPE_SE_CD}
+        ]]>
+        </if>
+        <if test="ENFSN_ROLE_SE_CD != null and ENFSN_ROLE_SE_CD != ''">
+          <if test='ENFSN_ROLE_SE_CD !="1" and ENFSN_ROLE_SE_CD !="2"'>
+          <![CDATA[
+          AND T2.RCPT_PIC_NO = #{USER_ID}
+          ]]>
+        </if>
+        </if>
+        <if test="SRVC_EXCN_BIZ_NO != null and SRVC_EXCN_BIZ_NO != ''">
+        <![CDATA[
+          AND #{SRVC_EXCN_BIZ_NO} IN (SELECT SRVC_EXCN_BIZ_NO
+                                        FROM SEB120
+                                       WHERE CASE_MNG_NO     = T1.CASE_MNG_NO
+                                         AND CASE_MNG_ODRNO  = T1.CASE_MNG_ODRNO
+                                         AND DEL_YN         != 'Y')
+        ]]>
+        </if>
+
+        <if test="PIC_NM_ENCPT != null and PIC_NM_ENCPT != ''">
+        <![CDATA[
+            AND X.FLNM_ENCPT = C##RG.ENC_B64(#{PIC_NM_ENCPT})
+        ]]>
+        </if>
+        <if test="TRPR_NM_ENCPT != null and TRPR_NM_ENCPT != ''">
+        <![CDATA[
+            AND T2.TRPR_NM_ENCPT = C##RG.ENC_B64(#{TRPR_NM_ENCPT})
+        ]]>
+        </if>
+        <if test="INST_NM != null and INST_NM != ''">
+        <![CDATA[
+            AND(Y.PIC_INST_NO       = #{INST_NO}
+             OR Z.INST_NM           = #{INST_NM})
+        ]]>
+        </if>         
+        <if test="JBPS_SE_CD != null and JBPS_SE_CD != ''">
+            AND X.JBPS_SE_CD = #{JBPS_SE_CD}
+        </if>
+         <if test="SHELTR_TRPR_SE_CD != null and SHELTR_TRPR_SE_CD != ''">
+             AND T5.SHELTR_TRPR_SE_CD = #{SHELTR_TRPR_SE_CD}                    /* 자립지원대상자구분 */
+         </if>
+    </sql>
+    
+</mapper>

@@ -1,0 +1,14 @@
+{
+    "List" : [
+        {"column1" : "01", "column2" : "학습클리닉", "column3" : "" },
+        {"column1" : "02", "column2" : "기숙형 캠프", "column3" : "" },
+        {"column1" : "03", "column2" : "스마트 교실 -- 검정고시 대비반", "column3" : "" },
+        {"column1" : "04", "column2" : "스마트 교실 -- 기초학습 지원반", "column3" : "" },
+        {"column1" : "05", "column2" : "스마트교실 -- 인터넷 강의 교실", "column3" : "" },
+        {"column1" : "06", "column2" : "스마트교실 -- 멘토링", "column3" : "" },
+        {"column1" : "07", "column2" : "스마트교실 -- 기타 체험활동", "column3" : "" },
+        {"column1" : "08", "column2" : "소풍(직업체험)", "column3" : "" },
+        {"column1" : "09", "column2" : "뻔뻔비즈(실물경제체험)", "column3" : "" },
+        {"column1" : "10", "column2" : "진로종합캠프", "column3" : "" }
+    ]
+}

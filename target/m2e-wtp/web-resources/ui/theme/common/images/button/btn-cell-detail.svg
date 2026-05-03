@@ -1,0 +1,8 @@
+<svg id="btn.cell.detail_1_" data-name="btn.cell.detail(1)" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <g id="그룹_46" data-name="그룹 46">
+    <path id="패스_200" data-name="패스 200" d="M0,0H24V24H0Z" fill="none"/>
+  </g>
+  <g id="그룹_47" data-name="그룹 47">
+    <path id="패스_201" data-name="패스 201" d="M7,9H2V7H7Zm0,3H2v2H7Zm13.59,7-3.83-3.83A5,5,0,1,1,19,11a4.979,4.979,0,0,1-.83,2.75L22,17.59ZM17,11a3,3,0,1,0-3,3A3.009,3.009,0,0,0,17,11ZM2,19H12V17H2Z" fill="#999"/>
+  </g>
+</svg>

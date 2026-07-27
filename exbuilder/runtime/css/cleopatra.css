@@ -3976,18 +3976,6 @@ body {
 .cl-pageindexer:not(.cl-disabled) .cl-pageindexer-index {
   cursor: pointer;
 }
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-first:not(.cl-selected).cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-last:not(.cl-selected).cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-prev:not(.cl-selected).cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-next:not(.cl-selected).cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-index:not(.cl-selected).cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-first:not(.cl-selected):hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-last:not(.cl-selected):hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-prev:not(.cl-selected):hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-next:not(.cl-selected):hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-index:not(.cl-selected):hover {
-  background-color: #DAEFFC;
-}
 .cl-pageindexer:not(.cl-disabled) .cl-pageindexer-first.cl-disabled,
 .cl-pageindexer:not(.cl-disabled) .cl-pageindexer-last.cl-disabled,
 .cl-pageindexer:not(.cl-disabled) .cl-pageindexer-prev.cl-disabled,
@@ -3995,17 +3983,19 @@ body {
 .cl-pageindexer:not(.cl-disabled) .cl-pageindexer-index.cl-disabled {
   cursor: default;
 }
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-first.cl-disabled.cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-last.cl-disabled.cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-prev.cl-disabled.cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-next.cl-disabled.cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-index.cl-disabled.cl-hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-first.cl-disabled:hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-last.cl-disabled:hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-prev.cl-disabled:hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-next.cl-disabled:hover,
-.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-index.cl-disabled:hover {
-  background-color: #ccc;
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-first:not(.cl-disabled).cl-hover,
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-last:not(.cl-disabled).cl-hover,
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-prev:not(.cl-disabled).cl-hover,
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-next:not(.cl-disabled).cl-hover,
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-first:not(.cl-disabled):hover,
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-last:not(.cl-disabled):hover,
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-prev:not(.cl-disabled):hover,
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-next:not(.cl-disabled):hover {
+  background-color: #DAEFFC;
+}
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-index:not(.cl-selected).cl-hover,
+.cl-pageindexer:not(.cl-disabled) .cl-pageindexer-index:not(.cl-selected):hover {
+  background-color: #DAEFFC;
 }
 .cl-pageindexer:not(.cl-disabled) .cl-pageindexer-first:active {
   background-image: url("icons/first-selected.png");

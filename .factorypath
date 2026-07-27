@@ -60,7 +60,7 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/com/googlecode/log4jdbc/log4jdbc/1.2/log4jdbc-1.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/commons-dbcp/commons-dbcp/1.4/commons-dbcp-1.4.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/commons-pool/commons-pool/1.5.4/commons-pool-1.5.4.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="EXTJAR" id="D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib2\tibero6-jdbc.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="EXTJAR" id="D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\tibero6-jdbc.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/bgee/log4jdbc-log4j2/log4jdbc-log4j2-jdbc4/1.16/log4jdbc-log4j2-jdbc4-1.16.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/net/sf/log4jdbc3/1.1/log4jdbc3-1.1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/springloaded/1.2.8.RELEASE/springloaded-1.2.8.RELEASE.jar" enabled="true" runInBatchMode="false"/>
@@ -91,7 +91,7 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/com/mchange/c3p0/0.9.5.4/c3p0-0.9.5.4.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/mchange/mchange-commons-java/0.2.15/mchange-commons-java-0.2.15.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/zaxxer/HikariCP-java7/2.4.13/HikariCP-java7-2.4.13.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="EXTJAR" id="D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib2\scpdb.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="EXTJAR" id="D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\scpdb.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="EXTJAR" id="D:\work\2022\20220113\ClipReport-5.0.132.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="EXTJAR" id="D:\work\2022\20220113\ClipReport_Common-5.0.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="EXTJAR" id="D:\work\2022\20220113\kings-e2e-filter-20191024-release-1.0-release.jar" enabled="true" runInBatchMode="false"/>
@@ -115,9 +115,9 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/commons-validator/commons-validator/1.7/commons-validator-1.7.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/commons-digester/commons-digester/2.1/commons-digester-2.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-config/5.1.5.RELEASE/spring-security-config-5.1.5.RELEASE.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-core/5.1.5.RELEASE/spring-security-core-5.1.5.RELEASE.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-acl/5.1.5.RELEASE/spring-security-acl-5.1.5.RELEASE.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-config/5.3.9.RELEASE/spring-security-config-5.3.9.RELEASE.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-core/5.3.9.RELEASE/spring-security-core-5.3.9.RELEASE.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-acl/5.3.9.RELEASE/spring-security-acl-5.3.9.RELEASE.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/spring-context/5.3.9/spring-context-5.3.9.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/spring-tx/5.3.9/spring-tx-5.3.9.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/spring-beans/5.3.9/spring-beans-5.3.9.jar" enabled="true" runInBatchMode="false"/>

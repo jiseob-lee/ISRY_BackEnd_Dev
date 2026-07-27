@@ -26,7 +26,7 @@
         
         <!-- <spring.maven.artifact.version>5.1.6.RELEASE</spring.maven.artifact.version> -->
         <spring.maven.artifact.version>5.3.9</spring.maven.artifact.version>
-        <springSecurity.maven.artifact.version>5.1.5.RELEASE</springSecurity.maven.artifact.version>
+        <springSecurity.maven.artifact.version>5.3.9.RELEASE</springSecurity.maven.artifact.version>
         
         
 		<egovframework.rte.version>3.10.0</egovframework.rte.version>
@@ -81,7 +81,7 @@
 		</repository>
 		<repository>
 			<id>egovframe</id>
-			<url>https://www.egovframe.go.kr/maven/</url>
+			<url>https://maven.egovframe.go.kr/maven/</url>
 			<releases>
 			</releases>
 			<snapshots>
@@ -384,7 +384,7 @@
 			<artifactId>scpdb</artifactId>
 			<version>4.0</version>
 			<scope>system</scope>
-			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib2\scpdb.jar</systemPath>
+			<systemPath>D:\workspace_20230908\ISRY_BackEnd_Dev\src\main\webapp\WEB-INF\lib\scpdb.jar</systemPath>
 		</dependency>
         
 
